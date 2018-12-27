@@ -12,6 +12,11 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -44,7 +49,7 @@ public class ServerlessProcessor extends AbstractProcessor {
                     String qualifiedName = packageElem.getQualifiedName().toString();
 
                     String handler;
-                    if (qualifiedName.isEmpty())  {
+                    if (qualifiedName.isEmpty()) {
                         handler = enclosing.getSimpleName().toString() + "::" + name;
                     } else {
                         handler = qualifiedName + "." + enclosing.getSimpleName().toString() + "::" + name;
@@ -56,7 +61,18 @@ public class ServerlessProcessor extends AbstractProcessor {
         }
 
         CloudFormationTemplate template = new CloudFormationTemplate(resources);
-        System.out.println(template);
+
+        if (template.valid()) {
+            try {
+                Path path = Paths.get(".nimbus/cloudformation-stack-update.json");
+                path.toFile().getParentFile().mkdirs();
+                byte[] strToBytes = template.toString().getBytes();
+                System.out.println(path.toAbsolutePath().toString());
+                Files.write(path, strToBytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         return true;
     }

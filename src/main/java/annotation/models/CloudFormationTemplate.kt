@@ -1,9 +1,12 @@
 package annotation.models
 
-import annotation.models.resource.Resource
 import org.json.JSONObject
 
 class CloudFormationTemplate(private val resources: JSONObject) {
+
+    fun valid(): Boolean {
+        return !resources.isEmpty
+    }
 
     override fun toString(): String {
         val template = JSONObject()
@@ -12,7 +15,7 @@ class CloudFormationTemplate(private val resources: JSONObject) {
         template.put("Description", "The AWS CloudFormation template for this Nimbus application")
         template.put("Resources", resources)
 
-        return template.toString()
+        return template.toString(2)
     }
 
 //    "AWSTemplateFormatVersion": "2010-09-09",
