@@ -1,4 +1,4 @@
-package parser.models
+package parser.models.unparsed
 
 class UnparsedDirectory {
 

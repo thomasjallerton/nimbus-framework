@@ -1,10 +1,7 @@
 package parser.services
 
-import parser.models.UnparsedDirectory
-import parser.models.UnparsedFile
-import java.io.BufferedReader
-import java.nio.file.Files
-import java.nio.file.Paths
+import parser.models.unparsed.UnparsedDirectory
+import parser.models.unparsed.UnparsedFile
 import java.io.File
 
 
