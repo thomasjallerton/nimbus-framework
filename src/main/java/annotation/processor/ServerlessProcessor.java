@@ -1,6 +1,10 @@
 package annotation.processor;
 
+import annotation.models.CloudFormationTemplate;
+import annotation.models.resource.FunctionResource;
+import annotation.models.resource.Resource;
 import com.google.auto.service.AutoService;
+import org.json.JSONObject;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -8,6 +12,8 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 @SupportedAnnotationTypes("annotation.annotations.ServerlessFunction")
@@ -23,6 +29,9 @@ public class ServerlessProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+
+        JSONObject resources = new JSONObject();
+
         for (TypeElement annotation : annotations) {
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
             //Should be a handler
@@ -40,10 +49,15 @@ public class ServerlessProcessor extends AbstractProcessor {
                     } else {
                         handler = qualifiedName + "." + enclosing.getSimpleName().toString() + "::" + name;
                     }
-                    System.out.println(handler);
+                    Resource function = new FunctionResource(handler, enclosing.getSimpleName().toString());
+                    resources.put(enclosing.getSimpleName().toString() + "Function", function.toCloudFormation());
                 }
             }
         }
+
+        CloudFormationTemplate template = new CloudFormationTemplate(resources);
+        System.out.println(template);
+
         return true;
     }
 }
