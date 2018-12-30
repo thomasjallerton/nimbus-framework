@@ -3,13 +3,20 @@ package annotation.models.resource
 import org.json.JSONArray
 import org.json.JSONObject
 
-class FunctionResource (
+class FunctionResource(
         private val handler: String,
         private val name: String
-): Resource {
+) : Resource {
+    override fun getArn(suffix: String): JSONObject {
+        return JSONObject()
+    }
 
     private val timeout: Int = 5
     private val memory: Int = 1024
+
+    override fun getName(): String {
+        return "${name}Function"
+    }
 
     override fun toCloudFormation(): JSONObject {
         val functionResource = JSONObject()
