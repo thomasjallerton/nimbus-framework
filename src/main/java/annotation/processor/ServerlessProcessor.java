@@ -1,9 +1,11 @@
 package annotation.processor;
 
 import annotation.models.CloudFormationTemplate;
+import annotation.models.outputs.BucketNameOutput;
+import annotation.models.outputs.Output;
+import annotation.models.outputs.OutputCollection;
 import annotation.models.resource.*;
 import com.google.auto.service.AutoService;
-import org.json.JSONObject;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -32,7 +34,11 @@ public class ServerlessProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-        ResourceCollection resources = new ResourceCollection();
+        ResourceCollection updateResources = new ResourceCollection();
+        ResourceCollection createResources = new ResourceCollection();
+
+        OutputCollection updateOutputs = new OutputCollection();
+        OutputCollection createOutputs = new OutputCollection();
 
         for (TypeElement annotation : annotations) {
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
@@ -64,22 +70,36 @@ public class ServerlessProcessor extends AbstractProcessor {
                     lambdaPolicy.addAllowStatement("logs:CreateLogStream", logGroup, ":*");
                     lambdaPolicy.addAllowStatement("logs:PutLogEvents", logGroup, ":*:*");
 
-                    resources.addResource(function);
-                    resources.addResource(logGroup);
-                    resources.addResource(bucket);
+                    updateResources.addResource(function);
+                    updateResources.addResource(logGroup);
+                    updateResources.addResource(bucket);
 
+                    createResources.addResource(bucket);
+
+                    Output bucketName = new BucketNameOutput();
+                    createOutputs.addOutput(bucketName);
+                    updateOutputs.addOutput(bucketName);
                 }
             }
-            System.out.println("AHA IT IS NEW");
+
             IamRoleResource iamRole = new IamRoleResource(lambdaPolicy);
-            resources.addResource(iamRole);
+            updateResources.addResource(iamRole);
         }
 
-        CloudFormationTemplate template = new CloudFormationTemplate(resources);
+        CloudFormationTemplate update = new CloudFormationTemplate(updateResources, updateOutputs);
+        CloudFormationTemplate create = new CloudFormationTemplate(createResources, createOutputs);
 
+        saveFile("cloudformation-stack-update", update);
+        saveFile("cloudformation-stack-create", create);
+
+
+        return true;
+    }
+
+    private void saveFile(String name, CloudFormationTemplate template) {
         if (template.valid()) {
             try {
-                Path path = Paths.get(".nimbus/cloudformation-stack-update.json");
+                Path path = Paths.get(".nimbus/" + name + ".json");
                 path.toFile().getParentFile().mkdirs();
                 byte[] strToBytes = template.toString().getBytes();
                 System.out.println(path.toAbsolutePath().toString());
@@ -88,7 +108,5 @@ public class ServerlessProcessor extends AbstractProcessor {
                 e.printStackTrace();
             }
         }
-
-        return true;
     }
 }

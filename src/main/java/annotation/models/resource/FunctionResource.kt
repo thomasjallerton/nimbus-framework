@@ -28,7 +28,7 @@ class FunctionResource(
         s3Bucket.put("Ref", "NimbusDeploymentBucket")
 
         code.put("S3Bucket", s3Bucket)
-        code.put("S3Key", "nimbus/projectname/stage/blah") //TODO figure out this part
+        code.put("S3Key", "nimbus/projectname/lambdacode")
 
         properties.put("Code", code)
         properties.put("FunctionName", name)
@@ -47,7 +47,7 @@ class FunctionResource(
 
         val dependsOn = JSONArray()
         dependsOn.put("IamRoleLambdaExecution")
-        properties.put("DependsOn", dependsOn)
+        functionResource.put("DependsOn", dependsOn)
 
         functionResource.put("Properties", properties)
 
