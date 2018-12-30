@@ -21,7 +21,7 @@ class LogGroupResource(
         logGroupResource.put("Type", "AWS::Logs::LogGroup")
 
         val properties = JSONObject()
-        properties.put("LogGroupName", "aws/lambda/$name")
+        properties.put("LogGroupName", "/aws/lambda/$name")
 
         logGroupResource.put("Properties", properties)
 

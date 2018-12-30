@@ -44,22 +44,19 @@ class IamRoleResource(
         val rolePolicyDocument = JSONObject()
         rolePolicyDocument.put("Version", "2012-10-17")
 
-        val statement1 = JSONObject()
-        statement1.put("Effect", "Allow")
+        val statement = JSONObject()
+        statement.put("Effect", "Allow")
         val principal = JSONObject()
         val service = JSONArray()
         service.put("lambda.amazonaws.com")
         principal.put("Service", service)
-        statement1.put("Principal", principal)
-
-        val statement2 = JSONObject()
+        statement.put("Principal", principal)
         val action = JSONArray()
-        action.put("stsAssumeRole")
-        statement2.put("Action", action)
+        action.put("sts:AssumeRole")
+        statement.put("Action", action)
 
         val statements = JSONArray()
-        statements.put(statement1)
-        statements.put(statement2)
+        statements.put(statement)
 
         rolePolicyDocument.put("Statement", statements)
 
