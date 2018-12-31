@@ -5,15 +5,7 @@ import org.json.JSONObject
 
 class IamRoleResource(
         private val policy: Policy
-): Resource {
-    override fun getArn(suffix: String): JSONObject {
-        val arn = JSONObject()
-        val list = JSONArray()
-        list.put("IamRoleLambdaExecution")
-        list.put("Arn")
-        arn.put("Fn::GetAtt", list)
-        return arn
-    }
+): Resource() {
 
     override fun toCloudFormation(): JSONObject {
         val iamRoleResource = JSONObject()

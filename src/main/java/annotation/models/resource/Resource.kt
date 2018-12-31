@@ -1,9 +1,24 @@
 package annotation.models.resource
 
+import org.json.JSONArray
 import org.json.JSONObject
 
-interface Resource {
-    fun toCloudFormation(): JSONObject
-    fun getName(): String
-    fun getArn(suffix: String = ""): JSONObject
+abstract class Resource {
+    abstract fun toCloudFormation(): JSONObject
+    abstract fun getName(): String
+
+    open fun getArn(suffix: String = ""): JSONObject {
+        val arn = JSONObject()
+        val roleFunc = JSONArray()
+        roleFunc.put(getName())
+        roleFunc.put("Arn")
+        arn.put("Fn::GetAtt", roleFunc)
+        return arn
+    }
+
+    open fun getRef(): JSONObject {
+        val ref =  JSONObject()
+        ref.put("Ref", getName())
+        return ref
+    }
 }

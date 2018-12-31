@@ -2,14 +2,13 @@ package annotation.models.resource
 
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.*
 
 class FunctionResource(
         private val handler: String,
-        private val name: String
-) : Resource {
-    override fun getArn(suffix: String): JSONObject {
-        return JSONObject()
-    }
+        private val name: String,
+        private val compliationTimeStamp: String
+) : Resource() {
 
     private val timeout: Int = 5
     private val memory: Int = 1024
@@ -28,7 +27,7 @@ class FunctionResource(
         s3Bucket.put("Ref", "NimbusDeploymentBucket")
 
         code.put("S3Bucket", s3Bucket)
-        code.put("S3Key", "nimbus/projectname/lambdacode")
+        code.put("S3Key", "nimbus/projectname/$compliationTimeStamp/lambdacode")
 
         properties.put("Code", code)
         properties.put("FunctionName", name)

@@ -2,10 +2,7 @@ package annotation.models.resource
 
 import org.json.JSONObject
 
-class NimbusBucketResource: Resource {
-    override fun getArn(suffix: String): JSONObject {
-        return JSONObject()
-    }
+class NimbusBucketResource: Resource() {
 
     override fun getName(): String {
         return "NimbusDeploymentBucket"
