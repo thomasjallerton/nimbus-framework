@@ -4,7 +4,8 @@ import org.json.JSONObject
 
 class LogGroupResource(
         private val name: String
-): Resource {
+): Resource() {
+
     override fun getArn(suffix: String): JSONObject {
         val arn = JSONObject()
         arn.put("Fn::Sub", "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/$name$suffix")
