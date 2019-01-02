@@ -1,14 +1,17 @@
 package annotation.models.resource
 
+import annotation.models.persisted.NimbusState
 import org.json.JSONObject
 
 class LogGroupResource(
-        private val name: String
-): Resource() {
+        private val name: String,
+        nimbusState: NimbusState
+): Resource(nimbusState) {
 
     override fun getArn(suffix: String): JSONObject {
         val arn = JSONObject()
-        arn.put("Fn::Sub", "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}:log-group:/aws/lambda/$name$suffix")
+        arn.put("Fn::Sub", "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}" +
+                ":log-group:/aws/lambda/${nimbusState.projectName}$name$suffix")
         return arn
     }
 
@@ -22,7 +25,7 @@ class LogGroupResource(
         logGroupResource.put("Type", "AWS::Logs::LogGroup")
 
         val properties = JSONObject()
-        properties.put("LogGroupName", "/aws/lambda/$name")
+        properties.put("LogGroupName", "/aws/lambda/${nimbusState.projectName}$name")
 
         logGroupResource.put("Properties", properties)
 

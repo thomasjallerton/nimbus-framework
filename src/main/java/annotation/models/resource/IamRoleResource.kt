@@ -1,11 +1,13 @@
 package annotation.models.resource
 
+import annotation.models.persisted.NimbusState
 import org.json.JSONArray
 import org.json.JSONObject
 
 class IamRoleResource(
-        private val policy: Policy
-): Resource() {
+        private val policy: Policy,
+        nimbusState: NimbusState
+): Resource(nimbusState) {
 
     override fun toCloudFormation(): JSONObject {
         val iamRoleResource = JSONObject()
@@ -21,7 +23,7 @@ class IamRoleResource(
 
         properties.put("Path", "/")
 
-        properties.put("RoleName", "project-stage-region-lambdaRole")
+        properties.put("RoleName", "${nimbusState.projectName}-stage-lambdaRole")
 
         iamRoleResource.put("Properties", properties)
 

@@ -1,17 +1,19 @@
 package annotation.models.resource
 
+import annotation.models.persisted.NimbusState
 import org.json.JSONArray
 import org.json.JSONObject
 
 class Policy(
-        private val name: String
+        private val name: String,
+        private val nimbusState: NimbusState
 ){
 
     private val statements: MutableMap<String, Statement> = mutableMapOf()
 
     fun toJson(): JSONObject {
         val policy = JSONObject()
-        policy.put("PolicyName", "nimbus-$name-policy")
+        policy.put("PolicyName", "${nimbusState.projectName}-$name-policy")
 
         val statementsJson = JSONArray()
         for (statement in statements.values) {

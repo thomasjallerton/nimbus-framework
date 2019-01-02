@@ -5,7 +5,10 @@ import annotation.models.outputs.BucketNameOutput;
 import annotation.models.outputs.Output;
 import annotation.models.outputs.OutputCollection;
 import annotation.models.persisted.NimbusState;
+import annotation.models.persisted.UserConfig;
 import annotation.models.resource.*;
+import annotation.services.FileService;
+import annotation.services.ReadUserConfigService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
@@ -31,7 +34,11 @@ import java.util.Set;
 public class ServerlessProcessor extends AbstractProcessor {
 
     //TODO: Add memoization so that on repeat processes do not have to run code again
-    NimbusState persistent = null;
+    private NimbusState nimbusState = null;
+
+    private FileService fileService = new FileService();
+
+    private UserConfig userConfig= new ReadUserConfigService().readUserConfig();
 
     @Override
     public synchronized void init(final ProcessingEnvironment processingEnv) {
@@ -41,13 +48,13 @@ public class ServerlessProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-        if (persistent == null) {
+        if (nimbusState == null) {
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat simpleDateFormat =
                     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSzzz", Locale.US);
 
             String compilationTime = simpleDateFormat.format(cal.getTime());
-            persistent = new NimbusState(compilationTime);
+            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime);
         }
 
         ResourceCollection updateResources = new ResourceCollection();
@@ -59,7 +66,7 @@ public class ServerlessProcessor extends AbstractProcessor {
         for (TypeElement annotation : annotations) {
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
 
-            Policy lambdaPolicy = new Policy("lambda");
+            Policy lambdaPolicy = new Policy("lambda", nimbusState);
 
             //Should be a handler
             for (Element element : annotatedElements) {
@@ -79,9 +86,9 @@ public class ServerlessProcessor extends AbstractProcessor {
                     }
 
 
-                    FunctionResource function = new FunctionResource(handler, name, persistent.getCompilationTimeStamp());
-                    Resource logGroup = new LogGroupResource(methodName);
-                    Resource bucket   = new NimbusBucketResource();
+                    FunctionResource function = new FunctionResource(handler, name, nimbusState);
+                    Resource logGroup = new LogGroupResource(methodName, nimbusState);
+                    NimbusBucketResource bucket   = new NimbusBucketResource(nimbusState);
 
                     lambdaPolicy.addAllowStatement("logs:CreateLogStream", logGroup, ":*");
                     lambdaPolicy.addAllowStatement("logs:PutLogEvents", logGroup, ":*:*");
@@ -92,45 +99,27 @@ public class ServerlessProcessor extends AbstractProcessor {
 
                     createResources.addResource(bucket);
 
-                    Output bucketName = new BucketNameOutput();
+                    Output bucketName = new BucketNameOutput(bucket, nimbusState);
                     createOutputs.addOutput(bucketName);
                     updateOutputs.addOutput(bucketName);
                 }
             }
 
-            IamRoleResource iamRole = new IamRoleResource(lambdaPolicy);
+            IamRoleResource iamRole = new IamRoleResource(lambdaPolicy, nimbusState);
             updateResources.addResource(iamRole);
         }
 
         CloudFormationTemplate update = new CloudFormationTemplate(updateResources, updateOutputs);
         CloudFormationTemplate create = new CloudFormationTemplate(createResources, createOutputs);
 
-        saveTemplate("cloudformation-stack-update", update);
-        saveTemplate("cloudformation-stack-create", create);
+        fileService.saveTemplate("cloudformation-stack-update", update);
+        fileService.saveTemplate("cloudformation-stack-create", create);
         ObjectMapper mapper = new ObjectMapper();
         try {
-            saveJsonFIle("nimbus-state", mapper.writeValueAsString(persistent));
+            fileService.saveJsonFile("nimbus-state", mapper.writeValueAsString(nimbusState));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
         return true;
-    }
-
-    private void saveTemplate(String name, CloudFormationTemplate template) {
-        if (template.valid()) {
-            saveJsonFIle(name, template.toString());
-        }
-    }
-
-    private void saveJsonFIle(String name, String file) {
-        try {
-            Path path = Paths.get(".nimbus/" + name + ".json");
-            path.toFile().getParentFile().mkdirs();
-            byte[] strToBytes = file.getBytes();
-            System.out.println(path.toAbsolutePath().toString());
-            Files.write(path, strToBytes);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }
