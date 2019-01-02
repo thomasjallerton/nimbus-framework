@@ -1,5 +1,6 @@
 package annotation.models.resource
 
+import annotation.models.persisted.NimbusState
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
@@ -7,8 +8,8 @@ import java.util.*
 class FunctionResource(
         private val handler: String,
         private val name: String,
-        private val compliationTimeStamp: String
-) : Resource() {
+        nimbusState: NimbusState
+) : Resource(nimbusState) {
 
     private val timeout: Int = 5
     private val memory: Int = 1024
@@ -27,7 +28,7 @@ class FunctionResource(
         s3Bucket.put("Ref", "NimbusDeploymentBucket")
 
         code.put("S3Bucket", s3Bucket)
-        code.put("S3Key", "nimbus/projectname/$compliationTimeStamp/lambdacode")
+        code.put("S3Key", "nimbus/${nimbusState.projectName}/${nimbusState.compilationTimeStamp}/lambdacode")
 
         properties.put("Code", code)
         properties.put("FunctionName", name)

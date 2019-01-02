@@ -1,9 +1,10 @@
 package annotation.models.resource
 
+import annotation.models.persisted.NimbusState
 import org.json.JSONArray
 import org.json.JSONObject
 
-abstract class Resource {
+abstract class Resource(protected val nimbusState: NimbusState) {
     abstract fun toCloudFormation(): JSONObject
     abstract fun getName(): String
 

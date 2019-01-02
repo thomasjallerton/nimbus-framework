@@ -1,8 +1,9 @@
 package annotation.models.resource
 
+import annotation.models.persisted.NimbusState
 import org.json.JSONObject
 
-class NimbusBucketResource: Resource() {
+class NimbusBucketResource(nimbusState: NimbusState): Resource(nimbusState) {
 
     override fun getName(): String {
         return "NimbusDeploymentBucket"

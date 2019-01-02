@@ -1,0 +1,39 @@
+package annotation.services
+
+import annotation.models.CloudFormationTemplate
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
+
+class FileService {
+    fun saveTemplate(name: String, template: CloudFormationTemplate) {
+        if (template.valid()) {
+            saveJsonFile(name, template.toString())
+        }
+    }
+
+    fun saveJsonFile(name: String, file: String) {
+        try {
+            val path = Paths.get(".nimbus/$name.json")
+            path.toFile().parentFile.mkdirs()
+            val strToBytes = file.toByteArray()
+            println(path.toAbsolutePath().toString())
+            Files.write(path, strToBytes)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+    }
+
+    fun getFileText(path: String): String {
+
+        try {
+            val encoded = Files.readAllBytes(Paths.get(path))
+            return String(encoded)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        return ""
+    }
+}
