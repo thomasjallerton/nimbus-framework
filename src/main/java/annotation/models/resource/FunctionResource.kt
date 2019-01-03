@@ -1,13 +1,13 @@
 package annotation.models.resource
 
 import annotation.models.persisted.NimbusState
-import org.json.JSONArray
-import org.json.JSONObject
-import java.util.*
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 
 class FunctionResource(
         private val handler: String,
-        private val name: String,
+        private val className: String,
+        private val methodName: String,
         nimbusState: NimbusState
 ) : Resource(nimbusState) {
 
@@ -15,70 +15,43 @@ class FunctionResource(
     private val memory: Int = 1024
 
     override fun getName(): String {
-        return "${name}Function"
+        return "$className${methodName}Function"
     }
 
-    override fun toCloudFormation(): JSONObject {
-        val functionResource = JSONObject()
-        functionResource.put("Type", "AWS::Lambda::Function")
+    override fun toCloudFormation(): JsonObject {
+        val functionResource = JsonObject()
+        functionResource.addProperty("Type", "AWS::Lambda::Function")
 
-        val properties = JSONObject()
-        val code = JSONObject()
-        val s3Bucket = JSONObject()
-        s3Bucket.put("Ref", "NimbusDeploymentBucket")
+        val properties = JsonObject()
+        val code = JsonObject()
+        val s3Bucket = JsonObject()
+        s3Bucket.addProperty("Ref", "NimbusDeploymentBucket")
 
-        code.put("S3Bucket", s3Bucket)
-        code.put("S3Key", "nimbus/${nimbusState.projectName}/${nimbusState.compilationTimeStamp}/lambdacode")
+        code.add("S3Bucket", s3Bucket)
+        code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${nimbusState.compilationTimeStamp}/lambdacode")
 
-        properties.put("Code", code)
-        properties.put("FunctionName", name)
-        properties.put("Handler", handler)
-        properties.put("MemorySize", memory)
+        properties.add("Code", code)
+        properties.addProperty("FunctionName", "${nimbusState.projectName}-$className-$methodName")
+        properties.addProperty("Handler", handler)
+        properties.addProperty("MemorySize", memory)
 
-        val role = JSONObject()
-        val roleFunc = JSONArray()
-        roleFunc.put("IamRoleLambdaExecution")
-        roleFunc.put("Arn")
-        role.put("Fn::GetAtt", roleFunc)
-        properties.put("Role", role)
+        val role = JsonObject()
+        val roleFunc = JsonArray()
+        roleFunc.add("IamRoleLambdaExecution")
+        roleFunc.add("Arn")
+        role.add("Fn::GetAtt", roleFunc)
+        properties.add("Role", role)
 
-        properties.put("Runtime", "java8")
-        properties.put("Timeout", timeout)
+        properties.addProperty("Runtime", "java8")
+        properties.addProperty("Timeout", timeout)
 
-        val dependsOn = JSONArray()
-        dependsOn.put("IamRoleLambdaExecution")
-        functionResource.put("DependsOn", dependsOn)
+        val dependsOn = JsonArray()
+        dependsOn.add("IamRoleLambdaExecution")
+        functionResource.add("DependsOn", dependsOn)
 
-        functionResource.put("Properties", properties)
+        functionResource.add("Properties", properties)
 
         return functionResource
     }
 
 }
-
-//"MessageQueueInsertToDynamoLambdaFunction": {
-//    "Type": "AWS::Lambda::Function",
-//    "Properties": {
-//        "Code": {
-//          "S3Bucket": {
-//              "Ref": "ServerlessDeploymentBucket"
-//           },
-//           "S3Key": "serverless/serverless-framework-test/dev/1543339335225-2018-11-27T17:22:15.225Z/target/serverless-test.jar"
-//        },
-//        "FunctionName": "serverless-framework-test-dev-messageQueueInsertToDynamo",
-//        "Handler": "handlers.MessageQueueHandler::handle",
-//        "MemorySize": 1024,
-//        "Role": {
-//          "Fn::GetAtt": [
-//              "IamRoleLambdaExecution",
-//              "Arn"
-//          ]
-//        },
-//        "Runtime": "java8",
-//        "Timeout": 6
-//    },
-//    "DependsOn": [
-//      "MessageQueueInsertToDynamoLogGroup",
-//      "IamRoleLambdaExecution"
-//    ]
-//}

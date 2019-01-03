@@ -1,8 +1,8 @@
 package annotation.models.resource
 
 import annotation.models.persisted.NimbusState
-import org.json.JSONArray
-import org.json.JSONObject
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 
 class Policy(
         private val name: String,
@@ -11,19 +11,19 @@ class Policy(
 
     private val statements: MutableMap<String, Statement> = mutableMapOf()
 
-    fun toJson(): JSONObject {
-        val policy = JSONObject()
-        policy.put("PolicyName", "${nimbusState.projectName}-$name-policy")
+    fun toJson(): JsonObject {
+        val policy = JsonObject()
+        policy.addProperty("PolicyName", "${nimbusState.projectName}-$name-policy")
 
-        val statementsJson = JSONArray()
+        val statementsJson = JsonArray()
         for (statement in statements.values) {
-            statementsJson.put(statement.toJson())
+            statementsJson.add(statement.toJson())
         }
-        val policyDocument = JSONObject()
-        policyDocument.put("Version", "2012-10-17")
-        policyDocument.put("Statement", statementsJson)
+        val policyDocument = JsonObject()
+        policyDocument.addProperty("Version", "2012-10-17")
+        policyDocument.add("Statement", statementsJson)
 
-        policy.put("PolicyDocument", policyDocument)
+        policy.add("PolicyDocument", policyDocument)
 
         return policy
     }
@@ -50,21 +50,21 @@ class Policy(
             resources.add(Pair(resource, suffix))
         }
 
-        fun toJson(): JSONObject {
-            val statement = JSONObject()
+        fun toJson(): JsonObject {
+            val statement = JsonObject()
 
-            statement.put("Effect", effect)
+            statement.addProperty("Effect", effect)
 
-            val actionJson = JSONArray()
-            actionJson.put(action)
-            statement.put("Action", actionJson)
+            val actionJson = JsonArray()
+            actionJson.add(action)
+            statement.add("Action", actionJson)
 
-            val resourceJson = JSONArray()
+            val resourceJson = JsonArray()
 
             for ((resource, suffix) in resources) {
-                resourceJson.put(resource.getArn(suffix))
+                resourceJson.add(resource.getArn(suffix))
             }
-            statement.put("Resource", resourceJson)
+            statement.add("Resource", resourceJson)
 
             return statement
         }

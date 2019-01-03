@@ -8,7 +8,7 @@ import java.nio.file.Paths
 class FileService {
     fun saveTemplate(name: String, template: CloudFormationTemplate) {
         if (template.valid()) {
-            saveJsonFile(name, template.toString())
+            saveJsonFile(name, template.getJsonTemplate())
         }
     }
 

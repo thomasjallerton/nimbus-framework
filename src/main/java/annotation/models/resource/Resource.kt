@@ -1,25 +1,25 @@
 package annotation.models.resource
 
 import annotation.models.persisted.NimbusState
-import org.json.JSONArray
-import org.json.JSONObject
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 
 abstract class Resource(protected val nimbusState: NimbusState) {
-    abstract fun toCloudFormation(): JSONObject
+    abstract fun toCloudFormation(): JsonObject
     abstract fun getName(): String
 
-    open fun getArn(suffix: String = ""): JSONObject {
-        val arn = JSONObject()
-        val roleFunc = JSONArray()
-        roleFunc.put(getName())
-        roleFunc.put("Arn")
-        arn.put("Fn::GetAtt", roleFunc)
+    open fun getArn(suffix: String = ""): JsonObject {
+        val arn = JsonObject()
+        val roleFunc = JsonArray()
+        roleFunc.add(getName())
+        roleFunc.add("Arn")
+        arn.add("Fn::GetAtt", roleFunc)
         return arn
     }
 
-    open fun getRef(): JSONObject {
-        val ref =  JSONObject()
-        ref.put("Ref", getName())
+    open fun getRef(): JsonObject {
+        val ref = JsonObject()
+        ref.addProperty("Ref", getName())
         return ref
     }
 }
