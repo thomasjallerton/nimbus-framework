@@ -1,31 +1,31 @@
 package annotation.models.resource
 
 import annotation.models.persisted.NimbusState
-import org.json.JSONArray
-import org.json.JSONObject
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 
 class IamRoleResource(
         private val policy: Policy,
         nimbusState: NimbusState
-): Resource(nimbusState) {
+) : Resource(nimbusState) {
 
-    override fun toCloudFormation(): JSONObject {
-        val iamRoleResource = JSONObject()
+    override fun toCloudFormation(): JsonObject {
+        val iamRoleResource = JsonObject()
 
-        iamRoleResource.put("Type", "AWS::IAM::Role")
+        iamRoleResource.addProperty("Type", "AWS::IAM::Role")
 
-        val properties = JSONObject()
-        properties.put("AssumeRolePolicyDocument", rolePolicyDocument())
+        val properties = JsonObject()
+        properties.add("AssumeRolePolicyDocument", rolePolicyDocument())
 
-        val policies = JSONArray()
-        policies.put(policy.toJson())
-        properties.put("Policies", policies)
+        val policies = JsonArray()
+        policies.add(policy.toJson())
+        properties.add("Policies", policies)
 
-        properties.put("Path", "/")
+        properties.addProperty("Path", "/")
 
-        properties.put("RoleName", "${nimbusState.projectName}-stage-lambdaRole")
+        properties.addProperty("RoleName", "${nimbusState.projectName}-stage-lambdaRole")
 
-        iamRoleResource.put("Properties", properties)
+        iamRoleResource.add("Properties", properties)
 
         return iamRoleResource
     }
@@ -34,25 +34,25 @@ class IamRoleResource(
         return "IamRoleLambdaExecution"
     }
 
-    private fun rolePolicyDocument(): JSONObject {
-        val rolePolicyDocument = JSONObject()
-        rolePolicyDocument.put("Version", "2012-10-17")
+    private fun rolePolicyDocument(): JsonObject {
+        val rolePolicyDocument = JsonObject()
+        rolePolicyDocument.addProperty("Version", "2012-10-17")
 
-        val statement = JSONObject()
-        statement.put("Effect", "Allow")
-        val principal = JSONObject()
-        val service = JSONArray()
-        service.put("lambda.amazonaws.com")
-        principal.put("Service", service)
-        statement.put("Principal", principal)
-        val action = JSONArray()
-        action.put("sts:AssumeRole")
-        statement.put("Action", action)
+        val statement = JsonObject()
+        statement.addProperty("Effect", "Allow")
+        val principal = JsonObject()
+        val service = JsonArray()
+        service.add("lambda.amazonaws.com")
+        principal.add("Service", service)
+        statement.add("Principal", principal)
+        val action = JsonArray()
+        action.add("sts:AssumeRole")
+        statement.add("Action", action)
 
-        val statements = JSONArray()
-        statements.put(statement)
+        val statements = JsonArray()
+        statements.add(statement)
 
-        rolePolicyDocument.put("Statement", statements)
+        rolePolicyDocument.add("Statement", statements)
 
         return rolePolicyDocument
     }

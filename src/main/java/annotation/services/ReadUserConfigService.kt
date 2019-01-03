@@ -3,10 +3,9 @@ package annotation.services
 import annotation.models.persisted.UserConfig
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.databind.ObjectMapper
+import configuration.CONFIG_FILE
 
 
-
-private const val CONFIG_FILE = "nimbus.yml"
 class ReadUserConfigService {
 
     private val fileService = FileService()

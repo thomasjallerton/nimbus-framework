@@ -1,9 +1,9 @@
 package annotation.models.outputs
 
 import annotation.models.persisted.NimbusState
-import org.json.JSONObject
+import com.google.gson.JsonObject
 
 abstract class Output(protected val nimbusState: NimbusState) {
     abstract fun getName(): String
-    abstract fun toCloudFormation(): JSONObject
+    abstract fun toCloudFormation(): JsonObject
 }

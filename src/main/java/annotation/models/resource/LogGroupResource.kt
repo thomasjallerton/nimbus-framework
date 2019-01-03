@@ -1,33 +1,34 @@
 package annotation.models.resource
 
 import annotation.models.persisted.NimbusState
-import org.json.JSONObject
+import com.google.gson.JsonObject
 
 class LogGroupResource(
-        private val name: String,
+        private val className: String,
+        private val methodName: String,
         nimbusState: NimbusState
 ): Resource(nimbusState) {
 
-    override fun getArn(suffix: String): JSONObject {
-        val arn = JSONObject()
-        arn.put("Fn::Sub", "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}" +
-                ":log-group:/aws/lambda/${nimbusState.projectName}$name$suffix")
+    override fun getArn(suffix: String): JsonObject {
+        val arn = JsonObject()
+        arn.addProperty("Fn::Sub", "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}" +
+                ":log-group:/aws/lambda/${nimbusState.projectName}-$className-$methodName$suffix")
         return arn
     }
 
     override fun getName(): String {
-        return "${name}LogGroup"
+        return "$className${methodName}LogGroup"
     }
 
-    override fun toCloudFormation(): JSONObject {
-        val logGroupResource = JSONObject()
+    override fun toCloudFormation(): JsonObject {
+        val logGroupResource = JsonObject()
 
-        logGroupResource.put("Type", "AWS::Logs::LogGroup")
+        logGroupResource.addProperty("Type", "AWS::Logs::LogGroup")
 
-        val properties = JSONObject()
-        properties.put("LogGroupName", "/aws/lambda/${nimbusState.projectName}$name")
+        val properties = JsonObject()
+        properties.addProperty("LogGroupName", "/aws/lambda/${nimbusState.projectName}-$className-$methodName")
 
-        logGroupResource.put("Properties", properties)
+        logGroupResource.add("Properties", properties)
 
         return logGroupResource
     }

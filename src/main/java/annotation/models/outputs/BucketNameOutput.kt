@@ -2,8 +2,8 @@ package annotation.models.outputs
 
 import annotation.models.persisted.NimbusState
 import annotation.models.resource.NimbusBucketResource
+import com.google.gson.JsonObject
 import configuration.DEPLOYMENT_BUCKET_NAME
-import org.json.JSONObject
 
 class BucketNameOutput(
         private val bucketResource: NimbusBucketResource,
@@ -13,17 +13,17 @@ class BucketNameOutput(
         return DEPLOYMENT_BUCKET_NAME
     }
 
-    override fun toCloudFormation(): JSONObject {
-        val bucketName = JSONObject()
-        val value = JSONObject()
+    override fun toCloudFormation(): JsonObject {
+        val bucketName = JsonObject()
+        val value = JsonObject()
 
-        value.put("Ref", bucketResource.getName())
-        bucketName.put("Value", value)
+        value.addProperty("Ref", bucketResource.getName())
+        bucketName.add("Value", value)
 
-        val export = JSONObject()
-        export.put("Name", "${nimbusState.projectName}-$DEPLOYMENT_BUCKET_NAME")
+        val export = JsonObject()
+        export.addProperty("Name", "${nimbusState.projectName}-$DEPLOYMENT_BUCKET_NAME")
 
-        bucketName.put("Export", export)
+        bucketName.add("Export", export)
 
         return bucketName
     }

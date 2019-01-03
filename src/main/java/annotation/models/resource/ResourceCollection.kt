@@ -1,23 +1,30 @@
 package annotation.models.resource
 
-import org.json.JSONObject
+import com.google.gson.JsonObject
 
 class ResourceCollection {
 
     private val resourceMap: MutableMap<String, Resource> = mutableMapOf()
 
     fun addResource(resource: Resource) {
-        resourceMap[resource.getName()] = resource
+        if (!resourceMap.containsKey(resource.getName())) {
+            resourceMap[resource.getName()] = resource
+        }
     }
 
     fun isEmpty(): Boolean {
         return resourceMap.isEmpty()
     }
 
-    fun toJson(): JSONObject {
-        val resources = JSONObject()
+    fun size(): Int {
+        return resourceMap.size
+    }
+
+    fun toJson(): JsonObject {
+        val resources = JsonObject()
+
         for (resource in resourceMap.values) {
-            resources.put(resource.getName(), resource.toCloudFormation())
+            resources.add(resource.getName(), resource.toCloudFormation())
         }
 
         return resources

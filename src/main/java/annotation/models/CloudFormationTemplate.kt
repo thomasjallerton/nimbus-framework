@@ -2,7 +2,12 @@ package annotation.models
 
 import annotation.models.outputs.OutputCollection
 import annotation.models.resource.ResourceCollection
-import org.json.JSONObject
+import com.google.gson.JsonObject
+import sun.plugin2.util.PojoUtil.toJson
+import com.google.gson.GsonBuilder
+import com.google.gson.Gson
+
+
 
 class CloudFormationTemplate(
         private val resources: ResourceCollection,
@@ -12,20 +17,19 @@ class CloudFormationTemplate(
         return !resources.isEmpty()
     }
 
-    override fun toString(): String {
-        val template = JSONObject()
+    fun getJsonTemplate(): String {
+        val template = JsonObject()
 
-        template.put("AWSTemplateFormatVersion", "2010-09-09")
-        template.put("Description", "The AWS CloudFormation template for this Nimbus application")
-        template.put("Resources", resources.toJson())
+        template.addProperty("AWSTemplateFormatVersion", "2010-09-09")
+        template.addProperty("Description", "The AWS CloudFormation template for this Nimbus application")
+        template.add("Resources", resources.toJson())
 
         if (!outputs.isEmpty()) {
-            template.put("Outputs", outputs.toJson())
+            template.add("Outputs", outputs.toJson())
         }
 
-        return template.toString(2)
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        return gson.toJson(template)
     }
 
-//    "AWSTemplateFormatVersion": "2010-09-09",
-//    "Description": "The AWS CloudFormation template for this Serverless application",
 }

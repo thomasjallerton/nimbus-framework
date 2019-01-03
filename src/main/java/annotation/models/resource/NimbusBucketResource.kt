@@ -1,7 +1,7 @@
 package annotation.models.resource
 
 import annotation.models.persisted.NimbusState
-import org.json.JSONObject
+import com.google.gson.JsonObject
 
 class NimbusBucketResource(nimbusState: NimbusState): Resource(nimbusState) {
 
@@ -9,9 +9,9 @@ class NimbusBucketResource(nimbusState: NimbusState): Resource(nimbusState) {
         return "NimbusDeploymentBucket"
     }
 
-    override fun toCloudFormation(): JSONObject {
-        val bucketResource = JSONObject()
-        bucketResource.put("Type", "AWS::S3::Bucket")
+    override fun toCloudFormation(): JsonObject {
+        val bucketResource = JsonObject()
+        bucketResource.addProperty("Type","AWS::S3::Bucket")
         return bucketResource
     }
 }
