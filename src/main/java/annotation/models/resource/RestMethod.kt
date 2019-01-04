@@ -13,7 +13,7 @@ class RestMethod (
 ): Resource(nimbusState){
 
     override fun getName(): String {
-        return "ApiGatewayMethod${parent.getPath()}"
+        return "ApiGatewayMethod${parent.getPath()}$method"
     }
 
     private fun formatRequestParams(): JsonObject {
