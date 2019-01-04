@@ -97,7 +97,14 @@ public class ServerlessProcessor extends AbstractProcessor {
                 PackageElement packageElem = (PackageElement) enclosing.getEnclosingElement();
                 String qualifiedName = packageElem.getQualifiedName().toString();
 
-                HttpServerlessFunctionFileBuilder fileBuilder = new HttpServerlessFunctionFileBuilder(processingEnv, className, methodName, qualifiedName, processingEnv.getMessager());
+                HttpServerlessFunctionFileBuilder fileBuilder = new HttpServerlessFunctionFileBuilder(
+                        processingEnv,
+                        className,
+                        methodName,
+                        qualifiedName,
+                        parameters,
+                        processingEnv.getMessager()
+                );
 
                 String handler = fileBuilder.getHandler();
 
@@ -108,7 +115,6 @@ public class ServerlessProcessor extends AbstractProcessor {
                 //Create wrapper code
                 fileBuilder.createClass(
                         qualifiedName,
-                        parameters,
                         returnType
                 );
             }
