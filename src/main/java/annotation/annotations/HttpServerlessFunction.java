@@ -8,6 +8,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
 public @interface HttpServerlessFunction {
-    public String method() default "POST";
-    public String path() default "";
+    public String method();
+    public String path();
 }

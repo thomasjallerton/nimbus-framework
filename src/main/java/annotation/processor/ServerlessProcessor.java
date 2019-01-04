@@ -14,15 +14,18 @@ import annotation.services.ReadUserConfigService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
+import wrappers.HttpServerlessFunctionFileBuilder;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.tools.JavaFileObject;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -87,21 +90,27 @@ public class ServerlessProcessor extends AbstractProcessor {
                 Element enclosing = type.getEnclosingElement();
                 String className = enclosing.getSimpleName().toString();
 
+                ExecutableType executableType = (ExecutableType)type.asType();
+                List<? extends TypeMirror> parameters = executableType.getParameterTypes();
+                TypeMirror returnType = executableType.getReturnType();
 
                 PackageElement packageElem = (PackageElement) enclosing.getEnclosingElement();
                 String qualifiedName = packageElem.getQualifiedName().toString();
 
-                String handler;
-                if (qualifiedName.isEmpty()) {
-                    handler = enclosing.getSimpleName().toString() + "::" + methodName;
-                } else {
-                    handler = qualifiedName + "." + className + "::" + methodName;
-                }
+                HttpServerlessFunctionFileBuilder fileBuilder = new HttpServerlessFunctionFileBuilder(processingEnv, className, methodName, qualifiedName, processingEnv.getMessager());
+
+                String handler = fileBuilder.getHandler();
 
                 FunctionResource functionResource = functionParserService.newFunction(handler, className, methodName);
 
                 functionParserService.newHttpMethod(httpFunction, functionResource);
 
+                //Create wrapper code
+                fileBuilder.createClass(
+                        qualifiedName,
+                        parameters,
+                        returnType
+                );
             }
         }
 
