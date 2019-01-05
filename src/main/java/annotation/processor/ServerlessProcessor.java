@@ -1,10 +1,12 @@
 package annotation.processor;
 
 import annotation.annotations.HttpServerlessFunction;
+import annotation.annotations.NotificationServerlessFunction;
 import annotation.models.CloudFormationTemplate;
 import annotation.models.outputs.OutputCollection;
 import annotation.models.persisted.NimbusState;
 import annotation.models.persisted.UserConfig;
+import annotation.models.processing.MethodInformation;
 import annotation.models.resource.*;
 import annotation.services.FileService;
 import annotation.services.FunctionParserService;
@@ -44,13 +46,11 @@ public class ServerlessProcessor extends AbstractProcessor {
 
     @Override
     public synchronized void init(final ProcessingEnvironment processingEnv) {
-        System.out.println("PROCESSOR INITED");
         super.init(processingEnv);
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        System.out.println("PROCESSOR PROCESSING SOMETHING");
         if (nimbusState == null) {
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat simpleDateFormat =
@@ -59,8 +59,6 @@ public class ServerlessProcessor extends AbstractProcessor {
             String compilationTime = simpleDateFormat.format(cal.getTime());
             nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime);
         }
-
-        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(HttpServerlessFunction.class);
 
         Policy lambdaPolicy = new Policy("lambda", nimbusState);
 
@@ -73,43 +71,9 @@ public class ServerlessProcessor extends AbstractProcessor {
                 nimbusState
         );
 
-        for (Element type : annotatedElements) {
-            HttpServerlessFunction httpFunction = type.getAnnotation(HttpServerlessFunction.class);
+        handleHttpServerlessFunction(roundEnv, functionParserService);
+        handleNotificationServerlessFunction(roundEnv, functionParserService);
 
-            if (type.getKind() == ElementKind.METHOD) {
-                String methodName = type.getSimpleName().toString();
-                Element enclosing = type.getEnclosingElement();
-                String className = enclosing.getSimpleName().toString();
-
-                ExecutableType executableType = (ExecutableType)type.asType();
-                List<? extends TypeMirror> parameters = executableType.getParameterTypes();
-                TypeMirror returnType = executableType.getReturnType();
-
-                PackageElement packageElem = (PackageElement) enclosing.getEnclosingElement();
-                String qualifiedName = packageElem.getQualifiedName().toString();
-
-                HttpServerlessFunctionFileBuilder fileBuilder = new HttpServerlessFunctionFileBuilder(
-                        processingEnv,
-                        className,
-                        methodName,
-                        qualifiedName,
-                        parameters,
-                        processingEnv.getMessager()
-                );
-
-                String handler = fileBuilder.getHandler();
-
-                FunctionResource functionResource = functionParserService.newFunction(handler, className, methodName);
-
-                functionParserService.newHttpMethod(httpFunction, functionResource);
-
-                //Create wrapper code
-                fileBuilder.createClass(
-                        qualifiedName,
-                        returnType
-                );
-            }
-        }
 
         IamRoleResource iamRole = new IamRoleResource(lambdaPolicy, nimbusState);
         updateResources.addResource(iamRole);
@@ -126,5 +90,74 @@ public class ServerlessProcessor extends AbstractProcessor {
             e.printStackTrace();
         }
         return true;
+    }
+
+    private void handleHttpServerlessFunction(RoundEnvironment roundEnv, FunctionParserService functionParserService) {
+        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(HttpServerlessFunction.class);
+
+        for (Element type : annotatedElements) {
+            HttpServerlessFunction httpFunction = type.getAnnotation(HttpServerlessFunction.class);
+
+            if (type.getKind() == ElementKind.METHOD) {
+                MethodInformation methodInformation = extractMethodInformation(type);
+
+
+                HttpServerlessFunctionFileBuilder fileBuilder = new HttpServerlessFunctionFileBuilder(
+                        processingEnv,
+                        methodInformation,
+                        processingEnv.getMessager()
+                );
+
+                String handler = fileBuilder.getHandler();
+
+                FunctionResource functionResource = functionParserService.newFunction(handler, methodInformation);
+
+                functionParserService.newHttpMethod(httpFunction, functionResource);
+
+                //Create wrapper code
+                fileBuilder.createClass();
+            }
+        }
+    }
+
+    private void handleNotificationServerlessFunction(RoundEnvironment roundEnv, FunctionParserService functionParserService) {
+        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(NotificationServerlessFunction.class);
+
+        for (Element type : annotatedElements) {
+            NotificationServerlessFunction notificationFunction = type.getAnnotation(NotificationServerlessFunction.class);
+
+            if (type.getKind() == ElementKind.METHOD) {
+                MethodInformation methodInformation = extractMethodInformation(type);
+
+                String handler;
+                if (methodInformation.getQualifiedName().isEmpty()) {
+                    handler = methodInformation.getClassName() + "::" + methodInformation.getMethodName();
+                } else {
+                    handler = methodInformation.getQualifiedName() + "." +
+                            methodInformation.getClassName() + "::" + methodInformation.getMethodName();
+                }
+
+                FunctionResource functionResource = functionParserService.newFunction(handler, methodInformation);
+
+                functionParserService.newNotification(notificationFunction, functionResource);
+
+                //TODO:Create wrapper code
+            }
+        }
+    }
+
+    private MethodInformation extractMethodInformation(Element type) {
+        String methodName = type.getSimpleName().toString();
+        Element enclosing = type.getEnclosingElement();
+        String className = enclosing.getSimpleName().toString();
+
+        ExecutableType executableType = (ExecutableType)type.asType();
+        List<? extends TypeMirror> parameters = executableType.getParameterTypes();
+        TypeMirror returnType = executableType.getReturnType();
+
+        PackageElement packageElem = (PackageElement) enclosing.getEnclosingElement();
+        String qualifiedName = packageElem.getQualifiedName().toString();
+
+        return new MethodInformation(className, methodName, qualifiedName, parameters, returnType);
     }
 }

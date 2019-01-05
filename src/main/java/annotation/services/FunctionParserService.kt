@@ -1,9 +1,11 @@
 package annotation.services
 
 import annotation.annotations.HttpServerlessFunction
+import annotation.annotations.NotificationServerlessFunction
 import annotation.models.outputs.BucketNameOutput
 import annotation.models.outputs.OutputCollection
 import annotation.models.persisted.NimbusState
+import annotation.models.processing.MethodInformation
 import annotation.models.resource.*
 
 class FunctionParserService(
@@ -15,9 +17,9 @@ class FunctionParserService(
         private val nimbusState: NimbusState
 ) {
 
-    fun newFunction(handler: String, className: String, methodName: String): FunctionResource {
-        val function = FunctionResource(handler, className, methodName, nimbusState)
-        val logGroup = LogGroupResource(className, methodName, nimbusState)
+    fun newFunction(handler: String, methodInformation: MethodInformation): FunctionResource {
+        val function = FunctionResource(handler, methodInformation.className, methodInformation.methodName, nimbusState)
+        val logGroup = LogGroupResource(methodInformation.className, methodInformation.methodName, nimbusState)
         val bucket = NimbusBucketResource(nimbusState)
 
         lambdaPolicy.addAllowStatement("logs:CreateLogStream", logGroup, ":*")
@@ -53,6 +55,15 @@ class FunctionParserService(
         updateResources.addResource(restMethod)
 
         val permission = FunctionPermissionResource(function, root, nimbusState)
+        updateResources.addResource(permission)
+    }
+
+    fun newNotification(notificationFunction: NotificationServerlessFunction, function: FunctionResource) {
+
+        val snsTopic = SnsTopicResource(notificationFunction.topic, function, nimbusState)
+        updateResources.addResource(snsTopic)
+
+        val permission = FunctionPermissionResource(function, snsTopic, nimbusState)
         updateResources.addResource(permission)
     }
 }
