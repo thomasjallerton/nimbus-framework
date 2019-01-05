@@ -1,5 +1,7 @@
 package wrappers
 
+import wrappers.models.Event
+import wrappers.models.LambdaProxyResponse
 import java.io.PrintWriter
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -43,98 +45,43 @@ class HttpServerlessFunctionFileBuilder(
                     messager.printMessage(Diagnostic.Kind.ERROR, "Not a valid http function handler (too many arguments)")
                 }
 
-                var inputParam: TypeMirror? = null
-                var inputParamIndex = 0
-                for (param in params) {
-                    if (param.toString() != "wrappers.models.Event") {
-                        inputParam = param
-                        break
-                    } else {
-                        inputParamIndex++
-                    }
-                }
+                val inputParam = findInputTypeAndIndex()
 
-                val builderFile = processingEnv.filer
-                        .createSourceFile(getGeneratedClassName())
+                val builderFile = processingEnv.filer.createSourceFile(getGeneratedClassName())
                 out = PrintWriter(builderFile.openWriter())
 
                 val packageName = findPackageName(qualifiedName)
 
                 if (packageName != "") write("package $packageName;")
 
-                write()
-
-                write("import com.fasterxml.jackson.databind.ObjectMapper;")
-                write("import com.amazonaws.services.lambda.runtime.Context;")
-                write("import java.io.*;")
-                write("import java.util.stream.Collectors;")
-                write("import $functionPath.$className;")
-                write("import wrappers.models.Event;")
-                write("import wrappers.models.LambdaProxyResponse;")
-
-                write()
+                writeImports()
 
                 write("public class HttpServerlessFunction$className$methodName {")
 
                 write()
 
-                incrementTabLevel()
-
                 write("public void nimbusHandle(InputStream input, OutputStream output, Context context) {")
-
-                incrementTabLevel()
 
                 write("ObjectMapper objectMapper = new ObjectMapper();")
                 write("try (BufferedReader buffer = new BufferedReader(new InputStreamReader(input))) {")
-                incrementTabLevel()
 
-                if (inputParam != null) {
-                    write("String inputText =  buffer.lines().collect(Collectors.joining(\"\\n\"));")
-
-                    write("String body = objectMapper.readTree(inputText).get(\"body\").asText();")
-
-                    write("$inputParam parsedType = objectMapper.readValue(body, $inputParam.class);")
-                }
+                writeInputs(inputParam)
 
                 write("$className handler = new $className();")
 
-                val callPrefix = if (returnType.toString() == "void") {
-                    ""
-                } else {
-                    "$returnType result = "
-                }
+                writeFunction(inputParam, returnType)
 
-                write("LambdaProxyResponse response = new LambdaProxyResponse();")
+                writeOutput(returnType)
 
-                when {
-                    inputParam == null -> write("${callPrefix}handler.$methodName(new Event(\"fuck\"));")
-                    inputParamIndex == 0 -> write("${callPrefix}handler.$methodName(parsedType, new Event(\"fuck\"));")
-                    else -> write("${callPrefix}handler.$methodName(new Event(\"fuck\"), parsedType);")
-                }
+                write("} catch (Exception e) {")
 
-                if (returnType.toString() != "void") {
-                    write("String resultString = objectMapper.writeValueAsString(result);")
-                    write("response.setBody(resultString);")
-                }
+                writeHandleError()
 
-                write("String responseString = objectMapper.writeValueAsString(response);")
-                write("PrintWriter writer = new PrintWriter(output);")
-                write("writer.print(responseString);")
-                write("writer.close();")
-                write("output.close();")
-
-
-                decrementTabLevel()
-                write("} catch (IOException e) {")
-                write("\te.printStackTrace();")
                 write("}")
                 write("return;")
 
-                decrementTabLevel()
 
                 write("}")
-
-                decrementTabLevel()
 
                 write("}")
 
@@ -145,20 +92,16 @@ class HttpServerlessFunctionFileBuilder(
         }
     }
 
-    private fun incrementTabLevel() {
-        tabLevel++
-    }
-
-    private fun decrementTabLevel() {
-        tabLevel--
-    }
-
     private fun write(toWrite: String = "") {
+        if (toWrite.startsWith("}")) tabLevel--
+
         var tabs = ""
         for (i in 1..tabLevel) {
             tabs += "\t"
         }
         out?.println("$tabs$toWrite")
+
+        if (toWrite.endsWith("{")) tabLevel++
     }
 
     private fun findPackageName(qualifiedName: String): String {
@@ -179,4 +122,92 @@ class HttpServerlessFunctionFileBuilder(
         return false
     }
 
+    private fun writeImports() {
+        write()
+
+        write("import com.fasterxml.jackson.databind.ObjectMapper;")
+        write("import com.amazonaws.services.lambda.runtime.Context;")
+        write("import java.io.*;")
+        write("import java.util.stream.Collectors;")
+        write("import $functionPath.$className;")
+        write("import ${Event::class.qualifiedName};")
+        write("import ${LambdaProxyResponse::class.qualifiedName};")
+
+        write()
+    }
+
+    private fun findInputTypeAndIndex(): InputParam {
+        var inputParamIndex = 0
+        for (param in params) {
+            if (param.toString() != "wrappers.models.Event") {
+                return InputParam(param, inputParamIndex)
+            } else {
+                inputParamIndex++
+            }
+        }
+        return InputParam(null, 0)
+    }
+
+    private data class InputParam(val type: TypeMirror?, val index: Int)
+
+    private fun writeInputs(inputParam: InputParam) {
+        if (inputParam.type != null) {
+            write("String inputText =  buffer.lines().collect(Collectors.joining(\"\\n\"));")
+
+            write("String body = objectMapper.readTree(inputText).get(\"body\").asText();")
+
+            write("${inputParam.type} parsedType = objectMapper.readValue(body, ${inputParam.type}.class);")
+        }
+
+    }
+
+    private fun writeFunction(inputParam: InputParam, returnType: TypeMirror) {
+        val callPrefix = if (returnType.toString() == "void") {
+            ""
+        } else {
+            "$returnType result = "
+        }
+
+        when {
+            inputParam.type == null -> write("${callPrefix}handler.$methodName(new Event(\"fuck\"));")
+            inputParam.index == 0 -> write("${callPrefix}handler.$methodName(parsedType, new Event(\"fuck\"));")
+            else -> write("${callPrefix}handler.$methodName(new Event(\"fuck\"), parsedType);")
+        }
+    }
+
+    private fun writeOutput(returnType: TypeMirror) {
+        if (returnType.toString() != LambdaProxyResponse::class.qualifiedName) {
+            write("LambdaProxyResponse response = new LambdaProxyResponse();")
+
+            if (returnType.toString() != "void") {
+                write("String resultString = objectMapper.writeValueAsString(result);")
+                write("response.setBody(resultString);")
+            }
+        } else {
+            write("LambdaProxyResponse response = result;")
+        }
+
+        write("String responseString = objectMapper.writeValueAsString(response);")
+        write("PrintWriter writer = new PrintWriter(output);")
+        write("writer.print(responseString);")
+        write("writer.close();")
+        write("output.close();")
+    }
+
+    private fun writeHandleError() {
+        write("e.printStackTrace();")
+
+        write("try {")
+        write("LambdaProxyResponse errorResponse = LambdaProxyResponse.Companion.serverErrorResponse();")
+        write("String responseString = objectMapper.writeValueAsString(errorResponse);")
+
+        write("PrintWriter writer = new PrintWriter(output);")
+        write("writer.print(responseString);")
+        write("writer.close();")
+        write("output.close();")
+
+        write("} catch (IOException e2) {")
+        write("e2.printStackTrace();")
+        write("}")
+    }
 }
