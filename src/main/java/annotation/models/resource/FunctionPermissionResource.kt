@@ -6,7 +6,7 @@ import com.google.gson.JsonObject
 
 class FunctionPermissionResource(
         private val function: FunctionResource,
-        private val restApi: RestApi,
+        private val trigger: FunctionTrigger,
         nimbusState: NimbusState
 ): Resource(nimbusState) {
     override fun toCloudFormation(): JsonObject {
@@ -23,7 +23,7 @@ class FunctionPermissionResource(
         joinFunc.add("")
 
         val join = JsonArray()
-        join.add("apigateway.")
+        join.add(trigger.getTriggerType())
 
         val urlSuffixRef = JsonObject()
         urlSuffixRef.addProperty("Ref", "AWS::URLSuffix")
@@ -35,7 +35,7 @@ class FunctionPermissionResource(
 
         properties.add("Principal", principal)
 
-        properties.add("SourceArn", restApi.getArn("/*/*"))
+        properties.add("SourceArn", trigger.getTriggerArn())
 
         permission.add("Properties", properties)
 

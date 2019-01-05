@@ -6,7 +6,15 @@ import com.google.gson.JsonObject
 
 class RestApi(
     nimbusState: NimbusState
-): AbstractRestResource(nimbusState) {
+): AbstractRestResource(nimbusState), FunctionTrigger {
+    override fun getTriggerArn(): JsonObject {
+        return getArn("/*/*")
+    }
+
+    override fun getTriggerType(): String {
+        return "apigateway."
+    }
+
     override fun getPath(): String {
         return ""
     }
@@ -58,21 +66,16 @@ class RestApi(
         val join = JsonArray()
         join.add("arn:")
 
-        val partitionRef = JsonObject()
-        partitionRef.addProperty("Ref", "AWS::Partition")
-        join.add(partitionRef)
+        join.add(getRefProperty("AWS::Partition"))
 
         join.add(":execute-api:")
 
-        val regionRef = JsonObject()
-        regionRef.addProperty("Ref", "AWS::Region")
-        join.add(regionRef)
+        join.add(getRefProperty("AWS::Region"))
+
 
         join.add(":")
 
-        val accountIdRef = JsonObject()
-        accountIdRef.addProperty("Ref", "AWS::AccountId")
-        join.add(accountIdRef)
+        join.add(getRefProperty("AWS::AccountId"))
 
         join.add(":")
 

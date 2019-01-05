@@ -1,5 +1,6 @@
 package wrappers.http
 
+import annotation.models.processing.MethodInformation
 import wrappers.http.models.Event
 import wrappers.http.models.LambdaProxyResponse
 import java.io.PrintWriter
@@ -10,10 +11,7 @@ import javax.tools.Diagnostic
 
 class HttpServerlessFunctionFileBuilder(
         private val processingEnv: ProcessingEnvironment,
-        private val className: String,
-        private val methodName: String,
-        private val functionPath: String,
-        private val params: List<TypeMirror>,
+        private val methodInformation: MethodInformation,
         private val messager: Messager
 ) {
 
@@ -23,10 +21,10 @@ class HttpServerlessFunctionFileBuilder(
 
     fun getHandler(): String {
         return if (customFunction()) {
-            if (functionPath == "") {
-                "$className::$methodName"
+            if (methodInformation.qualifiedName == "") {
+                "${methodInformation.className}::${methodInformation.methodName}"
             } else {
-                "$functionPath.$className::$methodName"
+                "${methodInformation.qualifiedName}.${methodInformation.className}::${methodInformation.methodName}"
             }
         } else {
             "${getGeneratedClassName()}::nimbusHandle"
@@ -34,14 +32,14 @@ class HttpServerlessFunctionFileBuilder(
     }
 
     private fun getGeneratedClassName(): String {
-        return "HttpServerlessFunction$className$methodName"
+        return "HttpServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 
-    fun createClass(qualifiedName: String, returnType: TypeMirror) {
+    fun createClass() {
         if (!customFunction()) {
             try {
 
-                if (params.size > 2) {
+                if (methodInformation.parameters.size > 2) {
                     messager.printMessage(Diagnostic.Kind.ERROR, "Not a valid http function handler (too many arguments)")
                 }
 
@@ -50,13 +48,13 @@ class HttpServerlessFunctionFileBuilder(
                 val builderFile = processingEnv.filer.createSourceFile(getGeneratedClassName())
                 out = PrintWriter(builderFile.openWriter())
 
-                val packageName = findPackageName(qualifiedName)
+                val packageName = findPackageName(methodInformation.qualifiedName)
 
                 if (packageName != "") write("package $packageName;")
 
                 writeImports()
 
-                write("public class HttpServerlessFunction$className$methodName {")
+                write("public class HttpServerlessFunction${methodInformation.className}${methodInformation.methodName} {")
 
                 write()
 
@@ -67,11 +65,11 @@ class HttpServerlessFunctionFileBuilder(
 
                 writeInputs(inputParam)
 
-                write("$className handler = new $className();")
+                write("${methodInformation.className} handler = new ${methodInformation.className}();")
 
-                writeFunction(inputParam, returnType)
+                writeFunction(inputParam)
 
-                writeOutput(returnType)
+                writeOutput()
 
                 write("} catch (Exception e) {")
 
@@ -114,6 +112,7 @@ class HttpServerlessFunctionFileBuilder(
     }
 
     private fun customFunction(): Boolean {
+        val params = methodInformation.parameters
         if (params.size == 3) {
             return (params[0].toString().contains("InputStream") &&
                     params[1].toString().contains("OutputStream") &&
@@ -129,8 +128,8 @@ class HttpServerlessFunctionFileBuilder(
         write("import com.amazonaws.services.lambda.runtime.Context;")
         write("import java.io.*;")
         write("import java.util.stream.Collectors;")
-        if (functionPath.isNotBlank()) {
-            write("import $functionPath.$className;")
+        if (methodInformation.qualifiedName.isNotBlank()) {
+            write("import ${methodInformation.qualifiedName}.${methodInformation.className};")
         }
         write("import ${Event::class.qualifiedName};")
         write("import ${LambdaProxyResponse::class.qualifiedName};")
@@ -140,7 +139,7 @@ class HttpServerlessFunctionFileBuilder(
 
     private fun findInputTypeAndIndex(): InputParam {
         var inputParamIndex = 0
-        for (param in params) {
+        for (param in methodInformation.parameters) {
             if (param.toString() != "wrappers.http.models.Event") {
                 return InputParam(param, inputParamIndex)
             } else {
@@ -163,25 +162,25 @@ class HttpServerlessFunctionFileBuilder(
 
     }
 
-    private fun writeFunction(inputParam: InputParam, returnType: TypeMirror) {
-        val callPrefix = if (returnType.toString() == "void") {
+    private fun writeFunction(inputParam: InputParam) {
+        val callPrefix = if (methodInformation.returnType.toString() == "void") {
             ""
         } else {
-            "$returnType result = "
+            "${methodInformation.returnType} result = "
         }
 
         when {
-            inputParam.type == null -> write("${callPrefix}handler.$methodName(event);")
-            inputParam.index == 0 -> write("${callPrefix}handler.$methodName(parsedType, event);")
-            else -> write("${callPrefix}handler.$methodName(event, parsedType);")
+            inputParam.type == null -> write("${callPrefix}handler.${methodInformation.methodName}(event);")
+            inputParam.index == 0 -> write("${callPrefix}handler.${methodInformation.methodName}(parsedType, event);")
+            else -> write("${callPrefix}handler.${methodInformation.methodName}(event, parsedType);")
         }
     }
 
-    private fun writeOutput(returnType: TypeMirror) {
-        if (returnType.toString() != LambdaProxyResponse::class.qualifiedName) {
+    private fun writeOutput() {
+        if (methodInformation.returnType.toString() != LambdaProxyResponse::class.qualifiedName) {
             write("LambdaProxyResponse response = new LambdaProxyResponse();")
 
-            if (returnType.toString() != "void") {
+            if (methodInformation.returnType.toString() != "void") {
                 write("String resultString = objectMapper.writeValueAsString(result);")
                 write("response.setBody(resultString);")
             }

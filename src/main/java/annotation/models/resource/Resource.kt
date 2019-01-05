@@ -22,4 +22,10 @@ abstract class Resource(protected val nimbusState: NimbusState) {
         ref.addProperty("Ref", getName())
         return ref
     }
+
+    protected fun getRefProperty(value: String): JsonObject {
+        val ref = JsonObject()
+        ref.addProperty("Ref", value)
+        return ref
+    }
 }
