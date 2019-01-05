@@ -63,7 +63,7 @@ class HttpServerlessFunctionFileBuilder(
                 write("public void nimbusHandle(InputStream input, OutputStream output, Context context) {")
 
                 write("ObjectMapper objectMapper = new ObjectMapper();")
-                write("try (BufferedReader buffer = new BufferedReader(new InputStreamReader(input))) {")
+                write("try {")
 
                 writeInputs(inputParam)
 
@@ -153,9 +153,8 @@ class HttpServerlessFunctionFileBuilder(
     private data class InputParam(val type: TypeMirror?, val index: Int)
 
     private fun writeInputs(inputParam: InputParam) {
-        write("String inputText =  buffer.lines().collect(Collectors.joining(\"\\n\"));")
 
-        write("Event event = objectMapper.readValue(inputText, Event.class);")
+        write("Event event = objectMapper.readValue(input, Event.class);")
 
         if (inputParam.type != null) {
             write("String body = event.getBody();")
