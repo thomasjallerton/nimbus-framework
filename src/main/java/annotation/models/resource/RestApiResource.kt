@@ -9,7 +9,8 @@ class RestApiResource(
         nimbusState: NimbusState
 ): AbstractRestResource(nimbusState) {
     override fun getPath(): String {
-        return parent.getPath() + pathPart
+        val fixedPathPart = pathPart.replace("[{}]".toRegex(), "")
+        return parent.getPath() + fixedPathPart
     }
 
     override fun getId(): JsonObject {

@@ -1,7 +1,7 @@
-package wrappers
+package wrappers.http
 
-import wrappers.models.Event
-import wrappers.models.LambdaProxyResponse
+import wrappers.http.models.Event
+import wrappers.http.models.LambdaProxyResponse
 import java.io.PrintWriter
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -129,7 +129,9 @@ class HttpServerlessFunctionFileBuilder(
         write("import com.amazonaws.services.lambda.runtime.Context;")
         write("import java.io.*;")
         write("import java.util.stream.Collectors;")
-        write("import $functionPath.$className;")
+        if (functionPath.isNotBlank()) {
+            write("import $functionPath.$className;")
+        }
         write("import ${Event::class.qualifiedName};")
         write("import ${LambdaProxyResponse::class.qualifiedName};")
 
@@ -139,7 +141,7 @@ class HttpServerlessFunctionFileBuilder(
     private fun findInputTypeAndIndex(): InputParam {
         var inputParamIndex = 0
         for (param in params) {
-            if (param.toString() != "wrappers.models.Event") {
+            if (param.toString() != "wrappers.http.models.Event") {
                 return InputParam(param, inputParamIndex)
             } else {
                 inputParamIndex++
@@ -151,11 +153,12 @@ class HttpServerlessFunctionFileBuilder(
     private data class InputParam(val type: TypeMirror?, val index: Int)
 
     private fun writeInputs(inputParam: InputParam) {
+        write("String inputText =  buffer.lines().collect(Collectors.joining(\"\\n\"));")
+
+        write("Event event = objectMapper.readValue(inputText, Event.class);")
+
         if (inputParam.type != null) {
-            write("String inputText =  buffer.lines().collect(Collectors.joining(\"\\n\"));")
-
-            write("String body = objectMapper.readTree(inputText).get(\"body\").asText();")
-
+            write("String body = event.getBody();")
             write("${inputParam.type} parsedType = objectMapper.readValue(body, ${inputParam.type}.class);")
         }
 
@@ -169,9 +172,9 @@ class HttpServerlessFunctionFileBuilder(
         }
 
         when {
-            inputParam.type == null -> write("${callPrefix}handler.$methodName(new Event(\"fuck\"));")
-            inputParam.index == 0 -> write("${callPrefix}handler.$methodName(parsedType, new Event(\"fuck\"));")
-            else -> write("${callPrefix}handler.$methodName(new Event(\"fuck\"), parsedType);")
+            inputParam.type == null -> write("${callPrefix}handler.$methodName(event);")
+            inputParam.index == 0 -> write("${callPrefix}handler.$methodName(parsedType, event);")
+            else -> write("${callPrefix}handler.$methodName(event, parsedType);")
         }
     }
 

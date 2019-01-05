@@ -2,8 +2,6 @@ package annotation.processor;
 
 import annotation.annotations.HttpServerlessFunction;
 import annotation.models.CloudFormationTemplate;
-import annotation.models.outputs.BucketNameOutput;
-import annotation.models.outputs.Output;
 import annotation.models.outputs.OutputCollection;
 import annotation.models.persisted.NimbusState;
 import annotation.models.persisted.UserConfig;
@@ -14,21 +12,13 @@ import annotation.services.ReadUserConfigService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
-import wrappers.HttpServerlessFunctionFileBuilder;
+import wrappers.http.HttpServerlessFunctionFileBuilder;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
-import javax.tools.JavaFileObject;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -54,12 +44,13 @@ public class ServerlessProcessor extends AbstractProcessor {
 
     @Override
     public synchronized void init(final ProcessingEnvironment processingEnv) {
+        System.out.println("PROCESSOR INITED");
         super.init(processingEnv);
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-
+        System.out.println("PROCESSOR PROCESSING SOMETHING");
         if (nimbusState == null) {
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat simpleDateFormat =
