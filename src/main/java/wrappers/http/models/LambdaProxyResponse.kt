@@ -1,4 +1,4 @@
-package wrappers.models
+package wrappers.http.models
 
 data class LambdaProxyResponse(
         var statusCode: Int = 200,

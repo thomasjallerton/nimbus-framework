@@ -1,4 +1,4 @@
-package wrappers.models
+package wrappers.http.models
 
 import com.fasterxml.jackson.databind.ObjectMapper
 
