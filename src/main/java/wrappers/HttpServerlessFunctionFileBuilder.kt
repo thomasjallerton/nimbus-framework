@@ -61,7 +61,6 @@ class HttpServerlessFunctionFileBuilder(
                 val packageName = findPackageName(qualifiedName)
 
                 if (packageName != "") write("package $packageName;")
-                val inputType = inputParam!!
 
                 write()
 
@@ -86,13 +85,17 @@ class HttpServerlessFunctionFileBuilder(
                 incrementTabLevel()
 
                 write("ObjectMapper objectMapper = new ObjectMapper();")
-
                 write("try (BufferedReader buffer = new BufferedReader(new InputStreamReader(input))) {")
                 incrementTabLevel()
-                write("String inputText =  buffer.lines().collect(Collectors.joining(\"\\n\"));")
 
-                write("String body = objectMapper.readTree(inputText).get(\"body\").asText();")
-                write("$inputType parsedType = objectMapper.readValue(body, $inputType.class);")
+                if (inputParam != null) {
+                    write("String inputText =  buffer.lines().collect(Collectors.joining(\"\\n\"));")
+
+                    write("String body = objectMapper.readTree(inputText).get(\"body\").asText();")
+
+                    write("$inputParam parsedType = objectMapper.readValue(body, $inputParam.class);")
+                }
+
                 write("$className handler = new $className();")
 
                 val callPrefix = if (returnType.toString() == "void") {
@@ -103,10 +106,10 @@ class HttpServerlessFunctionFileBuilder(
 
                 write("LambdaProxyResponse response = new LambdaProxyResponse();")
 
-                if (inputParamIndex == 0) {
-                    write("${callPrefix}handler.$methodName(parsedType, new Event(\"fuck\"));")
-                } else {
-                    write("${callPrefix}handler.$methodName(new Event(\"fuck\"), parsedType);")
+                when {
+                    inputParam == null -> write("${callPrefix}handler.$methodName(new Event(\"fuck\"));")
+                    inputParamIndex == 0 -> write("${callPrefix}handler.$methodName(parsedType, new Event(\"fuck\"));")
+                    else -> write("${callPrefix}handler.$methodName(new Event(\"fuck\"), parsedType);")
                 }
 
                 if (returnType.toString() != "void") {
@@ -122,7 +125,7 @@ class HttpServerlessFunctionFileBuilder(
 
 
                 decrementTabLevel()
-                write("} catch (Exception e) {")
+                write("} catch (IOException e) {")
                 write("\te.printStackTrace();")
                 write("}")
                 write("return;")
@@ -171,7 +174,7 @@ class HttpServerlessFunctionFileBuilder(
         if (params.size == 3) {
             return (params[0].toString().contains("InputStream") &&
                     params[1].toString().contains("OutputStream") &&
-                    params[2].toString().contains("Context") )
+                    params[2].toString().contains("Context"))
         }
         return false
     }
