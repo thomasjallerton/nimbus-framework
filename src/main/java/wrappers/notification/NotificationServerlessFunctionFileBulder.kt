@@ -1,20 +1,22 @@
-package wrappers.http
+package wrappers.notification
 
 import annotation.models.processing.MethodInformation
 import wrappers.ServerlessFunctionFileBuilder
-import wrappers.http.models.HttpEvent
-import wrappers.http.models.LambdaProxyResponse
+import wrappers.notification.models.NotificationEvent
+import wrappers.notification.models.RecordCollection
+import wrappers.notification.models.SnsMessageFormat
 import java.io.PrintWriter
 import javax.annotation.processing.ProcessingEnvironment
 import javax.tools.Diagnostic
 
-class HttpServerlessFunctionFileBuilder(
+class NotificationServerlessFunctionFileBulder(
         private val processingEnv: ProcessingEnvironment,
         private val methodInformation: MethodInformation
 ): ServerlessFunctionFileBuilder(processingEnv, methodInformation) {
 
+
     override fun getGeneratedClassName(): String {
-        return "HttpServerlessFunction${methodInformation.className}${methodInformation.methodName}"
+        return "NotificationServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 
     fun createClass() {
@@ -45,13 +47,13 @@ class HttpServerlessFunctionFileBuilder(
                 write("ObjectMapper objectMapper = new ObjectMapper();")
                 write("try {")
 
+                write("String jsonString = new BufferedReader(new InputStreamReader(input)).lines().collect(Collectors.joining(\"\\n\"));")
+
                 writeInputs(inputParam)
 
                 write("${methodInformation.className} handler = new ${methodInformation.className}();")
 
                 writeFunction(inputParam)
-
-                writeOutput()
 
                 write("} catch (Exception e) {")
 
@@ -82,70 +84,45 @@ class HttpServerlessFunctionFileBuilder(
         if (methodInformation.qualifiedName.isNotBlank()) {
             write("import ${methodInformation.qualifiedName}.${methodInformation.className};")
         }
-        write("import ${HttpEvent::class.qualifiedName};")
-        write("import ${LambdaProxyResponse::class.qualifiedName};")
+        write("import ${NotificationEvent::class.qualifiedName};")
+        write("import ${RecordCollection::class.qualifiedName};")
+        write("import ${SnsMessageFormat::class.qualifiedName};")
 
         write()
     }
 
     private fun writeInputs(inputParam: InputParam) {
 
-        write("HttpEvent event = objectMapper.readValue(input, HttpEvent.class);")
+        write("RecordCollection records = objectMapper.readValue(jsonString, RecordCollection.class);")
 
         if (inputParam.type != null) {
-            write("String body = event.getBody();")
-            write("${inputParam.type} parsedType = objectMapper.readValue(body, ${inputParam.type}.class);")
+            write("NotificationEvent event = records.getRecords().get(0).getSns();")
+            write("SnsMessageFormat snsFormat = objectMapper.readValue(event.getMessage(), SnsMessageFormat.class);")
+            write("${inputParam.type} parsedType;")
+            write("if (snsFormat.getLambda() != null) {")
+            write("parsedType = objectMapper.readValue(snsFormat.getLambda(), ${inputParam.type}.class);")
+            write("} else if (snsFormat.getDefault() != null) {")
+            write("parsedType = objectMapper.readValue(snsFormat.getDefault(), ${inputParam.type}.class);")
+            write("} else {")
+            write("return;")
+            write("}")
         }
 
     }
 
     private fun writeFunction(inputParam: InputParam) {
-        val callPrefix = if (methodInformation.returnType.toString() == "void") {
-            ""
-        } else {
-            "${methodInformation.returnType} result = "
+        if (methodInformation.returnType.toString() != "void") {
+            messager.printMessage(Diagnostic.Kind.WARNING, "The function ${methodInformation.className}::" +
+                    "${methodInformation.methodName} has a return type which will be unused. It can be removed")
         }
 
         when {
-            inputParam.type == null -> write("${callPrefix}handler.${methodInformation.methodName}(event);")
-            inputParam.index == 0 -> write("${callPrefix}handler.${methodInformation.methodName}(parsedType, event);")
-            else -> write("${callPrefix}handler.${methodInformation.methodName}(event, parsedType);")
+            inputParam.index == 0 -> write("handler.${methodInformation.methodName}(parsedType, event);")
+            else -> write("handler.${methodInformation.methodName}(event, parsedType);")
         }
-    }
-
-    private fun writeOutput() {
-        if (methodInformation.returnType.toString() != LambdaProxyResponse::class.qualifiedName) {
-            write("LambdaProxyResponse response = new LambdaProxyResponse();")
-
-            if (methodInformation.returnType.toString() != "void") {
-                write("String resultString = objectMapper.writeValueAsString(result);")
-                write("response.setBody(resultString);")
-            }
-        } else {
-            write("LambdaProxyResponse response = result;")
-        }
-
-        write("String responseString = objectMapper.writeValueAsString(response);")
-        write("PrintWriter writer = new PrintWriter(output);")
-        write("writer.print(responseString);")
-        write("writer.close();")
-        write("output.close();")
     }
 
     private fun writeHandleError() {
         write("e.printStackTrace();")
-
-        write("try {")
-        write("LambdaProxyResponse errorResponse = LambdaProxyResponse.Companion.serverErrorResponse();")
-        write("String responseString = objectMapper.writeValueAsString(errorResponse);")
-
-        write("PrintWriter writer = new PrintWriter(output);")
-        write("writer.print(responseString);")
-        write("writer.close();")
-        write("output.close();")
-
-        write("} catch (IOException e2) {")
-        write("e2.printStackTrace();")
-        write("}")
     }
 }
