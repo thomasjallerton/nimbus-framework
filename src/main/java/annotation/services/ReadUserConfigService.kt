@@ -1,8 +1,8 @@
 package annotation.services
 
 import annotation.models.persisted.UserConfig
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import configuration.CONFIG_FILE
 
 

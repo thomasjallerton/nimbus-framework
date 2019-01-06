@@ -7,7 +7,10 @@ import annotation.models.outputs.OutputCollection;
 import annotation.models.persisted.NimbusState;
 import annotation.models.persisted.UserConfig;
 import annotation.models.processing.MethodInformation;
-import annotation.models.resource.*;
+import annotation.models.resource.FunctionResource;
+import annotation.models.resource.IamRoleResource;
+import annotation.models.resource.Policy;
+import annotation.models.resource.ResourceCollection;
 import annotation.services.FileService;
 import annotation.services.FunctionParserService;
 import annotation.services.ReadUserConfigService;
@@ -15,10 +18,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
 import wrappers.http.HttpServerlessFunctionFileBuilder;
+import wrappers.notification.NotificationServerlessFunctionFileBulder;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import java.text.SimpleDateFormat;
@@ -104,8 +111,7 @@ public class ServerlessProcessor extends AbstractProcessor {
 
                 HttpServerlessFunctionFileBuilder fileBuilder = new HttpServerlessFunctionFileBuilder(
                         processingEnv,
-                        methodInformation,
-                        processingEnv.getMessager()
+                        methodInformation
                 );
 
                 String handler = fileBuilder.getHandler();
@@ -114,7 +120,6 @@ public class ServerlessProcessor extends AbstractProcessor {
 
                 functionParserService.newHttpMethod(httpFunction, functionResource);
 
-                //Create wrapper code
                 fileBuilder.createClass();
             }
         }
@@ -129,19 +134,16 @@ public class ServerlessProcessor extends AbstractProcessor {
             if (type.getKind() == ElementKind.METHOD) {
                 MethodInformation methodInformation = extractMethodInformation(type);
 
-                String handler;
-                if (methodInformation.getQualifiedName().isEmpty()) {
-                    handler = methodInformation.getClassName() + "::" + methodInformation.getMethodName();
-                } else {
-                    handler = methodInformation.getQualifiedName() + "." +
-                            methodInformation.getClassName() + "::" + methodInformation.getMethodName();
-                }
+                NotificationServerlessFunctionFileBulder fileBuilder = new NotificationServerlessFunctionFileBulder(
+                        processingEnv,
+                        methodInformation
+                );
 
-                FunctionResource functionResource = functionParserService.newFunction(handler, methodInformation);
+                FunctionResource functionResource = functionParserService.newFunction(fileBuilder.getHandler(), methodInformation);
 
                 functionParserService.newNotification(notificationFunction, functionResource);
 
-                //TODO:Create wrapper code
+                fileBuilder.createClass();
             }
         }
     }

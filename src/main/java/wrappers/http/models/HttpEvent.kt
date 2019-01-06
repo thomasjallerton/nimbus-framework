@@ -3,7 +3,7 @@ package wrappers.http.models
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Event(
+data class HttpEvent(
         val resource: String? = null,
         val path: String? = null,
         val httpMethod: String? = null,

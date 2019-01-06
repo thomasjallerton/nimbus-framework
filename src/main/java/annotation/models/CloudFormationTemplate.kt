@@ -2,11 +2,8 @@ package annotation.models
 
 import annotation.models.outputs.OutputCollection
 import annotation.models.resource.ResourceCollection
-import com.google.gson.JsonObject
-import sun.plugin2.util.PojoUtil.toJson
 import com.google.gson.GsonBuilder
-import com.google.gson.Gson
-
+import com.google.gson.JsonObject
 
 
 class CloudFormationTemplate(
