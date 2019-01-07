@@ -17,7 +17,6 @@ class FileService {
             val path = Paths.get(".nimbus/$name.json")
             path.toFile().parentFile.mkdirs()
             val strToBytes = file.toByteArray()
-            println(path.toAbsolutePath().toString())
             Files.write(path, strToBytes)
         } catch (e: IOException) {
             e.printStackTrace()
