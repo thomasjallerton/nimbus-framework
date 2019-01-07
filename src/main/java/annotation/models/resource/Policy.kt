@@ -11,6 +11,7 @@ class Policy(
 
     private val statements: MutableMap<String, Statement> = mutableMapOf()
 
+
     fun toJson(): JsonObject {
         val policy = JsonObject()
         policy.addProperty("PolicyName", "${nimbusState.projectName}-$name-policy")

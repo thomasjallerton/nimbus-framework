@@ -2,12 +2,13 @@ package annotation.processor;
 
 import annotation.annotations.HttpServerlessFunction;
 import annotation.annotations.NotificationServerlessFunction;
+import annotation.annotations.QueueServerlessFunction;
 import annotation.models.CloudFormationTemplate;
 import annotation.models.outputs.OutputCollection;
 import annotation.models.persisted.NimbusState;
 import annotation.models.persisted.UserConfig;
 import annotation.models.processing.MethodInformation;
-import annotation.models.resource.FunctionResource;
+import annotation.models.resource.function.FunctionResource;
 import annotation.models.resource.IamRoleResource;
 import annotation.models.resource.Policy;
 import annotation.models.resource.ResourceCollection;
@@ -34,7 +35,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-@SupportedAnnotationTypes("annotation.annotations.HttpServerlessFunction")
+@SupportedAnnotationTypes({
+        "annotation.annotations.HttpServerlessFunction",
+        "annotation.annotations.QueueServerlessFunction",
+        "annotation.annotations.NotificationServerlessFunction"
+})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
 public class ServerlessProcessor extends AbstractProcessor {
@@ -80,7 +85,7 @@ public class ServerlessProcessor extends AbstractProcessor {
 
         handleHttpServerlessFunction(roundEnv, functionParserService);
         handleNotificationServerlessFunction(roundEnv, functionParserService);
-
+        handleQueueServerlessFunction(roundEnv, functionParserService);
 
         IamRoleResource iamRole = new IamRoleResource(lambdaPolicy, nimbusState);
         updateResources.addResource(iamRole);
@@ -148,6 +153,27 @@ public class ServerlessProcessor extends AbstractProcessor {
         }
     }
 
+    private void handleQueueServerlessFunction(RoundEnvironment roundEnv, FunctionParserService functionParserService) {
+        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(QueueServerlessFunction.class);
+
+        for (Element type : annotatedElements) {
+            QueueServerlessFunction notificationFunction = type.getAnnotation(QueueServerlessFunction.class);
+
+            if (type.getKind() == ElementKind.METHOD) {
+                MethodInformation methodInformation = extractMethodInformation(type);
+
+                NotificationServerlessFunctionFileBulder fileBuilder = new NotificationServerlessFunctionFileBulder(
+                        processingEnv,
+                        methodInformation
+                );
+
+                FunctionResource functionResource = functionParserService.newFunction(fileBuilder.getHandler(), methodInformation);
+
+                functionParserService.newQueue(notificationFunction, functionResource);
+            }
+        }
+    }
+
     private MethodInformation extractMethodInformation(Element type) {
         String methodName = type.getSimpleName().toString();
         Element enclosing = type.getEnclosingElement();
@@ -162,4 +188,5 @@ public class ServerlessProcessor extends AbstractProcessor {
 
         return new MethodInformation(className, methodName, qualifiedName, parameters, returnType);
     }
+
 }

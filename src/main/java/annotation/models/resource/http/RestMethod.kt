@@ -1,6 +1,8 @@
-package annotation.models.resource
+package annotation.models.resource.http
 
 import annotation.models.persisted.NimbusState
+import annotation.models.resource.function.FunctionResource
+import annotation.models.resource.Resource
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 

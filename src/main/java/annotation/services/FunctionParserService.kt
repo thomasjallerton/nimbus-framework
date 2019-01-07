@@ -2,11 +2,21 @@ package annotation.services
 
 import annotation.annotations.HttpServerlessFunction
 import annotation.annotations.NotificationServerlessFunction
+import annotation.annotations.QueueServerlessFunction
 import annotation.models.outputs.BucketNameOutput
 import annotation.models.outputs.OutputCollection
 import annotation.models.persisted.NimbusState
 import annotation.models.processing.MethodInformation
 import annotation.models.resource.*
+import annotation.models.resource.function.FunctionEventMappingResource
+import annotation.models.resource.function.FunctionPermissionResource
+import annotation.models.resource.function.FunctionResource
+import annotation.models.resource.http.AbstractRestResource
+import annotation.models.resource.http.RestApi
+import annotation.models.resource.http.RestApiResource
+import annotation.models.resource.http.RestMethod
+import annotation.models.resource.notification.SnsTopicResource
+import annotation.models.resource.queue.QueueResource
 
 class FunctionParserService(
         private val lambdaPolicy: Policy,
@@ -65,5 +75,19 @@ class FunctionParserService(
 
         val permission = FunctionPermissionResource(function, snsTopic, nimbusState)
         updateResources.addResource(permission)
+    }
+
+    fun newQueue(queueFunction: QueueServerlessFunction, function: FunctionResource) {
+
+        val sqsQueue = QueueResource(nimbusState)
+        updateResources.addResource(sqsQueue)
+
+        val eventMapping = FunctionEventMappingResource(sqsQueue, queueFunction.batchSize, function, nimbusState)
+        updateResources.addResource(eventMapping)
+
+        lambdaPolicy.addAllowStatement("sqs:ReceiveMessage", sqsQueue, "")
+        lambdaPolicy.addAllowStatement("sqs:DeleteMessage", sqsQueue, "")
+        lambdaPolicy.addAllowStatement( "sqs:GetQueueAttributes", sqsQueue, "")
+
     }
 }

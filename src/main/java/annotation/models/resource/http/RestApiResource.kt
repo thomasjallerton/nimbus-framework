@@ -1,4 +1,4 @@
-package annotation.models.resource
+package annotation.models.resource.http
 
 import annotation.models.persisted.NimbusState
 import com.google.gson.JsonObject
