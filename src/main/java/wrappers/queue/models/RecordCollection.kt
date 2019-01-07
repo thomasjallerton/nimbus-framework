@@ -1,7 +1,6 @@
-package wrappers.notification.models
+package wrappers.queue.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import wrappers.queue.models.QueueEvent
 
 class RecordCollection {
     @JsonProperty(value = "Records")

@@ -19,7 +19,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
 import wrappers.http.HttpServerlessFunctionFileBuilder;
-import wrappers.notification.NotificationServerlessFunctionFileBulder;
+import wrappers.notification.NotificationServerlessFunctionFileBuilder;
+import wrappers.queue.QueueServerlessFunctionFileBuilder;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -139,7 +140,7 @@ public class ServerlessProcessor extends AbstractProcessor {
             if (type.getKind() == ElementKind.METHOD) {
                 MethodInformation methodInformation = extractMethodInformation(type);
 
-                NotificationServerlessFunctionFileBulder fileBuilder = new NotificationServerlessFunctionFileBulder(
+                NotificationServerlessFunctionFileBuilder fileBuilder = new NotificationServerlessFunctionFileBuilder(
                         processingEnv,
                         methodInformation
                 );
@@ -162,7 +163,7 @@ public class ServerlessProcessor extends AbstractProcessor {
             if (type.getKind() == ElementKind.METHOD) {
                 MethodInformation methodInformation = extractMethodInformation(type);
 
-                NotificationServerlessFunctionFileBulder fileBuilder = new NotificationServerlessFunctionFileBulder(
+                QueueServerlessFunctionFileBuilder fileBuilder = new QueueServerlessFunctionFileBuilder(
                         processingEnv,
                         methodInformation
                 );
@@ -170,6 +171,8 @@ public class ServerlessProcessor extends AbstractProcessor {
                 FunctionResource functionResource = functionParserService.newFunction(fileBuilder.getHandler(), methodInformation);
 
                 functionParserService.newQueue(notificationFunction, functionResource);
+
+                fileBuilder.createClass();
             }
         }
     }

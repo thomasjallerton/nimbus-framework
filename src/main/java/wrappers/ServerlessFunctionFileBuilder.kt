@@ -75,4 +75,12 @@ abstract class ServerlessFunctionFileBuilder(
             ""
         }
     }
+
+    protected fun isAListType(type: TypeMirror): Boolean {
+        return type.toString().startsWith("java.util.List<")
+    }
+
+    protected fun findListType(list: TypeMirror): String {
+        return list.toString().substringAfter("<").substringBefore(">")
+    }
 }

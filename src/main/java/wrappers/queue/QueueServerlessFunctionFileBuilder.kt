@@ -1,22 +1,21 @@
-package wrappers.notification
+package wrappers.queue
 
 import annotation.models.processing.MethodInformation
 import wrappers.ServerlessFunctionFileBuilder
-import wrappers.notification.models.NotificationEvent
-import wrappers.notification.models.RecordCollection
-import wrappers.notification.models.SnsMessageFormat
+import wrappers.queue.models.QueueEvent
+import wrappers.queue.models.RecordCollection
 import java.io.PrintWriter
 import javax.annotation.processing.ProcessingEnvironment
 import javax.tools.Diagnostic
 
-class NotificationServerlessFunctionFileBulder(
+class QueueServerlessFunctionFileBuilder(
         private val processingEnv: ProcessingEnvironment,
         private val methodInformation: MethodInformation
-): ServerlessFunctionFileBuilder(processingEnv, methodInformation) {
+) : ServerlessFunctionFileBuilder(processingEnv, methodInformation) {
 
 
     override fun getGeneratedClassName(): String {
-        return "NotificationServerlessFunction${methodInformation.className}${methodInformation.methodName}"
+        return "QueueServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 
     fun createClass() {
@@ -24,7 +23,7 @@ class NotificationServerlessFunctionFileBulder(
             try {
 
                 if (methodInformation.parameters.size > 2) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Not a valid http function handler (too many arguments)")
+                    messager.printMessage(Diagnostic.Kind.ERROR, "Not a valid queue function handler (too many arguments)")
                 }
 
                 val inputParam = findInputTypeAndIndex()
@@ -81,12 +80,13 @@ class NotificationServerlessFunctionFileBulder(
         write("import com.amazonaws.services.lambda.runtime.Context;")
         write("import java.io.*;")
         write("import java.util.stream.Collectors;")
+        write("import java.util.List;")
+        write("import java.util.LinkedList;")
         if (methodInformation.qualifiedName.isNotBlank()) {
             write("import ${methodInformation.qualifiedName}.${methodInformation.className};")
         }
-        write("import ${NotificationEvent::class.qualifiedName};")
+        write("import ${QueueEvent::class.qualifiedName};")
         write("import ${RecordCollection::class.qualifiedName};")
-        write("import ${SnsMessageFormat::class.qualifiedName};")
 
         write()
     }
@@ -96,16 +96,17 @@ class NotificationServerlessFunctionFileBulder(
         write("RecordCollection records = objectMapper.readValue(jsonString, RecordCollection.class);")
 
         if (inputParam.type != null) {
-            write("NotificationEvent event = records.getRecords().get(0).getSns();")
-            write("SnsMessageFormat snsFormat = objectMapper.readValue(event.getMessage(), SnsMessageFormat.class);")
-            write("${inputParam.type} parsedType;")
-            write("if (snsFormat.getLambda() != null) {")
-            write("parsedType = objectMapper.readValue(snsFormat.getLambda(), ${inputParam.type}.class);")
-            write("} else if (snsFormat.getDefault() != null) {")
-            write("parsedType = objectMapper.readValue(snsFormat.getDefault(), ${inputParam.type}.class);")
-            write("} else {")
-            write("return;")
-            write("}")
+            write("List<QueueEvent> events = records.getRecords();")
+
+            if (isAListType(inputParam.type)) {
+                write("${inputParam.type} parsedType = new LinkedList();")
+                write("for (QueueEvent event : events) {")
+                write("parsedType.add(objectMapper.readValue(event.getBody(), ${findListType(inputParam.type)}.class));")
+                write("}")
+            } else {
+                write("for (QueueEvent event : events) {")
+                write("${inputParam.type} parsedType = objectMapper.readValue(event.getBody(), ${inputParam.type}.class);")
+            }
         }
 
     }
@@ -116,9 +117,20 @@ class NotificationServerlessFunctionFileBulder(
                     "${methodInformation.methodName} has a return type which will be unused. It can be removed")
         }
 
+        val eventVariable = if (inputParam.type != null && !isAListType(inputParam.type)) {
+            "event"
+        } else {
+            "events"
+        }
+
         when {
-            inputParam.index == 0 -> write("handler.${methodInformation.methodName}(parsedType, event);")
-            else -> write("handler.${methodInformation.methodName}(event, parsedType);")
+            methodInformation.parameters.size == 1 -> write("handler.${methodInformation.methodName}($eventVariable);")
+            inputParam.index == 0 -> write("handler.${methodInformation.methodName}(parsedType, $eventVariable);")
+            else -> write("handler.${methodInformation.methodName}($eventVariable, parsedType);")
+        }
+
+        if (inputParam.type != null && !isAListType(inputParam.type)) {
+            write("}")
         }
     }
 
