@@ -1,4 +1,4 @@
-package annotation.models.resource
+package annotation.models.resource.function
 
 import com.google.gson.JsonObject
 
