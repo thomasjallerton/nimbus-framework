@@ -12,6 +12,10 @@ class ResourceCollection {
         }
     }
 
+    fun get(id: String): Resource? {
+        return resourceMap[id]
+    }
+
     fun isEmpty(): Boolean {
         return resourceMap.isEmpty()
     }

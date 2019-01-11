@@ -1,13 +1,14 @@
 package annotation.services
 
-import annotation.annotations.HttpServerlessFunction
-import annotation.annotations.NotificationServerlessFunction
-import annotation.annotations.QueueServerlessFunction
+import annotation.annotations.function.HttpServerlessFunction
+import annotation.annotations.function.NotificationServerlessFunction
+import annotation.annotations.function.QueueServerlessFunction
 import annotation.models.outputs.BucketNameOutput
 import annotation.models.outputs.OutputCollection
 import annotation.models.persisted.NimbusState
 import annotation.models.processing.MethodInformation
 import annotation.models.resource.*
+import annotation.models.resource.function.FunctionConfig
 import annotation.models.resource.function.FunctionEventMappingResource
 import annotation.models.resource.function.FunctionPermissionResource
 import annotation.models.resource.function.FunctionResource
@@ -18,8 +19,8 @@ import annotation.models.resource.http.RestMethod
 import annotation.models.resource.notification.SnsTopicResource
 import annotation.models.resource.queue.QueueResource
 
-class FunctionParserService(
-        private val lambdaPolicy: Policy,
+class FunctionEnvironmentService(
+        val lambdaPolicy: Policy,
         private val createResources: ResourceCollection,
         private val updateResources: ResourceCollection,
         private val createOutputs: OutputCollection,
@@ -27,8 +28,8 @@ class FunctionParserService(
         private val nimbusState: NimbusState
 ) {
 
-    fun newFunction(handler: String, methodInformation: MethodInformation): FunctionResource {
-        val function = FunctionResource(handler, methodInformation.className, methodInformation.methodName, nimbusState)
+    fun newFunction(handler: String, methodInformation: MethodInformation, functionConfig: FunctionConfig): FunctionResource {
+        val function = FunctionResource(handler, methodInformation, functionConfig, nimbusState)
         val logGroup = LogGroupResource(methodInformation.className, methodInformation.methodName, nimbusState)
         val bucket = NimbusBucketResource(nimbusState)
 

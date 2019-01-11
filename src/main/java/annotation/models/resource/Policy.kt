@@ -39,8 +39,6 @@ class Policy(
         }
     }
 
-
-
     private inner class Statement(
             private val effect: String,
             private val action: String

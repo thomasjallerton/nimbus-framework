@@ -1,19 +1,25 @@
 package annotation.processor;
 
-import annotation.annotations.HttpServerlessFunction;
-import annotation.annotations.NotificationServerlessFunction;
-import annotation.annotations.QueueServerlessFunction;
+import annotation.annotations.function.HttpServerlessFunction;
+import annotation.annotations.function.NotificationServerlessFunction;
+import annotation.annotations.function.QueueServerlessFunction;
+import annotation.annotations.keyvalue.Key;
+import annotation.annotations.keyvalue.KeyValueStore;
+import annotation.annotations.keyvalue.UsesKeyValueStore;
 import annotation.models.CloudFormationTemplate;
 import annotation.models.outputs.OutputCollection;
 import annotation.models.persisted.NimbusState;
 import annotation.models.persisted.UserConfig;
 import annotation.models.processing.MethodInformation;
-import annotation.models.resource.function.FunctionResource;
 import annotation.models.resource.IamRoleResource;
 import annotation.models.resource.Policy;
+import annotation.models.resource.Resource;
 import annotation.models.resource.ResourceCollection;
+import annotation.models.resource.function.FunctionConfig;
+import annotation.models.resource.function.FunctionResource;
+import annotation.models.resource.keyvalue.KeyValueStoreResource;
 import annotation.services.FileService;
-import annotation.services.FunctionParserService;
+import annotation.services.FunctionEnvironmentService;
 import annotation.services.ReadUserConfigService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +35,9 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -37,9 +45,10 @@ import java.util.Locale;
 import java.util.Set;
 
 @SupportedAnnotationTypes({
-        "annotation.annotations.HttpServerlessFunction",
-        "annotation.annotations.QueueServerlessFunction",
-        "annotation.annotations.NotificationServerlessFunction"
+        "annotation.annotations.function.HttpServerlessFunction",
+        "annotation.annotations.function.QueueServerlessFunction",
+        "annotation.annotations.function.NotificationServerlessFunction",
+        "annotation.annotations.keyvalue.KeyValueStore"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
@@ -75,7 +84,7 @@ public class ServerlessProcessor extends AbstractProcessor {
 
         Policy lambdaPolicy = new Policy("lambda", nimbusState);
 
-        FunctionParserService functionParserService = new FunctionParserService(
+        FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(
                 lambdaPolicy,
                 createResources,
                 updateResources,
@@ -84,9 +93,10 @@ public class ServerlessProcessor extends AbstractProcessor {
                 nimbusState
         );
 
-        handleHttpServerlessFunction(roundEnv, functionParserService);
-        handleNotificationServerlessFunction(roundEnv, functionParserService);
-        handleQueueServerlessFunction(roundEnv, functionParserService);
+        handleKeyValueStore(roundEnv, updateResources);
+        handleHttpServerlessFunction(roundEnv, functionEnvironmentService);
+        handleNotificationServerlessFunction(roundEnv, functionEnvironmentService);
+        handleQueueServerlessFunction(roundEnv, functionEnvironmentService);
 
         IamRoleResource iamRole = new IamRoleResource(lambdaPolicy, nimbusState);
         updateResources.addResource(iamRole);
@@ -105,7 +115,7 @@ public class ServerlessProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void handleHttpServerlessFunction(RoundEnvironment roundEnv, FunctionParserService functionParserService) {
+    private void handleHttpServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
         Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(HttpServerlessFunction.class);
 
         for (Element type : annotatedElements) {
@@ -122,16 +132,19 @@ public class ServerlessProcessor extends AbstractProcessor {
 
                 String handler = fileBuilder.getHandler();
 
-                FunctionResource functionResource = functionParserService.newFunction(handler, methodInformation);
+                FunctionConfig config = new FunctionConfig(httpFunction.timeout(), httpFunction.memory());
+                FunctionResource functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config);
 
-                functionParserService.newHttpMethod(httpFunction, functionResource);
+                handleUseResources(type, functionResource, functionEnvironmentService.getLambdaPolicy(), updateResources);
+
+                functionEnvironmentService.newHttpMethod(httpFunction, functionResource);
 
                 fileBuilder.createClass();
             }
         }
     }
 
-    private void handleNotificationServerlessFunction(RoundEnvironment roundEnv, FunctionParserService functionParserService) {
+    private void handleNotificationServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
         Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(NotificationServerlessFunction.class);
 
         for (Element type : annotatedElements) {
@@ -145,20 +158,23 @@ public class ServerlessProcessor extends AbstractProcessor {
                         methodInformation
                 );
 
-                FunctionResource functionResource = functionParserService.newFunction(fileBuilder.getHandler(), methodInformation);
+                FunctionConfig config = new FunctionConfig(notificationFunction.timeout(), notificationFunction.memory());
+                FunctionResource functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config);
 
-                functionParserService.newNotification(notificationFunction, functionResource);
+                handleUseResources(type, functionResource, functionEnvironmentService.getLambdaPolicy(), updateResources);
+
+                functionEnvironmentService.newNotification(notificationFunction, functionResource);
 
                 fileBuilder.createClass();
             }
         }
     }
 
-    private void handleQueueServerlessFunction(RoundEnvironment roundEnv, FunctionParserService functionParserService) {
+    private void handleQueueServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
         Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(QueueServerlessFunction.class);
 
         for (Element type : annotatedElements) {
-            QueueServerlessFunction notificationFunction = type.getAnnotation(QueueServerlessFunction.class);
+            QueueServerlessFunction queueFunction = type.getAnnotation(QueueServerlessFunction.class);
 
             if (type.getKind() == ElementKind.METHOD) {
                 MethodInformation methodInformation = extractMethodInformation(type);
@@ -168,9 +184,12 @@ public class ServerlessProcessor extends AbstractProcessor {
                         methodInformation
                 );
 
-                FunctionResource functionResource = functionParserService.newFunction(fileBuilder.getHandler(), methodInformation);
+                FunctionConfig config = new FunctionConfig(queueFunction.timeout(), queueFunction.memory());
+                FunctionResource functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config);
 
-                functionParserService.newQueue(notificationFunction, functionResource);
+                handleUseResources(type, functionResource, functionEnvironmentService.getLambdaPolicy(), updateResources);
+
+                functionEnvironmentService.newQueue(queueFunction, functionResource);
 
                 fileBuilder.createClass();
             }
@@ -182,7 +201,7 @@ public class ServerlessProcessor extends AbstractProcessor {
         Element enclosing = type.getEnclosingElement();
         String className = enclosing.getSimpleName().toString();
 
-        ExecutableType executableType = (ExecutableType)type.asType();
+        ExecutableType executableType = (ExecutableType) type.asType();
         List<? extends TypeMirror> parameters = executableType.getParameterTypes();
         TypeMirror returnType = executableType.getReturnType();
 
@@ -192,4 +211,72 @@ public class ServerlessProcessor extends AbstractProcessor {
         return new MethodInformation(className, methodName, qualifiedName, parameters, returnType);
     }
 
+    private void handleKeyValueStore(RoundEnvironment roundEnv, ResourceCollection updateResources) {
+        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(KeyValueStore.class);
+
+        for (Element type : annotatedElements) {
+            KeyValueStore keyValueStore = type.getAnnotation(KeyValueStore.class);
+            String tableName;
+            if (!keyValueStore.tableName().equals("")) {
+                tableName = keyValueStore.tableName();
+            } else {
+                tableName = type.getSimpleName().toString();
+            }
+            KeyValueStoreResource kvsResource = new KeyValueStoreResource(tableName, nimbusState);
+
+            if (type.getKind() == ElementKind.CLASS) {
+
+                for (Element enclosedElement : type.getEnclosedElements()) {
+                    for (Key ignored : enclosedElement.getAnnotationsByType(Key.class)) {
+                        if (enclosedElement.getKind() == ElementKind.FIELD) {
+
+                            String typeName = enclosedElement.getSimpleName().toString();
+
+                            Object fieldType = enclosedElement.asType();
+
+                            kvsResource.addHashKey(typeName, fieldType);
+                        }
+                    }
+                }
+            }
+            updateResources.addResource(kvsResource);
+        }
+    }
+
+    private void handleUseResources(Element type, FunctionResource functionResource, Policy policy, ResourceCollection updateResources) {
+        for (UsesKeyValueStore usesKeyValueStore : type.getAnnotationsByType(UsesKeyValueStore.class)) {
+            KeyValueStore keyValueStore;
+            String tableName;
+
+            try
+            {
+                keyValueStore = usesKeyValueStore.dataModel().getDeclaredAnnotation(KeyValueStore.class);
+                if (!keyValueStore.tableName().equals("")) {
+                    tableName = keyValueStore.tableName();
+                } else {
+                    tableName = usesKeyValueStore.dataModel().getSimpleName();
+                }
+            }
+            catch( MirroredTypeException mte )
+            {
+                Types TypeUtils = this.processingEnv.getTypeUtils();
+                TypeElement typeElement =  (TypeElement)TypeUtils.asElement(mte.getTypeMirror());
+                keyValueStore = typeElement.getAnnotation(KeyValueStore.class);
+                if (!keyValueStore.tableName().equals("")) {
+                    tableName = keyValueStore.tableName();
+                } else {
+                    tableName = typeElement.getSimpleName().toString();
+                }
+            }
+
+            Resource resource = updateResources.get(tableName);
+
+            if (resource != null) {
+                policy.addAllowStatement("dynamodb:*", resource, "");
+            }
+        }
+    }
+
+
 }
+
