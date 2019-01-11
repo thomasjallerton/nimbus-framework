@@ -9,70 +9,21 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.tools.Diagnostic
 
 class HttpServerlessFunctionFileBuilder(
-        private val processingEnv: ProcessingEnvironment,
-        private val methodInformation: MethodInformation
+        processingEnv: ProcessingEnvironment,
+        methodInformation: MethodInformation
 ): ServerlessFunctionFileBuilder(processingEnv, methodInformation) {
 
     override fun getGeneratedClassName(): String {
         return "HttpServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 
-    fun createClass() {
-        if (!customFunction()) {
-            try {
-
-                if (methodInformation.parameters.size > 2) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Not a valid http function handler (too many arguments)")
-                }
-
-                val inputParam = findInputTypeAndIndex()
-
-                val builderFile = processingEnv.filer.createSourceFile(getGeneratedClassName())
-                out = PrintWriter(builderFile.openWriter())
-
-                val packageName = findPackageName(methodInformation.qualifiedName)
-
-                if (packageName != "") write("package $packageName;")
-
-                writeImports()
-
-                write("public class ${getGeneratedClassName()} {")
-
-                write()
-
-                write("public void nimbusHandle(InputStream input, OutputStream output, Context context) {")
-
-                write("ObjectMapper objectMapper = new ObjectMapper();")
-                write("try {")
-
-                writeInputs(inputParam)
-
-                write("${methodInformation.className} handler = new ${methodInformation.className}();")
-
-                writeFunction(inputParam)
-
-                writeOutput()
-
-                write("} catch (Exception e) {")
-
-                writeHandleError()
-
-                write("}")
-                write("return;")
-
-
-                write("}")
-
-                write("}")
-
-                out?.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+    override fun isValidFunction() {
+        if (methodInformation.parameters.size > 2) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "Not a valid http function handler (too many arguments)")
         }
     }
 
-    private fun writeImports() {
+    override fun writeImports() {
         write()
 
         write("import com.fasterxml.jackson.databind.ObjectMapper;")
@@ -88,9 +39,9 @@ class HttpServerlessFunctionFileBuilder(
         write()
     }
 
-    private fun writeInputs(inputParam: InputParam) {
+    override fun writeInputs(inputParam: InputParam) {
 
-        write("HttpEvent event = objectMapper.readValue(input, HttpEvent.class);")
+        write("HttpEvent event = objectMapper.readValue(jsonString, HttpEvent.class);")
 
         if (inputParam.type != null) {
             write("String body = event.getBody();")
@@ -99,7 +50,7 @@ class HttpServerlessFunctionFileBuilder(
 
     }
 
-    private fun writeFunction(inputParam: InputParam) {
+    override fun writeFunction(inputParam: InputParam) {
         val callPrefix = if (methodInformation.returnType.toString() == "void") {
             ""
         } else {
@@ -113,7 +64,7 @@ class HttpServerlessFunctionFileBuilder(
         }
     }
 
-    private fun writeOutput() {
+    override fun writeOutput() {
         if (methodInformation.returnType.toString() != LambdaProxyResponse::class.qualifiedName) {
             write("LambdaProxyResponse response = new LambdaProxyResponse();")
 
@@ -132,7 +83,7 @@ class HttpServerlessFunctionFileBuilder(
         write("output.close();")
     }
 
-    private fun writeHandleError() {
+    override fun writeHandleError() {
         write("e.printStackTrace();")
 
         write("try {")

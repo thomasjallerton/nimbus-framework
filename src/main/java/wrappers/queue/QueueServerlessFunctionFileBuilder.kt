@@ -9,71 +9,23 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.tools.Diagnostic
 
 class QueueServerlessFunctionFileBuilder(
-        private val processingEnv: ProcessingEnvironment,
-        private val methodInformation: MethodInformation
+        processingEnv: ProcessingEnvironment,
+        methodInformation: MethodInformation
 ) : ServerlessFunctionFileBuilder(processingEnv, methodInformation) {
 
+    override fun writeOutput() {}
+
+    override fun isValidFunction() {
+        if (methodInformation.parameters.size > 2) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "Not a valid queue function handler (too many arguments)")
+        }
+    }
 
     override fun getGeneratedClassName(): String {
         return "QueueServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 
-    fun createClass() {
-        if (!customFunction()) {
-            try {
-
-                if (methodInformation.parameters.size > 2) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Not a valid queue function handler (too many arguments)")
-                }
-
-                val inputParam = findInputTypeAndIndex()
-
-                val builderFile = processingEnv.filer.createSourceFile(getGeneratedClassName())
-                out = PrintWriter(builderFile.openWriter())
-
-                val packageName = findPackageName(methodInformation.qualifiedName)
-
-                if (packageName != "") write("package $packageName;")
-
-                writeImports()
-
-                write("public class ${getGeneratedClassName()} {")
-
-                write()
-
-                write("public void nimbusHandle(InputStream input, OutputStream output, Context context) {")
-
-                write("ObjectMapper objectMapper = new ObjectMapper();")
-                write("try {")
-
-                write("String jsonString = new BufferedReader(new InputStreamReader(input)).lines().collect(Collectors.joining(\"\\n\"));")
-
-                writeInputs(inputParam)
-
-                write("${methodInformation.className} handler = new ${methodInformation.className}();")
-
-                writeFunction(inputParam)
-
-                write("} catch (Exception e) {")
-
-                writeHandleError()
-
-                write("}")
-                write("return;")
-
-
-                write("}")
-
-                write("}")
-
-                out?.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private fun writeImports() {
+    override fun writeImports() {
         write()
 
         write("import com.fasterxml.jackson.databind.ObjectMapper;")
@@ -91,7 +43,7 @@ class QueueServerlessFunctionFileBuilder(
         write()
     }
 
-    private fun writeInputs(inputParam: InputParam) {
+    override fun writeInputs(inputParam: InputParam) {
 
         write("RecordCollection records = objectMapper.readValue(jsonString, RecordCollection.class);")
 
@@ -111,7 +63,7 @@ class QueueServerlessFunctionFileBuilder(
 
     }
 
-    private fun writeFunction(inputParam: InputParam) {
+    override fun writeFunction(inputParam: InputParam) {
         if (methodInformation.returnType.toString() != "void") {
             messager.printMessage(Diagnostic.Kind.WARNING, "The function ${methodInformation.className}::" +
                     "${methodInformation.methodName} has a return type which will be unused. It can be removed")
@@ -134,7 +86,7 @@ class QueueServerlessFunctionFileBuilder(
         }
     }
 
-    private fun writeHandleError() {
+    override fun writeHandleError() {
         write("e.printStackTrace();")
     }
 }

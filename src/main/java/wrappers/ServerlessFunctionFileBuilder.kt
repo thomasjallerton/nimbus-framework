@@ -7,8 +7,8 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.type.TypeMirror
 
 abstract class ServerlessFunctionFileBuilder(
-        private val processingEnv: ProcessingEnvironment,
-        private val methodInformation: MethodInformation
+        protected val processingEnv: ProcessingEnvironment,
+        protected val methodInformation: MethodInformation
 ) {
 
     private var tabLevel: Int = 0
@@ -18,6 +18,73 @@ abstract class ServerlessFunctionFileBuilder(
     protected val messager: Messager = processingEnv.messager
 
     protected abstract fun getGeneratedClassName(): String
+
+    protected abstract fun isValidFunction()
+
+    protected abstract fun writeImports()
+
+    protected abstract fun writeInputs(inputParam: InputParam)
+
+    protected abstract fun writeFunction(inputParam: InputParam)
+
+    protected abstract fun writeOutput()
+
+    protected abstract fun writeHandleError()
+
+    fun createClass() {
+        if (!customFunction()) {
+            try {
+
+                isValidFunction()
+
+                val inputParam = findInputTypeAndIndex()
+
+                val builderFile = processingEnv.filer.createSourceFile(getGeneratedClassName())
+                out = PrintWriter(builderFile.openWriter())
+
+                val packageName = findPackageName(methodInformation.qualifiedName)
+
+                if (packageName != "") write("package $packageName;")
+
+                writeImports()
+
+                write("public class ${getGeneratedClassName()} {")
+
+                write()
+
+                write("public void nimbusHandle(InputStream input, OutputStream output, Context context) {")
+
+                write("ObjectMapper objectMapper = new ObjectMapper();")
+                write("try {")
+
+                write("String jsonString = new BufferedReader(new InputStreamReader(input)).lines().collect(Collectors.joining(\"\\n\"));")
+
+                writeInputs(inputParam)
+
+                write("${methodInformation.className} handler = new ${methodInformation.className}();")
+
+                writeFunction(inputParam)
+
+                writeOutput()
+
+                write("} catch (Exception e) {")
+
+                writeHandleError()
+
+                write("}")
+                write("return;")
+
+
+                write("}")
+
+                write("}")
+
+                out?.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     fun getHandler(): String {
         return if (customFunction()) {
