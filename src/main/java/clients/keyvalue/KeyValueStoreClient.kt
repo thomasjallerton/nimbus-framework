@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import wrappers.keyvalue.exceptions.ConditionFailedException
 import java.lang.reflect.Field
 
-class KeyValueStoreClient<T>(val clazz: Class<T>) {
+class KeyValueStoreClient<T>(private val clazz: Class<T>) {
 
     private val client = AmazonDynamoDBClientBuilder.defaultClient()
 
