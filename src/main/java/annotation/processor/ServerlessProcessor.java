@@ -243,8 +243,8 @@ public class ServerlessProcessor extends AbstractProcessor {
         }
     }
 
-    private void handleUseResources(Element type, FunctionResource functionResource, Policy policy, ResourceCollection updateResources) {
-        for (UsesKeyValueStore usesKeyValueStore : type.getAnnotationsByType(UsesKeyValueStore.class)) {
+    private void handleUseResources(Element serverlessMethod, FunctionResource functionResource, Policy policy, ResourceCollection updateResources) {
+        for (UsesKeyValueStore usesKeyValueStore : serverlessMethod.getAnnotationsByType(UsesKeyValueStore.class)) {
             KeyValueStore keyValueStore;
             String tableName;
 
