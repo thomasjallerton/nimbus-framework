@@ -1,22 +1,20 @@
 package annotation.models.resource.function
 
 import annotation.models.persisted.NimbusState
+import annotation.models.processing.MethodInformation
 import annotation.models.resource.Resource
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
 class FunctionResource(
         private val handler: String,
-        private val className: String,
-        private val methodName: String,
+        private val methodInformation: MethodInformation,
+        private val functionConfig: FunctionConfig,
         nimbusState: NimbusState
 ) : Resource(nimbusState) {
 
-    private val timeout: Int = 5
-    private val memory: Int = 1024
-
     override fun getName(): String {
-        return "$className${methodName}Function"
+        return "${methodInformation.className}${methodInformation.methodName}Function"
     }
 
     override fun toCloudFormation(): JsonObject {
@@ -32,9 +30,9 @@ class FunctionResource(
         code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${nimbusState.compilationTimeStamp}/lambdacode")
 
         properties.add("Code", code)
-        properties.addProperty("FunctionName", "${nimbusState.projectName}-$className-$methodName")
+        properties.addProperty("FunctionName", "${nimbusState.projectName}-${methodInformation.className}-${methodInformation.methodName}")
         properties.addProperty("Handler", handler)
-        properties.addProperty("MemorySize", memory)
+        properties.addProperty("MemorySize", functionConfig.memory)
 
         val role = JsonObject()
         val roleFunc = JsonArray()
@@ -44,7 +42,7 @@ class FunctionResource(
         properties.add("Role", role)
 
         properties.addProperty("Runtime", "java8")
-        properties.addProperty("Timeout", timeout)
+        properties.addProperty("Timeout", functionConfig.timeout)
 
         val dependsOn = JsonArray()
         dependsOn.add("IamRoleLambdaExecution")
