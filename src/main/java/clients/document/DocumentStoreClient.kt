@@ -1,15 +1,14 @@
-package clients.keyvalue
+package clients.document
 
-import annotation.annotations.keyvalue.Attribute
-import annotation.annotations.keyvalue.Key
-import annotation.annotations.keyvalue.KeyValueStore
+import annotation.annotations.document.Attribute
+import annotation.annotations.document.Key
+import annotation.annotations.document.DocumentStore
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.*
 import com.fasterxml.jackson.databind.ObjectMapper
-import wrappers.keyvalue.exceptions.ConditionFailedException
 import java.lang.reflect.Field
 
-class KeyValueStoreClient<T>(private val clazz: Class<T>) {
+class DocumentStoreClient<T>(private val clazz: Class<T>) {
 
     private val client = AmazonDynamoDBClientBuilder.defaultClient()
 
@@ -18,8 +17,8 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
     private val tableName: String
 
     init {
-        val keyValueStoreAnnotation = clazz.getDeclaredAnnotation(KeyValueStore::class.java)
-        tableName = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else clazz.simpleName
+        val documentStoreAnnotation = clazz.getDeclaredAnnotation(DocumentStore::class.java)
+        tableName = if (documentStoreAnnotation.tableName != "") documentStoreAnnotation.tableName else clazz.simpleName
 
 
         for (field in clazz.declaredFields) {
@@ -33,7 +32,7 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
     }
 
 
-    fun saveItem(obj: T) {
+    fun put(obj: T) {
         val attributeMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
         for (attribute in allAttributes) {
@@ -49,31 +48,24 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
     fun deleteItem(obj: T) {
 
         val deleteItemRequest = DeleteItemRequest()
-                .withKey(getKeys(obj))
+                .withKey(objectToKeyMap(obj))
                 .withTableName(tableName)
-
 
         client.deleteItem(deleteItemRequest)
     }
 
-    @Throws(ConditionFailedException::class)
-    fun deleteItem(keyObj: T, conditionExpression: String, expressionValues: Map<String, Any>) {
+    fun deleteKey(keyObj: Any) {
 
-        val convertedValues = expressionValues.mapValues { entry -> toAttributeValue(entry.value) }
+        val convertedValue = toAttributeValue(keyObj)
 
-        try {
-            val deleteItemRequest = DeleteItemRequest()
-                    .withKey(getKeys(keyObj))
-                    .withConditionExpression(conditionExpression)
-                    .withExpressionAttributeValues(convertedValues)
-                    .withTableName(tableName)
-            client.deleteItem(deleteItemRequest)
-        } catch (e: ConditionalCheckFailedException) {
-            throw ConditionFailedException()
-        }
+        val deleteItemRequest = DeleteItemRequest()
+                .withKey(keyToKeyMap(keyObj))
+                .withTableName(tableName)
+
+        client.deleteItem(deleteItemRequest)
     }
 
-    fun scan(): List<T> {
+    fun getAll(): List<T> {
         val scanRequest = ScanRequest()
                 .withTableName(tableName)
         val scanResult = client.scan(scanRequest)
@@ -81,25 +73,13 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
         return scanResult.items.map { valueMap -> toObject(valueMap) }
     }
 
-    fun scan(conditionExpression: String, expressionValues: Map<String, Any>): List<T> {
+    fun get(keyObj: Any): List<T> {
 
-        val convertedValues = expressionValues.mapValues { entry -> toAttributeValue(entry.value) }
-
-        val scanRequest = ScanRequest()
-                .withFilterExpression(conditionExpression)
-                .withExpressionAttributeValues(convertedValues)
-                .withTableName(tableName)
-        val scanResult = client.scan(scanRequest)
-
-        return scanResult.items.map { valueMap -> toObject(valueMap) }
-    }
-
-    fun query(keyMap: Map<String, Any>): List<T> {
+        val keyMap = keyToKeyMap(keyObj)
 
         val convertedMap = keyMap.mapValues { entry ->
-            Condition().withComparisonOperator("EQ").withAttributeValueList(listOf(toAttributeValue(entry.value)))
+            Condition().withComparisonOperator("EQ").withAttributeValueList(listOf(entry.value))
         }
-
 
         val queryRequest = QueryRequest()
                 .withKeyConditions(convertedMap)
@@ -128,12 +108,24 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
         }
     }
 
-    private fun getKeys(obj: T): Map<String, AttributeValue> {
+    private fun objectToKeyMap(obj: T): Map<String, AttributeValue> {
         val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
         for (key in keys) {
             key.isAccessible = true
             keyMap[key.name] = toAttributeValue(key.get(obj))
+        }
+        return keyMap
+    }
+
+    private fun keyToKeyMap(keyObj: Any): Map<String, AttributeValue> {
+        if (keys.size > 1) {
+            throw Exception("Composite key shouldn't exist!!")
+        }
+        val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
+
+        for (key in keys) {
+            keyMap[key.name] = toAttributeValue(keyObj)
         }
         return keyMap
     }

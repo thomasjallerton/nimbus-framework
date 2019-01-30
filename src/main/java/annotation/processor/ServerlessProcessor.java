@@ -1,11 +1,11 @@
 package annotation.processor;
 
+import annotation.annotations.document.DocumentStore;
 import annotation.annotations.function.HttpServerlessFunction;
 import annotation.annotations.function.NotificationServerlessFunction;
 import annotation.annotations.function.QueueServerlessFunction;
-import annotation.annotations.keyvalue.Key;
-import annotation.annotations.keyvalue.KeyValueStore;
-import annotation.annotations.keyvalue.UsesKeyValueStore;
+import annotation.annotations.document.Key;
+import annotation.annotations.document.UsesDocumentStore;
 import annotation.models.CloudFormationTemplate;
 import annotation.models.outputs.OutputCollection;
 import annotation.models.persisted.NimbusState;
@@ -48,7 +48,7 @@ import java.util.Set;
         "annotation.annotations.function.HttpServerlessFunction",
         "annotation.annotations.function.QueueServerlessFunction",
         "annotation.annotations.function.NotificationServerlessFunction",
-        "annotation.annotations.keyvalue.KeyValueStore"
+        "annotation.annotations.document.DocumentStore"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
@@ -212,13 +212,13 @@ public class ServerlessProcessor extends AbstractProcessor {
     }
 
     private void handleKeyValueStore(RoundEnvironment roundEnv, ResourceCollection updateResources) {
-        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(KeyValueStore.class);
+        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(DocumentStore.class);
 
         for (Element type : annotatedElements) {
-            KeyValueStore keyValueStore = type.getAnnotation(KeyValueStore.class);
+            DocumentStore documentStore = type.getAnnotation(DocumentStore.class);
             String tableName;
-            if (!keyValueStore.tableName().equals("")) {
-                tableName = keyValueStore.tableName();
+            if (!documentStore.tableName().equals("")) {
+                tableName = documentStore.tableName();
             } else {
                 tableName = type.getSimpleName().toString();
             }
@@ -244,26 +244,26 @@ public class ServerlessProcessor extends AbstractProcessor {
     }
 
     private void handleUseResources(Element serverlessMethod, FunctionResource functionResource, Policy policy, ResourceCollection updateResources) {
-        for (UsesKeyValueStore usesKeyValueStore : serverlessMethod.getAnnotationsByType(UsesKeyValueStore.class)) {
-            KeyValueStore keyValueStore;
+        for (UsesDocumentStore usesDocumentStore : serverlessMethod.getAnnotationsByType(UsesDocumentStore.class)) {
+            DocumentStore documentStore;
             String tableName;
 
             try
             {
-                keyValueStore = usesKeyValueStore.dataModel().getDeclaredAnnotation(KeyValueStore.class);
-                if (!keyValueStore.tableName().equals("")) {
-                    tableName = keyValueStore.tableName();
+                documentStore = usesDocumentStore.dataModel().getDeclaredAnnotation(DocumentStore.class);
+                if (!documentStore.tableName().equals("")) {
+                    tableName = documentStore.tableName();
                 } else {
-                    tableName = usesKeyValueStore.dataModel().getSimpleName();
+                    tableName = usesDocumentStore.dataModel().getSimpleName();
                 }
             }
             catch( MirroredTypeException mte )
             {
                 Types TypeUtils = this.processingEnv.getTypeUtils();
                 TypeElement typeElement =  (TypeElement)TypeUtils.asElement(mte.getTypeMirror());
-                keyValueStore = typeElement.getAnnotation(KeyValueStore.class);
-                if (!keyValueStore.tableName().equals("")) {
-                    tableName = keyValueStore.tableName();
+                documentStore = typeElement.getAnnotation(DocumentStore.class);
+                if (!documentStore.tableName().equals("")) {
+                    tableName = documentStore.tableName();
                 } else {
                     tableName = typeElement.getSimpleName().toString();
                 }

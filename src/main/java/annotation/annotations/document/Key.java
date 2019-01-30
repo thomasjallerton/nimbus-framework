@@ -1,4 +1,4 @@
-package annotation.annotations.keyvalue;
+package annotation.annotations.document;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
