@@ -1,12 +1,11 @@
-package annotation.annotations.keyvalue;
+package annotation.annotations.document;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface KeyValueStore {
-    public String tableName() default "";
+public @interface Attribute {
 }
