@@ -1,4 +1,4 @@
-package annotation.annotations.document;
+package annotation.annotations.persistent;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,5 +7,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Attribute {
+public @interface Key {
 }

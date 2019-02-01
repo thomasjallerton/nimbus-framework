@@ -1,11 +1,12 @@
-package annotation.models.resource.keyvalue
+package annotation.models.resource.dynamo
 
+import annotation.annotations.keyvalue.KeyType
 import annotation.models.persisted.NimbusState
 import annotation.models.resource.Resource
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
-class KeyValueStoreResource(
+class DynamoResource(
         private val tableName: String,
         nimbusState: NimbusState
 ) : Resource(nimbusState) {
@@ -74,6 +75,14 @@ class KeyValueStoreResource(
     }
 
     private fun getDynamoType(obj: Any): String {
+        if (obj is KeyType) {
+            return when (obj) {
+                KeyType.STRING -> "S"
+                KeyType.NUMBER -> "N"
+                KeyType.BOOLEAN -> "B"
+                else -> "S"
+            }
+        }
         return when (obj) {
             is String -> "S"
             is Number -> "N"

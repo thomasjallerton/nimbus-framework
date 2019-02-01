@@ -1,62 +1,55 @@
-package clients.document
+package clients.keyvalue
 
+import annotation.annotations.keyvalue.KeyType
+import annotation.annotations.keyvalue.KeyValueStore
 import annotation.annotations.persistent.Attribute
-import annotation.annotations.persistent.Key
-import annotation.annotations.document.DocumentStore
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.lang.reflect.Field
 
-class DocumentStoreClient<T>(private val clazz: Class<T>) {
+class KeyValueStoreClient<T>(private val clazz: Class<T>) {
 
     private val client = AmazonDynamoDBClientBuilder.defaultClient()
 
-    private val keys: MutableList<Field> = mutableListOf()
-    private val allAttributes: MutableList<Field> = mutableListOf()
+    private val keyType: KeyType
+    private val keyName: String
+    private val attributes: MutableList<Field> = mutableListOf()
     private val tableName: String
 
     init {
-        val documentStoreAnnotation = clazz.getDeclaredAnnotation(DocumentStore::class.java)
-        tableName = if (documentStoreAnnotation.tableName != "") documentStoreAnnotation.tableName else clazz.simpleName
-
+        val keyValueStoreAnnotation = clazz.getDeclaredAnnotation(KeyValueStore::class.java)
+        tableName = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else clazz.simpleName
+        keyType = keyValueStoreAnnotation.keyType
+        keyName = keyValueStoreAnnotation.keyName
 
         for (field in clazz.declaredFields) {
-            if (field.isAnnotationPresent(Key::class.java)) {
-                keys.add(field)
-                allAttributes.add(field)
-            } else if (field.isAnnotationPresent(Attribute::class.java)) {
-                allAttributes.add(field)
+            if (field.isAnnotationPresent(Attribute::class.java)) {
+                attributes.add(field)
+                if (field.name == keyName) throw AttributeNameException()
             }
         }
     }
 
 
-    fun put(obj: T) {
+    fun put(key: Any, value: T) {
         val attributeMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
-        for (attribute in allAttributes) {
+        for (attribute in attributes) {
             attribute.isAccessible = true
-            attributeMap[attribute.name] = toAttributeValue(attribute.get(obj))
+            attributeMap[attribute.name] = toAttributeValue(attribute.get(value))
         }
+
+        attributeMap[keyName] = keyToAttributeValue(key)
 
         val putItemRequest = PutItemRequest().withItem(attributeMap).withTableName(tableName)
 
         client.putItem(putItemRequest)
     }
 
-    fun deleteItem(obj: T) {
+    fun delete(keyObj: Any) {
 
-        val deleteItemRequest = DeleteItemRequest()
-                .withKey(objectToKeyMap(obj))
-                .withTableName(tableName)
-
-        client.deleteItem(deleteItemRequest)
-    }
-
-    fun deleteKey(keyObj: Any) {
-
-        val convertedValue = toAttributeValue(keyObj)
+        val convertedValue = keyToAttributeValue(keyObj)
 
         val deleteItemRequest = DeleteItemRequest()
                 .withKey(keyToKeyMap(keyObj))
@@ -73,7 +66,7 @@ class DocumentStoreClient<T>(private val clazz: Class<T>) {
         return scanResult.items.map { valueMap -> toObject(valueMap) }
     }
 
-    fun get(keyObj: Any): List<T> {
+    fun get(keyObj: Any): T? {
 
         val keyMap = keyToKeyMap(keyObj)
 
@@ -87,7 +80,11 @@ class DocumentStoreClient<T>(private val clazz: Class<T>) {
 
         val queryResult = client.query(queryRequest)
 
-        return queryResult.items.map { valueMap -> toObject(valueMap) }
+        return if (queryResult.count == 1) {
+            toObject(queryResult.items[0])
+        } else {
+            null
+        }
     }
 
     private fun toAttributeValue(value: Any): AttributeValue {
@@ -95,6 +92,24 @@ class DocumentStoreClient<T>(private val clazz: Class<T>) {
             is String -> AttributeValue(value)
             is Number -> AttributeValue().withN(value.toString())
             is Boolean -> AttributeValue().withBOOL(value)
+            else -> AttributeValue()
+        }
+    }
+
+    private fun keyToAttributeValue(value: Any): AttributeValue {
+        return when (value) {
+            is String -> {
+                if (keyType != KeyType.STRING) throw MismatchedKeyException(keyType.name)
+                AttributeValue(value)
+            }
+            is Number -> {
+                if (keyType != KeyType.NUMBER) throw MismatchedKeyException(keyType.name)
+                AttributeValue().withN(value.toString())
+            }
+            is Boolean -> {
+                if (keyType != KeyType.BOOLEAN) throw MismatchedKeyException(keyType.name)
+                AttributeValue().withBOOL(value)
+            }
             else -> AttributeValue()
         }
     }
@@ -108,33 +123,19 @@ class DocumentStoreClient<T>(private val clazz: Class<T>) {
         }
     }
 
-    private fun objectToKeyMap(obj: T): Map<String, AttributeValue> {
-        val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
-
-        for (key in keys) {
-            key.isAccessible = true
-            keyMap[key.name] = toAttributeValue(key.get(obj))
-        }
-        return keyMap
-    }
-
     private fun keyToKeyMap(keyObj: Any): Map<String, AttributeValue> {
-        if (keys.size > 1) {
-            throw Exception("Composite key shouldn't exist!!")
-        }
         val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
-        for (key in keys) {
-            keyMap[key.name] = toAttributeValue(keyObj)
-        }
+        keyMap[keyName] = keyToAttributeValue(keyObj)
+
         return keyMap
     }
 
-    private fun toObject(map: Map<String, AttributeValue>): T {
+    private fun toObject(map: MutableMap<String, AttributeValue>): T {
+        map.remove(keyName)
         val convertedMap = map.mapValues { entry -> fromAttributeValue(entry.value) }
 
         val mapper = ObjectMapper()
         return mapper.convertValue(convertedMap, clazz)
     }
-
 }

@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
 public @interface HttpServerlessFunction {
     public String method();
     public String path();
-    int timeout() default 5;
+    int timeout() default 10;
     int memory() default 1024;
 }
