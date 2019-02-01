@@ -7,8 +7,9 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.lang.reflect.Field
+import kotlin.reflect.full.superclasses
 
-class KeyValueStoreClient<T>(private val clazz: Class<T>) {
+class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , private val valueClass: Class<V>) {
 
     private val client = AmazonDynamoDBClientBuilder.defaultClient()
 
@@ -18,12 +19,14 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
     private val tableName: String
 
     init {
-        val keyValueStoreAnnotation = clazz.getDeclaredAnnotation(KeyValueStore::class.java)
-        tableName = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else clazz.simpleName
+        val keyValueStoreAnnotation = valueClass.getDeclaredAnnotation(KeyValueStore::class.java)
+        tableName = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else valueClass.simpleName
         keyType = keyValueStoreAnnotation.keyType
         keyName = keyValueStoreAnnotation.keyName
 
-        for (field in clazz.declaredFields) {
+        checkKeyIsCorrectType()
+
+        for (field in valueClass.declaredFields) {
             if (field.isAnnotationPresent(Attribute::class.java)) {
                 attributes.add(field)
                 if (field.name == keyName) throw AttributeNameException()
@@ -32,7 +35,7 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
     }
 
 
-    fun put(key: Any, value: T) {
+    fun put(key: K, value: V) {
         val attributeMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
         for (attribute in attributes) {
@@ -40,16 +43,16 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
             attributeMap[attribute.name] = toAttributeValue(attribute.get(value))
         }
 
-        attributeMap[keyName] = keyToAttributeValue(key)
+        attributeMap[keyName] = toAttributeValue(key)
 
         val putItemRequest = PutItemRequest().withItem(attributeMap).withTableName(tableName)
 
         client.putItem(putItemRequest)
     }
 
-    fun delete(keyObj: Any) {
+    fun delete(keyObj: K) {
 
-        val convertedValue = keyToAttributeValue(keyObj)
+        val convertedValue = toAttributeValue(keyObj)
 
         val deleteItemRequest = DeleteItemRequest()
                 .withKey(keyToKeyMap(keyObj))
@@ -58,15 +61,20 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
         client.deleteItem(deleteItemRequest)
     }
 
-    fun getAll(): List<T> {
+    fun getAll(): Map<K, V> {
         val scanRequest = ScanRequest()
                 .withTableName(tableName)
         val scanResult = client.scan(scanRequest)
 
-        return scanResult.items.map { valueMap -> toObject(valueMap) }
+        val resultMap: MutableMap<K, V> = mutableMapOf()
+        for (item in scanResult.items) {
+            val key: K = keyFromAttributeValue(item[keyName]!!) as K
+            resultMap[key] = toObject(item)
+        }
+        return resultMap
     }
 
-    fun get(keyObj: Any): T? {
+    fun get(keyObj: K): V? {
 
         val keyMap = keyToKeyMap(keyObj)
 
@@ -87,7 +95,7 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
         }
     }
 
-    private fun toAttributeValue(value: Any): AttributeValue {
+    private fun toAttributeValue(value: Any?): AttributeValue {
         return when (value) {
             is String -> AttributeValue(value)
             is Number -> AttributeValue().withN(value.toString())
@@ -96,21 +104,13 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
         }
     }
 
-    private fun keyToAttributeValue(value: Any): AttributeValue {
-        return when (value) {
-            is String -> {
-                if (keyType != KeyType.STRING) throw MismatchedKeyException(keyType.name)
-                AttributeValue(value)
-            }
-            is Number -> {
-                if (keyType != KeyType.NUMBER) throw MismatchedKeyException(keyType.name)
-                AttributeValue().withN(value.toString())
-            }
-            is Boolean -> {
-                if (keyType != KeyType.BOOLEAN) throw MismatchedKeyException(keyType.name)
-                AttributeValue().withBOOL(value)
-            }
-            else -> AttributeValue()
+    private fun checkKeyIsCorrectType() {
+        if (keyClass == String::class.java) {
+            if (keyType != KeyType.STRING) throw MismatchedKeyException(keyType.name)
+        } else if (Number::class.java.isAssignableFrom(keyClass)) {
+            if (keyType != KeyType.NUMBER) throw MismatchedKeyException(keyType.name)
+        } else if (keyClass == Boolean::class.java) {
+            if (keyType != KeyType.BOOLEAN) throw MismatchedKeyException(keyType.name)
         }
     }
 
@@ -123,19 +123,36 @@ class KeyValueStoreClient<T>(private val clazz: Class<T>) {
         }
     }
 
-    private fun keyToKeyMap(keyObj: Any): Map<String, AttributeValue> {
+    private fun keyFromAttributeValue(value: AttributeValue): Any {
+        return when {
+            value.bool != null -> value.bool
+            value.n != null -> {
+                when (keyClass) {
+                    Integer::class.java -> value.n.toInt()
+                    Double::class.java -> value.n.toDouble()
+                    Long::class.java -> value.n.toLong()
+                    Float::class.java -> value.n.toFloat()
+                    else -> value.n.toInt()
+                }
+            }
+            value.s != null -> value.s
+            else -> Any()
+        }
+    }
+
+    private fun keyToKeyMap(keyObj: K): Map<String, AttributeValue> {
         val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
-        keyMap[keyName] = keyToAttributeValue(keyObj)
+        keyMap[keyName] = toAttributeValue(keyObj)
 
         return keyMap
     }
 
-    private fun toObject(map: MutableMap<String, AttributeValue>): T {
+    private fun toObject(map: MutableMap<String, AttributeValue>): V {
         map.remove(keyName)
         val convertedMap = map.mapValues { entry -> fromAttributeValue(entry.value) }
 
         val mapper = ObjectMapper()
-        return mapper.convertValue(convertedMap, clazz)
+        return mapper.convertValue(convertedMap, valueClass)
     }
 }
