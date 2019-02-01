@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 public @interface NotificationServerlessFunction {
     public String topic();
-    int timeout() default 5;
+    int timeout() default 10;
     int memory() default 1024;
 }
