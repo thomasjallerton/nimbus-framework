@@ -8,7 +8,7 @@ import java.lang.reflect.Field
 class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>) {
 
     private val client = AmazonDynamoDBClientBuilder.defaultClient()
-
+    private val objectMapper = ObjectMapper()
 
     fun put(obj: T, allAttributes: List<Field>, additionalEntries:Map<String, AttributeValue> = mapOf()) {
         val attributeMap: MutableMap<String, AttributeValue> = mutableMapOf()
@@ -66,23 +66,39 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
             is String -> AttributeValue(value)
             is Number -> AttributeValue().withN(value.toString())
             is Boolean -> AttributeValue().withBOOL(value)
-            else -> AttributeValue()
+            else -> AttributeValue().withS(objectMapper.writeValueAsString(value))
         }
     }
 
-    fun fromAttributeValue(value: AttributeValue): Any {
+    fun <K> fromAttributeValue(value: AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
         return when {
-            value.bool != null -> value.bool
-            value.n != null -> value.n.toDouble()
-            value.s != null -> value.s
-            else -> Any()
+            value.bool != null && expectedType == Boolean::class.java -> value.bool
+            value.n != null -> {
+                when (expectedType) {
+                    Integer::class.java -> value.n.toInt()
+                    Double::class.java -> value.n.toDouble()
+                    Long::class.java -> value.n.toLong()
+                    Float::class.java -> value.n.toFloat()
+                    else -> value.n.toInt()
+                }
+            }
+            value.s != null && expectedType == String::class.java -> value.s
+            value.s != null -> objectMapper.readValue(value.s, expectedType)
+            else -> throw MismatchedTypeException(expectedType.simpleName, fieldName)
         }
     }
 
     fun toObject(map: Map<String, AttributeValue>): T {
-        val convertedMap = map.mapValues { entry -> fromAttributeValue(entry.value) }
 
-        val mapper = ObjectMapper()
-        return mapper.convertValue(convertedMap, clazz)
+        val resultMap: MutableMap<String, Any?> = mutableMapOf()
+
+        for (field in clazz.declaredFields) {
+            val attributeVal = map[field.name]
+            if (attributeVal != null) {
+                resultMap[field.name] = fromAttributeValue(attributeVal, field.type, field.name)
+            }
+        }
+
+        return objectMapper.convertValue(resultMap, clazz)
     }
 }
