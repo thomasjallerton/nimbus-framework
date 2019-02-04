@@ -3,6 +3,7 @@ package clients.keyvalue
 import annotation.annotations.keyvalue.KeyType
 import annotation.annotations.keyvalue.KeyValueStore
 import annotation.annotations.persistent.Attribute
+import clients.dynamo.DynamoClient
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.*
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -12,6 +13,7 @@ import kotlin.reflect.full.superclasses
 class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , private val valueClass: Class<V>) {
 
     private val client = AmazonDynamoDBClientBuilder.defaultClient()
+    private val dynamoClient: DynamoClient<V>
 
     private val keyType: KeyType
     private val keyName: String
@@ -23,6 +25,7 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , private val val
         tableName = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else valueClass.simpleName
         keyType = keyValueStoreAnnotation.keyType
         keyName = keyValueStoreAnnotation.keyName
+        dynamoClient = DynamoClient(tableName, valueClass)
 
         checkKeyIsCorrectType()
 
@@ -36,38 +39,18 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , private val val
 
 
     fun put(key: K, value: V) {
-        val attributeMap: MutableMap<String, AttributeValue> = mutableMapOf()
-
-        for (attribute in attributes) {
-            attribute.isAccessible = true
-            attributeMap[attribute.name] = toAttributeValue(attribute.get(value))
-        }
-
-        attributeMap[keyName] = toAttributeValue(key)
-
-        val putItemRequest = PutItemRequest().withItem(attributeMap).withTableName(tableName)
-
-        client.putItem(putItemRequest)
+        dynamoClient.put(value, attributes, mapOf(Pair(keyName, dynamoClient.toAttributeValue(key))))
     }
 
     fun delete(keyObj: K) {
-
-        val convertedValue = toAttributeValue(keyObj)
-
-        val deleteItemRequest = DeleteItemRequest()
-                .withKey(keyToKeyMap(keyObj))
-                .withTableName(tableName)
-
-        client.deleteItem(deleteItemRequest)
+        dynamoClient.deleteKey(keyToKeyMap(keyObj))
     }
 
     fun getAll(): Map<K, V> {
-        val scanRequest = ScanRequest()
-                .withTableName(tableName)
-        val scanResult = client.scan(scanRequest)
+        val listAll = dynamoClient.getAll()
 
         val resultMap: MutableMap<K, V> = mutableMapOf()
-        for (item in scanResult.items) {
+        for (item in listAll) {
             val key: K = keyFromAttributeValue(item[keyName]!!) as K
             resultMap[key] = toObject(item)
         }
@@ -75,33 +58,7 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , private val val
     }
 
     fun get(keyObj: K): V? {
-
-        val keyMap = keyToKeyMap(keyObj)
-
-        val convertedMap = keyMap.mapValues { entry ->
-            Condition().withComparisonOperator("EQ").withAttributeValueList(listOf(entry.value))
-        }
-
-        val queryRequest = QueryRequest()
-                .withKeyConditions(convertedMap)
-                .withTableName(tableName)
-
-        val queryResult = client.query(queryRequest)
-
-        return if (queryResult.count == 1) {
-            toObject(queryResult.items[0])
-        } else {
-            null
-        }
-    }
-
-    private fun toAttributeValue(value: Any?): AttributeValue {
-        return when (value) {
-            is String -> AttributeValue(value)
-            is Number -> AttributeValue().withN(value.toString())
-            is Boolean -> AttributeValue().withBOOL(value)
-            else -> AttributeValue()
-        }
+        return dynamoClient.get(keyToKeyMap(keyObj))
     }
 
     private fun checkKeyIsCorrectType() {
@@ -111,15 +68,6 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , private val val
             if (keyType != KeyType.NUMBER) throw MismatchedKeyException(keyType.name)
         } else if (keyClass == Boolean::class.java) {
             if (keyType != KeyType.BOOLEAN) throw MismatchedKeyException(keyType.name)
-        }
-    }
-
-    private fun fromAttributeValue(value: AttributeValue): Any {
-        return when {
-            value.bool != null -> value.bool
-            value.n != null -> value.n.toDouble()
-            value.s != null -> value.s
-            else -> Any()
         }
     }
 
@@ -143,14 +91,14 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , private val val
     private fun keyToKeyMap(keyObj: K): Map<String, AttributeValue> {
         val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
-        keyMap[keyName] = toAttributeValue(keyObj)
+        keyMap[keyName] = dynamoClient.toAttributeValue(keyObj)
 
         return keyMap
     }
 
     private fun toObject(map: MutableMap<String, AttributeValue>): V {
         map.remove(keyName)
-        val convertedMap = map.mapValues { entry -> fromAttributeValue(entry.value) }
+        val convertedMap = map.mapValues { entry -> dynamoClient.fromAttributeValue(entry.value) }
 
         val mapper = ObjectMapper()
         return mapper.convertValue(convertedMap, valueClass)

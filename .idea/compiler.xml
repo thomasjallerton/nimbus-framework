@@ -11,6 +11,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="nimbus" target="1.8" />
+      <module name="UniProject" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
