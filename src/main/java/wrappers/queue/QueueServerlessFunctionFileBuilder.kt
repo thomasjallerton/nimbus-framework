@@ -1,25 +1,27 @@
 package wrappers.queue
 
+import annotation.annotations.function.QueueServerlessFunction
 import annotation.models.processing.MethodInformation
 import wrappers.ServerlessFunctionFileBuilder
 import wrappers.queue.models.QueueEvent
 import wrappers.queue.models.RecordCollection
-import java.io.PrintWriter
 import javax.annotation.processing.ProcessingEnvironment
+import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 class QueueServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation
-) : ServerlessFunctionFileBuilder(processingEnv, methodInformation) {
+        methodInformation: MethodInformation,
+        compilingElement: Element
+) : ServerlessFunctionFileBuilder(
+        processingEnv,
+        methodInformation,
+        QueueServerlessFunction::class.java.simpleName,
+        QueueEvent::class.java.simpleName,
+        compilingElement
+) {
 
     override fun writeOutput() {}
-
-    override fun isValidFunction() {
-        if (methodInformation.parameters.size > 2) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Not a valid queue function handler (too many arguments)")
-        }
-    }
 
     override fun getGeneratedClassName(): String {
         return "QueueServerlessFunction${methodInformation.className}${methodInformation.methodName}"
@@ -43,27 +45,27 @@ class QueueServerlessFunctionFileBuilder(
         write()
     }
 
-    override fun writeInputs(inputParam: InputParam) {
+    override fun writeInputs(param: Param) {
 
         write("RecordCollection records = objectMapper.readValue(jsonString, RecordCollection.class);")
 
-        if (inputParam.type != null) {
+        if (param.type != null) {
             write("List<QueueEvent> events = records.getRecords();")
 
-            if (isAListType(inputParam.type)) {
-                write("${inputParam.type} parsedType = new LinkedList();")
+            if (isAListType(param.type)) {
+                write("${param.type} parsedType = new LinkedList();")
                 write("for (QueueEvent event : events) {")
-                write("parsedType.add(objectMapper.readValue(event.getBody(), ${findListType(inputParam.type)}.class));")
+                write("parsedType.add(objectMapper.readValue(event.getBody(), ${findListType(param.type)}.class));")
                 write("}")
             } else {
                 write("for (QueueEvent event : events) {")
-                write("${inputParam.type} parsedType = objectMapper.readValue(event.getBody(), ${inputParam.type}.class);")
+                write("${param.type} parsedType = objectMapper.readValue(event.getBody(), ${param.type}.class);")
             }
         }
 
     }
 
-    override fun writeFunction(inputParam: InputParam) {
+    override fun writeFunction(inputParam: Param, eventParam: Param) {
         if (methodInformation.returnType.toString() != "void") {
             messager.printMessage(Diagnostic.Kind.WARNING, "The function ${methodInformation.className}::" +
                     "${methodInformation.methodName} has a return type which will be unused. It can be removed")
@@ -75,10 +77,13 @@ class QueueServerlessFunctionFileBuilder(
             "events"
         }
 
+        val methodName = methodInformation.methodName
         when {
-            methodInformation.parameters.size == 1 -> write("handler.${methodInformation.methodName}($eventVariable);")
-            inputParam.index == 0 -> write("handler.${methodInformation.methodName}(parsedType, $eventVariable);")
-            else -> write("handler.${methodInformation.methodName}($eventVariable, parsedType);")
+            inputParam.isEmpty() && eventParam.isEmpty() -> write("handler.$methodName();")
+            inputParam.type == null -> write("handler.$methodName($eventVariable);")
+            eventParam.type == null -> write("handler.$methodName(parsedType);")
+            inputParam.index == 0 -> write("handler.$methodName(parsedType, $eventVariable);")
+            else -> write("handler.$methodName($eventVariable, parsedType);")
         }
 
         if (inputParam.type != null && !isAListType(inputParam.type)) {

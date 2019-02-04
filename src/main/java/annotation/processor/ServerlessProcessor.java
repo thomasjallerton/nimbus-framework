@@ -130,7 +130,8 @@ public class ServerlessProcessor extends AbstractProcessor {
 
                 HttpServerlessFunctionFileBuilder fileBuilder = new HttpServerlessFunctionFileBuilder(
                         processingEnv,
-                        methodInformation
+                        methodInformation,
+                        type
                 );
 
                 String handler = fileBuilder.getHandler();
@@ -158,7 +159,8 @@ public class ServerlessProcessor extends AbstractProcessor {
 
                 NotificationServerlessFunctionFileBuilder fileBuilder = new NotificationServerlessFunctionFileBuilder(
                         processingEnv,
-                        methodInformation
+                        methodInformation,
+                        type
                 );
 
                 FunctionConfig config = new FunctionConfig(notificationFunction.timeout(), notificationFunction.memory());
@@ -184,7 +186,8 @@ public class ServerlessProcessor extends AbstractProcessor {
 
                 QueueServerlessFunctionFileBuilder fileBuilder = new QueueServerlessFunctionFileBuilder(
                         processingEnv,
-                        methodInformation
+                        methodInformation,
+                        type
                 );
 
                 FunctionConfig config = new FunctionConfig(queueFunction.timeout(), queueFunction.memory());

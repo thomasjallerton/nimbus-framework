@@ -1,25 +1,29 @@
 package wrappers.notification
 
+import annotation.annotations.function.NotificationServerlessFunction
 import annotation.models.processing.MethodInformation
 import wrappers.ServerlessFunctionFileBuilder
 import wrappers.notification.models.NotificationEvent
 import wrappers.notification.models.RecordCollection
 import wrappers.notification.models.SnsMessageFormat
-import java.io.PrintWriter
 import javax.annotation.processing.ProcessingEnvironment
+import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 class NotificationServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation
-): ServerlessFunctionFileBuilder(processingEnv, methodInformation) {
-    override fun writeOutput() {}
+        methodInformation: MethodInformation,
+        compilingElement: Element
+): ServerlessFunctionFileBuilder(
+        processingEnv,
+        methodInformation,
+        NotificationServerlessFunction::class.java.simpleName,
+        NotificationEvent::class.java.simpleName,
+        compilingElement
+) {
 
-    override fun isValidFunction() {
-        if (methodInformation.parameters.size > 2) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Not a valid notification function handler (too many arguments)")
-        }
-    }
+
+    override fun writeOutput() {}
 
     override fun getGeneratedClassName(): String {
         return "NotificationServerlessFunction${methodInformation.className}${methodInformation.methodName}"
@@ -42,18 +46,18 @@ class NotificationServerlessFunctionFileBuilder(
         write()
     }
 
-    override fun writeInputs(inputParam: InputParam) {
+    override fun writeInputs(param: Param) {
 
         write("RecordCollection records = objectMapper.readValue(jsonString, RecordCollection.class);")
 
-        if (inputParam.type != null) {
+        if (param.type != null) {
             write("NotificationEvent event = records.getRecords().get(0).getSns();")
             write("SnsMessageFormat snsFormat = objectMapper.readValue(event.getMessage(), SnsMessageFormat.class);")
-            write("${inputParam.type} parsedType;")
+            write("${param.type} parsedType;")
             write("if (snsFormat.getLambda() != null) {")
-            write("parsedType = objectMapper.readValue(snsFormat.getLambda(), ${inputParam.type}.class);")
+            write("parsedType = objectMapper.readValue(snsFormat.getLambda(), ${param.type}.class);")
             write("} else if (snsFormat.getDefault() != null) {")
-            write("parsedType = objectMapper.readValue(snsFormat.getDefault(), ${inputParam.type}.class);")
+            write("parsedType = objectMapper.readValue(snsFormat.getDefault(), ${param.type}.class);")
             write("} else {")
             write("return;")
             write("}")
@@ -61,16 +65,19 @@ class NotificationServerlessFunctionFileBuilder(
 
     }
 
-    override fun writeFunction(inputParam: InputParam) {
+    override fun writeFunction(inputParam: Param, eventParam: Param) {
         if (methodInformation.returnType.toString() != "void") {
             messager.printMessage(Diagnostic.Kind.WARNING, "The function ${methodInformation.className}::" +
                     "${methodInformation.methodName} has a return type which will be unused. It can be removed")
         }
 
+        val methodName = methodInformation.methodName
         when {
-            methodInformation.parameters.size == 1 -> write("handler.${methodInformation.methodName}(event);")
-            inputParam.index == 0 -> write("handler.${methodInformation.methodName}(parsedType, event);")
-            else -> write("handler.${methodInformation.methodName}(event, parsedType);")
+            inputParam.isEmpty() && eventParam.isEmpty() -> write("handler.$methodName();")
+            inputParam.type == null -> write("handler.$methodName(event);")
+            eventParam.type == null -> write("handler.$methodName(parsedType);")
+            inputParam.index == 0 -> write("handler.$methodName(parsedType, event);")
+            else -> write("handler.$methodName(event, parsedType);")
         }
     }
 
