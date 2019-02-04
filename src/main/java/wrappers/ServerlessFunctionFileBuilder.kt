@@ -4,28 +4,31 @@ import annotation.models.processing.MethodInformation
 import java.io.PrintWriter
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
+import javax.lang.model.element.Element
 import javax.lang.model.type.TypeMirror
+import javax.tools.Diagnostic
 
 abstract class ServerlessFunctionFileBuilder(
         protected val processingEnv: ProcessingEnvironment,
-        protected val methodInformation: MethodInformation
+        protected val methodInformation: MethodInformation,
+        private val functionType: String,
+        private val eventType: String,
+        private val compilingElement: Element
 ) {
 
     private var tabLevel: Int = 0
 
-    protected var out: PrintWriter? = null
+    private var out: PrintWriter? = null
 
     protected val messager: Messager = processingEnv.messager
 
     protected abstract fun getGeneratedClassName(): String
 
-    protected abstract fun isValidFunction()
-
     protected abstract fun writeImports()
 
-    protected abstract fun writeInputs(inputParam: InputParam)
+    protected abstract fun writeInputs(param: Param)
 
-    protected abstract fun writeFunction(inputParam: InputParam)
+    protected abstract fun writeFunction(inputParam: Param, eventParam: Param)
 
     protected abstract fun writeOutput()
 
@@ -35,9 +38,9 @@ abstract class ServerlessFunctionFileBuilder(
         if (!customFunction()) {
             try {
 
-                isValidFunction()
+                val params = findParamIndexes()
 
-                val inputParam = findInputTypeAndIndex()
+                isValidFunction(params)
 
                 val builderFile = processingEnv.filer.createSourceFile(getGeneratedClassName())
                 out = PrintWriter(builderFile.openWriter())
@@ -59,11 +62,11 @@ abstract class ServerlessFunctionFileBuilder(
 
                 write("String jsonString = new BufferedReader(new InputStreamReader(input)).lines().collect(Collectors.joining(\"\\n\"));")
 
-                writeInputs(inputParam)
+                writeInputs(params.inputParam)
 
                 write("${methodInformation.className} handler = new ${methodInformation.className}();")
 
-                writeFunction(inputParam)
+                writeFunction(params.inputParam, params.eventParam)
 
                 writeOutput()
 
@@ -82,6 +85,19 @@ abstract class ServerlessFunctionFileBuilder(
                 out?.close()
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    private fun isValidFunction(functionParams: FunctionParams) {
+        val errorPrefix = "Incorrect $functionType parameters."
+        if (methodInformation.parameters.size > 2) {
+            compilationError("$errorPrefix Too many arguments, can have at most two: T input, $eventType event.")
+        } else if (methodInformation.parameters.size == 2) {
+            if (functionParams.eventParam.isEmpty()) {
+                compilationError("$errorPrefix Can't have two data input types. Function can have at most two parameters: T input, $eventType event.")
+            } else if (functionParams.inputParam.isEmpty()) {
+                compilationError("$errorPrefix Can't have two event input types. Function can have at most two parameters: T input, $eventType event.")
             }
         }
     }
@@ -110,7 +126,7 @@ abstract class ServerlessFunctionFileBuilder(
         if (toWrite.endsWith("{")) tabLevel++
     }
 
-    protected fun customFunction(): Boolean {
+    private fun customFunction(): Boolean {
         val params = methodInformation.parameters
         if (params.size == 3) {
             return (params[0].toString().contains("InputStream") &&
@@ -120,19 +136,18 @@ abstract class ServerlessFunctionFileBuilder(
         return false
     }
 
-    protected fun findInputTypeAndIndex(): InputParam {
-        var inputParamIndex = 0
-        for (param in methodInformation.parameters) {
-            if (param.toString() != "wrappers.http.models.HttpEvent") {
-                return InputParam(param, inputParamIndex)
+    private fun findParamIndexes(): FunctionParams {
+        val functionParams = FunctionParams()
+        for ((paramIndex, param) in methodInformation.parameters.withIndex()) {
+            if (param.toString() == "wrappers.http.models.HttpEvent") {
+                functionParams.eventParam = Param(param, paramIndex)
             } else {
-                inputParamIndex++
+                functionParams.inputParam = Param(param, paramIndex)
             }
         }
-        return InputParam(null, 0)
+        return functionParams
     }
 
-    protected data class InputParam(val type: TypeMirror?, val index: Int)
 
     protected fun findPackageName(qualifiedName: String): String {
         val lastDot = qualifiedName.lastIndexOf('.')
@@ -150,4 +165,18 @@ abstract class ServerlessFunctionFileBuilder(
     protected fun findListType(list: TypeMirror): String {
         return list.toString().substringAfter("<").substringBefore(">")
     }
+
+    protected data class Param(val type: TypeMirror?, val index: Int) {
+        fun isEmpty(): Boolean {return type == null}
+    }
+
+    private data class FunctionParams(
+            var inputParam: Param = Param(null, 0),
+            var eventParam: Param = Param(null, 0)
+    )
+
+    protected fun compilationError(msg: String) {
+        messager.printMessage(Diagnostic.Kind.ERROR, msg, compilingElement)
+    }
+
 }
