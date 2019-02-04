@@ -5,10 +5,9 @@ import annotation.annotations.function.QueueServerlessFunction
 import annotation.models.processing.MethodInformation
 import wrappers.ServerlessFunctionFileBuilder
 import wrappers.http.models.HttpEvent
-import wrappers.http.models.LambdaProxyResponse
+import wrappers.http.models.HttpResponse
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
-import javax.tools.Diagnostic
 
 class HttpServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
@@ -37,7 +36,7 @@ class HttpServerlessFunctionFileBuilder(
             write("import ${methodInformation.qualifiedName}.${methodInformation.className};")
         }
         write("import ${HttpEvent::class.qualifiedName};")
-        write("import ${LambdaProxyResponse::class.qualifiedName};")
+        write("import ${HttpResponse::class.qualifiedName};")
 
         write()
     }
@@ -53,7 +52,7 @@ class HttpServerlessFunctionFileBuilder(
             write("parsedType = objectMapper.readValue(body, ${param.type}.class);")
             write("} catch (Exception e) {")
             write("e.printStackTrace();")
-            write("LambdaProxyResponse response = new LambdaProxyResponse().withStatusCode(500).withMessage(\"JSON parsing error\");")
+            write("HttpResponse response = new HttpResponse().withStatusCode(500).withBody(\"{\\\"message\\\":\\\"JSON parsing error\\\"}\");")
             write("String responseString = objectMapper.writeValueAsString(response);")
             write("PrintWriter writer = new PrintWriter(output);")
             write("writer.print(responseString);")
@@ -83,15 +82,15 @@ class HttpServerlessFunctionFileBuilder(
     }
 
     override fun writeOutput() {
-        if (methodInformation.returnType.toString() != LambdaProxyResponse::class.qualifiedName) {
-            write("LambdaProxyResponse response = new LambdaProxyResponse();")
+        if (methodInformation.returnType.toString() != HttpResponse::class.qualifiedName) {
+            write("HttpResponse response = new HttpResponse();")
 
             if (methodInformation.returnType.toString() != "void") {
                 write("String resultString = objectMapper.writeValueAsString(result);")
                 write("response.setBody(resultString);")
             }
         } else {
-            write("LambdaProxyResponse response = result;")
+            write("HttpResponse response = result;")
         }
 
         write("String responseString = objectMapper.writeValueAsString(response);")
@@ -105,7 +104,7 @@ class HttpServerlessFunctionFileBuilder(
         write("e.printStackTrace();")
 
         write("try {")
-        write("LambdaProxyResponse errorResponse = LambdaProxyResponse.Companion.serverErrorResponse();")
+        write("HttpResponse errorResponse = HttpResponse.Companion.serverErrorResponse();")
         write("String responseString = objectMapper.writeValueAsString(errorResponse);")
 
         write("PrintWriter writer = new PrintWriter(output);")
