@@ -4,15 +4,13 @@ import annotation.annotations.keyvalue.KeyType
 import annotation.annotations.keyvalue.KeyValueStore
 import annotation.annotations.persistent.Attribute
 import clients.dynamo.DynamoClient
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
+import clients.dynamo.MismatchedKeyTypeException
+import clients.dynamo.MismatchedTypeException
 import com.amazonaws.services.dynamodbv2.model.*
-import com.fasterxml.jackson.databind.ObjectMapper
 import java.lang.reflect.Field
-import kotlin.reflect.full.superclasses
 
-class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , private val valueClass: Class<V>) {
+class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , valueClass: Class<V>) {
 
-    private val client = AmazonDynamoDBClientBuilder.defaultClient()
     private val dynamoClient: DynamoClient<V>
 
     private val keyType: KeyType
@@ -51,7 +49,7 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , private val val
 
         val resultMap: MutableMap<K, V> = mutableMapOf()
         for (item in listAll) {
-            val key: K = keyFromAttributeValue(item[keyName]!!) as K
+            val key: K = dynamoClient.fromAttributeValue(item[keyName]!!, keyClass, keyName) as K
             resultMap[key] = toObject(item)
         }
         return resultMap
@@ -63,28 +61,11 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , private val val
 
     private fun checkKeyIsCorrectType() {
         if (keyClass == String::class.java) {
-            if (keyType != KeyType.STRING) throw MismatchedKeyException(keyType.name)
+            if (keyType != KeyType.STRING) throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
         } else if (Number::class.java.isAssignableFrom(keyClass)) {
-            if (keyType != KeyType.NUMBER) throw MismatchedKeyException(keyType.name)
+            if (keyType != KeyType.NUMBER) throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
         } else if (keyClass == Boolean::class.java) {
-            if (keyType != KeyType.BOOLEAN) throw MismatchedKeyException(keyType.name)
-        }
-    }
-
-    private fun keyFromAttributeValue(value: AttributeValue): Any {
-        return when {
-            value.bool != null -> value.bool
-            value.n != null -> {
-                when (keyClass) {
-                    Integer::class.java -> value.n.toInt()
-                    Double::class.java -> value.n.toDouble()
-                    Long::class.java -> value.n.toLong()
-                    Float::class.java -> value.n.toFloat()
-                    else -> value.n.toInt()
-                }
-            }
-            value.s != null -> value.s
-            else -> Any()
+            if (keyType != KeyType.BOOLEAN) throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
         }
     }
 
@@ -98,9 +79,6 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , private val val
 
     private fun toObject(map: MutableMap<String, AttributeValue>): V {
         map.remove(keyName)
-        val convertedMap = map.mapValues { entry -> dynamoClient.fromAttributeValue(entry.value) }
-
-        val mapper = ObjectMapper()
-        return mapper.convertValue(convertedMap, valueClass)
+        return dynamoClient.toObject(map)
     }
 }
