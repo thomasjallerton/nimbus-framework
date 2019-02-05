@@ -12,11 +12,14 @@ abstract class ServerlessFunctionFileBuilder(
         protected val processingEnv: ProcessingEnvironment,
         protected val methodInformation: MethodInformation,
         private val functionType: String,
-        private val eventType: String,
+        eventType: ServerlessEvent,
         private val compilingElement: Element
 ) {
 
     private var tabLevel: Int = 0
+
+    private val eventCanonicalName = eventType::class.java.canonicalName
+    private val eventSimpleName = eventType::class.java.simpleName
 
     private var out: PrintWriter? = null
 
@@ -33,6 +36,10 @@ abstract class ServerlessFunctionFileBuilder(
     protected abstract fun writeOutput()
 
     protected abstract fun writeHandleError()
+
+    open fun eventCannotBeList(): Boolean {
+        return true
+    }
 
     fun createClass() {
         if (!customFunction()) {
@@ -92,12 +99,15 @@ abstract class ServerlessFunctionFileBuilder(
     private fun isValidFunction(functionParams: FunctionParams) {
         val errorPrefix = "Incorrect $functionType parameters."
         if (methodInformation.parameters.size > 2) {
-            compilationError("$errorPrefix Too many arguments, can have at most two: T input, $eventType event.")
+            compilationError("$errorPrefix Too many arguments, can have at most two: T input, $eventSimpleName event.")
         } else if (methodInformation.parameters.size == 2) {
             if (functionParams.eventParam.isEmpty()) {
-                compilationError("$errorPrefix Can't have two data input types. Function can have at most two parameters: T input, $eventType event.")
+                compilationError("$errorPrefix Can't have two data input types. Function can have at most two parameters: T input, $eventSimpleName event.")
             } else if (functionParams.inputParam.isEmpty()) {
-                compilationError("$errorPrefix Can't have two event input types. Function can have at most two parameters: T input, $eventType event.")
+                compilationError("$errorPrefix Can't have two event input types. Function can have at most two parameters: T input, $eventSimpleName event.")
+            }
+            if (eventCannotBeList() && functionParams.eventParam.type != null && isAListType(functionParams.eventParam.type!!)) {
+                compilationError("$errorPrefix Cannot have a list of $eventSimpleName for a $functionType")
             }
         }
     }
@@ -139,7 +149,11 @@ abstract class ServerlessFunctionFileBuilder(
     private fun findParamIndexes(): FunctionParams {
         val functionParams = FunctionParams()
         for ((paramIndex, param) in methodInformation.parameters.withIndex()) {
-            if (param.toString() == "wrappers.http.models.HttpEvent") {
+            println(param.toString())
+            println("Canonical name: $eventCanonicalName")
+            if (param.toString() == eventCanonicalName) {
+                functionParams.eventParam = Param(param, paramIndex)
+            } else if (isAListType(param) && param.toString().contains(eventCanonicalName)) {
                 functionParams.eventParam = Param(param, paramIndex)
             } else {
                 functionParams.inputParam = Param(param, paramIndex)

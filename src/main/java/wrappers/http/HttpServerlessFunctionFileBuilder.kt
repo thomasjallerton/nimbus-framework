@@ -17,7 +17,7 @@ class HttpServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         HttpServerlessFunction::class.java.simpleName,
-        QueueServerlessFunction::class.java.simpleName,
+        HttpEvent(),
         compilingElement
 ) {
 

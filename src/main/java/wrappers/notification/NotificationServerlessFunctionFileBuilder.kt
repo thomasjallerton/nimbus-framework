@@ -18,7 +18,7 @@ class NotificationServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         NotificationServerlessFunction::class.java.simpleName,
-        NotificationEvent::class.java.simpleName,
+        NotificationEvent(),
         compilingElement
 ) {
 

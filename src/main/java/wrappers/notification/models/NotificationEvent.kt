@@ -1,6 +1,7 @@
 package wrappers.notification.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import wrappers.ServerlessEvent
 import wrappers.notification.models.MessageAttribute
 
 data class NotificationEvent(
@@ -26,4 +27,4 @@ data class NotificationEvent(
         val unsubscribeUrl: String? = null,
         @JsonProperty(value = "MessageAttributes")
         val messageAttributes: Map<String, MessageAttribute>? = null
-)
+): ServerlessEvent
