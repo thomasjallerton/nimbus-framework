@@ -13,10 +13,7 @@ import annotation.models.outputs.OutputCollection;
 import annotation.models.persisted.NimbusState;
 import annotation.models.persisted.UserConfig;
 import annotation.models.processing.MethodInformation;
-import annotation.models.resource.IamRoleResource;
-import annotation.models.resource.Policy;
-import annotation.models.resource.Resource;
-import annotation.models.resource.ResourceCollection;
+import annotation.models.resource.*;
 import annotation.models.resource.function.FunctionConfig;
 import annotation.models.resource.function.FunctionResource;
 import annotation.models.resource.dynamo.DynamoResource;
@@ -40,6 +37,7 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -68,9 +66,12 @@ public class ServerlessProcessor extends AbstractProcessor {
     private OutputCollection updateOutputs = new OutputCollection();
     private OutputCollection createOutputs = new OutputCollection();
 
+    private Messager messager;
+
     @Override
     public synchronized void init(final ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
+        messager = processingEnv.getMessager();
     }
 
     @Override
@@ -225,24 +226,26 @@ public class ServerlessProcessor extends AbstractProcessor {
 
             DynamoResource dynamoResource = createDynamoResource(documentStore.tableName(), type.getSimpleName().toString());
 
+            if (documentStore.existingArn().equals("")) {
 
-            if (type.getKind() == ElementKind.CLASS) {
+                if (type.getKind() == ElementKind.CLASS) {
 
-                for (Element enclosedElement : type.getEnclosedElements()) {
-                    for (Key key : enclosedElement.getAnnotationsByType(Key.class)) {
-                        if (enclosedElement.getKind() == ElementKind.FIELD) {
+                    for (Element enclosedElement : type.getEnclosedElements()) {
+                        for (Key key : enclosedElement.getAnnotationsByType(Key.class)) {
+                            if (enclosedElement.getKind() == ElementKind.FIELD) {
 
-                            String columnName = key.columnName();
-                            if (columnName.equals("")) columnName = enclosedElement.getSimpleName().toString();
+                                String columnName = key.columnName();
+                                if (columnName.equals("")) columnName = enclosedElement.getSimpleName().toString();
 
-                            Object fieldType = enclosedElement.asType();
+                                Object fieldType = enclosedElement.asType();
 
-                            dynamoResource.addHashKey(columnName, fieldType);
+                                dynamoResource.addHashKey(columnName, fieldType);
+                            }
                         }
                     }
                 }
+                updateResources.addResource(dynamoResource);
             }
-            updateResources.addResource(dynamoResource);
         }
     }
 
@@ -252,10 +255,12 @@ public class ServerlessProcessor extends AbstractProcessor {
         for (Element type : annotatedElements) {
             KeyValueStore keyValueStore = type.getAnnotation(KeyValueStore.class);
 
-            DynamoResource dynamoResource = createDynamoResource(keyValueStore.tableName(), type.getSimpleName().toString());
+            if (keyValueStore.existingArn().equals("")) {
+                DynamoResource dynamoResource = createDynamoResource(keyValueStore.tableName(), type.getSimpleName().toString());
 
-            dynamoResource.addHashKey(keyValueStore.keyName(), keyValueStore.keyType());
-            updateResources.addResource(dynamoResource);
+                dynamoResource.addHashKey(keyValueStore.keyName(), keyValueStore.keyType());
+                updateResources.addResource(dynamoResource);
+            }
         }
     }
 
@@ -267,22 +272,25 @@ public class ServerlessProcessor extends AbstractProcessor {
     private void handleUseResources(Element serverlessMethod, FunctionResource functionResource, Policy policy, ResourceCollection updateResources) {
         for (UsesDocumentStore usesDocumentStore : serverlessMethod.getAnnotationsByType(UsesDocumentStore.class)) {
             DocumentStore documentStore;
-            String tableName;
+            Resource resource;
 
-            try
-            {
+            try {
                 documentStore = usesDocumentStore.dataModel().getDeclaredAnnotation(DocumentStore.class);
-                tableName = determineTableName(documentStore.tableName(), usesDocumentStore.dataModel().getSimpleName());
+                resource = getResource(updateResources, documentStore.existingArn(), documentStore.tableName(), usesDocumentStore.dataModel().getSimpleName());
+            } catch (MirroredTypeException mte) {
+                try {
+                    Types TypeUtils = this.processingEnv.getTypeUtils();
+                    TypeElement typeElement = (TypeElement) TypeUtils.asElement(mte.getTypeMirror());
+                    documentStore = typeElement.getAnnotation(DocumentStore.class);
+                    resource = getResource(updateResources, documentStore.existingArn(), documentStore.tableName(), typeElement.getSimpleName().toString());
+                } catch (NullPointerException e) {
+                    messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with DocumentStore but isn't", serverlessMethod);
+                    return;
+                }
+            } catch (NullPointerException e) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with DocumentStore but isn't", serverlessMethod);
+                return;
             }
-            catch( MirroredTypeException mte )
-            {
-                Types TypeUtils = this.processingEnv.getTypeUtils();
-                TypeElement typeElement =  (TypeElement)TypeUtils.asElement(mte.getTypeMirror());
-                documentStore = typeElement.getAnnotation(DocumentStore.class);
-                tableName = determineTableName(documentStore.tableName(), typeElement.getSimpleName().toString());
-            }
-
-            Resource resource = updateResources.get(tableName);
 
             if (resource != null) {
                 policy.addAllowStatement("dynamodb:*", resource, "");
@@ -290,22 +298,26 @@ public class ServerlessProcessor extends AbstractProcessor {
         }
         for (UsesKeyValueStore usesKeyValueStore : serverlessMethod.getAnnotationsByType(UsesKeyValueStore.class)) {
             KeyValueStore keyValueStore;
-            String tableName;
+            Resource resource;
 
-            try
-            {
+            try {
                 keyValueStore = usesKeyValueStore.dataModel().getDeclaredAnnotation(KeyValueStore.class);
-                tableName = determineTableName(keyValueStore.tableName(), usesKeyValueStore.dataModel().getSimpleName());
-            }
-            catch( MirroredTypeException mte )
-            {
-                Types TypeUtils = this.processingEnv.getTypeUtils();
-                TypeElement typeElement =  (TypeElement)TypeUtils.asElement(mte.getTypeMirror());
-                keyValueStore = typeElement.getAnnotation(KeyValueStore.class);
-                tableName = determineTableName(keyValueStore.tableName(), typeElement.getSimpleName().toString());
+                resource = getResource(updateResources, keyValueStore.existingArn(), keyValueStore.tableName(), usesKeyValueStore.dataModel().getSimpleName());
+            } catch (MirroredTypeException mte) {
+                try {
+                    Types TypeUtils = this.processingEnv.getTypeUtils();
+                    TypeElement typeElement = (TypeElement) TypeUtils.asElement(mte.getTypeMirror());
+                    keyValueStore = typeElement.getAnnotation(KeyValueStore.class);
+                    resource = getResource(updateResources, keyValueStore.existingArn(), keyValueStore.tableName(), typeElement.getSimpleName().toString());
+                } catch (NullPointerException e) {
+                    messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod);
+                    return;
+                }
+            } catch (NullPointerException e) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod);
+                return;
             }
 
-            Resource resource = updateResources.get(tableName);
 
             if (resource != null) {
                 policy.addAllowStatement("dynamodb:*", resource, "");
@@ -313,6 +325,14 @@ public class ServerlessProcessor extends AbstractProcessor {
         }
 
 
+    }
+
+    private Resource getResource(ResourceCollection updateResources, String existingArn, String tableName, String elementName) {
+        if (existingArn.equals("")) {
+            return updateResources.get(determineTableName(tableName, elementName));
+        } else {
+            return new ExistingResource(existingArn, nimbusState);
+        }
     }
 
     private String determineTableName(String givenName, String className) {

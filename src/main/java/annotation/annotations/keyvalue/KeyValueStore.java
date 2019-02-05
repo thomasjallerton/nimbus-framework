@@ -8,7 +8,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KeyValueStore {
-    public String tableName() default "";
-    public KeyType keyType();
-    public String keyName() default "PrimaryKey";
+    String tableName() default "";
+    KeyType keyType();
+    String keyName() default "PrimaryKey";
+    String existingArn() default "";
 }
