@@ -15,7 +15,7 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , valueClass: Cla
 
     private val keyType: KeyType
     private val keyName: String
-    private val attributes: MutableList<Field> = mutableListOf()
+    private val attributes: MutableMap<String, Field> = mutableMapOf()
     private val tableName: String
 
     init {
@@ -29,7 +29,9 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , valueClass: Cla
 
         for (field in valueClass.declaredFields) {
             if (field.isAnnotationPresent(Attribute::class.java)) {
-                attributes.add(field)
+                val attributeAnnotation = field.getDeclaredAnnotation(Attribute::class.java)
+                val columnName = if (attributeAnnotation.columnName != "") attributeAnnotation.columnName else field.name
+                attributes[columnName] = field
                 if (field.name == keyName) throw AttributeNameException()
             }
         }
@@ -50,13 +52,13 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , valueClass: Cla
         val resultMap: MutableMap<K, V> = mutableMapOf()
         for (item in listAll) {
             val key: K = dynamoClient.fromAttributeValue(item[keyName]!!, keyClass, keyName) as K
-            resultMap[key] = toObject(item)
+            resultMap[key] = dynamoClient.toObject(item, attributes)
         }
         return resultMap
     }
 
     fun get(keyObj: K): V? {
-        return dynamoClient.get(keyToKeyMap(keyObj))
+        return dynamoClient.get(keyToKeyMap(keyObj), attributes)
     }
 
     private fun checkKeyIsCorrectType() {
@@ -66,6 +68,8 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , valueClass: Cla
             if (keyType != KeyType.NUMBER) throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
         } else if (keyClass == Boolean::class.java) {
             if (keyType != KeyType.BOOLEAN) throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
+        } else if (keyType != KeyType.BOOLEAN) {
+            throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
         }
     }
 
@@ -75,10 +79,5 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , valueClass: Cla
         keyMap[keyName] = dynamoClient.toAttributeValue(keyObj)
 
         return keyMap
-    }
-
-    private fun toObject(map: MutableMap<String, AttributeValue>): V {
-        map.remove(keyName)
-        return dynamoClient.toObject(map)
     }
 }

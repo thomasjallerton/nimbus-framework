@@ -10,12 +10,12 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
     private val client = AmazonDynamoDBClientBuilder.defaultClient()
     private val objectMapper = ObjectMapper()
 
-    fun put(obj: T, allAttributes: List<Field>, additionalEntries:Map<String, AttributeValue> = mapOf()) {
+    fun put(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf()) {
         val attributeMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
-        for (attribute in allAttributes) {
-            attribute.isAccessible = true
-            attributeMap[attribute.name] = toAttributeValue(attribute.get(obj))
+        for ((columnName, field) in allAttributes) {
+            field.isAccessible = true
+            attributeMap[columnName] = toAttributeValue(field.get(obj))
         }
 
         attributeMap.putAll(additionalEntries)
@@ -42,7 +42,7 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
         return scanResult.items
     }
 
-    fun get(keyMap: Map<String, AttributeValue>): T? {
+    fun get(keyMap: Map<String, AttributeValue>, objectDef: Map<String, Field>): T? {
 
         val convertedMap = keyMap.mapValues { entry ->
             Condition().withComparisonOperator("EQ").withAttributeValueList(listOf(entry.value))
@@ -55,7 +55,7 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
         val queryResult = client.query(queryRequest)
 
         return if (queryResult.count == 1) {
-            toObject(queryResult.items[0])
+            toObject(queryResult.items[0], objectDef)
         } else {
             null
         }
@@ -88,12 +88,12 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
         }
     }
 
-    fun toObject(map: Map<String, AttributeValue>): T {
+    fun toObject(obj: Map<String, AttributeValue>, objectDef: Map<String, Field>): T {
 
         val resultMap: MutableMap<String, Any?> = mutableMapOf()
 
-        for (field in clazz.declaredFields) {
-            val attributeVal = map[field.name]
+        for ((columnName, field) in objectDef) {
+            val attributeVal = obj[columnName]
             if (attributeVal != null) {
                 resultMap[field.name] = fromAttributeValue(attributeVal, field.type, field.name)
             }

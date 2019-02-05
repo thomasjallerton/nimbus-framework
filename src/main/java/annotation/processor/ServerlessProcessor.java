@@ -229,14 +229,15 @@ public class ServerlessProcessor extends AbstractProcessor {
             if (type.getKind() == ElementKind.CLASS) {
 
                 for (Element enclosedElement : type.getEnclosedElements()) {
-                    for (Key ignored : enclosedElement.getAnnotationsByType(Key.class)) {
+                    for (Key key : enclosedElement.getAnnotationsByType(Key.class)) {
                         if (enclosedElement.getKind() == ElementKind.FIELD) {
 
-                            String typeName = enclosedElement.getSimpleName().toString();
+                            String columnName = key.columnName();
+                            if (columnName.equals("")) columnName = enclosedElement.getSimpleName().toString();
 
                             Object fieldType = enclosedElement.asType();
 
-                            dynamoResource.addHashKey(typeName, fieldType);
+                            dynamoResource.addHashKey(columnName, fieldType);
                         }
                     }
                 }

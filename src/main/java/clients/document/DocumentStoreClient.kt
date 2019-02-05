@@ -4,17 +4,15 @@ import annotation.annotations.persistent.Attribute
 import annotation.annotations.persistent.Key
 import annotation.annotations.document.DocumentStore
 import clients.dynamo.DynamoClient
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.*
-import com.fasterxml.jackson.databind.ObjectMapper
 import java.lang.reflect.Field
 
 class DocumentStoreClient<T>(clazz: Class<T>) {
 
     private val dynamoClient: DynamoClient<T>
 
-    private val keys: MutableList<Field> = mutableListOf()
-    private val allAttributes: MutableList<Field> = mutableListOf()
+    private val keys: MutableMap<String, Field> = mutableMapOf()
+    private val allAttributes: MutableMap<String, Field> = mutableMapOf()
     private val tableName: String
 
     init {
@@ -24,10 +22,14 @@ class DocumentStoreClient<T>(clazz: Class<T>) {
 
         for (field in clazz.declaredFields) {
             if (field.isAnnotationPresent(Key::class.java)) {
-                keys.add(field)
-                allAttributes.add(field)
+                val keyAnnotation = field.getDeclaredAnnotation(Key::class.java)
+                val columnName = if (keyAnnotation.columnName != "") keyAnnotation.columnName else field.name
+                keys[columnName] = field
+                allAttributes[columnName] = field
             } else if (field.isAnnotationPresent(Attribute::class.java)) {
-                allAttributes.add(field)
+                val attributeAnnotation = field.getDeclaredAnnotation(Attribute::class.java)
+                val columnName = if (attributeAnnotation.columnName != "") attributeAnnotation.columnName else field.name
+                allAttributes[columnName] = field
             }
         }
     }
@@ -46,19 +48,19 @@ class DocumentStoreClient<T>(clazz: Class<T>) {
     }
 
     fun getAll(): List<T> {
-        return dynamoClient.getAll().map { valueMap -> dynamoClient.toObject(valueMap) }
+        return dynamoClient.getAll().map { valueMap -> dynamoClient.toObject(valueMap, allAttributes) }
     }
 
     fun get(keyObj: Any): T? {
-        return dynamoClient.get(keyToKeyMap(keyObj))
+        return dynamoClient.get(keyToKeyMap(keyObj), allAttributes)
     }
 
     private fun objectToKeyMap(obj: T): Map<String, AttributeValue> {
         val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
-        for (key in keys) {
-            key.isAccessible = true
-            keyMap[key.name] = dynamoClient.toAttributeValue(key.get(obj))
+        for ((columnName, field) in keys) {
+            field.isAccessible = true
+            keyMap[columnName] = dynamoClient.toAttributeValue(field.get(obj))
         }
         return keyMap
     }
@@ -69,8 +71,8 @@ class DocumentStoreClient<T>(clazz: Class<T>) {
         }
         val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
-        for (key in keys) {
-            keyMap[key.name] = dynamoClient.toAttributeValue(keyObj)
+        for ((columnName, _) in keys) {
+            keyMap[columnName] = dynamoClient.toAttributeValue(keyObj)
         }
         return keyMap
     }
