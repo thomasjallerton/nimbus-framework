@@ -61,7 +61,12 @@ class Policy(
             val resourceJson = JsonArray()
 
             for ((resource, suffix) in resources) {
-                resourceJson.add(resource.getArn(suffix))
+                val arnJson = resource.getArn()
+                if (arnJson.has("Arn")) {
+                    resourceJson.add(arnJson["Arn"])
+                } else {
+                    resourceJson.add(resource.getArn(suffix))
+                }
             }
             statement.add("Resource", resourceJson)
 
