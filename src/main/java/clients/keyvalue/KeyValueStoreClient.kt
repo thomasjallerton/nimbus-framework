@@ -68,8 +68,6 @@ class KeyValueStoreClient<K, V>(private val keyClass: Class<K> , valueClass: Cla
             if (keyType != KeyType.NUMBER) throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
         } else if (keyClass == Boolean::class.java) {
             if (keyType != KeyType.BOOLEAN) throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
-        } else if (keyType != KeyType.BOOLEAN) {
-            throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
         }
     }
 
