@@ -69,18 +69,13 @@ class DynamoResource(
         attributes.add(Attribute(name, getDynamoType(type)))
     }
 
-    fun addRangeKey(name: String, type: Any) {
-        keys.add(Attribute(name, "RANGE"))
-        attributes.add(Attribute(name, getDynamoType(type)))
-    }
-
     private fun getDynamoType(obj: Any): String {
         if (obj is KeyType) {
             return when (obj) {
                 KeyType.STRING -> "S"
                 KeyType.NUMBER -> "N"
                 KeyType.BOOLEAN -> "B"
-                else -> "S"
+                KeyType.OBJECT -> "S"
             }
         }
         return when (obj) {
