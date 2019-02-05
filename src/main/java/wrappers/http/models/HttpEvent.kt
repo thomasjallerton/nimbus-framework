@@ -1,6 +1,7 @@
 package wrappers.http.models
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import wrappers.ServerlessEvent
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HttpEvent(
@@ -16,4 +17,4 @@ data class HttpEvent(
         val requestContext: RequestContext? = null,
         val body: String? = null,
         val isBase64Encoded: Boolean? = null
-)
+): ServerlessEvent

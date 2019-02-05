@@ -1,5 +1,7 @@
 package wrappers.queue.models
 
+import wrappers.ServerlessEvent
+
 data class QueueEvent(
         val messageId: String? = null,
         val receiptHandle: String? = null,
@@ -11,4 +13,4 @@ data class QueueEvent(
         val eventSource: String? = null,
         val eventSourceARN: String? = null,
         val awsRegion: String? = null
-)
+): ServerlessEvent

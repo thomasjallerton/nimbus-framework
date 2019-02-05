@@ -17,7 +17,7 @@ class QueueServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         QueueServerlessFunction::class.java.simpleName,
-        QueueEvent::class.java.simpleName,
+        QueueEvent(),
         compilingElement
 ) {
 
@@ -25,6 +25,10 @@ class QueueServerlessFunctionFileBuilder(
 
     override fun getGeneratedClassName(): String {
         return "QueueServerlessFunction${methodInformation.className}${methodInformation.methodName}"
+    }
+
+    override fun eventCannotBeList(): Boolean {
+        return false
     }
 
     override fun writeImports() {
@@ -71,7 +75,7 @@ class QueueServerlessFunctionFileBuilder(
                     "${methodInformation.methodName} has a return type which will be unused. It can be removed")
         }
 
-        val eventVariable = if (inputParam.type != null && !isAListType(inputParam.type)) {
+        val eventVariable = if (eventParam.type != null && !isAListType(eventParam.type)) {
             "event"
         } else {
             "events"
