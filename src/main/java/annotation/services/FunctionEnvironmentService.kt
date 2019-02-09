@@ -78,7 +78,7 @@ class FunctionEnvironmentService(
         updateResources.addResource(permission)
     }
 
-    fun newQueue(queueFunction: QueueServerlessFunction, function: FunctionResource) {
+    fun newQueue(queueFunction: QueueServerlessFunction, function: FunctionResource): QueueResource {
 
         val sqsQueue = QueueResource(nimbusState)
         updateResources.addResource(sqsQueue)
@@ -90,5 +90,6 @@ class FunctionEnvironmentService(
         lambdaPolicy.addAllowStatement("sqs:DeleteMessage", sqsQueue, "")
         lambdaPolicy.addAllowStatement( "sqs:GetQueueAttributes", sqsQueue, "")
 
+        return sqsQueue
     }
 }

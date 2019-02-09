@@ -1,22 +1,24 @@
 package annotation.processor;
 
 import annotation.annotations.document.DocumentStore;
+import annotation.annotations.document.UsesDocumentStore;
 import annotation.annotations.function.HttpServerlessFunction;
 import annotation.annotations.function.NotificationServerlessFunction;
 import annotation.annotations.function.QueueServerlessFunction;
 import annotation.annotations.keyvalue.KeyValueStore;
 import annotation.annotations.keyvalue.UsesKeyValueStore;
 import annotation.annotations.persistent.Key;
-import annotation.annotations.document.UsesDocumentStore;
+import annotation.annotations.queue.UsesQueue;
 import annotation.models.CloudFormationTemplate;
 import annotation.models.outputs.OutputCollection;
 import annotation.models.persisted.NimbusState;
 import annotation.models.persisted.UserConfig;
 import annotation.models.processing.MethodInformation;
 import annotation.models.resource.*;
+import annotation.models.resource.dynamo.DynamoResource;
 import annotation.models.resource.function.FunctionConfig;
 import annotation.models.resource.function.FunctionResource;
-import annotation.models.resource.dynamo.DynamoResource;
+import annotation.models.resource.queue.QueueResource;
 import annotation.services.FileService;
 import annotation.services.FunctionEnvironmentService;
 import annotation.services.ReadUserConfigService;
@@ -39,10 +41,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 @SupportedAnnotationTypes({
         "annotation.annotations.function.HttpServerlessFunction",
@@ -67,6 +66,8 @@ public class ServerlessProcessor extends AbstractProcessor {
     private OutputCollection createOutputs = new OutputCollection();
 
     private Messager messager;
+
+    private Map<String, Resource> savedResources = new HashMap<>();
 
     @Override
     public synchronized void init(final ProcessingEnvironment processingEnv) {
@@ -98,9 +99,16 @@ public class ServerlessProcessor extends AbstractProcessor {
 
         handleDocumentStore(roundEnv, updateResources);
         handleKeyValueStore(roundEnv, updateResources);
-        handleHttpServerlessFunction(roundEnv, functionEnvironmentService);
-        handleNotificationServerlessFunction(roundEnv, functionEnvironmentService);
-        handleQueueServerlessFunction(roundEnv, functionEnvironmentService);
+
+        //Handle Functions
+        List<FunctionInformation> httpFunctions = handleHttpServerlessFunction(roundEnv, functionEnvironmentService);
+        List<FunctionInformation> notificationFunctions = handleNotificationServerlessFunction(roundEnv, functionEnvironmentService);
+        List<FunctionInformation> queueFunctions = handleQueueServerlessFunction(roundEnv, functionEnvironmentService);
+
+        //Now that all resources exist handle permissions
+        handleUseResources(httpFunctions, lambdaPolicy, updateResources);
+        handleUseResources(notificationFunctions, lambdaPolicy, updateResources);
+        handleUseResources(queueFunctions, lambdaPolicy, updateResources);
 
         IamRoleResource iamRole = new IamRoleResource(lambdaPolicy, nimbusState);
         updateResources.addResource(iamRole);
@@ -119,8 +127,16 @@ public class ServerlessProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void handleHttpServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
+    private void handleUseResources(List<FunctionInformation> functionInformationList, Policy policy, ResourceCollection updateResources) {
+        for (FunctionInformation functionInformation : functionInformationList) {
+            handleUseResources(functionInformation.element, functionInformation.resource, policy, updateResources);
+        }
+    }
+
+    private List<FunctionInformation> handleHttpServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
         Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(HttpServerlessFunction.class);
+
+        List<FunctionInformation> results = new LinkedList<>();
 
         for (Element type : annotatedElements) {
             HttpServerlessFunction httpFunction = type.getAnnotation(HttpServerlessFunction.class);
@@ -140,17 +156,20 @@ public class ServerlessProcessor extends AbstractProcessor {
                 FunctionConfig config = new FunctionConfig(httpFunction.timeout(), httpFunction.memory());
                 FunctionResource functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config);
 
-                handleUseResources(type, functionResource, functionEnvironmentService.getLambdaPolicy(), updateResources);
-
                 functionEnvironmentService.newHttpMethod(httpFunction, functionResource);
 
                 fileBuilder.createClass();
+
+                results.add(new FunctionInformation(type, functionResource));
             }
         }
+        return results;
     }
 
-    private void handleNotificationServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
+    private List<FunctionInformation> handleNotificationServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
         Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(NotificationServerlessFunction.class);
+
+        List<FunctionInformation> results = new LinkedList<>();
 
         for (Element type : annotatedElements) {
             NotificationServerlessFunction notificationFunction = type.getAnnotation(NotificationServerlessFunction.class);
@@ -167,17 +186,20 @@ public class ServerlessProcessor extends AbstractProcessor {
                 FunctionConfig config = new FunctionConfig(notificationFunction.timeout(), notificationFunction.memory());
                 FunctionResource functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config);
 
-                handleUseResources(type, functionResource, functionEnvironmentService.getLambdaPolicy(), updateResources);
-
                 functionEnvironmentService.newNotification(notificationFunction, functionResource);
 
                 fileBuilder.createClass();
+
+                results.add(new FunctionInformation(type, functionResource));
             }
         }
+        return results;
     }
 
-    private void handleQueueServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
+    private List<FunctionInformation> handleQueueServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
         Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(QueueServerlessFunction.class);
+
+        List<FunctionInformation> results = new LinkedList<>();
 
         for (Element type : annotatedElements) {
             QueueServerlessFunction queueFunction = type.getAnnotation(QueueServerlessFunction.class);
@@ -194,13 +216,18 @@ public class ServerlessProcessor extends AbstractProcessor {
                 FunctionConfig config = new FunctionConfig(queueFunction.timeout(), queueFunction.memory());
                 FunctionResource functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config);
 
-                handleUseResources(type, functionResource, functionEnvironmentService.getLambdaPolicy(), updateResources);
+                QueueResource newQueue = functionEnvironmentService.newQueue(queueFunction, functionResource);
 
-                functionEnvironmentService.newQueue(queueFunction, functionResource);
+                if (!queueFunction.id().equals("")) {
+                    savedResources.put(queueFunction.id(), newQueue);
+                }
 
                 fileBuilder.createClass();
+
+                results.add(new FunctionInformation(type, functionResource));
             }
         }
+        return results;
     }
 
     private MethodInformation extractMethodInformation(Element type) {
@@ -324,7 +351,21 @@ public class ServerlessProcessor extends AbstractProcessor {
             }
         }
 
+        for (UsesQueue usesQueue : serverlessMethod.getAnnotationsByType(UsesQueue.class)) {
+            if (usesQueue.id().equals("") || savedResources.get(usesQueue.id()) == null) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find id of queue, have you set it in the @QueueServerlessFunction?", serverlessMethod);
+                return;
+            }
 
+            Resource referencedQueue = savedResources.get(usesQueue.id());
+            if (!(referencedQueue instanceof QueueResource)) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Resource with id " + usesQueue.id() + " is not a Queue", serverlessMethod);
+                return;
+            }
+
+            functionResource.addEnvVariable("NIMBUS_QUEUE_URL_ID_" + usesQueue.id().toUpperCase(), referencedQueue.getRef());
+            policy.addAllowStatement("sqs:SendMessage", referencedQueue, "");
+        }
     }
 
     private Resource getResource(ResourceCollection updateResources, String existingArn, String tableName, String elementName) {
@@ -345,6 +386,31 @@ public class ServerlessProcessor extends AbstractProcessor {
         return tableName;
     }
 
+    private class FunctionInformation {
 
+        private Element element;
+        private FunctionResource resource;
+
+        public FunctionInformation(Element element, FunctionResource resource) {
+            this.element = element;
+            this.resource = resource;
+        }
+
+        public Element getElement() {
+            return element;
+        }
+
+        public void setElement(Element element) {
+            this.element = element;
+        }
+
+        public FunctionResource getResource() {
+            return resource;
+        }
+
+        public void setResource(FunctionResource resource) {
+            this.resource = resource;
+        }
+    }
 }
 
