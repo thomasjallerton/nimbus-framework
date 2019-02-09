@@ -5,7 +5,8 @@ import annotation.models.resource.Resource
 import com.google.gson.JsonObject
 
 class QueueResource(
-        nimbusState: NimbusState
+        nimbusState: NimbusState,
+        private val name: String
 ): Resource(nimbusState) {
     override fun toCloudFormation(): JsonObject {
         val queue = JsonObject()
@@ -13,8 +14,7 @@ class QueueResource(
         return queue
     }
 
-    //TODO: SUPPORT MULTIPLE QUEUES!!!
     override fun getName(): String {
-        return "SQSQueue"
+        return "NimbusSQSQueue$name"
     }
 }
