@@ -149,8 +149,6 @@ abstract class ServerlessFunctionFileBuilder(
     private fun findParamIndexes(): FunctionParams {
         val functionParams = FunctionParams()
         for ((paramIndex, param) in methodInformation.parameters.withIndex()) {
-            println(param.toString())
-            println("Canonical name: $eventCanonicalName")
             if (param.toString() == eventCanonicalName) {
                 functionParams.eventParam = Param(param, paramIndex)
             } else if (isAListType(param) && param.toString().contains(eventCanonicalName)) {

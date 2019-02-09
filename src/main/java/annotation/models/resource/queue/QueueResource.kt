@@ -13,25 +13,8 @@ class QueueResource(
         return queue
     }
 
+    //TODO: SUPPORT MULTIPLE QUEUES!!!
     override fun getName(): String {
         return "SQSQueue"
     }
-
 }
-
-//{
-//    "Type" : "AWS::SQS::Queue",
-//    "Properties" : {
-//    "ContentBasedDeduplication" : Boolean,
-//    "DelaySeconds": Integer,
-//    "FifoQueue" : Boolean,
-//    "KmsMasterKeyId": String,
-//    "KmsDataKeyReusePeriodSeconds": Integer,
-//    "MaximumMessageSize": Integer,
-//    "MessageRetentionPeriod": Integer,
-//    "QueueName": String,
-//    "ReceiveMessageWaitTimeSeconds": Integer,
-//    "RedrivePolicy": RedrivePolicy,
-//    "Tags" : [ Resource Tag, ... ],
-//    "VisibilityTimeout": Integer
-//}

@@ -13,6 +13,10 @@ class FunctionResource(
         nimbusState: NimbusState
 ) : Resource(nimbusState) {
 
+    private val envVariables: MutableMap<String, String> = mutableMapOf()
+    private val jsonEnvVariables: MutableMap<String, JsonObject> = mutableMapOf()
+
+
     override fun getName(): String {
         return "${methodInformation.className}${methodInformation.methodName}Function"
     }
@@ -44,6 +48,17 @@ class FunctionResource(
         properties.addProperty("Runtime", "java8")
         properties.addProperty("Timeout", functionConfig.timeout)
 
+        val environment = JsonObject()
+        val variables = JsonObject()
+        for ((key, value) in envVariables) {
+            variables.addProperty(key, value)
+        }
+        for ((key, json) in jsonEnvVariables) {
+            variables.add(key, json)
+        }
+        environment.add("Variables", variables)
+        properties.add("Environment", environment)
+
         val dependsOn = JsonArray()
         dependsOn.add("IamRoleLambdaExecution")
         functionResource.add("DependsOn", dependsOn)
@@ -51,6 +66,14 @@ class FunctionResource(
         functionResource.add("Properties", properties)
 
         return functionResource
+    }
+
+    fun addEnvVariable(key: String, value: String) {
+        envVariables[key] = value
+    }
+
+    fun addEnvVariable(key: String, value: JsonObject) {
+        jsonEnvVariables[key] = value
     }
 
 }
