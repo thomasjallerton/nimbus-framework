@@ -1,5 +1,7 @@
 package testing
 
+import com.fasterxml.jackson.databind.ObjectMapper
+
 abstract class ServerlessMethod {
     var timesInvoked: Int = 0
         protected set
@@ -7,4 +9,6 @@ abstract class ServerlessMethod {
         protected set
     var mostRecentValueReturned: Any? = null
         protected set
+
+    protected val objectMapper = ObjectMapper()
 }

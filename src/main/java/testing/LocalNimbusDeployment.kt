@@ -1,5 +1,6 @@
 package testing
 
+import annotation.annotations.function.HttpServerlessFunction
 import annotation.annotations.function.QueueServerlessFunction
 import org.reflections.Reflections
 import org.reflections.util.ConfigurationBuilder
@@ -7,6 +8,7 @@ import org.reflections.util.FilterBuilder
 import org.reflections.util.ClasspathHelper
 import org.reflections.scanners.ResourcesScanner
 import org.reflections.scanners.SubTypesScanner
+import sun.security.krb5.internal.PAData
 import java.util.LinkedList
 
 
@@ -14,7 +16,7 @@ class LocalNimbusDeployment private constructor(packageName: String) {
 
     private val queues: MutableMap<String, LocalQueue> = mutableMapOf()
     private val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
-
+    private val httpMethods: MutableMap<HttpMethodIdentifier, HttpMethod> = mutableMapOf()
 
     init {
         instance = this
@@ -42,6 +44,18 @@ class LocalNimbusDeployment private constructor(packageName: String) {
                         methods[functionIdentifier] = queueMethod
                     }
                 }
+
+                if (method.isAnnotationPresent(HttpServerlessFunction::class.java)) {
+                    val httpServerlessFunctions = method.getAnnotationsByType(HttpServerlessFunction::class.java)
+
+                    val invokeOn = clazz.getConstructor().newInstance()
+                    for (httpFunction in httpServerlessFunctions) {
+                        val httpMethod = HttpMethod(method, invokeOn)
+                        val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
+                        httpMethods[httpIdentifier] = httpMethod
+                        methods[functionIdentifier] = httpMethod
+                    }
+                }
             }
         }
     }
@@ -58,6 +72,15 @@ class LocalNimbusDeployment private constructor(packageName: String) {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, methodName)
         if (methods.containsKey(functionIdentifier)) {
             return methods[functionIdentifier]!!
+        } else {
+            throw ResourceNotFoundException()
+        }
+    }
+
+    fun sendHttpReguest(request: HttpRequest) {
+        val httpIdentifier = HttpMethodIdentifier(request.path, request.method)
+        if (httpMethods.containsKey(httpIdentifier)) {
+            httpMethods[httpIdentifier]!!.invoke(request)
         } else {
             throw ResourceNotFoundException()
         }
@@ -81,4 +104,6 @@ class LocalNimbusDeployment private constructor(packageName: String) {
     }
 
     private data class FunctionIdentifier(val className: String, val methodName: String)
+
+    private data class HttpMethodIdentifier(val path: String, val method: String)
 }
