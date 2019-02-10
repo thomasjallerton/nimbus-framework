@@ -8,7 +8,6 @@ import java.lang.reflect.ParameterizedType
 
 class QueueMethod(private val method: Method, private val invokeOn: Any, internal val batchSize: Int) : ServerlessMethod() {
 
-    private val objectMapper = ObjectMapper()
     internal val isListParams = method.parameterTypes.any { clazz -> isListType(clazz.canonicalName) }
     private val paramType: Class<*>?
 
