@@ -51,7 +51,7 @@ import java.util.*;
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
-public class ServerlessProcessor extends AbstractProcessor {
+public class NimbusAnnotationProcessor extends AbstractProcessor {
 
     private NimbusState nimbusState = null;
 
@@ -218,9 +218,12 @@ public class ServerlessProcessor extends AbstractProcessor {
 
                 QueueResource newQueue = functionEnvironmentService.newQueue(queueFunction, functionResource);
 
-                if (!queueFunction.id().equals("")) {
-                    savedResources.put(queueFunction.id(), newQueue);
+                if (savedResources.containsKey(queueFunction.id())) {
+                    messager.printMessage(Diagnostic.Kind.ERROR, "Can't have multiple consumers of the same queue ("
+                            + queueFunction.id() + ")", type);
+                    return results;
                 }
+                savedResources.put(queueFunction.id(), newQueue);
 
                 fileBuilder.createClass();
 
