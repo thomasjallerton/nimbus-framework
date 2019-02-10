@@ -80,7 +80,7 @@ class FunctionEnvironmentService(
 
     fun newQueue(queueFunction: QueueServerlessFunction, function: FunctionResource): QueueResource {
 
-        val sqsQueue = QueueResource(nimbusState, queueFunction.id)
+        val sqsQueue = QueueResource(nimbusState, queueFunction.id, queueFunction.timeout * 6)
         updateResources.addResource(sqsQueue)
 
         val eventMapping = FunctionEventMappingResource(sqsQueue, queueFunction.batchSize, function, nimbusState)

@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface QueueServerlessFunction {
     int batchSize();
-    String id() default "";
+    String id();
     int timeout() default 10;
     int memory() default 1024;
 }

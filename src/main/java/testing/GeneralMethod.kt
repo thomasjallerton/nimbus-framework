@@ -3,8 +3,8 @@ package testing
 abstract class GeneralMethod {
     var timesInvoked: Int = 0
         protected set
-    lateinit var mostRecentInvokeArgument: Any
+    var mostRecentInvokeArgument: Any? = null
         protected set
-    lateinit var mostRecentValueReturned: Any
+    var mostRecentValueReturned: Any? = null
         protected set
 }
