@@ -1,6 +1,6 @@
 package testing
 
-abstract class GeneralMethod {
+abstract class ServerlessMethod {
     var timesInvoked: Int = 0
         protected set
     var mostRecentInvokeArgument: Any? = null

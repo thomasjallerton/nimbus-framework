@@ -13,7 +13,7 @@ import java.util.LinkedList
 class LocalNimbusDeployment private constructor(packageName: String) {
 
     private val queues: MutableMap<String, LocalQueue> = mutableMapOf()
-    private val methods: MutableMap<FunctionIdentifier, GeneralMethod> = mutableMapOf()
+    private val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
 
 
     init {
@@ -36,7 +36,7 @@ class LocalNimbusDeployment private constructor(packageName: String) {
 
                     val invokeOn = clazz.getConstructor().newInstance()
                     for (queueFunction in queueServerlessFunctions) {
-                        val queueMethod = QueueMethod(method, invokeOn)
+                        val queueMethod = QueueMethod(method, invokeOn, queueFunction.batchSize)
                         val newQueue = LocalQueue(queueMethod)
                         queues[queueFunction.id] = newQueue
                         methods[functionIdentifier] = queueMethod
@@ -54,7 +54,7 @@ class LocalNimbusDeployment private constructor(packageName: String) {
         }
     }
 
-    fun <T> getMethod(clazz: Class<T>, methodName: String): GeneralMethod {
+    fun <T> getMethod(clazz: Class<T>, methodName: String): ServerlessMethod {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, methodName)
         if (methods.containsKey(functionIdentifier)) {
             return methods[functionIdentifier]!!
