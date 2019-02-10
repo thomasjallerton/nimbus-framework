@@ -1,23 +1,32 @@
 package testing
 
-import java.util.*
+import java.lang.Integer.min
 
 class LocalQueue(private val target: QueueMethod) {
 
-    private val queue: Queue<Any> = LinkedList()
     private var itemsAdded: Int = 0
 
     fun add(obj: Any){
-        queue.add(obj)
         target.invoke(obj)
         itemsAdded++
     }
 
-    fun getNumberOfItemsAdded(): Int {
-        return itemsAdded
+    fun addBatch(toAdd: List<Any> ) {
+        itemsAdded += toAdd.size
+        if (target.isListParams) {
+            for (i in 1 until toAdd.size step target.batchSize) {
+                val invokeList: MutableList<Any> = mutableListOf()
+                for (j in i..min(toAdd.size - 1, i + target.batchSize - 1)) {
+                    invokeList.add(toAdd[j])
+                }
+                target.invoke(invokeList)
+            }
+        } else {
+            toAdd.forEach {item -> target.invoke(item)}
+        }
     }
 
-    fun getNumberOfItems(): Int {
-        return queue.size
+    fun getNumberOfItemsAdded(): Int {
+        return itemsAdded
     }
 }
