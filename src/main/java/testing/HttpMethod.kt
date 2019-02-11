@@ -26,11 +26,11 @@ class HttpMethod(private val method: Method, private val invokeOn: Any): Serverl
             method.invoke(invokeOn)
         } else if (params.size == 2) {
             if (params[0].type.canonicalName.contains(HttpEvent::class.java.canonicalName)) {
-                val param = objectMapper.readValue(strParam, params[0].type)
+                val param = objectMapper.readValue(strParam, params[1].type)
                 mostRecentInvokeArgument = param
                 method.invoke(invokeOn, httpEvent, param)
             } else {
-                val param = objectMapper.readValue(strParam, params[1].type)
+                val param = objectMapper.readValue(strParam, params[0].type)
                 mostRecentInvokeArgument = param
                 method.invoke(invokeOn, param, httpEvent)
             }
