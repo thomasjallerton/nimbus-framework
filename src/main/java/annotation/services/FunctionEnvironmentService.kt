@@ -7,7 +7,10 @@ import annotation.models.outputs.BucketNameOutput
 import annotation.models.outputs.OutputCollection
 import annotation.models.persisted.NimbusState
 import annotation.models.processing.MethodInformation
-import annotation.models.resource.*
+import annotation.models.resource.LogGroupResource
+import annotation.models.resource.NimbusBucketResource
+import annotation.models.resource.Policy
+import annotation.models.resource.ResourceCollection
 import annotation.models.resource.function.FunctionConfig
 import annotation.models.resource.function.FunctionEventMappingResource
 import annotation.models.resource.function.FunctionPermissionResource

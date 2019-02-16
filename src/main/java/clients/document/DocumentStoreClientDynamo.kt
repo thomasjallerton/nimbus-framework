@@ -1,10 +1,10 @@
 package clients.document
 
+import annotation.annotations.document.DocumentStore
 import annotation.annotations.persistent.Attribute
 import annotation.annotations.persistent.Key
-import annotation.annotations.document.DocumentStore
 import clients.dynamo.DynamoClient
-import com.amazonaws.services.dynamodbv2.model.*
+import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import java.lang.reflect.Field
 
 internal class DocumentStoreClientDynamo<T>(clazz: Class<T>): DocumentStoreClient<T> {

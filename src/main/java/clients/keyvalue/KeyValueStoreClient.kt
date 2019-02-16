@@ -3,7 +3,6 @@ package clients.keyvalue
 import annotation.annotations.keyvalue.KeyType
 import annotation.annotations.keyvalue.KeyValueStore
 import annotation.annotations.persistent.Attribute
-import clients.dynamo.DynamoClient
 import clients.dynamo.MismatchedKeyTypeException
 import java.lang.reflect.Field
 
