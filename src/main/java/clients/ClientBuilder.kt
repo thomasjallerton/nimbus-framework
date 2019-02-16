@@ -4,6 +4,7 @@ import clients.document.DocumentStoreClient
 import clients.document.DocumentStoreClientDynamo
 import clients.keyvalue.KeyValueStoreClient
 import clients.keyvalue.KeyValueStoreClientDynamo
+import clients.keyvalue.KeyValueStoreClientLocal
 import clients.queue.QueueClient
 import clients.queue.QueueClientDynamo
 import clients.queue.QueueClientLocal
@@ -13,7 +14,11 @@ object ClientBuilder {
 
     @JvmStatic
     fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>): KeyValueStoreClient<K, V> {
-        return KeyValueStoreClientDynamo(key, value)
+        return if (LocalNimbusDeployment.isLocalDeployment) {
+            KeyValueStoreClientLocal(key, value)
+        } else {
+            KeyValueStoreClientDynamo(key, value)
+        }
     }
 
     @JvmStatic

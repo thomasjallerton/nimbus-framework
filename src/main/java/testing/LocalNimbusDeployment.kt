@@ -2,6 +2,9 @@ package testing
 
 import annotation.annotations.function.HttpServerlessFunction
 import annotation.annotations.function.QueueServerlessFunction
+import annotation.annotations.keyvalue.KeyValueStore
+import clients.keyvalue.KeyValueStoreClient
+import clients.keyvalue.KeyValueStoreClientLocal
 import org.reflections.Reflections
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
@@ -17,6 +20,7 @@ class LocalNimbusDeployment private constructor(packageName: String) {
     private val queues: MutableMap<String, LocalQueue> = mutableMapOf()
     private val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
     private val httpMethods: MutableMap<HttpMethodIdentifier, HttpMethod> = mutableMapOf()
+    private val keyValueStores: MutableMap<String, MutableMap<Any?, Any?>> = mutableMapOf()
 
     init {
         instance = this
@@ -57,7 +61,25 @@ class LocalNimbusDeployment private constructor(packageName: String) {
                     }
                 }
             }
+            if (clazz.isAnnotationPresent(KeyValueStore::class.java)) {
+                val tableName = KeyValueStoreClient.getTableName(clazz)
+
+                keyValueStores[tableName] = mutableMapOf()
+            }
         }
+    }
+
+    internal fun <T> getKeyValueStore(clazz: Class<T>): MutableMap<Any?, Any?> {
+        val tableName = KeyValueStoreClient.getTableName(clazz)
+        if (keyValueStores.containsKey(tableName)) {
+            return keyValueStores[tableName]!!
+        } else {
+            throw ResourceNotFoundException()
+        }
+    }
+
+    fun <K, V> getKeyValueStoreClient(keyClass: Class<K>, valueClass: Class<V>): KeyValueStoreClient<K, V> {
+        return KeyValueStoreClientLocal(keyClass, valueClass)
     }
 
     fun getQueue(id: String): LocalQueue {
