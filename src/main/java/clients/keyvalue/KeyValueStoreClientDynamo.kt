@@ -1,42 +1,14 @@
 package clients.keyvalue
 
-import annotation.annotations.keyvalue.KeyType
-import annotation.annotations.keyvalue.KeyValueStore
-import annotation.annotations.persistent.Attribute
 import clients.dynamo.DynamoClient
-import clients.dynamo.MismatchedKeyTypeException
-import clients.dynamo.MismatchedTypeException
-import com.amazonaws.services.dynamodbv2.model.*
-import java.lang.reflect.Field
+import com.amazonaws.services.dynamodbv2.model.AttributeValue
 
-internal class KeyValueStoreClientDynamo<K, V>(private val keyClass: Class<K>, valueClass: Class<V>): KeyValueStoreClient<K, V> {
+internal class KeyValueStoreClientDynamo<K, V>(
+        private val keyClass: Class<K>,
+        valueClass: Class<V>
+): KeyValueStoreClient<K, V>(keyClass, valueClass){
 
-    private val dynamoClient: DynamoClient<V>
-
-    private val keyType: KeyType
-    private val keyName: String
-    private val attributes: MutableMap<String, Field> = mutableMapOf()
-    private val tableName: String
-
-    init {
-        val keyValueStoreAnnotation = valueClass.getDeclaredAnnotation(KeyValueStore::class.java)
-        tableName = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else valueClass.simpleName
-        keyType = keyValueStoreAnnotation.keyType
-        keyName = keyValueStoreAnnotation.keyName
-        dynamoClient = DynamoClient(tableName, valueClass)
-
-        checkKeyIsCorrectType()
-
-        for (field in valueClass.declaredFields) {
-            if (field.isAnnotationPresent(Attribute::class.java)) {
-                val attributeAnnotation = field.getDeclaredAnnotation(Attribute::class.java)
-                val columnName = if (attributeAnnotation.columnName != "") attributeAnnotation.columnName else field.name
-                attributes[columnName] = field
-                if (field.name == keyName) throw AttributeNameException()
-            }
-        }
-    }
-
+    private val dynamoClient: DynamoClient<V> = DynamoClient(tableName, valueClass)
 
     override fun put(key: K, value: V) {
         dynamoClient.put(value, attributes, mapOf(Pair(keyName, dynamoClient.toAttributeValue(key))))
@@ -59,20 +31,6 @@ internal class KeyValueStoreClientDynamo<K, V>(private val keyClass: Class<K>, v
 
     override fun get(keyObj: K): V? {
         return dynamoClient.get(keyToKeyMap(keyObj), attributes)
-    }
-
-    private fun checkKeyIsCorrectType() {
-        if (keyClass == String::class.java) {
-            if (keyType != KeyType.STRING) throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
-        } else if (keyType == KeyType.NUMBER) {
-            if (!Number::class.java.isAssignableFrom(keyClass) && keyClass != Int::class.java &&
-                    keyClass != Double::class.java && keyClass != Float::class.java &&
-                    keyClass != Long::class.java   && keyClass != Short::class.java) {
-                throw MismatchedKeyTypeException(KeyType.NUMBER, keyClass)
-            }
-        } else if (keyClass == Boolean::class.java) {
-            if (keyType != KeyType.BOOLEAN) throw MismatchedKeyTypeException(KeyType.BOOLEAN, keyClass)
-        }
     }
 
     private fun keyToKeyMap(keyObj: K): Map<String, AttributeValue> {
