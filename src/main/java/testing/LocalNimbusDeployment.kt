@@ -12,6 +12,7 @@ import org.reflections.util.ClasspathHelper
 import org.reflections.scanners.ResourcesScanner
 import org.reflections.scanners.SubTypesScanner
 import sun.security.krb5.internal.PAData
+import java.lang.reflect.InvocationTargetException
 import java.util.LinkedList
 
 
@@ -34,38 +35,50 @@ class LocalNimbusDeployment private constructor(packageName: String) {
                 .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix(packageName))))
 
         val allClasses = reflections.getSubTypesOf(Any::class.java)
+
+        //Handle Resources that need to exist for handlers to work
         for (clazz in allClasses) {
-            for (method in clazz.declaredMethods) {
-                val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
-                if (method.isAnnotationPresent(QueueServerlessFunction::class.java)) {
-                    val queueServerlessFunctions = method.getAnnotationsByType(QueueServerlessFunction::class.java)
-
-                    val invokeOn = clazz.getConstructor().newInstance()
-                    for (queueFunction in queueServerlessFunctions) {
-                        val queueMethod = QueueMethod(method, invokeOn, queueFunction.batchSize)
-                        val newQueue = LocalQueue(queueMethod)
-                        queues[queueFunction.id] = newQueue
-                        methods[functionIdentifier] = queueMethod
-                    }
-                }
-
-                if (method.isAnnotationPresent(HttpServerlessFunction::class.java)) {
-                    val httpServerlessFunctions = method.getAnnotationsByType(HttpServerlessFunction::class.java)
-
-                    val invokeOn = clazz.getConstructor().newInstance()
-                    for (httpFunction in httpServerlessFunctions) {
-                        val httpMethod = HttpMethod(method, invokeOn)
-                        val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
-                        httpMethods[httpIdentifier] = httpMethod
-                        methods[functionIdentifier] = httpMethod
-                    }
-                }
-            }
             if (clazz.isAnnotationPresent(KeyValueStore::class.java)) {
                 val tableName = KeyValueStoreClient.getTableName(clazz)
 
                 keyValueStores[tableName] = mutableMapOf()
             }
+        }
+
+        //Handle handlers
+        for (clazz in allClasses) {
+            try {
+                for (method in clazz.declaredMethods) {
+                    val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
+                    if (method.isAnnotationPresent(QueueServerlessFunction::class.java)) {
+                        val queueServerlessFunctions = method.getAnnotationsByType(QueueServerlessFunction::class.java)
+
+                        val invokeOn = clazz.getConstructor().newInstance()
+                        for (queueFunction in queueServerlessFunctions) {
+                            val queueMethod = QueueMethod(method, invokeOn, queueFunction.batchSize)
+                            val newQueue = LocalQueue(queueMethod)
+                            queues[queueFunction.id] = newQueue
+                            methods[functionIdentifier] = queueMethod
+                        }
+                    }
+
+                    if (method.isAnnotationPresent(HttpServerlessFunction::class.java)) {
+                        val httpServerlessFunctions = method.getAnnotationsByType(HttpServerlessFunction::class.java)
+
+                        val invokeOn = clazz.getConstructor().newInstance()
+                        for (httpFunction in httpServerlessFunctions) {
+                            val httpMethod = HttpMethod(method, invokeOn)
+                            val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
+                            httpMethods[httpIdentifier] = httpMethod
+                            methods[functionIdentifier] = httpMethod
+                        }
+                    }
+                }
+            } catch (e: InvocationTargetException) {
+                System.err.println("Error creating handler class, it should have no constructor parameters")
+                e.targetException.printStackTrace()
+            }
+
         }
     }
 
