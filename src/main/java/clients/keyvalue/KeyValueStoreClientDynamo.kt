@@ -64,10 +64,14 @@ internal class KeyValueStoreClientDynamo<K, V>(private val keyClass: Class<K>, v
     private fun checkKeyIsCorrectType() {
         if (keyClass == String::class.java) {
             if (keyType != KeyType.STRING) throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
-        } else if (Number::class.java.isAssignableFrom(keyClass)) {
-            if (keyType != KeyType.NUMBER) throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
+        } else if (keyType == KeyType.NUMBER) {
+            if (!Number::class.java.isAssignableFrom(keyClass) && keyClass != Int::class.java &&
+                    keyClass != Double::class.java && keyClass != Float::class.java &&
+                    keyClass != Long::class.java   && keyClass != Short::class.java) {
+                throw MismatchedKeyTypeException(KeyType.NUMBER, keyClass)
+            }
         } else if (keyClass == Boolean::class.java) {
-            if (keyType != KeyType.BOOLEAN) throw MismatchedKeyTypeException(KeyType.STRING, keyClass)
+            if (keyType != KeyType.BOOLEAN) throw MismatchedKeyTypeException(KeyType.BOOLEAN, keyClass)
         }
     }
 

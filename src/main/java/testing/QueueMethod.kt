@@ -1,10 +1,7 @@
 package testing
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import wrappers.queue.models.QueueEvent
-import java.lang.Exception
 import java.lang.reflect.Method
-import java.lang.reflect.ParameterizedType
 
 class QueueMethod(private val method: Method, private val invokeOn: Any, internal val batchSize: Int) : ServerlessMethod() {
 
