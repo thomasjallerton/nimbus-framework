@@ -2,7 +2,6 @@ package wrappers.notification.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import wrappers.ServerlessEvent
-import wrappers.notification.models.MessageAttribute
 
 data class NotificationEvent(
         @JsonProperty(value = "Type")

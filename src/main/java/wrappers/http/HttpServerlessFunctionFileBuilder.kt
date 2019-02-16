@@ -1,7 +1,6 @@
 package wrappers.http
 
 import annotation.annotations.function.HttpServerlessFunction
-import annotation.annotations.function.QueueServerlessFunction
 import annotation.models.processing.MethodInformation
 import wrappers.ServerlessFunctionFileBuilder
 import wrappers.http.models.HttpEvent

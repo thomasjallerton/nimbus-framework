@@ -1,7 +1,6 @@
 package wrappers.queue.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import wrappers.queue.models.MessageAttribute
 
 data class Attributes(
         @JsonProperty(value = "ApproximateReceiveCount")

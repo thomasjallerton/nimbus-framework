@@ -1,7 +1,6 @@
 package wrappers.notification.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import wrappers.notification.models.NotificationEvent
 
 data class Record(
         @JsonProperty(value = "EventSource")

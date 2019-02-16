@@ -1,7 +1,6 @@
 package testing
 
 import wrappers.http.models.HttpEvent
-import java.lang.Exception
 import java.lang.reflect.Method
 
 class HttpMethod(private val method: Method, private val invokeOn: Any): ServerlessMethod() {
