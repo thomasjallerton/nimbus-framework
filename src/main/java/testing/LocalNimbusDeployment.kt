@@ -15,15 +15,19 @@ import java.lang.reflect.InvocationTargetException
 import java.util.*
 
 
-class LocalNimbusDeployment private constructor(packageName: String) {
+class LocalNimbusDeployment {
 
     private val queues: MutableMap<String, LocalQueue> = mutableMapOf()
     private val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
     private val httpMethods: MutableMap<HttpMethodIdentifier, HttpMethod> = mutableMapOf()
     private val keyValueStores: MutableMap<String, MutableMap<Any?, Any?>> = mutableMapOf()
 
-    init {
-        instance = this
+    private constructor(clazz: Class<out Any>) {
+        createResources(clazz)
+        createHandlers(clazz)
+    }
+
+    private constructor(packageName: String) {
         val classLoadersList = LinkedList<ClassLoader>()
         classLoadersList.add(ClasspathHelper.contextClassLoader())
         classLoadersList.add(ClasspathHelper.staticClassLoader())
@@ -36,48 +40,50 @@ class LocalNimbusDeployment private constructor(packageName: String) {
         val allClasses = reflections.getSubTypesOf(Any::class.java)
 
         //Handle Resources that need to exist for handlers to work
-        for (clazz in allClasses) {
-            if (clazz.isAnnotationPresent(KeyValueStore::class.java)) {
-                val tableName = KeyValueStoreClient.getTableName(clazz)
-
-                keyValueStores[tableName] = mutableMapOf()
-            }
-        }
+        allClasses.forEach { clazz -> createResources(clazz) }
 
         //Handle handlers
-        for (clazz in allClasses) {
-            try {
-                for (method in clazz.declaredMethods) {
-                    val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
-                    if (method.isAnnotationPresent(QueueServerlessFunction::class.java)) {
-                        val queueServerlessFunctions = method.getAnnotationsByType(QueueServerlessFunction::class.java)
+        allClasses.forEach { clazz -> createHandlers(clazz) }
+    }
 
-                        val invokeOn = clazz.getConstructor().newInstance()
-                        for (queueFunction in queueServerlessFunctions) {
-                            val queueMethod = QueueMethod(method, invokeOn, queueFunction.batchSize)
-                            val newQueue = LocalQueue(queueMethod)
-                            queues[queueFunction.id] = newQueue
-                            methods[functionIdentifier] = queueMethod
-                        }
-                    }
+    private fun createResources(clazz: Class<out Any>) {
+        if (clazz.isAnnotationPresent(KeyValueStore::class.java)) {
+            val tableName = KeyValueStoreClient.getTableName(clazz)
+            keyValueStores[tableName] = mutableMapOf()
+        }
+    }
 
-                    if (method.isAnnotationPresent(HttpServerlessFunction::class.java)) {
-                        val httpServerlessFunctions = method.getAnnotationsByType(HttpServerlessFunction::class.java)
+    private fun createHandlers(clazz: Class<out Any>) {
+        try {
+            for (method in clazz.declaredMethods) {
+                val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
+                if (method.isAnnotationPresent(QueueServerlessFunction::class.java)) {
+                    val queueServerlessFunctions = method.getAnnotationsByType(QueueServerlessFunction::class.java)
 
-                        val invokeOn = clazz.getConstructor().newInstance()
-                        for (httpFunction in httpServerlessFunctions) {
-                            val httpMethod = HttpMethod(method, invokeOn)
-                            val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
-                            httpMethods[httpIdentifier] = httpMethod
-                            methods[functionIdentifier] = httpMethod
-                        }
+                    val invokeOn = clazz.getConstructor().newInstance()
+                    for (queueFunction in queueServerlessFunctions) {
+                        val queueMethod = QueueMethod(method, invokeOn, queueFunction.batchSize)
+                        val newQueue = LocalQueue(queueMethod)
+                        queues[queueFunction.id] = newQueue
+                        methods[functionIdentifier] = queueMethod
                     }
                 }
-            } catch (e: InvocationTargetException) {
-                System.err.println("Error creating handler class, it should have no constructor parameters")
-                e.targetException.printStackTrace()
-            }
 
+                if (method.isAnnotationPresent(HttpServerlessFunction::class.java)) {
+                    val httpServerlessFunctions = method.getAnnotationsByType(HttpServerlessFunction::class.java)
+
+                    val invokeOn = clazz.getConstructor().newInstance()
+                    for (httpFunction in httpServerlessFunctions) {
+                        val httpMethod = HttpMethod(method, invokeOn)
+                        val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
+                        httpMethods[httpIdentifier] = httpMethod
+                        methods[functionIdentifier] = httpMethod
+                    }
+                }
+            }
+        } catch (e: InvocationTargetException) {
+            System.err.println("Error creating handler class, it should have no constructor parameters")
+            e.targetException.printStackTrace()
         }
     }
 
@@ -132,7 +138,14 @@ class LocalNimbusDeployment private constructor(packageName: String) {
         @JvmStatic
         fun getNewInstance(packageName: String): LocalNimbusDeployment {
             isLocalDeployment = true
-            LocalNimbusDeployment(packageName)
+            instance = LocalNimbusDeployment(packageName)
+            return instance
+        }
+
+        @JvmStatic
+        fun getNewInstance(clazz: Class<out Any>): LocalNimbusDeployment {
+            isLocalDeployment = true
+            instance = LocalNimbusDeployment(clazz)
             return instance
         }
     }
