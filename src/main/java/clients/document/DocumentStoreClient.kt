@@ -1,13 +1,45 @@
 package clients.document
 
-interface DocumentStoreClient<T> {
-    fun put(obj: T)
+import annotation.annotations.document.DocumentStore
+import annotation.annotations.persistent.Attribute
+import annotation.annotations.persistent.Key
+import java.lang.reflect.Field
 
-    fun delete(obj: T)
+abstract class DocumentStoreClient<T>(clazz: Class<T>) {
 
-    fun deleteKey(keyObj: Any)
+    protected val keys: MutableMap<String, Field> = mutableMapOf()
+    protected val allAttributes: MutableMap<String, Field> = mutableMapOf()
+    protected val tableName: String = getTableName(clazz)
 
-    fun getAll(): List<T>
+    init {
+        for (field in clazz.declaredFields) {
+            if (field.isAnnotationPresent(Key::class.java)) {
+                val keyAnnotation = field.getDeclaredAnnotation(Key::class.java)
+                val columnName = if (keyAnnotation.columnName != "") keyAnnotation.columnName else field.name
+                keys[columnName] = field
+                allAttributes[columnName] = field
+            } else if (field.isAnnotationPresent(Attribute::class.java)) {
+                val attributeAnnotation = field.getDeclaredAnnotation(Attribute::class.java)
+                val columnName = if (attributeAnnotation.columnName != "") attributeAnnotation.columnName else field.name
+                allAttributes[columnName] = field
+            }
+        }
+    }
 
-    fun get(keyObj: Any): T?
+    abstract fun put(obj: T)
+
+    abstract fun delete(obj: T)
+
+    abstract fun deleteKey(keyObj: Any)
+
+    abstract fun getAll(): List<T>
+
+    abstract fun get(keyObj: Any): T?
+
+    companion object {
+        fun <T> getTableName(clazz: Class<T>): String {
+            val documentStoreAnnotation = clazz.getDeclaredAnnotation(DocumentStore::class.java)
+            return if (documentStoreAnnotation.tableName != "") documentStoreAnnotation.tableName else clazz.simpleName
+        }
+    }
 }

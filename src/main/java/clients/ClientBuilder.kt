@@ -23,7 +23,11 @@ object ClientBuilder {
 
     @JvmStatic
     fun <T> getDocumentStoreClient(document: Class<T>): DocumentStoreClient<T> {
-        return DocumentStoreClientDynamo(document)
+        return if (LocalNimbusDeployment.isLocalDeployment) {
+            DocumentStoreClientDynamo(document)
+        } else {
+            DocumentStoreClientDynamo(document)
+        }
     }
 
     @JvmStatic
