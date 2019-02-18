@@ -1,8 +1,11 @@
 package testing
 
+import annotation.annotations.document.DocumentStore
 import annotation.annotations.function.HttpServerlessFunction
 import annotation.annotations.function.QueueServerlessFunction
 import annotation.annotations.keyvalue.KeyValueStore
+import clients.document.DocumentStoreClient
+import clients.document.DocumentStoreClientLocal
 import clients.keyvalue.KeyValueStoreClient
 import clients.keyvalue.KeyValueStoreClientLocal
 import org.reflections.Reflections
@@ -21,6 +24,7 @@ class LocalNimbusDeployment {
     private val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
     private val httpMethods: MutableMap<HttpMethodIdentifier, HttpMethod> = mutableMapOf()
     private val keyValueStores: MutableMap<String, MutableMap<Any?, Any?>> = mutableMapOf()
+    private val documentStores: MutableMap<String, MutableMap<Any?, String>> = mutableMapOf()
 
     private constructor(clazz: Class<out Any>) {
         createResources(clazz)
@@ -50,6 +54,10 @@ class LocalNimbusDeployment {
         if (clazz.isAnnotationPresent(KeyValueStore::class.java)) {
             val tableName = KeyValueStoreClient.getTableName(clazz)
             keyValueStores[tableName] = mutableMapOf()
+        }
+        if (clazz.isAnnotationPresent(DocumentStore::class.java)) {
+            val tableName = DocumentStoreClient.getTableName(clazz)
+            documentStores[tableName] = mutableMapOf()
         }
     }
 
@@ -98,6 +106,19 @@ class LocalNimbusDeployment {
 
     fun <K, V> getKeyValueStoreClient(keyClass: Class<K>, valueClass: Class<V>): KeyValueStoreClient<K, V> {
         return KeyValueStoreClientLocal(keyClass, valueClass)
+    }
+
+    internal fun <T> getDocumentStore(clazz: Class<T>): MutableMap<Any?, String> {
+        val tableName = DocumentStoreClient.getTableName(clazz)
+        if (documentStores.containsKey(tableName)) {
+            return documentStores[tableName]!!
+        } else {
+            throw ResourceNotFoundException()
+        }
+    }
+
+    fun <T> getDocumentStoreClient(clazz: Class<T>): DocumentStoreClient<T> {
+        return DocumentStoreClientLocal(clazz)
     }
 
     fun getQueue(id: String): LocalQueue {
