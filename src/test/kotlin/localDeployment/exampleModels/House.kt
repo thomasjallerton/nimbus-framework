@@ -1,4 +1,4 @@
-package testpackage
+package localDeployment.exampleModels
 
 import annotation.annotations.keyvalue.KeyType
 import annotation.annotations.keyvalue.KeyValueStore

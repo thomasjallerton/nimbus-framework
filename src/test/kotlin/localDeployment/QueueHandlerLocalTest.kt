@@ -3,8 +3,8 @@ package localDeployment
 import localDeployment.exampleHandlers.ExampleQueueHandler
 import org.junit.jupiter.api.Test
 import testing.LocalNimbusDeployment
-import testpackage.House
-import testpackage.Person
+import localDeployment.exampleModels.House
+import localDeployment.exampleModels.Person
 import kotlin.test.assertEquals
 
 class QueueHandlerLocalTest {
