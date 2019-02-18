@@ -1,7 +1,7 @@
 package localDeployment.exampleHandlers
 
 import annotation.annotations.function.QueueServerlessFunction
-import testpackage.House
+import localDeployment.exampleModels.House
 import wrappers.queue.models.QueueEvent
 
 class ExampleQueueHandler {

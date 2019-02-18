@@ -3,7 +3,7 @@ package localDeployment
 import localDeployment.exampleModels.Document
 import org.junit.jupiter.api.Test
 import testing.LocalNimbusDeployment
-import testpackage.Person
+import localDeployment.exampleModels.Person
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 

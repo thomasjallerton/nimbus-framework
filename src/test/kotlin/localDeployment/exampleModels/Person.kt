@@ -1,4 +1,4 @@
-package testpackage
+package localDeployment.exampleModels
 
 data class Person (
     val name: String = "",
