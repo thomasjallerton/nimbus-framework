@@ -114,7 +114,7 @@ class FunctionEnvironmentService(
         updateResources.addResource(eventMapping)
 
         val streamSpecification = JsonObject()
-        streamSpecification.addProperty("StreamViewType", "NEW_IMAGE")
+        streamSpecification.addProperty("StreamViewType", "NEW_AND_OLD_IMAGES")
         documentStore.addExtraProperty("StreamSpecification", streamSpecification)
 
         val dynamoStreamResource = DynamoStreamResource(documentStore, nimbusState)

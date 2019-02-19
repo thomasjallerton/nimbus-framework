@@ -96,7 +96,7 @@ abstract class ServerlessFunctionFileBuilder(
         }
     }
 
-    private fun isValidFunction(functionParams: FunctionParams) {
+    protected open fun isValidFunction(functionParams: FunctionParams) {
         val errorPrefix = "Incorrect $functionType parameters."
         if (methodInformation.parameters.size > 2) {
             compilationError("$errorPrefix Too many arguments, can have at most two: T input, $eventSimpleName event.")
@@ -182,7 +182,7 @@ abstract class ServerlessFunctionFileBuilder(
         fun isEmpty(): Boolean {return type == null}
     }
 
-    private data class FunctionParams(
+    protected data class FunctionParams(
             var inputParam: Param = Param(null, 0),
             var eventParam: Param = Param(null, 0)
     )
