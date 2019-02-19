@@ -45,7 +45,6 @@ class DynamoStreamParser<T>(private val clazz: Class<T>) {
     }
 
     fun toObject(obj: Map<String, Map<String, String>>): T {
-
         val resultMap: MutableMap<String, Any?> = mutableMapOf()
 
         for ((columnName, field) in allAttributes) {
