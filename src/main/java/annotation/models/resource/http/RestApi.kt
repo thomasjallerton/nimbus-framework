@@ -39,7 +39,7 @@ class RestApi(
         val restApi = JsonObject()
         restApi.addProperty("Type", "AWS::ApiGateway::RestApi")
 
-        val properties = JsonObject()
+        val properties = getProperties()
         properties.addProperty("Name", nimbusState.projectName)
 
         val endpointConfig = JsonObject()

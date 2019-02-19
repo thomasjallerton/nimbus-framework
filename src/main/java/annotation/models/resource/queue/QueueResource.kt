@@ -13,7 +13,7 @@ class QueueResource(
         val queue = JsonObject()
         queue.addProperty("Type", "AWS::SQS::Queue")
 
-        val properties = JsonObject()
+        val properties = getProperties()
         properties.addProperty("VisibilityTimeout", visibilityTimeout)
 
         queue.add("Properties", properties)

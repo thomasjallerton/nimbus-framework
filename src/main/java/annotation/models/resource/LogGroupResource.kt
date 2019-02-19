@@ -25,7 +25,7 @@ class LogGroupResource(
 
         logGroupResource.addProperty("Type", "AWS::Logs::LogGroup")
 
-        val properties = JsonObject()
+        val properties = getProperties()
         properties.addProperty("LogGroupName", "/aws/lambda/${nimbusState.projectName}-$className-$methodName")
 
         logGroupResource.add("Properties", properties)

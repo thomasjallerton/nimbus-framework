@@ -31,7 +31,7 @@ class RestApiResource(
         val gatewayResource =  JsonObject()
         gatewayResource.addProperty("Type", "AWS::ApiGateway::Resource")
 
-        val properties = JsonObject()
+        val properties = getProperties()
         properties.add("ParentId", parent.getId())
         properties.addProperty("PathPart", pathPart)
         properties.add("RestApiId", parent.getRootId())

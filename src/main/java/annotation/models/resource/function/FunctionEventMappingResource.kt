@@ -5,8 +5,9 @@ import annotation.models.resource.Resource
 import com.google.gson.JsonObject
 
 class FunctionEventMappingResource(
-        val source: Resource,
-        val batchSize: Int,
+        private val source: JsonObject,
+        private val sourceName: String,
+        private val batchSize: Int,
         val function: FunctionResource,
         nimbusState: NimbusState
 ): Resource(nimbusState) {
@@ -15,11 +16,12 @@ class FunctionEventMappingResource(
         eventMapping.addProperty("Type", "AWS::Lambda::EventSourceMapping")
         eventMapping.addProperty("DependsOn", "IamRoleLambdaExecution")
 
-        val properties = JsonObject()
+        val properties = getProperties()
         properties.addProperty("BatchSize", batchSize)
-        properties.add("EventSourceArn", source.getArn())
+        properties.add("EventSourceArn", source)
         properties.add("FunctionName", function.getArn())
         properties.addProperty("Enabled", "True")
+        properties.addProperty("StartingPosition", "LATEST")
 
         eventMapping.add("Properties", properties)
 
@@ -27,22 +29,6 @@ class FunctionEventMappingResource(
     }
 
     override fun getName(): String {
-        return "${function.getName()}${source.getName()}"
+        return "${function.getName()}$sourceName"
     }
 }
-
-//"InsertToDynamoEventSourceMappingSQSDispatch": {
-//    "Type": "AWS::Lambda::EventSourceMapping",
-//    "DependsOn": "IamRoleLambdaExecution",
-//    "Properties": {
-//        "BatchSize": 10,
-//        "EventSourceArn": "dispatch",
-//        "FunctionName": {
-//        "Fn::GetAtt": [
-//        "InsertToDynamoLambdaFunction",
-//        "Arn"
-//        ]
-//    },
-//        "Enabled": "True"
-//    }
-//},

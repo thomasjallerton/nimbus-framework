@@ -16,11 +16,11 @@ class DynamoResource(
 
 
     override fun toCloudFormation(): JsonObject {
-        val keyValueStore = JsonObject()
+        val dynamoTable = JsonObject()
 
-        keyValueStore.addProperty("Type", "AWS::DynamoDB::Table")
+        dynamoTable.addProperty("Type", "AWS::DynamoDB::Table")
 
-        val properties = JsonObject()
+        val properties = getProperties()
         properties.addProperty("TableName", tableName)
         properties.add("AttributeDefinitions", attributeDefsCloudFormation())
         properties.add("KeySchema", keyDefsCloudFormation())
@@ -30,8 +30,8 @@ class DynamoResource(
         provisionedThroughput.addProperty("WriteCapacityUnits", 1)
         properties.add("ProvisionedThroughput", provisionedThroughput)
 
-        keyValueStore.add("Properties", properties)
-        return keyValueStore
+        dynamoTable.add("Properties", properties)
+        return dynamoTable
     }
 
     override fun getName(): String {

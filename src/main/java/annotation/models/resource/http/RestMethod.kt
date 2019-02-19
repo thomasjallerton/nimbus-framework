@@ -32,7 +32,7 @@ class RestMethod (
         val methodObj = JsonObject()
         methodObj.addProperty("Type", "AWS::ApiGateway::Method")
 
-        val properties = JsonObject()
+        val properties = getProperties()
         properties.addProperty("HttpMethod", method)
         properties.add("RequestParameters", formatRequestParams())
         properties.add("ResourceId", parent.getId())

@@ -24,7 +24,7 @@ class SnsTopicResource(
         val snsTopic = JsonObject()
         snsTopic.addProperty("Type", "AWS::SNS::Topic")
 
-        val properties = JsonObject()
+        val properties = getProperties()
         properties.addProperty("TopicName", topic)
         properties.addProperty("DisplayName", "")
 

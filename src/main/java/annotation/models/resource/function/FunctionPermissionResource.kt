@@ -14,7 +14,7 @@ class FunctionPermissionResource(
         val permission = JsonObject()
         permission.addProperty("Type", "AWS::Lambda::Permission")
 
-        val properties = JsonObject()
+        val properties = getProperties()
         properties.add("FunctionName", function.getArn())
         properties.addProperty("Action", "lambda:InvokeFunction")
 

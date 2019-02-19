@@ -14,7 +14,7 @@ class IamRoleResource(
 
         iamRoleResource.addProperty("Type", "AWS::IAM::Role")
 
-        val properties = JsonObject()
+        val properties = getProperties()
         properties.add("AssumeRolePolicyDocument", rolePolicyDocument())
 
         val policies = JsonArray()
