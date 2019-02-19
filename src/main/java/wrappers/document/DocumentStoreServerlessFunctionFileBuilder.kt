@@ -50,7 +50,7 @@ class DocumentStoreServerlessFunctionFileBuilder (
         write("DynamoRecords records = objectMapper.readValue(jsonString, DynamoRecords.class);")
 
         if (param.type != null) {
-            write("DynamoUpdate update = records.getRecord().get(0).getDynamoDb();")
+            write("DynamoUpdate update = records.getRecord().get(0).getDynamodb();")
             write("DynamoStreamParser<${param.type}> parser = new DynamoStreamParser(${param.type}.class);")
             write("${param.type} parsedType = parser.toObject(update.getNewImage());")
         }
