@@ -7,10 +7,8 @@ import annotation.models.outputs.BucketNameOutput
 import annotation.models.outputs.OutputCollection
 import annotation.models.persisted.NimbusState
 import annotation.models.processing.MethodInformation
-import annotation.models.resource.LogGroupResource
-import annotation.models.resource.NimbusBucketResource
-import annotation.models.resource.Policy
-import annotation.models.resource.ResourceCollection
+import annotation.models.resource.*
+import annotation.models.resource.dynamo.DynamoStreamResource
 import annotation.models.resource.function.FunctionConfig
 import annotation.models.resource.function.FunctionEventMappingResource
 import annotation.models.resource.function.FunctionPermissionResource
@@ -21,6 +19,7 @@ import annotation.models.resource.http.RestApiResource
 import annotation.models.resource.http.RestMethod
 import annotation.models.resource.notification.SnsTopicResource
 import annotation.models.resource.queue.QueueResource
+import com.google.gson.JsonObject
 
 class FunctionEnvironmentService(
         val lambdaPolicy: Policy,
@@ -86,7 +85,13 @@ class FunctionEnvironmentService(
         val sqsQueue = QueueResource(nimbusState, queueFunction.id, queueFunction.timeout * 6)
         updateResources.addResource(sqsQueue)
 
-        val eventMapping = FunctionEventMappingResource(sqsQueue, queueFunction.batchSize, function, nimbusState)
+        val eventMapping = FunctionEventMappingResource(
+                sqsQueue.getArn(""),
+                sqsQueue.getName(),
+                queueFunction.batchSize,
+                function,
+                nimbusState
+        )
         updateResources.addResource(eventMapping)
 
         lambdaPolicy.addAllowStatement("sqs:ReceiveMessage", sqsQueue, "")
@@ -94,5 +99,26 @@ class FunctionEnvironmentService(
         lambdaPolicy.addAllowStatement( "sqs:GetQueueAttributes", sqsQueue, "")
 
         return sqsQueue
+    }
+
+    fun newDocumentStoreTrigger(documentStore: Resource, function: FunctionResource) {
+
+        val eventMapping = FunctionEventMappingResource(
+                documentStore.getAttribute("StreamArn"),
+                documentStore.getName(),
+                1,
+                function,
+                nimbusState
+        )
+
+        updateResources.addResource(eventMapping)
+
+        val streamSpecification = JsonObject()
+        streamSpecification.addProperty("StreamViewType", "NEW_IMAGE")
+        documentStore.addExtraProperty("StreamSpecification", streamSpecification)
+
+        val dynamoStreamResource = DynamoStreamResource(documentStore, nimbusState)
+
+        lambdaPolicy.addAllowStatement("dynamodb:*", dynamoStreamResource, "")
     }
 }

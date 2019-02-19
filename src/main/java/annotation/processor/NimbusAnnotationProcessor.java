@@ -2,6 +2,7 @@ package annotation.processor;
 
 import annotation.annotations.document.DocumentStore;
 import annotation.annotations.document.UsesDocumentStore;
+import annotation.annotations.function.DocumentStoreServerlessFunction;
 import annotation.annotations.function.HttpServerlessFunction;
 import annotation.annotations.function.NotificationServerlessFunction;
 import annotation.annotations.function.QueueServerlessFunction;
@@ -22,9 +23,13 @@ import annotation.models.resource.queue.QueueResource;
 import annotation.services.FileService;
 import annotation.services.FunctionEnvironmentService;
 import annotation.services.ReadUserConfigService;
+import annotation.wrappers.DataModelAnnotation;
+import annotation.wrappers.DocumentStoreServerlessFunctionAnnotation;
+import annotation.wrappers.UsesDocumentStoreAnnotation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
+import wrappers.document.DocumentStoreServerlessFunctionFileBuilder;
 import wrappers.http.HttpServerlessFunctionFileBuilder;
 import wrappers.notification.NotificationServerlessFunctionFileBuilder;
 import wrappers.queue.QueueServerlessFunctionFileBuilder;
@@ -104,11 +109,13 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         List<FunctionInformation> httpFunctions = handleHttpServerlessFunction(roundEnv, functionEnvironmentService);
         List<FunctionInformation> notificationFunctions = handleNotificationServerlessFunction(roundEnv, functionEnvironmentService);
         List<FunctionInformation> queueFunctions = handleQueueServerlessFunction(roundEnv, functionEnvironmentService);
+        List<FunctionInformation> documentStoreFunctions = handleDocumentStoreServerlessFunction(roundEnv, functionEnvironmentService);
 
         //Now that all resources exist handle permissions
         handleUseResources(httpFunctions, lambdaPolicy, updateResources);
         handleUseResources(notificationFunctions, lambdaPolicy, updateResources);
         handleUseResources(queueFunctions, lambdaPolicy, updateResources);
+        handleUseResources(documentStoreFunctions, lambdaPolicy, updateResources);
 
         IamRoleResource iamRole = new IamRoleResource(lambdaPolicy, nimbusState);
         updateResources.addResource(iamRole);
@@ -131,6 +138,42 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         for (FunctionInformation functionInformation : functionInformationList) {
             handleUseResources(functionInformation.element, functionInformation.resource, policy, updateResources);
         }
+    }
+
+    private List<FunctionInformation> handleDocumentStoreServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
+        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(DocumentStoreServerlessFunction.class);
+
+        List<FunctionInformation> results = new LinkedList<>();
+        for (Element type : annotatedElements) {
+            DocumentStoreServerlessFunction documentStoreFunction = type.getAnnotation(DocumentStoreServerlessFunction.class);
+
+            if (type.getKind() == ElementKind.METHOD) {
+                MethodInformation methodInformation = extractMethodInformation(type);
+
+                DocumentStoreServerlessFunctionFileBuilder fileBuilder = new DocumentStoreServerlessFunctionFileBuilder(
+                        processingEnv,
+                        methodInformation,
+                        type
+                );
+
+                String handler = fileBuilder.getHandler();
+
+                FunctionConfig config = new FunctionConfig(documentStoreFunction.timeout(), documentStoreFunction.memory());
+                FunctionResource functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config);
+
+                DataModelAnnotation dataModelAnnotation = new DocumentStoreServerlessFunctionAnnotation(documentStoreFunction);
+                Resource dynamoResource = getDocumentStoreResource(dataModelAnnotation, type);
+
+                if (dynamoResource != null) {
+                    functionEnvironmentService.newDocumentStoreTrigger(dynamoResource, functionResource);
+                }
+
+                fileBuilder.createClass();
+
+                results.add(new FunctionInformation(type, functionResource));
+            }
+        }
+        return results;
     }
 
     private List<FunctionInformation> handleHttpServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
@@ -299,55 +342,59 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         return new DynamoResource(tableName, nimbusState);
     }
 
-    private void handleUseResources(Element serverlessMethod, FunctionResource functionResource, Policy policy, ResourceCollection updateResources) {
-        for (UsesDocumentStore usesDocumentStore : serverlessMethod.getAnnotationsByType(UsesDocumentStore.class)) {
-            DocumentStore documentStore;
-            Resource resource;
-
+    private Resource getDocumentStoreResource(DataModelAnnotation dataModelAnnotation, Element serverlessMethod) {
+        try {
+            Class<?> dataModel = dataModelAnnotation.getDataModel();
+            DocumentStore documentStore = dataModel.getDeclaredAnnotation(DocumentStore.class);
+            return getResource(updateResources, documentStore.existingArn(), documentStore.tableName(), dataModel.getSimpleName());
+        } catch (MirroredTypeException mte) {
             try {
-                documentStore = usesDocumentStore.dataModel().getDeclaredAnnotation(DocumentStore.class);
-                resource = getResource(updateResources, documentStore.existingArn(), documentStore.tableName(), usesDocumentStore.dataModel().getSimpleName());
-            } catch (MirroredTypeException mte) {
-                try {
-                    Types TypeUtils = this.processingEnv.getTypeUtils();
-                    TypeElement typeElement = (TypeElement) TypeUtils.asElement(mte.getTypeMirror());
-                    documentStore = typeElement.getAnnotation(DocumentStore.class);
-                    resource = getResource(updateResources, documentStore.existingArn(), documentStore.tableName(), typeElement.getSimpleName().toString());
-                } catch (NullPointerException e) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with DocumentStore but isn't", serverlessMethod);
-                    return;
-                }
+                Types TypeUtils = this.processingEnv.getTypeUtils();
+                TypeElement typeElement = (TypeElement) TypeUtils.asElement(mte.getTypeMirror());
+                DocumentStore documentStore = typeElement.getAnnotation(DocumentStore.class);
+                return getResource(updateResources, documentStore.existingArn(), documentStore.tableName(), typeElement.getSimpleName().toString());
             } catch (NullPointerException e) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with DocumentStore but isn't", serverlessMethod);
-                return;
+                return null;
             }
+        } catch (NullPointerException e) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with DocumentStore but isn't", serverlessMethod);
+            return null;
+        }
+    }
+
+    private Resource getKeyValueStoreResource(Class<?> dataModel, Element serverlessMethod) {
+        try {
+            KeyValueStore keyValueStore = dataModel.getDeclaredAnnotation(KeyValueStore.class);
+            return getResource(updateResources, keyValueStore.existingArn(), keyValueStore.tableName(), dataModel.getSimpleName());
+        } catch (MirroredTypeException mte) {
+            try {
+                Types TypeUtils = this.processingEnv.getTypeUtils();
+                TypeElement typeElement = (TypeElement) TypeUtils.asElement(mte.getTypeMirror());
+                KeyValueStore keyValueStore = typeElement.getAnnotation(KeyValueStore.class);
+                return getResource(updateResources, keyValueStore.existingArn(), keyValueStore.tableName(), typeElement.getSimpleName().toString());
+            } catch (NullPointerException e) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod);
+                return null;
+            }
+        } catch (NullPointerException e) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod);
+            return null;
+        }
+    }
+
+    private void handleUseResources(Element serverlessMethod, FunctionResource functionResource, Policy policy, ResourceCollection updateResources) {
+        for (UsesDocumentStore usesDocumentStore : serverlessMethod.getAnnotationsByType(UsesDocumentStore.class)) {
+
+            DataModelAnnotation dataModelAnnotation = new UsesDocumentStoreAnnotation(usesDocumentStore);
+            Resource resource = getDocumentStoreResource(dataModelAnnotation, serverlessMethod);
 
             if (resource != null) {
                 policy.addAllowStatement("dynamodb:*", resource, "");
             }
         }
         for (UsesKeyValueStore usesKeyValueStore : serverlessMethod.getAnnotationsByType(UsesKeyValueStore.class)) {
-            KeyValueStore keyValueStore;
-            Resource resource;
-
-            try {
-                keyValueStore = usesKeyValueStore.dataModel().getDeclaredAnnotation(KeyValueStore.class);
-                resource = getResource(updateResources, keyValueStore.existingArn(), keyValueStore.tableName(), usesKeyValueStore.dataModel().getSimpleName());
-            } catch (MirroredTypeException mte) {
-                try {
-                    Types TypeUtils = this.processingEnv.getTypeUtils();
-                    TypeElement typeElement = (TypeElement) TypeUtils.asElement(mte.getTypeMirror());
-                    keyValueStore = typeElement.getAnnotation(KeyValueStore.class);
-                    resource = getResource(updateResources, keyValueStore.existingArn(), keyValueStore.tableName(), typeElement.getSimpleName().toString());
-                } catch (NullPointerException e) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod);
-                    return;
-                }
-            } catch (NullPointerException e) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod);
-                return;
-            }
-
+            Resource resource = getKeyValueStoreResource(usesKeyValueStore.dataModel(), serverlessMethod);
 
             if (resource != null) {
                 policy.addAllowStatement("dynamodb:*", resource, "");

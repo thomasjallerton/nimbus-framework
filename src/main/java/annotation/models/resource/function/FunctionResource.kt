@@ -25,7 +25,7 @@ class FunctionResource(
         val functionResource = JsonObject()
         functionResource.addProperty("Type", "AWS::Lambda::Function")
 
-        val properties = JsonObject()
+        val properties = getProperties()
         val code = JsonObject()
         val s3Bucket = JsonObject()
         s3Bucket.addProperty("Ref", "NimbusDeploymentBucket")
