@@ -1,9 +1,10 @@
 package wrappers.document.models
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import wrappers.ServerlessEvent
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class DynamoRecord(
-        val dynamodb: DynamoUpdate = DynamoUpdate(),
+data class StoreEvent(
+        val dynamodb: DynamoUpdate? = null,
         val eventName: String = ""
-)
+): ServerlessEvent

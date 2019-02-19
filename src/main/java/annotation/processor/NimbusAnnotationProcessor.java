@@ -153,7 +153,8 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                 DocumentStoreServerlessFunctionFileBuilder fileBuilder = new DocumentStoreServerlessFunctionFileBuilder(
                         processingEnv,
                         methodInformation,
-                        type
+                        type,
+                        documentStoreFunction.method()
                 );
 
                 String handler = fileBuilder.getHandler();

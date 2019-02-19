@@ -6,5 +6,5 @@ import com.fasterxml.jackson.annotation.JsonProperty
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DynamoRecords (
         @JsonProperty(value = "Records")
-        val record: List<DynamoRecord> = listOf()
+        val record: List<StoreEvent> = listOf()
 )
