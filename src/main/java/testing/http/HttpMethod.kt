@@ -1,9 +1,10 @@
-package testing
+package testing.http
 
+import testing.ServerlessMethod
 import wrappers.http.models.HttpEvent
 import java.lang.reflect.Method
 
-class HttpMethod(private val method: Method, private val invokeOn: Any): ServerlessMethod() {
+class HttpMethod(private val method: Method, private val invokeOn: Any): ServerlessMethod(method, HttpEvent::class.java) {
 
     fun invoke(request: HttpRequest) {
         timesInvoked++
@@ -20,11 +21,12 @@ class HttpMethod(private val method: Method, private val invokeOn: Any): Serverl
             "null"
         }
 
+        val eventIndex = eventIndex()
         val params = method.parameters
         mostRecentValueReturned = if (params.isEmpty()) {
             method.invoke(invokeOn)
         } else if (params.size == 2) {
-            if (params[0].type.canonicalName.contains(HttpEvent::class.java.canonicalName)) {
+            if (eventIndex == 0) {
                 val param = objectMapper.readValue(strParam, params[1].type)
                 mostRecentInvokeArgument = param
                 method.invoke(invokeOn, httpEvent, param)
@@ -34,7 +36,7 @@ class HttpMethod(private val method: Method, private val invokeOn: Any): Serverl
                 method.invoke(invokeOn, param, httpEvent)
             }
         } else if (params.size == 1) {
-            if (params[0].type.canonicalName.contains(HttpEvent::class.java.canonicalName)) {
+            if (eventIndex == 0) {
                 method.invoke(invokeOn, httpEvent)
             } else {
                 val param = objectMapper.readValue(strParam, params[0].type)

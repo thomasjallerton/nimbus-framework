@@ -117,31 +117,42 @@ class DocumentStoreServerlessFunctionFileBuilder(
         when {
             inputParam.isEmpty() && eventParam.isEmpty() -> write("handler.$methodName();")
             inputParam.type == null -> write("handler.$methodName(event);")
-            eventParam.type == null && method == StoreUpdate.REMOVE -> write("handler.$methodName(parsedOldItem);")
-            eventParam.type == null && method == StoreUpdate.INSERT -> write("handler.$methodName(parsedNewItem);")
+            methodInformation.parameters.size == 1 -> handleOneParam(methodName)
             methodInformation.parameters.size == 2 -> handleTwoParams(methodName, eventParam)
             methodInformation.parameters.size == 3 -> write("handler.$methodName(parsedOldItem, parsedNewItem, event);")
         }
     }
 
+    private fun handleOneParam(methodName: String) {
+        when (method) {
+            StoreUpdate.INSERT -> write("handler.$methodName(parsedNewItem);")
+            StoreUpdate.REMOVE -> write("handler.$methodName(parsedOldItem);")
+            StoreUpdate.MODIFY -> write("handler.$methodName(parsedNewItem);")
+        }
+    }
+
     private fun handleTwoParams(methodName: String, eventParam: Param) {
-        if (method == StoreUpdate.INSERT) {
-            if (eventParam.index == 0) {
-                write("handler.$methodName(event, parsedNewItem);")
-            } else {
-                write("handler.$methodName(parsedNewItem, event);")
+        when (method) {
+            StoreUpdate.INSERT -> {
+                if (eventParam.index == 0) {
+                    write("handler.$methodName(event, parsedNewItem);")
+                } else {
+                    write("handler.$methodName(parsedNewItem, event);")
+                }
             }
-        } else if (method == StoreUpdate.REMOVE) {
-            if (eventParam.index == 0) {
-                write("handler.$methodName(event, parsedOldItem);")
-            } else {
-                write("handler.$methodName(parsedOldItem, event);")
+            StoreUpdate.REMOVE -> {
+                if (eventParam.index == 0) {
+                    write("handler.$methodName(event, parsedOldItem);")
+                } else {
+                    write("handler.$methodName(parsedOldItem, event);")
+                }
             }
-        } else if (method == StoreUpdate.MODIFY) {
-            when {
-                eventParam.isEmpty() -> write("handler.$methodName(parsedOldItem, parsedNewItem);")
-                eventParam.index == 0 -> write("handler.$methodName(event, parsedNewItem);")
-                else -> write("handler.$methodName(parsedNewItem, event);")
+            StoreUpdate.MODIFY -> {
+                when {
+                    eventParam.isEmpty() -> write("handler.$methodName(parsedOldItem, parsedNewItem);")
+                    eventParam.index == 0 -> write("handler.$methodName(event, parsedNewItem);")
+                    else -> write("handler.$methodName(parsedNewItem, event);")
+                }
             }
         }
     }
