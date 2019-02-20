@@ -119,12 +119,12 @@ class DocumentStoreServerlessFunctionFileBuilder(
             inputParam.type == null -> write("handler.$methodName(event);")
             eventParam.type == null && method == StoreUpdate.REMOVE -> write("handler.$methodName(parsedOldItem);")
             eventParam.type == null && method == StoreUpdate.INSERT -> write("handler.$methodName(parsedNewItem);")
-            methodInformation.parameters.size == 2 -> handleTwoParams(methodName, inputParam, eventParam)
+            methodInformation.parameters.size == 2 -> handleTwoParams(methodName, eventParam)
             methodInformation.parameters.size == 3 -> write("handler.$methodName(parsedOldItem, parsedNewItem, event);")
         }
     }
 
-    private fun handleTwoParams(methodName: String, inputParam: Param, eventParam: Param) {
+    private fun handleTwoParams(methodName: String, eventParam: Param) {
         if (method == StoreUpdate.INSERT) {
             if (eventParam.index == 0) {
                 write("handler.$methodName(event, parsedNewItem);")
