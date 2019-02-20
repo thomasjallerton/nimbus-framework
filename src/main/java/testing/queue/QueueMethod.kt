@@ -1,9 +1,10 @@
-package testing
+package testing.queue
 
+import testing.ServerlessMethod
 import wrappers.queue.models.QueueEvent
 import java.lang.reflect.Method
 
-class QueueMethod(private val method: Method, private val invokeOn: Any, internal val batchSize: Int) : ServerlessMethod() {
+class QueueMethod(private val method: Method, private val invokeOn: Any, internal val batchSize: Int) : ServerlessMethod(method, QueueEvent::class.java) {
 
     internal val isListParams = method.parameterTypes.any { clazz -> isListType(clazz.canonicalName) }
     private val paramType: Class<*>?

@@ -1,11 +1,11 @@
 package testing
 
 import annotation.annotations.document.DocumentStore
+import annotation.annotations.function.DocumentStoreServerlessFunction
 import annotation.annotations.function.HttpServerlessFunction
 import annotation.annotations.function.QueueServerlessFunction
 import annotation.annotations.keyvalue.KeyValueStore
 import clients.document.DocumentStoreClient
-import clients.document.DocumentStoreClientLocal
 import clients.keyvalue.KeyValueStoreClient
 import clients.keyvalue.KeyValueStoreClientLocal
 import org.reflections.Reflections
@@ -14,6 +14,12 @@ import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
+import testing.document.DocumentMethod
+import testing.document.LocalDocumentStore
+import testing.http.HttpMethod
+import testing.http.HttpRequest
+import testing.queue.LocalQueue
+import testing.queue.QueueMethod
 import java.lang.reflect.InvocationTargetException
 import java.util.*
 
@@ -24,7 +30,7 @@ class LocalNimbusDeployment {
     private val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
     private val httpMethods: MutableMap<HttpMethodIdentifier, HttpMethod> = mutableMapOf()
     private val keyValueStores: MutableMap<String, MutableMap<Any?, Any?>> = mutableMapOf()
-    private val documentStores: MutableMap<String, MutableMap<Any?, String>> = mutableMapOf()
+    private val documentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
 
     private constructor(clazz: Class<out Any>) {
         createResources(clazz)
@@ -57,7 +63,7 @@ class LocalNimbusDeployment {
         }
         if (clazz.isAnnotationPresent(DocumentStore::class.java)) {
             val tableName = DocumentStoreClient.getTableName(clazz)
-            documentStores[tableName] = mutableMapOf()
+            documentStores[tableName] = LocalDocumentStore(clazz)
         }
     }
 
@@ -88,6 +94,19 @@ class LocalNimbusDeployment {
                         methods[functionIdentifier] = httpMethod
                     }
                 }
+
+                if (method.isAnnotationPresent(DocumentStoreServerlessFunction::class.java)) {
+                    val documentFunctions = method.getAnnotationsByType(DocumentStoreServerlessFunction::class.java)
+
+                    val invokeOn = clazz.getConstructor().newInstance()
+                    for (documentFunction in documentFunctions) {
+                        val documentMethod = DocumentMethod(method, invokeOn, documentFunction.method)
+                        methods[functionIdentifier] = documentMethod
+                        val tableName = DocumentStoreClient.getTableName(documentFunction.dataModel.java)
+                        val documentStore = documentStores[tableName]
+                        documentStore?.addMethod(documentMethod)
+                    }
+                }
             }
         } catch (e: InvocationTargetException) {
             System.err.println("Error creating handler class, it should have no constructor parameters")
@@ -108,17 +127,13 @@ class LocalNimbusDeployment {
         return KeyValueStoreClientLocal(keyClass, valueClass)
     }
 
-    internal fun <T> getDocumentStore(clazz: Class<T>): MutableMap<Any?, String> {
+    fun <T> getDocumentStore(clazz: Class<T>): LocalDocumentStore<T> {
         val tableName = DocumentStoreClient.getTableName(clazz)
         if (documentStores.containsKey(tableName)) {
-            return documentStores[tableName]!!
+            return documentStores[tableName] as LocalDocumentStore<T>
         } else {
             throw ResourceNotFoundException()
         }
-    }
-
-    fun <T> getDocumentStoreClient(clazz: Class<T>): DocumentStoreClient<T> {
-        return DocumentStoreClientLocal(clazz)
     }
 
     fun getQueue(id: String): LocalQueue {

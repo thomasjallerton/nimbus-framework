@@ -17,13 +17,13 @@ class DocumentStoreClientLocalTest {
         val localDeployment = LocalNimbusDeployment.getNewInstance(Document::class.java)
 
         val documentStore = localDeployment.getDocumentStore(Document::class.java)
-        val documentStoreClient = localDeployment.getDocumentStoreClient(Document::class.java)
+        val documentStoreClient = localDeployment.getDocumentStore(Document::class.java)
 
-        assertEquals(0, documentStore.size)
+        assertEquals(0, documentStore.size())
 
         documentStoreClient.put(documentOne)
 
-        assertEquals(1, documentStore.size)
+        assertEquals(1, documentStore.size())
         assertEquals(documentOne, documentStoreClient.get("testDocument")!!)
     }
 
@@ -32,15 +32,15 @@ class DocumentStoreClientLocalTest {
         val localDeployment = LocalNimbusDeployment.getNewInstance(Document::class.java)
 
         val documentStore = localDeployment.getDocumentStore(Document::class.java)
-        val documentStoreClient = localDeployment.getDocumentStoreClient(Document::class.java)
+        val documentStoreClient = localDeployment.getDocumentStore(Document::class.java)
 
         documentStoreClient.put(documentOne)
 
-        assertEquals(1, documentStore.size)
+        assertEquals(1, documentStore.size())
 
         documentStoreClient.deleteKey("testDocument")
 
-        assertEquals(0, documentStore.size)
+        assertEquals(0, documentStore.size())
     }
 
     @Test
@@ -48,15 +48,15 @@ class DocumentStoreClientLocalTest {
         val localDeployment = LocalNimbusDeployment.getNewInstance(Document::class.java)
 
         val documentStore = localDeployment.getDocumentStore(Document::class.java)
-        val documentStoreClient = localDeployment.getDocumentStoreClient(Document::class.java)
+        val documentStoreClient = localDeployment.getDocumentStore(Document::class.java)
 
         documentStoreClient.put(documentOne)
 
-        assertEquals(1, documentStore.size)
+        assertEquals(1, documentStore.size())
 
         documentStoreClient.delete(documentOne)
 
-        assertEquals(0, documentStore.size)
+        assertEquals(0, documentStore.size())
     }
 
     @Test
@@ -64,13 +64,13 @@ class DocumentStoreClientLocalTest {
         val localDeployment = LocalNimbusDeployment.getNewInstance(Document::class.java)
 
         val documentStore = localDeployment.getDocumentStore(Document::class.java)
-        val documentStoreClient = localDeployment.getDocumentStoreClient(Document::class.java)
+        val documentStoreClient = localDeployment.getDocumentStore(Document::class.java)
 
         documentStoreClient.put(documentOne)
         documentStoreClient.put(documentTwo)
         documentStoreClient.delete(documentOne)
 
-        assertEquals(1, documentStore.size)
+        assertEquals(1, documentStore.size())
         assertEquals(documentTwo, documentStoreClient.get("testDocument2"))
     }
 
@@ -79,13 +79,13 @@ class DocumentStoreClientLocalTest {
         val localDeployment = LocalNimbusDeployment.getNewInstance(Document::class.java)
 
         val documentStore = localDeployment.getDocumentStore(Document::class.java)
-        val documentStoreClient = localDeployment.getDocumentStoreClient(Document::class.java)
+        val documentStoreClient = localDeployment.getDocumentStore(Document::class.java)
 
         documentStoreClient.put(documentOne)
         documentStoreClient.put(documentTwo)
         documentStoreClient.deleteKey("testDocument")
 
-        assertEquals(1, documentStore.size)
+        assertEquals(1, documentStore.size())
         assertEquals(documentTwo, documentStoreClient.get("testDocument2"))
     }
 
@@ -93,7 +93,7 @@ class DocumentStoreClientLocalTest {
     fun testGetReturnsCorrectItem() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(Document::class.java)
 
-        val documentStoreClient = localDeployment.getDocumentStoreClient(Document::class.java)
+        val documentStoreClient = localDeployment.getDocumentStore(Document::class.java)
 
         documentStoreClient.put(documentOne)
         documentStoreClient.put(documentTwo)
@@ -105,7 +105,7 @@ class DocumentStoreClientLocalTest {
     fun getAllReturnsCorrectValues() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(Document::class.java)
 
-        val documentStoreClient = localDeployment.getDocumentStoreClient(Document::class.java)
+        val documentStoreClient = localDeployment.getDocumentStore(Document::class.java)
 
         documentStoreClient.put(documentOne)
         documentStoreClient.put(documentTwo)

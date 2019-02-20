@@ -1,4 +1,4 @@
-package testing
+package testing.http
 
 data class HttpRequest(
         var path: String,

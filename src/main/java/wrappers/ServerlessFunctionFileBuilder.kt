@@ -183,8 +183,8 @@ abstract class ServerlessFunctionFileBuilder(
     }
 
     protected data class FunctionParams(
-            var inputParam: Param = Param(null, 0),
-            var eventParam: Param = Param(null, 0)
+            var inputParam: Param = Param(null, -1),
+            var eventParam: Param = Param(null, -1)
     )
 
     protected fun compilationError(msg: String) {
