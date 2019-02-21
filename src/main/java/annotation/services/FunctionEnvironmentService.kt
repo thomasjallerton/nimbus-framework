@@ -13,22 +13,22 @@ import annotation.models.resource.function.FunctionConfig
 import annotation.models.resource.function.FunctionEventMappingResource
 import annotation.models.resource.function.FunctionPermissionResource
 import annotation.models.resource.function.FunctionResource
-import annotation.models.resource.http.AbstractRestResource
-import annotation.models.resource.http.RestApi
-import annotation.models.resource.http.RestApiResource
-import annotation.models.resource.http.RestMethod
+import annotation.models.resource.http.*
 import annotation.models.resource.notification.SnsTopicResource
 import annotation.models.resource.queue.QueueResource
 import com.google.gson.JsonObject
 
 class FunctionEnvironmentService(
-        val lambdaPolicy: Policy,
+        private val lambdaPolicy: Policy,
         private val createResources: ResourceCollection,
         private val updateResources: ResourceCollection,
         private val createOutputs: OutputCollection,
         private val updateOutputs: OutputCollection,
         private val nimbusState: NimbusState
 ) {
+
+    private val restApi: RestApi = RestApi(nimbusState)
+    private val apiGatewayDeployment: ApiGatewayDeployment = ApiGatewayDeployment(restApi, nimbusState)
 
     fun newFunction(handler: String, methodInformation: MethodInformation, functionConfig: FunctionConfig): FunctionResource {
         val function = FunctionResource(handler, methodInformation, functionConfig, nimbusState)
@@ -53,9 +53,13 @@ class FunctionEnvironmentService(
 
     fun newHttpMethod(httpFunction: HttpServerlessFunction, function: FunctionResource) {
         val pathParts = httpFunction.path.split("/")
-        val root = RestApi(nimbusState)
-        var resource: AbstractRestResource = root
+
+        updateResources.addResource(restApi)
+        updateResources.addResource(apiGatewayDeployment)
+
+        var resource: AbstractRestResource = restApi
         updateResources.addResource(resource)
+
         for (part in pathParts) {
             if (part.isNotEmpty()) {
                 resource = RestApiResource(resource, part, nimbusState)
@@ -65,9 +69,10 @@ class FunctionEnvironmentService(
 
         val method = httpFunction.method.toUpperCase()
         val restMethod = RestMethod(resource, method, mapOf(), function, nimbusState)
+        apiGatewayDeployment.addDependsOn(restMethod)
         updateResources.addResource(restMethod)
 
-        val permission = FunctionPermissionResource(function, root, nimbusState)
+        val permission = FunctionPermissionResource(function, restApi, nimbusState)
         updateResources.addResource(permission)
     }
 

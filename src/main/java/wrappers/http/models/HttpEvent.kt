@@ -14,7 +14,6 @@ data class HttpEvent(
         val multiValueQueryStringParameters: Map<String, List<String>> = mapOf(),
         val pathParameters: Map<String, String> = mapOf(),
         val stageVariables: Map<String, String> = mapOf(),
-        val requestContext: RequestContext? = null,
         val body: String? = null,
         val isBase64Encoded: Boolean? = null
 ): ServerlessEvent
