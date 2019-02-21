@@ -51,8 +51,10 @@ import java.util.*;
 @SupportedAnnotationTypes({
         "annotation.annotations.function.HttpServerlessFunction",
         "annotation.annotations.function.QueueServerlessFunction",
+        "annotation.annotations.function.DocumentStoreServerlessFunction",
         "annotation.annotations.function.NotificationServerlessFunction",
-        "annotation.annotations.dynamo.KeyValueStore"
+        "annotation.annotations.dynamo.KeyValueStore",
+        "annotation.annotations.dynamo.DocumentStore"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)

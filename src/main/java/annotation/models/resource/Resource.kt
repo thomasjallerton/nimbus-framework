@@ -10,6 +10,7 @@ abstract class Resource(protected val nimbusState: NimbusState) {
 
     private val properties: MutableMap<String, String> = mutableMapOf()
     private val jsonProperties: MutableMap<String, JsonObject> = mutableMapOf()
+    protected val dependsOn: JsonArray = JsonArray()
 
     protected fun getProperties(): JsonObject {
         val propertiesJson = JsonObject()
@@ -54,5 +55,9 @@ abstract class Resource(protected val nimbusState: NimbusState) {
         attributeArray.add(attributeName)
         attribute.add("Fn::GetAtt", attributeArray)
         return attribute
+    }
+
+    fun addDependsOn(resource: Resource) {
+        dependsOn.add(resource.getName())
     }
 }
