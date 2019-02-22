@@ -10,13 +10,15 @@ import wrappers.document.models.DynamoUpdate
 import wrappers.document.models.StoreEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
+import javax.lang.model.element.TypeElement
 import javax.tools.Diagnostic
 
-class DocumentStoreServerlessFunctionFileBuilder(
+class DocumentStoreServerlessFunctionFileBuilder<T>(
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
         compilingElement: Element,
-        private val method: StoreUpdate
+        private val method: StoreUpdate,
+        private val clazz: TypeElement
 ) : ServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
@@ -29,6 +31,10 @@ class DocumentStoreServerlessFunctionFileBuilder(
     }
 
     override fun isValidFunction(functionParams: FunctionParams) {
+        if (functionParams.inputParam.type != null && functionParams.inputParam.type.toString() != clazz.toString()) {
+            compilationError("TYPES ARE NOT CORRECT, EXPECTED $clazz but method uses ${functionParams.inputParam.type}")
+        }
+
         val errorPrefix = "Incorrect DocumentStoreServerlessFunction annotated method parameters."
         val eventSimpleName = StoreEvent::class.java.simpleName
 
