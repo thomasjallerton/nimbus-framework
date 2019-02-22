@@ -26,6 +26,7 @@ import annotation.services.ReadUserConfigService;
 import annotation.wrappers.DataModelAnnotation;
 import annotation.wrappers.DocumentStoreServerlessFunctionAnnotation;
 import annotation.wrappers.UsesDocumentStoreAnnotation;
+import annotation.wrappers.UsesKeyValueStoreAnnotation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
@@ -151,12 +152,14 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
             if (type.getKind() == ElementKind.METHOD) {
                 MethodInformation methodInformation = extractMethodInformation(type);
+                DataModelAnnotation dataModelAnnotation = new DocumentStoreServerlessFunctionAnnotation(documentStoreFunction);
 
-                DocumentStoreServerlessFunctionFileBuilder fileBuilder = new DocumentStoreServerlessFunctionFileBuilder(
+                DocumentStoreServerlessFunctionFileBuilder fileBuilder = new DocumentStoreServerlessFunctionFileBuilder<>(
                         processingEnv,
                         methodInformation,
                         type,
-                        documentStoreFunction.method()
+                        documentStoreFunction.method(),
+                        dataModelAnnotation.getTypeElement(processingEnv)
                 );
 
                 String handler = fileBuilder.getHandler();
@@ -164,7 +167,6 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                 FunctionConfig config = new FunctionConfig(documentStoreFunction.timeout(), documentStoreFunction.memory());
                 FunctionResource functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config);
 
-                DataModelAnnotation dataModelAnnotation = new DocumentStoreServerlessFunctionAnnotation(documentStoreFunction);
                 Resource dynamoResource = getDocumentStoreResource(dataModelAnnotation, type);
 
                 if (dynamoResource != null) {
@@ -347,43 +349,24 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
     private Resource getDocumentStoreResource(DataModelAnnotation dataModelAnnotation, Element serverlessMethod) {
         try {
-            Class<?> dataModel = dataModelAnnotation.getDataModel();
-            DocumentStore documentStore = dataModel.getDeclaredAnnotation(DocumentStore.class);
-            return getResource(updateResources, documentStore.existingArn(), documentStore.tableName(), dataModel.getSimpleName());
-        } catch (MirroredTypeException mte) {
-            try {
-                Types TypeUtils = this.processingEnv.getTypeUtils();
-                TypeElement typeElement = (TypeElement) TypeUtils.asElement(mte.getTypeMirror());
-                DocumentStore documentStore = typeElement.getAnnotation(DocumentStore.class);
-                return getResource(updateResources, documentStore.existingArn(), documentStore.tableName(), typeElement.getSimpleName().toString());
-            } catch (NullPointerException e) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with DocumentStore but isn't", serverlessMethod);
-                return null;
-            }
+            TypeElement typeElement = dataModelAnnotation.getTypeElement(this.processingEnv);
+            DocumentStore documentStore = typeElement.getAnnotation(DocumentStore.class);
+            return getResource(updateResources, documentStore.existingArn(), documentStore.tableName(), typeElement.getSimpleName().toString());
         } catch (NullPointerException e) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with DocumentStore but isn't", serverlessMethod);
             return null;
         }
     }
 
-    private Resource getKeyValueStoreResource(Class<?> dataModel, Element serverlessMethod) {
-        try {
-            KeyValueStore keyValueStore = dataModel.getDeclaredAnnotation(KeyValueStore.class);
-            return getResource(updateResources, keyValueStore.existingArn(), keyValueStore.tableName(), dataModel.getSimpleName());
-        } catch (MirroredTypeException mte) {
+    private Resource getKeyValueStoreResource(DataModelAnnotation dataModelAnnotation, Element serverlessMethod) {
             try {
-                Types TypeUtils = this.processingEnv.getTypeUtils();
-                TypeElement typeElement = (TypeElement) TypeUtils.asElement(mte.getTypeMirror());
+                TypeElement typeElement = dataModelAnnotation.getTypeElement(processingEnv);
                 KeyValueStore keyValueStore = typeElement.getAnnotation(KeyValueStore.class);
                 return getResource(updateResources, keyValueStore.existingArn(), keyValueStore.tableName(), typeElement.getSimpleName().toString());
             } catch (NullPointerException e) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod);
                 return null;
             }
-        } catch (NullPointerException e) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod);
-            return null;
-        }
     }
 
     private void handleUseResources(Element serverlessMethod, FunctionResource functionResource, Policy policy, ResourceCollection updateResources) {
@@ -397,7 +380,8 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             }
         }
         for (UsesKeyValueStore usesKeyValueStore : serverlessMethod.getAnnotationsByType(UsesKeyValueStore.class)) {
-            Resource resource = getKeyValueStoreResource(usesKeyValueStore.dataModel(), serverlessMethod);
+            DataModelAnnotation annotation = new UsesKeyValueStoreAnnotation(usesKeyValueStore);
+            Resource resource = getKeyValueStoreResource(annotation, serverlessMethod);
 
             if (resource != null) {
                 policy.addAllowStatement("dynamodb:*", resource, "");
