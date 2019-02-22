@@ -23,6 +23,7 @@ import annotation.models.resource.queue.QueueResource;
 import annotation.services.FileService;
 import annotation.services.FunctionEnvironmentService;
 import annotation.services.ReadUserConfigService;
+import annotation.services.functions.*;
 import annotation.wrappers.DataModelAnnotation;
 import annotation.wrappers.DocumentStoreServerlessFunctionAnnotation;
 import annotation.wrappers.UsesDocumentStoreAnnotation;
@@ -108,17 +109,15 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         handleDocumentStore(roundEnv, updateResources);
         handleKeyValueStore(roundEnv, updateResources);
 
-        //Handle Functions
-        List<FunctionInformation> httpFunctions = handleHttpServerlessFunction(roundEnv, functionEnvironmentService);
-        List<FunctionInformation> notificationFunctions = handleNotificationServerlessFunction(roundEnv, functionEnvironmentService);
-        List<FunctionInformation> queueFunctions = handleQueueServerlessFunction(roundEnv, functionEnvironmentService);
-        List<FunctionInformation> documentStoreFunctions = handleDocumentStoreServerlessFunction(roundEnv, functionEnvironmentService);
+        List<FunctionResourceCreator> resourceCreators = new LinkedList<>();
+        resourceCreators.add(new DocumentStoreFunctionResourceCreator(updateResources, nimbusState, processingEnv));
+        resourceCreators.add(new HttpFunctionResourceCreator(updateResources, nimbusState, processingEnv));
+        resourceCreators.add(new NotificationFunctionResourceCreator(updateResources, nimbusState, processingEnv));
+        resourceCreators.add(new QueueFunctionResourceCreator(updateResources, nimbusState, processingEnv, savedResources));
 
-        //Now that all resources exist handle permissions
-        handleUseResources(httpFunctions, lambdaPolicy, updateResources);
-        handleUseResources(notificationFunctions, lambdaPolicy, updateResources);
-        handleUseResources(queueFunctions, lambdaPolicy, updateResources);
-        handleUseResources(documentStoreFunctions, lambdaPolicy, updateResources);
+        for (FunctionResourceCreator creator : resourceCreators) {
+            handleUseResources(creator.handle(roundEnv, functionEnvironmentService), lambdaPolicy, updateResources);
+        }
 
         IamRoleResource iamRole = new IamRoleResource(lambdaPolicy, nimbusState);
         updateResources.addResource(iamRole);
@@ -139,161 +138,8 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
     private void handleUseResources(List<FunctionInformation> functionInformationList, Policy policy, ResourceCollection updateResources) {
         for (FunctionInformation functionInformation : functionInformationList) {
-            handleUseResources(functionInformation.element, functionInformation.resource, policy, updateResources);
+            handleUseResources(functionInformation.getElement(), functionInformation.getResource(), policy, updateResources);
         }
-    }
-
-    private List<FunctionInformation> handleDocumentStoreServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
-        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(DocumentStoreServerlessFunction.class);
-
-        List<FunctionInformation> results = new LinkedList<>();
-        for (Element type : annotatedElements) {
-            DocumentStoreServerlessFunction documentStoreFunction = type.getAnnotation(DocumentStoreServerlessFunction.class);
-
-            if (type.getKind() == ElementKind.METHOD) {
-                MethodInformation methodInformation = extractMethodInformation(type);
-                DataModelAnnotation dataModelAnnotation = new DocumentStoreServerlessFunctionAnnotation(documentStoreFunction);
-
-                DocumentStoreServerlessFunctionFileBuilder fileBuilder = new DocumentStoreServerlessFunctionFileBuilder<>(
-                        processingEnv,
-                        methodInformation,
-                        type,
-                        documentStoreFunction.method(),
-                        dataModelAnnotation.getTypeElement(processingEnv)
-                );
-
-                String handler = fileBuilder.getHandler();
-
-                FunctionConfig config = new FunctionConfig(documentStoreFunction.timeout(), documentStoreFunction.memory());
-                FunctionResource functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config);
-
-                Resource dynamoResource = getDocumentStoreResource(dataModelAnnotation, type);
-
-                if (dynamoResource != null) {
-                    functionEnvironmentService.newDocumentStoreTrigger(dynamoResource, functionResource);
-                }
-
-                fileBuilder.createClass();
-
-                results.add(new FunctionInformation(type, functionResource));
-            }
-        }
-        return results;
-    }
-
-    private List<FunctionInformation> handleHttpServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
-        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(HttpServerlessFunction.class);
-
-        List<FunctionInformation> results = new LinkedList<>();
-
-        for (Element type : annotatedElements) {
-            HttpServerlessFunction httpFunction = type.getAnnotation(HttpServerlessFunction.class);
-
-            if (type.getKind() == ElementKind.METHOD) {
-                MethodInformation methodInformation = extractMethodInformation(type);
-
-
-                HttpServerlessFunctionFileBuilder fileBuilder = new HttpServerlessFunctionFileBuilder(
-                        processingEnv,
-                        methodInformation,
-                        type
-                );
-
-                String handler = fileBuilder.getHandler();
-
-                FunctionConfig config = new FunctionConfig(httpFunction.timeout(), httpFunction.memory());
-                FunctionResource functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config);
-
-                functionEnvironmentService.newHttpMethod(httpFunction, functionResource);
-
-                fileBuilder.createClass();
-
-                results.add(new FunctionInformation(type, functionResource));
-            }
-        }
-        return results;
-    }
-
-    private List<FunctionInformation> handleNotificationServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
-        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(NotificationServerlessFunction.class);
-
-        List<FunctionInformation> results = new LinkedList<>();
-
-        for (Element type : annotatedElements) {
-            NotificationServerlessFunction notificationFunction = type.getAnnotation(NotificationServerlessFunction.class);
-
-            if (type.getKind() == ElementKind.METHOD) {
-                MethodInformation methodInformation = extractMethodInformation(type);
-
-                NotificationServerlessFunctionFileBuilder fileBuilder = new NotificationServerlessFunctionFileBuilder(
-                        processingEnv,
-                        methodInformation,
-                        type
-                );
-
-                FunctionConfig config = new FunctionConfig(notificationFunction.timeout(), notificationFunction.memory());
-                FunctionResource functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config);
-
-                functionEnvironmentService.newNotification(notificationFunction, functionResource);
-
-                fileBuilder.createClass();
-
-                results.add(new FunctionInformation(type, functionResource));
-            }
-        }
-        return results;
-    }
-
-    private List<FunctionInformation> handleQueueServerlessFunction(RoundEnvironment roundEnv, FunctionEnvironmentService functionEnvironmentService) {
-        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(QueueServerlessFunction.class);
-
-        List<FunctionInformation> results = new LinkedList<>();
-
-        for (Element type : annotatedElements) {
-            QueueServerlessFunction queueFunction = type.getAnnotation(QueueServerlessFunction.class);
-
-            if (type.getKind() == ElementKind.METHOD) {
-                MethodInformation methodInformation = extractMethodInformation(type);
-
-                QueueServerlessFunctionFileBuilder fileBuilder = new QueueServerlessFunctionFileBuilder(
-                        processingEnv,
-                        methodInformation,
-                        type
-                );
-
-                FunctionConfig config = new FunctionConfig(queueFunction.timeout(), queueFunction.memory());
-                FunctionResource functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config);
-
-                QueueResource newQueue = functionEnvironmentService.newQueue(queueFunction, functionResource);
-
-                if (savedResources.containsKey(queueFunction.id())) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Can't have multiple consumers of the same queue ("
-                            + queueFunction.id() + ")", type);
-                    return results;
-                }
-                savedResources.put(queueFunction.id(), newQueue);
-
-                fileBuilder.createClass();
-
-                results.add(new FunctionInformation(type, functionResource));
-            }
-        }
-        return results;
-    }
-
-    private MethodInformation extractMethodInformation(Element type) {
-        String methodName = type.getSimpleName().toString();
-        Element enclosing = type.getEnclosingElement();
-        String className = enclosing.getSimpleName().toString();
-
-        ExecutableType executableType = (ExecutableType) type.asType();
-        List<? extends TypeMirror> parameters = executableType.getParameterTypes();
-        TypeMirror returnType = executableType.getReturnType();
-
-        PackageElement packageElem = (PackageElement) enclosing.getEnclosingElement();
-        String qualifiedName = packageElem.getQualifiedName().toString();
-
-        return new MethodInformation(className, methodName, qualifiedName, parameters, returnType);
     }
 
     private void handleDocumentStore(RoundEnvironment roundEnv, ResourceCollection updateResources) {
@@ -421,33 +267,6 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             tableName = givenName;
         }
         return tableName;
-    }
-
-    private class FunctionInformation {
-
-        private Element element;
-        private FunctionResource resource;
-
-        public FunctionInformation(Element element, FunctionResource resource) {
-            this.element = element;
-            this.resource = resource;
-        }
-
-        public Element getElement() {
-            return element;
-        }
-
-        public void setElement(Element element) {
-            this.element = element;
-        }
-
-        public FunctionResource getResource() {
-            return resource;
-        }
-
-        public void setResource(FunctionResource resource) {
-            this.resource = resource;
-        }
     }
 }
 
