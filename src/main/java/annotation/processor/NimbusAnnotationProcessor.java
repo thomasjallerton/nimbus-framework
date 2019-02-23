@@ -80,10 +80,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime);
         }
 
-        Policy lambdaPolicy = new Policy("lambda", nimbusState);
-
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(
-                lambdaPolicy,
                 createResources,
                 updateResources,
                 createOutputs,
@@ -102,11 +99,8 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         resourceCreators.add(new QueueFunctionResourceCreator(updateResources, nimbusState, processingEnv, savedResources));
 
         for (FunctionResourceCreator creator : resourceCreators) {
-            handleUseResources(creator.handle(roundEnv, functionEnvironmentService), lambdaPolicy, updateResources);
+            handleUseResources(creator.handle(roundEnv, functionEnvironmentService), updateResources);
         }
-
-        IamRoleResource iamRole = new IamRoleResource(lambdaPolicy, nimbusState);
-        updateResources.addResource(iamRole);
 
         CloudFormationTemplate update = new CloudFormationTemplate(updateResources, updateOutputs);
         CloudFormationTemplate create = new CloudFormationTemplate(createResources, createOutputs);
@@ -122,9 +116,9 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void handleUseResources(List<FunctionInformation> functionInformationList, Policy policy, ResourceCollection updateResources) {
+    private void handleUseResources(List<FunctionInformation> functionInformationList, ResourceCollection updateResources) {
         for (FunctionInformation functionInformation : functionInformationList) {
-            handleUseResources(functionInformation.getElement(), functionInformation.getResource(), policy, updateResources);
+            handleUseResources(functionInformation.getElement(), functionInformation.getResource(), updateResources);
         }
     }
 
@@ -203,14 +197,15 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             }
     }
 
-    private void handleUseResources(Element serverlessMethod, FunctionResource functionResource, Policy policy, ResourceCollection updateResources) {
+    private void handleUseResources(Element serverlessMethod, FunctionResource functionResource, ResourceCollection updateResources) {
+        IamRoleResource iamRoleResource = functionResource.getIamRoleResource();
         for (UsesDocumentStore usesDocumentStore : serverlessMethod.getAnnotationsByType(UsesDocumentStore.class)) {
 
             DataModelAnnotation dataModelAnnotation = new UsesDocumentStoreAnnotation(usesDocumentStore);
             Resource resource = getDocumentStoreResource(dataModelAnnotation, serverlessMethod);
 
             if (resource != null) {
-                policy.addAllowStatement("dynamodb:*", resource, "");
+                iamRoleResource.addAllowStatement("dynamodb:*", resource, "");
             }
         }
         for (UsesKeyValueStore usesKeyValueStore : serverlessMethod.getAnnotationsByType(UsesKeyValueStore.class)) {
@@ -218,7 +213,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             Resource resource = getKeyValueStoreResource(annotation, serverlessMethod);
 
             if (resource != null) {
-                policy.addAllowStatement("dynamodb:*", resource, "");
+                iamRoleResource.addAllowStatement("dynamodb:*", resource, "");
             }
         }
 
@@ -235,7 +230,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             }
 
             functionResource.addEnvVariable("NIMBUS_QUEUE_URL_ID_" + usesQueue.id().toUpperCase(), referencedQueue.getRef());
-            policy.addAllowStatement("sqs:SendMessage", referencedQueue, "");
+            iamRoleResource.addAllowStatement("sqs:SendMessage", referencedQueue, "");
         }
     }
 

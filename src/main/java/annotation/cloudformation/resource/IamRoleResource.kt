@@ -5,9 +5,11 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
 class IamRoleResource(
-        private val policy: Policy,
+        private val functionName: String,
         nimbusState: NimbusState
 ) : Resource(nimbusState) {
+
+    private val policy: Policy = Policy(functionName, nimbusState)
 
     override fun toCloudFormation(): JsonObject {
         val iamRoleResource = JsonObject()
@@ -23,7 +25,7 @@ class IamRoleResource(
 
         properties.addProperty("Path", "/")
 
-        properties.addProperty("RoleName", "${nimbusState.projectName}-stage-lambdaRole")
+        properties.addProperty("RoleName", "${nimbusState.projectName}-stage-$functionName")
 
         iamRoleResource.add("Properties", properties)
 
@@ -31,7 +33,11 @@ class IamRoleResource(
     }
 
     override fun getName(): String {
-        return "IamRoleLambdaExecution"
+        return "IamRole${functionName}Execution"
+    }
+
+    fun addAllowStatement(action: String, resource: Resource, suffix: String) {
+        policy.addAllowStatement(action, resource, suffix)
     }
 
     private fun rolePolicyDocument(): JsonObject {

@@ -2,6 +2,7 @@ package annotation.cloudformation.resource.function
 
 import annotation.cloudformation.persisted.NimbusState
 import annotation.cloudformation.processing.MethodInformation
+import annotation.cloudformation.resource.IamRoleResource
 import annotation.cloudformation.resource.Resource
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -15,7 +16,15 @@ class FunctionResource(
 
     private val envVariables: MutableMap<String, String> = mutableMapOf()
     private val jsonEnvVariables: MutableMap<String, JsonObject> = mutableMapOf()
+    private lateinit var iamRoleResource: IamRoleResource
 
+    fun setIamRoleResource(resource: IamRoleResource) {
+        iamRoleResource = resource
+    }
+
+    fun getIamRoleResource(): IamRoleResource {
+        return iamRoleResource
+    }
 
     override fun getName(): String {
         return "${methodInformation.className}${methodInformation.methodName}Function"
@@ -38,12 +47,7 @@ class FunctionResource(
         properties.addProperty("Handler", handler)
         properties.addProperty("MemorySize", functionConfig.memory)
 
-        val role = JsonObject()
-        val roleFunc = JsonArray()
-        roleFunc.add("IamRoleLambdaExecution")
-        roleFunc.add("Arn")
-        role.add("Fn::GetAtt", roleFunc)
-        properties.add("Role", role)
+        properties.add("Role", iamRoleResource.getArn())
 
         properties.addProperty("Runtime", "java8")
         properties.addProperty("Timeout", functionConfig.timeout)
@@ -60,7 +64,7 @@ class FunctionResource(
         properties.add("Environment", environment)
 
         val dependsOn = JsonArray()
-        dependsOn.add("IamRoleLambdaExecution")
+        dependsOn.add(iamRoleResource.getName())
         functionResource.add("DependsOn", dependsOn)
 
         functionResource.add("Properties", properties)

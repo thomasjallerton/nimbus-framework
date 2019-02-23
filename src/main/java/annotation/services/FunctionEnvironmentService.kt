@@ -19,7 +19,6 @@ import annotation.cloudformation.resource.queue.QueueResource
 import com.google.gson.JsonObject
 
 class FunctionEnvironmentService(
-        private val lambdaPolicy: Policy,
         private val createResources: ResourceCollection,
         private val updateResources: ResourceCollection,
         private val createOutputs: OutputCollection,
@@ -35,9 +34,13 @@ class FunctionEnvironmentService(
         val logGroup = LogGroupResource(methodInformation.className, methodInformation.methodName, nimbusState)
         val bucket = NimbusBucketResource(nimbusState)
 
-        lambdaPolicy.addAllowStatement("logs:CreateLogStream", logGroup, ":*")
-        lambdaPolicy.addAllowStatement("logs:PutLogEvents", logGroup, ":*:*")
+        val iamRoleResource = IamRoleResource(function.getName(), nimbusState)
+        iamRoleResource.addAllowStatement("logs:CreateLogStream", logGroup, ":*")
+        iamRoleResource.addAllowStatement("logs:PutLogEvents", logGroup, ":*:*")
 
+        function.setIamRoleResource(iamRoleResource)
+
+        updateResources.addResource(iamRoleResource)
         updateResources.addResource(function)
         updateResources.addResource(logGroup)
         updateResources.addResource(bucket)
@@ -99,9 +102,11 @@ class FunctionEnvironmentService(
         )
         updateResources.addResource(eventMapping)
 
-        lambdaPolicy.addAllowStatement("sqs:ReceiveMessage", sqsQueue, "")
-        lambdaPolicy.addAllowStatement("sqs:DeleteMessage", sqsQueue, "")
-        lambdaPolicy.addAllowStatement( "sqs:GetQueueAttributes", sqsQueue, "")
+        val iamRoleResource = function.getIamRoleResource()
+
+        iamRoleResource.addAllowStatement("sqs:ReceiveMessage", sqsQueue, "")
+        iamRoleResource.addAllowStatement("sqs:DeleteMessage", sqsQueue, "")
+        iamRoleResource.addAllowStatement( "sqs:GetQueueAttributes", sqsQueue, "")
 
         return sqsQueue
     }
@@ -124,6 +129,6 @@ class FunctionEnvironmentService(
 
         val dynamoStreamResource = DynamoStreamResource(store, nimbusState)
 
-        lambdaPolicy.addAllowStatement("dynamodb:*", dynamoStreamResource, "")
+        function.getIamRoleResource().addAllowStatement("dynamodb:*", dynamoStreamResource, "")
     }
 }
