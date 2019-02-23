@@ -3,19 +3,19 @@ package annotation.services
 import annotation.annotations.function.HttpServerlessFunction
 import annotation.annotations.function.NotificationServerlessFunction
 import annotation.annotations.function.QueueServerlessFunction
-import annotation.models.outputs.BucketNameOutput
-import annotation.models.outputs.OutputCollection
-import annotation.models.persisted.NimbusState
-import annotation.models.processing.MethodInformation
-import annotation.models.resource.*
-import annotation.models.resource.dynamo.DynamoStreamResource
-import annotation.models.resource.function.FunctionConfig
-import annotation.models.resource.function.FunctionEventMappingResource
-import annotation.models.resource.function.FunctionPermissionResource
-import annotation.models.resource.function.FunctionResource
-import annotation.models.resource.http.*
-import annotation.models.resource.notification.SnsTopicResource
-import annotation.models.resource.queue.QueueResource
+import annotation.cloudformation.outputs.BucketNameOutput
+import annotation.cloudformation.outputs.OutputCollection
+import annotation.cloudformation.persisted.NimbusState
+import annotation.cloudformation.processing.MethodInformation
+import annotation.cloudformation.resource.*
+import annotation.cloudformation.resource.dynamo.DynamoStreamResource
+import annotation.cloudformation.resource.function.FunctionConfig
+import annotation.cloudformation.resource.function.FunctionEventMappingResource
+import annotation.cloudformation.resource.function.FunctionPermissionResource
+import annotation.cloudformation.resource.function.FunctionResource
+import annotation.cloudformation.resource.http.*
+import annotation.cloudformation.resource.notification.SnsTopicResource
+import annotation.cloudformation.resource.queue.QueueResource
 import com.google.gson.JsonObject
 
 class FunctionEnvironmentService(
@@ -106,11 +106,11 @@ class FunctionEnvironmentService(
         return sqsQueue
     }
 
-    fun newDocumentStoreTrigger(documentStore: Resource, function: FunctionResource) {
+    fun newStoreTrigger(store: Resource, function: FunctionResource) {
 
         val eventMapping = FunctionEventMappingResource(
-                documentStore.getAttribute("StreamArn"),
-                documentStore.getName(),
+                store.getAttribute("StreamArn"),
+                store.getName(),
                 1,
                 function,
                 nimbusState
@@ -120,9 +120,9 @@ class FunctionEnvironmentService(
 
         val streamSpecification = JsonObject()
         streamSpecification.addProperty("StreamViewType", "NEW_AND_OLD_IMAGES")
-        documentStore.addExtraProperty("StreamSpecification", streamSpecification)
+        store.addExtraProperty("StreamSpecification", streamSpecification)
 
-        val dynamoStreamResource = DynamoStreamResource(documentStore, nimbusState)
+        val dynamoStreamResource = DynamoStreamResource(store, nimbusState)
 
         lambdaPolicy.addAllowStatement("dynamodb:*", dynamoStreamResource, "")
     }

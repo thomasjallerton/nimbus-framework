@@ -1,9 +1,9 @@
 package annotation.services.functions
 
 import annotation.annotations.function.NotificationServerlessFunction
-import annotation.models.persisted.NimbusState
-import annotation.models.resource.ResourceCollection
-import annotation.models.resource.function.FunctionConfig
+import annotation.cloudformation.persisted.NimbusState
+import annotation.cloudformation.resource.ResourceCollection
+import annotation.cloudformation.resource.function.FunctionConfig
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import wrappers.notification.NotificationServerlessFunctionFileBuilder

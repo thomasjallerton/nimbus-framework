@@ -1,12 +1,12 @@
 package annotation.services.functions
 
 import annotation.annotations.function.DocumentStoreServerlessFunction
-import annotation.models.persisted.NimbusState
-import annotation.models.resource.ResourceCollection
-import annotation.models.resource.function.FunctionConfig
+import annotation.cloudformation.persisted.NimbusState
+import annotation.cloudformation.resource.ResourceCollection
+import annotation.cloudformation.resource.function.FunctionConfig
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
-import annotation.wrappers.DocumentStoreServerlessFunctionAnnotation
+import annotation.wrappers.annotations.datamodel.DocumentStoreServerlessFunctionAnnotation
 import wrappers.document.DocumentStoreServerlessFunctionFileBuilder
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
@@ -46,7 +46,7 @@ class DocumentStoreFunctionResourceCreator(
                 val dynamoResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, type)
 
                 if (dynamoResource != null) {
-                    functionEnvironmentService.newDocumentStoreTrigger(dynamoResource!!, functionResource)
+                    functionEnvironmentService.newStoreTrigger(dynamoResource!!, functionResource)
                 }
 
                 fileBuilder.createClass()

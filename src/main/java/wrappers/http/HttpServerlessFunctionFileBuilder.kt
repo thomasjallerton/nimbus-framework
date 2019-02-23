@@ -1,7 +1,7 @@
 package wrappers.http
 
 import annotation.annotations.function.HttpServerlessFunction
-import annotation.models.processing.MethodInformation
+import annotation.cloudformation.processing.MethodInformation
 import wrappers.ServerlessFunctionFileBuilder
 import wrappers.http.models.HttpEvent
 import wrappers.http.models.HttpResponse
