@@ -67,7 +67,7 @@ class FunctionEnvironmentService(
             }
         }
 
-        val method = httpFunction.method.toUpperCase()
+        val method = httpFunction.method.name
         val restMethod = RestMethod(resource, method, mapOf(), function, nimbusState)
         apiGatewayDeployment.addDependsOn(restMethod)
         updateResources.addResource(restMethod)

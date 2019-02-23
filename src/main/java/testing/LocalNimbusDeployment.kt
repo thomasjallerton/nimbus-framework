@@ -1,10 +1,7 @@
 package testing
 
 import annotation.annotations.document.DocumentStore
-import annotation.annotations.function.DocumentStoreServerlessFunction
-import annotation.annotations.function.HttpServerlessFunction
-import annotation.annotations.function.KeyValueStoreServerlessFunction
-import annotation.annotations.function.QueueServerlessFunction
+import annotation.annotations.function.*
 import annotation.annotations.keyvalue.KeyValueStore
 import clients.document.DocumentStoreClient
 import clients.keyvalue.KeyValueStoreClient
@@ -17,7 +14,7 @@ import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
 import testing.document.KeyValueMethod
 import testing.document.LocalDocumentStore
-import testing.http.HttpMethod
+import testing.http.LocalHttpMethod
 import testing.http.HttpRequest
 import testing.keyvalue.LocalKeyValueStore
 import testing.queue.LocalQueue
@@ -30,7 +27,7 @@ class LocalNimbusDeployment {
 
     private val queues: MutableMap<String, LocalQueue> = mutableMapOf()
     private val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
-    private val httpMethods: MutableMap<HttpMethodIdentifier, HttpMethod> = mutableMapOf()
+    private val localHttpMethods: MutableMap<HttpMethodIdentifier, LocalHttpMethod> = mutableMapOf()
     private val keyValueStores: MutableMap<String, LocalKeyValueStore<out Any, out Any>> = mutableMapOf()
     private val documentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
 
@@ -91,9 +88,9 @@ class LocalNimbusDeployment {
 
                     val invokeOn = clazz.getConstructor().newInstance()
                     for (httpFunction in httpServerlessFunctions) {
-                        val httpMethod = HttpMethod(method, invokeOn)
+                        val httpMethod = LocalHttpMethod(method, invokeOn)
                         val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
-                        httpMethods[httpIdentifier] = httpMethod
+                        localHttpMethods[httpIdentifier] = httpMethod
                         methods[functionIdentifier] = httpMethod
                     }
                 }
@@ -171,8 +168,8 @@ class LocalNimbusDeployment {
 
     fun sendHttpReguest(request: HttpRequest) {
         val httpIdentifier = HttpMethodIdentifier(request.path, request.method)
-        if (httpMethods.containsKey(httpIdentifier)) {
-            httpMethods[httpIdentifier]!!.invoke(request)
+        if (localHttpMethods.containsKey(httpIdentifier)) {
+            localHttpMethods[httpIdentifier]!!.invoke(request)
         } else {
             throw ResourceNotFoundException()
         }
@@ -204,5 +201,5 @@ class LocalNimbusDeployment {
 
     private data class FunctionIdentifier(val className: String, val methodName: String)
 
-    private data class HttpMethodIdentifier(val path: String, val method: String)
+    private data class HttpMethodIdentifier(val path: String, val method: HttpMethod)
 }

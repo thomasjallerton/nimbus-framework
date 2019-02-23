@@ -4,7 +4,7 @@ import testing.ServerlessMethod
 import wrappers.http.models.HttpEvent
 import java.lang.reflect.Method
 
-class HttpMethod(private val method: Method, private val invokeOn: Any): ServerlessMethod(method, HttpEvent::class.java) {
+class LocalHttpMethod(private val method: Method, private val invokeOn: Any): ServerlessMethod(method, HttpEvent::class.java) {
 
     fun invoke(request: HttpRequest) {
         timesInvoked++
