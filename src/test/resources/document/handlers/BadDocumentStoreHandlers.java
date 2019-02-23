@@ -3,7 +3,7 @@ package document.handlers;
 import annotation.annotations.function.DocumentStoreServerlessFunction;
 import annotation.annotations.persistent.StoreUpdate;
 import document.models.Document;
-import wrappers.document.models.StoreEvent;
+import wrappers.store.models.StoreEvent;
 
 public class BadDocumentStoreHandlers {
 

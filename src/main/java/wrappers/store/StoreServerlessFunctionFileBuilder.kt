@@ -1,33 +1,33 @@
-package wrappers.document
+package wrappers.store
 
-import annotation.annotations.function.DocumentStoreServerlessFunction
 import annotation.annotations.persistent.StoreUpdate
 import annotation.cloudformation.processing.MethodInformation
 import clients.dynamo.DynamoStreamParser
 import wrappers.ServerlessFunctionFileBuilder
-import wrappers.document.models.DynamoRecords
-import wrappers.document.models.DynamoUpdate
-import wrappers.document.models.StoreEvent
+import wrappers.store.models.DynamoRecords
+import wrappers.store.models.DynamoUpdate
+import wrappers.store.models.StoreEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
 import javax.tools.Diagnostic
 
-class DocumentStoreServerlessFunctionFileBuilder<T>(
+abstract class StoreServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
         compilingElement: Element,
         private val method: StoreUpdate,
-        private val clazz: TypeElement
+        private val clazz: TypeElement,
+        private val functionName: String
 ) : ServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
-        DocumentStoreServerlessFunction::class.java.simpleName,
+        functionName,
         StoreEvent(),
         compilingElement
 ) {
     override fun getGeneratedClassName(): String {
-        return "DocumentStoreServerlessFunction${methodInformation.className}${methodInformation.methodName}"
+        return "$functionName${methodInformation.className}${methodInformation.methodName}"
     }
 
     override fun isValidFunction(functionParams: FunctionParams) {
@@ -35,7 +35,7 @@ class DocumentStoreServerlessFunctionFileBuilder<T>(
             compilationError("TYPES ARE NOT CORRECT, EXPECTED $clazz but method uses ${functionParams.inputParam.type}")
         }
 
-        val errorPrefix = "Incorrect DocumentStoreServerlessFunction annotated method parameters."
+        val errorPrefix = "Incorrect $functionName annotated method parameters."
         val eventSimpleName = StoreEvent::class.java.simpleName
 
         if (method == StoreUpdate.INSERT || method == StoreUpdate.REMOVE) {
@@ -73,7 +73,7 @@ class DocumentStoreServerlessFunctionFileBuilder<T>(
         }
 
         if (functionParams.eventParam.type != null && isAListType(functionParams.eventParam.type!!)) {
-            compilationError("$errorPrefix Cannot have a list of $eventSimpleName for a DocumentStoreServerlessFunction")
+            compilationError("$errorPrefix Cannot have a list of $eventSimpleName for a $functionName")
         }
     }
 

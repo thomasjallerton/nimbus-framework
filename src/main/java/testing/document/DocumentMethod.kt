@@ -2,8 +2,8 @@ package testing.document
 
 import annotation.annotations.persistent.StoreUpdate
 import testing.ServerlessMethod
-import wrappers.document.models.DynamoUpdate
-import wrappers.document.models.StoreEvent
+import wrappers.store.models.DynamoUpdate
+import wrappers.store.models.StoreEvent
 import java.lang.reflect.Method
 
 class DocumentMethod(private val method: Method, private val invokeOn: Any, private val type: StoreUpdate) : ServerlessMethod(method, StoreEvent::class.java) {
