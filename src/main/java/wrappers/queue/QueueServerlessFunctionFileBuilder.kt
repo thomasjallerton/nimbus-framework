@@ -1,7 +1,7 @@
 package wrappers.queue
 
 import annotation.annotations.function.QueueServerlessFunction
-import annotation.cloudformation.processing.MethodInformation
+import cloudformation.processing.MethodInformation
 import wrappers.ServerlessFunctionFileBuilder
 import wrappers.queue.models.QueueEvent
 import wrappers.queue.models.RecordCollection

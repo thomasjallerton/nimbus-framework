@@ -1,10 +1,10 @@
 package annotation.services.functions
 
 import annotation.annotations.function.QueueServerlessFunction
-import annotation.cloudformation.persisted.NimbusState
-import annotation.cloudformation.resource.Resource
-import annotation.cloudformation.resource.ResourceCollection
-import annotation.cloudformation.resource.function.FunctionConfig
+import cloudformation.persisted.NimbusState
+import cloudformation.resource.Resource
+import cloudformation.resource.ResourceCollection
+import cloudformation.resource.function.FunctionConfig
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import wrappers.queue.QueueServerlessFunctionFileBuilder

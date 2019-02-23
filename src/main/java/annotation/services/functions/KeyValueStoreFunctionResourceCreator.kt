@@ -1,9 +1,9 @@
 package annotation.services.functions
 
 import annotation.annotations.function.KeyValueStoreServerlessFunction
-import annotation.cloudformation.persisted.NimbusState
-import annotation.cloudformation.resource.ResourceCollection
-import annotation.cloudformation.resource.function.FunctionConfig
+import cloudformation.persisted.NimbusState
+import cloudformation.resource.ResourceCollection
+import cloudformation.resource.function.FunctionConfig
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import annotation.wrappers.annotations.datamodel.KeyValueStoreServerlessFunctionAnnotation

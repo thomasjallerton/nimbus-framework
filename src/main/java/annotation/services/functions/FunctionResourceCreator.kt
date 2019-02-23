@@ -1,8 +1,8 @@
 package annotation.services.functions
 
-import annotation.cloudformation.persisted.NimbusState
-import annotation.cloudformation.processing.MethodInformation
-import annotation.cloudformation.resource.ResourceCollection
+import cloudformation.persisted.NimbusState
+import cloudformation.processing.MethodInformation
+import cloudformation.resource.ResourceCollection
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import annotation.services.ResourceFinder
