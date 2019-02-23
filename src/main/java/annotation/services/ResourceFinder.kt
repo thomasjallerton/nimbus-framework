@@ -2,11 +2,11 @@ package annotation.services
 
 import annotation.annotations.document.DocumentStore
 import annotation.annotations.keyvalue.KeyValueStore
-import annotation.models.persisted.NimbusState
-import annotation.models.resource.ExistingResource
-import annotation.models.resource.Resource
-import annotation.models.resource.ResourceCollection
-import annotation.wrappers.DataModelAnnotation
+import annotation.cloudformation.persisted.NimbusState
+import annotation.cloudformation.resource.ExistingResource
+import annotation.cloudformation.resource.Resource
+import annotation.cloudformation.resource.ResourceCollection
+import annotation.wrappers.annotations.datamodel.DataModelAnnotation
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic

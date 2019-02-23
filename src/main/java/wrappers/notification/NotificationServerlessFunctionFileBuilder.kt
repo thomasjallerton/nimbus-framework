@@ -1,7 +1,7 @@
 package wrappers.notification
 
 import annotation.annotations.function.NotificationServerlessFunction
-import annotation.models.processing.MethodInformation
+import annotation.cloudformation.processing.MethodInformation
 import wrappers.ServerlessFunctionFileBuilder
 import wrappers.notification.models.NotificationEvent
 import wrappers.notification.models.RecordCollection

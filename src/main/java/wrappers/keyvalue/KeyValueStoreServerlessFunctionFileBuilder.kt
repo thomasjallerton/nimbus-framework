@@ -1,6 +1,6 @@
-package wrappers.document
+package wrappers.keyvalue
 
-import annotation.annotations.function.DocumentStoreServerlessFunction
+import annotation.annotations.function.KeyValueStoreServerlessFunction
 import annotation.annotations.persistent.StoreUpdate
 import annotation.cloudformation.processing.MethodInformation
 import clients.dynamo.DynamoStreamParser
@@ -13,7 +13,7 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
 import javax.tools.Diagnostic
 
-class DocumentStoreServerlessFunctionFileBuilder<T>(
+class KeyValueStoreServerlessFunctionFileBuilder<T>(
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
         compilingElement: Element,
@@ -22,12 +22,12 @@ class DocumentStoreServerlessFunctionFileBuilder<T>(
 ) : ServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
-        DocumentStoreServerlessFunction::class.java.simpleName,
+        KeyValueStoreServerlessFunction::class.java.simpleName,
         StoreEvent(),
         compilingElement
 ) {
     override fun getGeneratedClassName(): String {
-        return "DocumentStoreServerlessFunction${methodInformation.className}${methodInformation.methodName}"
+        return "KeyValueStoreServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 
     override fun isValidFunction(functionParams: FunctionParams) {
@@ -35,7 +35,7 @@ class DocumentStoreServerlessFunctionFileBuilder<T>(
             compilationError("TYPES ARE NOT CORRECT, EXPECTED $clazz but method uses ${functionParams.inputParam.type}")
         }
 
-        val errorPrefix = "Incorrect DocumentStoreServerlessFunction annotated method parameters."
+        val errorPrefix = "Incorrect KeyValueStoreServerlessFunction annotated method parameters."
         val eventSimpleName = StoreEvent::class.java.simpleName
 
         if (method == StoreUpdate.INSERT || method == StoreUpdate.REMOVE) {

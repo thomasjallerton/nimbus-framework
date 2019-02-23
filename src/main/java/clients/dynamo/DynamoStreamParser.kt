@@ -7,7 +7,6 @@ import java.lang.reflect.Field
 
 class DynamoStreamParser<T>(private val clazz: Class<T>) {
 
-    private val keys: MutableMap<String, Field> = mutableMapOf()
     private val allAttributes: MutableMap<String, Field> = mutableMapOf()
     private val objectMapper = ObjectMapper()
 
@@ -16,7 +15,6 @@ class DynamoStreamParser<T>(private val clazz: Class<T>) {
             if (field.isAnnotationPresent(Key::class.java)) {
                 val keyAnnotation = field.getDeclaredAnnotation(Key::class.java)
                 val columnName = if (keyAnnotation.columnName != "") keyAnnotation.columnName else field.name
-                keys[columnName] = field
                 allAttributes[columnName] = field
             } else if (field.isAnnotationPresent(Attribute::class.java)) {
                 val attributeAnnotation = field.getDeclaredAnnotation(Attribute::class.java)

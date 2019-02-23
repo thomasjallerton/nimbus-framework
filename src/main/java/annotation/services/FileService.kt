@@ -1,6 +1,6 @@
 package annotation.services
 
-import annotation.models.CloudFormationTemplate
+import annotation.cloudformation.CloudFormationTemplate
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files

@@ -1,6 +1,6 @@
 package wrappers
 
-import annotation.models.processing.MethodInformation
+import annotation.cloudformation.processing.MethodInformation
 import java.io.PrintWriter
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
