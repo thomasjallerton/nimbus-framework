@@ -7,7 +7,7 @@ import annotation.cloudformation.resource.function.FunctionConfig
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import annotation.wrappers.annotations.datamodel.DocumentStoreServerlessFunctionAnnotation
-import wrappers.document.DocumentStoreServerlessFunctionFileBuilder
+import wrappers.store.document.DocumentStoreServerlessFunctionFileBuilder
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
