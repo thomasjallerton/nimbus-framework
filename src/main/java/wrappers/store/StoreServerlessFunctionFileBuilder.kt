@@ -1,7 +1,7 @@
 package wrappers.store
 
 import annotation.annotations.persistent.StoreUpdate
-import annotation.cloudformation.processing.MethodInformation
+import cloudformation.processing.MethodInformation
 import clients.dynamo.DynamoStreamParser
 import wrappers.ServerlessFunctionFileBuilder
 import wrappers.store.models.DynamoRecords

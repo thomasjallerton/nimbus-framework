@@ -2,7 +2,7 @@ package wrappers.store.document
 
 import annotation.annotations.function.DocumentStoreServerlessFunction
 import annotation.annotations.persistent.StoreUpdate
-import annotation.cloudformation.processing.MethodInformation
+import cloudformation.processing.MethodInformation
 import wrappers.store.StoreServerlessFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
