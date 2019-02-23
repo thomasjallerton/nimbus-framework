@@ -3,6 +3,7 @@ package testing
 import annotation.annotations.document.DocumentStore
 import annotation.annotations.function.DocumentStoreServerlessFunction
 import annotation.annotations.function.HttpServerlessFunction
+import annotation.annotations.function.KeyValueStoreServerlessFunction
 import annotation.annotations.function.QueueServerlessFunction
 import annotation.annotations.keyvalue.KeyValueStore
 import clients.document.DocumentStoreClient
@@ -14,10 +15,11 @@ import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
-import testing.document.DocumentMethod
+import testing.document.KeyValueMethod
 import testing.document.LocalDocumentStore
 import testing.http.HttpMethod
 import testing.http.HttpRequest
+import testing.keyvalue.LocalKeyValueStore
 import testing.queue.LocalQueue
 import testing.queue.QueueMethod
 import java.lang.reflect.InvocationTargetException
@@ -29,7 +31,7 @@ class LocalNimbusDeployment {
     private val queues: MutableMap<String, LocalQueue> = mutableMapOf()
     private val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
     private val httpMethods: MutableMap<HttpMethodIdentifier, HttpMethod> = mutableMapOf()
-    private val keyValueStores: MutableMap<String, MutableMap<Any?, Any?>> = mutableMapOf()
+    private val keyValueStores: MutableMap<String, LocalKeyValueStore<out Any, out Any>> = mutableMapOf()
     private val documentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
 
     private constructor(clazz: Class<out Any>) {
@@ -59,7 +61,8 @@ class LocalNimbusDeployment {
     private fun createResources(clazz: Class<out Any>) {
         if (clazz.isAnnotationPresent(KeyValueStore::class.java)) {
             val tableName = KeyValueStoreClient.getTableName(clazz)
-            keyValueStores[tableName] = mutableMapOf()
+            val annotation = clazz.getDeclaredAnnotation(KeyValueStore::class.java)
+            keyValueStores[tableName] = LocalKeyValueStore(annotation.keyType.java, clazz)
         }
         if (clazz.isAnnotationPresent(DocumentStore::class.java)) {
             val tableName = DocumentStoreClient.getTableName(clazz)
@@ -100,11 +103,24 @@ class LocalNimbusDeployment {
 
                     val invokeOn = clazz.getConstructor().newInstance()
                     for (documentFunction in documentFunctions) {
-                        val documentMethod = DocumentMethod(method, invokeOn, documentFunction.method)
+                        val documentMethod = KeyValueMethod(method, invokeOn, documentFunction.method)
                         methods[functionIdentifier] = documentMethod
                         val tableName = DocumentStoreClient.getTableName(documentFunction.dataModel.java)
                         val documentStore = documentStores[tableName]
                         documentStore?.addMethod(documentMethod)
+                    }
+                }
+
+                if (method.isAnnotationPresent(KeyValueStoreServerlessFunction::class.java)) {
+                    val keyValueFunctions = method.getAnnotationsByType(KeyValueStoreServerlessFunction::class.java)
+
+                    val invokeOn = clazz.getConstructor().newInstance()
+                    for (keyValueFunction in keyValueFunctions) {
+                        val documentMethod = KeyValueMethod(method, invokeOn, keyValueFunction.method)
+                        methods[functionIdentifier] = documentMethod
+                        val tableName = KeyValueStoreClient.getTableName(keyValueFunction.dataModel.java)
+                        val keyValueStore = keyValueStores[tableName]
+                        keyValueStore?.addMethod(documentMethod)
                     }
                 }
             }
@@ -114,10 +130,10 @@ class LocalNimbusDeployment {
         }
     }
 
-    internal fun <T> getKeyValueStore(clazz: Class<T>): MutableMap<Any?, Any?> {
-        val tableName = KeyValueStoreClient.getTableName(clazz)
+    fun <K, V> getKeyValueStore(valueClass: Class<V>): LocalKeyValueStore<K, V> {
+        val tableName = KeyValueStoreClient.getTableName(valueClass)
         if (keyValueStores.containsKey(tableName)) {
-            return keyValueStores[tableName]!!
+            return keyValueStores[tableName] as LocalKeyValueStore<K, V>
         } else {
             throw ResourceNotFoundException()
         }
