@@ -1,10 +1,11 @@
 package annotation.cloudformation.resource.dynamo
 
-import annotation.annotations.keyvalue.KeyType
 import annotation.cloudformation.persisted.NimbusState
 import annotation.cloudformation.resource.Resource
+import annotation.wrappers.annotations.datamodel.DataModelAnnotation
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import javax.lang.model.element.TypeElement
 
 class DynamoResource(
         private val tableName: String,
@@ -69,19 +70,31 @@ class DynamoResource(
         attributes.add(Attribute(name, getDynamoType(type)))
     }
 
+    fun <T> addHashKeyClass(name: String, type: TypeElement) {
+        keys.add(Attribute(name, "HASH"))
+        attributes.add(Attribute(name, getClassDynamoType(type)))
+    }
+
     private fun getDynamoType(obj: Any): String {
-        if (obj is KeyType) {
-            return when (obj) {
-                KeyType.STRING -> "S"
-                KeyType.NUMBER -> "N"
-                KeyType.BOOLEAN -> "B"
-                KeyType.OBJECT -> "S"
-            }
-        }
         return when (obj) {
             is String -> "S"
             is Number -> "N"
             is Boolean -> "BOOL"
+            else -> "S"
+        }
+    }
+
+    private fun getClassDynamoType(obj: TypeElement): String {
+        return when (obj.simpleName.toString()) {
+            "String" -> "S"
+            "Integer" -> "N"
+            "Short" -> "N"
+            "Byte" -> "N"
+            "Char" -> "N"
+            "Long" -> "N"
+            "Float" -> "N"
+            "Double" -> "N"
+            "Boolean" -> "BOOL"
             else -> "S"
         }
     }

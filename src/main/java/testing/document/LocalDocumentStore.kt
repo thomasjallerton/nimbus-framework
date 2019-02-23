@@ -7,9 +7,9 @@ class LocalDocumentStore<T>(private val clazz: Class<T>): DocumentStoreClient<T>
 
     private val documentStore: MutableMap<Any?, String> = mutableMapOf()
     private val objectMapper = ObjectMapper()
-    private val methods: MutableList<DocumentMethod> = mutableListOf()
+    private val methods: MutableList<KeyValueMethod> = mutableListOf()
 
-    internal fun addMethod(method: DocumentMethod) {
+    internal fun addMethod(method: KeyValueMethod) {
         methods.add(method)
     }
 

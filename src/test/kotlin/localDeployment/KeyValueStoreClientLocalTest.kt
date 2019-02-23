@@ -15,54 +15,54 @@ class KeyValueStoreClientLocalTest {
     fun testAddIncreasesSizeAndAddsCorrectItem() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(House::class.java)
 
-        val keyValueStore = localDeployment.getKeyValueStore(House::class.java)
+        val keyValueStore = localDeployment.getKeyValueStore<Int, House>(House::class.java)
         val keyValueStoreClient = localDeployment.getKeyValueStoreClient(Int::class.java, House::class.java)
 
-        assertEquals(0, keyValueStore.size)
+        assertEquals(0, keyValueStore.size())
 
         keyValueStoreClient.put(10, houseOne)
 
-        assertEquals(1, keyValueStore.size)
-        assertEquals(houseOne, keyValueStore[10])
+        assertEquals(1, keyValueStore.size())
+        assertEquals(houseOne, keyValueStore.get(10))
     }
 
     @Test
     fun testRemoveItemRemovesItem() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(House::class.java)
 
-        val keyValueStore = localDeployment.getKeyValueStore(House::class.java)
+        val keyValueStore = localDeployment.getKeyValueStore<Int, House>(House::class.java)
         val keyValueStoreClient = localDeployment.getKeyValueStoreClient(Int::class.java, House::class.java)
 
-        keyValueStore[10] = houseOne
+        keyValueStore.put(10, houseOne)
         keyValueStoreClient.delete(10)
 
-        assertEquals(0, keyValueStore.size)
+        assertEquals(0, keyValueStore.size())
     }
 
     @Test
     fun testRemoveItemRemovesCorrectItem() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(House::class.java)
 
-        val keyValueStore = localDeployment.getKeyValueStore(House::class.java)
+        val keyValueStore = localDeployment.getKeyValueStore<Int, House>(House::class.java)
         val keyValueStoreClient = localDeployment.getKeyValueStoreClient(Int::class.java, House::class.java)
 
-        keyValueStore[10] = houseOne
-        keyValueStore[5] = houseTwo
+        keyValueStore.put(10, houseOne)
+        keyValueStore.put(5, houseTwo)
         keyValueStoreClient.delete(10)
 
-        assertEquals(1, keyValueStore.size)
-        assertEquals(houseTwo, keyValueStore[5])
+        assertEquals(1, keyValueStore.size())
+        assertEquals(houseTwo, keyValueStore.get(5))
     }
 
     @Test
     fun testGetReturnsCorrectItem() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(House::class.java)
 
-        val keyValueStore = localDeployment.getKeyValueStore(House::class.java)
+        val keyValueStore = localDeployment.getKeyValueStore<Int, House>(House::class.java)
         val keyValueStoreClient = localDeployment.getKeyValueStoreClient(Int::class.java, House::class.java)
 
-        keyValueStore[10] = houseOne
-        keyValueStore[5] = houseTwo
+        keyValueStore.put(10, houseOne)
+        keyValueStore.put(5, houseTwo)
 
         assertEquals(houseTwo, keyValueStoreClient.get(5))
     }
@@ -71,11 +71,11 @@ class KeyValueStoreClientLocalTest {
     fun getAllReturnsCorrectValues() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(House::class.java)
 
-        val keyValueStore = localDeployment.getKeyValueStore(House::class.java)
+        val keyValueStore = localDeployment.getKeyValueStore<Int, House>(House::class.java)
         val keyValueStoreClient = localDeployment.getKeyValueStoreClient(Int::class.java, House::class.java)
 
-        keyValueStore[10] = houseOne
-        keyValueStore[5] = houseTwo
+        keyValueStore.put(10, houseOne)
+        keyValueStore.put(5, houseTwo)
 
         val getAllResults = keyValueStoreClient.getAll()
         assertEquals(2, getAllResults.size)

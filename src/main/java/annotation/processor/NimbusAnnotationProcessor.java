@@ -19,6 +19,7 @@ import annotation.services.FunctionEnvironmentService;
 import annotation.services.ReadUserConfigService;
 import annotation.services.functions.*;
 import annotation.wrappers.annotations.datamodel.DataModelAnnotation;
+import annotation.wrappers.annotations.datamodel.KeyValueStoreAnnotation;
 import annotation.wrappers.annotations.datamodel.UsesDocumentStoreAnnotation;
 import annotation.wrappers.annotations.datamodel.UsesKeyValueStoreAnnotation;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -166,8 +167,10 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
             if (keyValueStore.existingArn().equals("")) {
                 DynamoResource dynamoResource = createDynamoResource(keyValueStore.tableName(), type.getSimpleName().toString());
+                DataModelAnnotation dataModelAnnotation = new KeyValueStoreAnnotation(keyValueStore);
+                TypeElement element = dataModelAnnotation.getTypeElement(processingEnv);
 
-                dynamoResource.addHashKey(keyValueStore.keyName(), keyValueStore.keyType());
+                dynamoResource.addHashKeyClass(keyValueStore.keyName(), element);
                 updateResources.addResource(dynamoResource);
             }
         }

@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KeyValueStore {
     String tableName() default "";
-    KeyType keyType();
+    Class<?> keyType();
     String keyName() default "PrimaryKey";
     String existingArn() default "";
 }
