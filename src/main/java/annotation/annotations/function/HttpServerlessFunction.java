@@ -8,8 +8,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface HttpServerlessFunction {
-    public String method();
-    public String path();
+    HttpMethod method();
+    String path();
     int timeout() default 10;
     int memory() default 1024;
 }
