@@ -60,4 +60,15 @@ abstract class Resource(protected val nimbusState: NimbusState) {
     fun addDependsOn(resource: Resource) {
         dependsOn.add(resource.getName())
     }
+
+    fun joinJson(delimiter: String, values: JsonArray): JsonObject {
+        val join = JsonObject()
+        val params = JsonArray()
+        params.add(delimiter)
+        params.add(values)
+
+        join.add("Fn::Join", params)
+
+        return join
+    }
 }

@@ -20,6 +20,7 @@ class FunctionResource(
 
     fun setIamRoleResource(resource: IamRoleResource) {
         iamRoleResource = resource
+        dependsOn.add(iamRoleResource.getName())
     }
 
     fun getIamRoleResource(): IamRoleResource {
@@ -63,8 +64,7 @@ class FunctionResource(
         environment.add("Variables", variables)
         properties.add("Environment", environment)
 
-        val dependsOn = JsonArray()
-        dependsOn.add(iamRoleResource.getName())
+
         functionResource.add("DependsOn", dependsOn)
 
         functionResource.add("Properties", properties)

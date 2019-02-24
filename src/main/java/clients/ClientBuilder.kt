@@ -8,7 +8,9 @@ import clients.keyvalue.KeyValueStoreClientLocal
 import clients.queue.QueueClient
 import clients.queue.QueueClientDynamo
 import clients.queue.QueueClientLocal
+import clients.rdbms.DatabaseClientRds
 import testing.LocalNimbusDeployment
+import java.sql.Connection
 
 object ClientBuilder {
 
@@ -36,6 +38,15 @@ object ClientBuilder {
             QueueClientLocal(id)
         } else {
             QueueClientDynamo(id)
+        }
+    }
+
+    @JvmStatic
+    fun <T> getRelationalDatabase(databaseObject: Class<T>): DatabaseClientRds<T> {
+        return if (LocalNimbusDeployment.isLocalDeployment) {
+            DatabaseClientRds(databaseObject)
+        } else {
+            DatabaseClientRds(databaseObject)
         }
     }
 }

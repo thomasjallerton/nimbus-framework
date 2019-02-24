@@ -1,22 +1,18 @@
 package clients.rdbms
 
+import annotation.annotations.database.RelationalDatabase
 import java.sql.Connection
 import java.sql.DriverManager
 
-class DatabaseClientRds {
+class DatabaseClientRds<T>(private val databaseObject: Class<T>) {
 
-    fun getConnection(databaseObject: Any): Connection {
-        return DriverManager.getConnection("jdbc:mysql://testdb.cvghjo0rbr3a.eu-west-1.rds.amazonaws.com/testdb", "root", "Lock4tree359")
-    }
-
-}
-
-fun main() {
-    val client = DatabaseClientRds()
-    val connection = client.getConnection("")
-    val statement = connection.createStatement()
-    val results = statement.executeQuery("SHOW TABLES")
-    while (results.next()) {
-        println(results.getString(0))
+    fun getConnection(): Connection {
+        val relationalDatabase = databaseObject.getDeclaredAnnotation(RelationalDatabase::class.java)
+        println("KEY: ${relationalDatabase.name}RdsInstance_CONNECTION_URL")
+        val url = System.getenv("${relationalDatabase.name}RdsInstance_CONNECTION_URL")
+        println("Url: $url")
+        println("Username: ${relationalDatabase.username}")
+        println("Password: ${relationalDatabase.password}")
+        return DriverManager.getConnection("jdbc:mysql://$url", relationalDatabase.username, relationalDatabase.password)
     }
 }

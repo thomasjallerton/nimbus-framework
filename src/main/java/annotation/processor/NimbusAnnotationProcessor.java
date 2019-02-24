@@ -1,16 +1,24 @@
 package annotation.processor;
 
+import annotation.annotations.database.RelationalDatabase;
+import annotation.annotations.database.UsesRelationalDatabase;
 import annotation.annotations.document.DocumentStore;
 import annotation.annotations.document.UsesDocumentStore;
 import annotation.annotations.keyvalue.KeyValueStore;
 import annotation.annotations.keyvalue.UsesKeyValueStore;
 import annotation.annotations.persistent.Key;
 import annotation.annotations.queue.UsesQueue;
+import annotation.services.ResourceFinder;
+import annotation.wrappers.annotations.datamodel.*;
 import cloudformation.CloudFormationTemplate;
 import cloudformation.outputs.OutputCollection;
 import cloudformation.persisted.NimbusState;
 import cloudformation.persisted.UserConfig;
 import cloudformation.resource.*;
+import cloudformation.resource.database.DatabaseConfiguration;
+import cloudformation.resource.database.SubnetGroup;
+import cloudformation.resource.ec2.*;
+import cloudformation.resource.database.RdsResource;
 import cloudformation.resource.dynamo.DynamoResource;
 import cloudformation.resource.function.FunctionResource;
 import cloudformation.resource.queue.QueueResource;
@@ -18,10 +26,6 @@ import annotation.services.FileService;
 import annotation.services.FunctionEnvironmentService;
 import annotation.services.ReadUserConfigService;
 import annotation.services.functions.*;
-import annotation.wrappers.annotations.datamodel.DataModelAnnotation;
-import annotation.wrappers.annotations.datamodel.KeyValueStoreAnnotation;
-import annotation.wrappers.annotations.datamodel.UsesDocumentStoreAnnotation;
-import annotation.wrappers.annotations.datamodel.UsesKeyValueStoreAnnotation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
@@ -90,6 +94,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
         handleDocumentStore(roundEnv, updateResources);
         handleKeyValueStore(roundEnv, updateResources);
+        handleRelationalDatabase(roundEnv, updateResources);
 
         List<FunctionResourceCreator> resourceCreators = new LinkedList<>();
         resourceCreators.add(new DocumentStoreFunctionResourceCreator(updateResources, nimbusState, processingEnv));
@@ -122,13 +127,58 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         }
     }
 
+    private void handleRelationalDatabase(RoundEnvironment roundEnv, ResourceCollection updateResources) {
+        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(RelationalDatabase.class);
+
+        for (Element type : annotatedElements) {
+            RelationalDatabase relationalDatabase = type.getAnnotation(RelationalDatabase.class);
+
+            DatabaseConfiguration databaseConfiguration = new DatabaseConfiguration(
+                    relationalDatabase.name(),
+                    relationalDatabase.username(),
+                    relationalDatabase.password());
+
+            Vpc vpc = new Vpc(nimbusState);
+            SecurityGroupResource securityGroupResource = new SecurityGroupResource(vpc, nimbusState);
+            Subnet publicSubnet = new Subnet(vpc, "a","10.0.1.0/24", nimbusState);
+            Subnet publicSubnet2 = new Subnet(vpc, "b", "10.0.0.0/24", nimbusState);
+            List<Subnet> subnets = new LinkedList<>();
+            subnets.add(publicSubnet);
+            subnets.add(publicSubnet2);
+
+            SubnetGroup subnetGroup = new SubnetGroup(subnets, nimbusState);
+            RdsResource rdsResource = new RdsResource(databaseConfiguration, securityGroupResource, subnetGroup, nimbusState);
+
+            InternetGateway internetGateway = new InternetGateway(nimbusState);
+            VpcGatewayAttachment vpcGatewayAttachment = new VpcGatewayAttachment(vpc, internetGateway, nimbusState);
+            RouteTable table = new RouteTable(vpc, nimbusState);
+            Route route = new Route(table, internetGateway, nimbusState);
+            RouteTableAssociation rta1 = new RouteTableAssociation(table, publicSubnet, nimbusState);
+            RouteTableAssociation rta2 = new RouteTableAssociation(table, publicSubnet2, nimbusState);
+
+            updateResources.addResource(vpc);
+            updateResources.addResource(publicSubnet);
+            updateResources.addResource(publicSubnet2);
+            updateResources.addResource(subnetGroup);
+            updateResources.addResource(securityGroupResource);
+            updateResources.addResource(rdsResource);
+            updateResources.addResource(internetGateway);
+            updateResources.addResource(vpcGatewayAttachment);
+            updateResources.addResource(table);
+            updateResources.addResource(route);
+            updateResources.addResource(rta1);
+            updateResources.addResource(rta2);
+        }
+    }
+
     private void handleDocumentStore(RoundEnvironment roundEnv, ResourceCollection updateResources) {
         Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(DocumentStore.class);
 
         for (Element type : annotatedElements) {
             DocumentStore documentStore = type.getAnnotation(DocumentStore.class);
 
-            DynamoResource dynamoResource = createDynamoResource(documentStore.tableName(), type.getSimpleName().toString());
+            String tableName = determineTableName(documentStore.tableName(), type.getSimpleName().toString());
+            DynamoResource dynamoResource = new DynamoResource(tableName, nimbusState);
 
             if (documentStore.existingArn().equals("")) {
 
@@ -160,7 +210,9 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             KeyValueStore keyValueStore = type.getAnnotation(KeyValueStore.class);
 
             if (keyValueStore.existingArn().equals("")) {
-                DynamoResource dynamoResource = createDynamoResource(keyValueStore.tableName(), type.getSimpleName().toString());
+                String tableName = determineTableName(keyValueStore.tableName(), type.getSimpleName().toString());
+                DynamoResource dynamoResource = new DynamoResource(tableName, nimbusState);
+
                 DataModelAnnotation dataModelAnnotation = new KeyValueStoreAnnotation(keyValueStore);
                 TypeElement element = dataModelAnnotation.getTypeElement(processingEnv);
 
@@ -170,39 +222,13 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private DynamoResource createDynamoResource(String givenTableName, String className) {
-        String tableName = determineTableName(givenTableName, className);
-        return new DynamoResource(tableName, nimbusState);
-    }
-
-    private Resource getDocumentStoreResource(DataModelAnnotation dataModelAnnotation, Element serverlessMethod) {
-        try {
-            TypeElement typeElement = dataModelAnnotation.getTypeElement(this.processingEnv);
-            DocumentStore documentStore = typeElement.getAnnotation(DocumentStore.class);
-            return getResource(updateResources, documentStore.existingArn(), documentStore.tableName(), typeElement.getSimpleName().toString());
-        } catch (NullPointerException e) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with DocumentStore but isn't", serverlessMethod);
-            return null;
-        }
-    }
-
-    private Resource getKeyValueStoreResource(DataModelAnnotation dataModelAnnotation, Element serverlessMethod) {
-            try {
-                TypeElement typeElement = dataModelAnnotation.getTypeElement(processingEnv);
-                KeyValueStore keyValueStore = typeElement.getAnnotation(KeyValueStore.class);
-                return getResource(updateResources, keyValueStore.existingArn(), keyValueStore.tableName(), typeElement.getSimpleName().toString());
-            } catch (NullPointerException e) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod);
-                return null;
-            }
-    }
-
     private void handleUseResources(Element serverlessMethod, FunctionResource functionResource, ResourceCollection updateResources) {
         IamRoleResource iamRoleResource = functionResource.getIamRoleResource();
+        ResourceFinder resourceFinder = new ResourceFinder(updateResources, processingEnv, nimbusState);
         for (UsesDocumentStore usesDocumentStore : serverlessMethod.getAnnotationsByType(UsesDocumentStore.class)) {
 
             DataModelAnnotation dataModelAnnotation = new UsesDocumentStoreAnnotation(usesDocumentStore);
-            Resource resource = getDocumentStoreResource(dataModelAnnotation, serverlessMethod);
+            Resource resource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, serverlessMethod);
 
             if (resource != null) {
                 iamRoleResource.addAllowStatement("dynamodb:*", resource, "");
@@ -210,10 +236,20 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         }
         for (UsesKeyValueStore usesKeyValueStore : serverlessMethod.getAnnotationsByType(UsesKeyValueStore.class)) {
             DataModelAnnotation annotation = new UsesKeyValueStoreAnnotation(usesKeyValueStore);
-            Resource resource = getKeyValueStoreResource(annotation, serverlessMethod);
+            Resource resource = resourceFinder.getKeyValueStoreResource(annotation, serverlessMethod);
 
             if (resource != null) {
                 iamRoleResource.addAllowStatement("dynamodb:*", resource, "");
+            }
+        }
+
+        for (UsesRelationalDatabase usesRelationalDatabase : serverlessMethod.getAnnotationsByType(UsesRelationalDatabase.class)) {
+            DataModelAnnotation annotation = new UsesRelationalDatabaseAnnotation(usesRelationalDatabase);
+            Resource resource = resourceFinder.getRelationalDatabaseResource(annotation, serverlessMethod);
+
+            if (resource != null) {
+                functionResource.addEnvVariable(resource.getName() + "_CONNECTION_URL", resource.getAttribute("Endpoint.Address"));
+                functionResource.addDependsOn(resource);
             }
         }
 
