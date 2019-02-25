@@ -5,6 +5,7 @@ import com.google.gson.JsonObject
 class ResourceCollection {
 
     private val resourceMap: MutableMap<String, Resource> = mutableMapOf()
+    private val invokableFunctions: MutableList<Resource> = mutableListOf()
 
     fun addResource(resource: Resource) {
         if (!resourceMap.containsKey(resource.getName())) {
@@ -37,5 +38,15 @@ class ResourceCollection {
     fun contains(resource: Resource): Boolean {
         return resourceMap.containsKey(resource.getName())
     }
+
+    fun getInvokableFunctions(): List<Resource> {
+        return invokableFunctions
+    }
+
+    fun addInvokableFunction(resource: Resource) {
+        invokableFunctions.add(resource)
+    }
+
+
 
 }

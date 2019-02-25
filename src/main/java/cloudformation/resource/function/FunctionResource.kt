@@ -44,7 +44,7 @@ class FunctionResource(
         code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${nimbusState.compilationTimeStamp}/lambdacode")
 
         properties.add("Code", code)
-        properties.addProperty("FunctionName", "${nimbusState.projectName}-${methodInformation.className}-${methodInformation.methodName}")
+        properties.addProperty("FunctionName", functionName(nimbusState.projectName, methodInformation.className, methodInformation.methodName))
         properties.addProperty("Handler", handler)
         properties.addProperty("MemorySize", functionConfig.memory)
 
@@ -78,6 +78,12 @@ class FunctionResource(
 
     fun addEnvVariable(key: String, value: JsonObject) {
         jsonEnvVariables[key] = value
+    }
+
+    companion object {
+        fun functionName(projectName: String, className: String, methodName: String): String {
+            return "$projectName-$className-$methodName"
+        }
     }
 
 }

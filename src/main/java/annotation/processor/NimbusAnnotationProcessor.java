@@ -4,6 +4,7 @@ import annotation.annotations.database.RelationalDatabase;
 import annotation.annotations.database.UsesRelationalDatabase;
 import annotation.annotations.document.DocumentStore;
 import annotation.annotations.document.UsesDocumentStore;
+import annotation.annotations.function.UsesBasicServerlessFunctionClient;
 import annotation.annotations.keyvalue.KeyValueStore;
 import annotation.annotations.keyvalue.UsesKeyValueStore;
 import annotation.annotations.notification.UsesNotificationTopic;
@@ -40,6 +41,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Function;
 
 @SupportedAnnotationTypes({
         "annotation.annotations.function.HttpServerlessFunction",
@@ -109,9 +111,13 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         resourceCreators.add(new QueueFunctionResourceCreator(updateResources, nimbusState, processingEnv, savedResources));
         resourceCreators.add(new BasicFunctionResourceCreator(updateResources, nimbusState, processingEnv));
 
+        List<FunctionInformation> allInformation = new LinkedList<>();
         for (FunctionResourceCreator creator : resourceCreators) {
-            handleUseResources(creator.handle(roundEnv, functionEnvironmentService), updateResources);
+            allInformation.addAll(creator.handle(roundEnv, functionEnvironmentService));
         }
+
+        handleUseResources(allInformation, updateResources);
+
 
         CloudFormationTemplate update = new CloudFormationTemplate(updateResources, updateOutputs);
         CloudFormationTemplate create = new CloudFormationTemplate(createResources, createOutputs);
@@ -256,6 +262,14 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             if (resource != null) {
                 functionResource.addEnvVariable(resource.getName() + "_CONNECTION_URL", resource.getAttribute("Endpoint.Address"));
                 functionResource.addDependsOn(resource);
+            }
+        }
+
+        for (UsesBasicServerlessFunctionClient ignored : serverlessMethod.getAnnotationsByType(UsesBasicServerlessFunctionClient.class)) {
+            functionResource.addEnvVariable("NIMBUS_PROJECT_NAME", nimbusState.getProjectName());
+            List<Resource> invokableFunctions = updateResources.getInvokableFunctions();
+            for (Resource invokableFunction : invokableFunctions) {
+                functionResource.getIamRoleResource().addAllowStatement("lambda:*", invokableFunction, "");
             }
         }
 

@@ -40,7 +40,7 @@ class BasicServerlessFunctionFileBuilder(
         if (param.type != null) {
             write("${param.type} parsedType;")
             write("try {")
-            write("parsedType = objectMapper.readValue(body, ${param.type}.class);")
+            write("parsedType = objectMapper.readValue(jsonString, ${param.type}.class);")
             write("} catch (Exception e) {")
             write("e.printStackTrace();")
             write("output.close();")

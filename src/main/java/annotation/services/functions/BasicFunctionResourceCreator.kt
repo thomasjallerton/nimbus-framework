@@ -12,18 +12,16 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 
 class BasicFunctionResourceCreator(
-        updateResources: ResourceCollection,
+        private val updateResources: ResourceCollection,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
 ): FunctionResourceCreator(updateResources, nimbusState, processingEnv) {
 
     override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val annotatedElements = roundEnv.getElementsAnnotatedWith(BasicServerlessFunction::class.java)
-
         val results = LinkedList<FunctionInformation>()
         for (type in annotatedElements) {
             val basicFunction = type.getAnnotation(BasicServerlessFunction::class.java)
-
             val methodInformation = extractMethodInformation(type)
 
             val fileBuilder = BasicServerlessFunctionFileBuilder(
@@ -41,6 +39,7 @@ class BasicFunctionResourceCreator(
             if (basicFunction.cron != "") {
                 functionEnvironmentService.newCronTrigger(basicFunction.cron, functionResource)
             }
+            updateResources.addInvokableFunction(functionResource)
 
             fileBuilder.createClass()
 
