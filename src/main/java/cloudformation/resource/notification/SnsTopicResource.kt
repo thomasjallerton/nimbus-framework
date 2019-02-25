@@ -9,7 +9,7 @@ import com.google.gson.JsonObject
 
 class SnsTopicResource(
         private val topic: String,
-        private val function: FunctionResource,
+        private val function: FunctionResource?,
         nimbusState: NimbusState
 ): Resource(nimbusState), FunctionTrigger {
     override fun getTriggerArn(): JsonObject {
@@ -28,15 +28,17 @@ class SnsTopicResource(
         properties.addProperty("TopicName", topic)
         properties.addProperty("DisplayName", "")
 
-        val subscription = JsonArray()
-        val endpoint = JsonObject()
+        if (function != null) {
+            val subscription = JsonArray()
+            val endpoint = JsonObject()
 
-        endpoint.add("Endpoint", function.getArn())
-        endpoint.addProperty("Protocol", "lambda")
+            endpoint.add("Endpoint", function.getArn())
+            endpoint.addProperty("Protocol", "lambda")
 
-        subscription.add(endpoint)
+            subscription.add(endpoint)
 
-        properties.add("Subscription", subscription)
+            properties.add("Subscription", subscription)
+        }
 
         snsTopic.add("Properties", properties)
 

@@ -5,6 +5,8 @@ import clients.document.DocumentStoreClientDynamo
 import clients.keyvalue.KeyValueStoreClient
 import clients.keyvalue.KeyValueStoreClientDynamo
 import clients.keyvalue.KeyValueStoreClientLocal
+import clients.notification.NotificationClient
+import clients.notification.NotificationClientSNS
 import clients.queue.QueueClient
 import clients.queue.QueueClientDynamo
 import clients.queue.QueueClientLocal
@@ -47,6 +49,15 @@ object ClientBuilder {
             DatabaseClientRds(databaseObject)
         } else {
             DatabaseClientRds(databaseObject)
+        }
+    }
+
+    @JvmStatic
+    fun <T> getNotificationClient(topic: String): NotificationClient {
+        return if (LocalNimbusDeployment.isLocalDeployment) {
+            NotificationClientSNS(topic)
+        } else {
+            NotificationClientSNS(topic)
         }
     }
 }
