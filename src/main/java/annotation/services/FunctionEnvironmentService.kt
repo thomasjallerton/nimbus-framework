@@ -8,6 +8,7 @@ import cloudformation.outputs.OutputCollection
 import cloudformation.persisted.NimbusState
 import cloudformation.processing.MethodInformation
 import cloudformation.resource.*
+import cloudformation.resource.basic.CronRule
 import cloudformation.resource.dynamo.DynamoStreamResource
 import cloudformation.resource.function.FunctionConfig
 import cloudformation.resource.function.FunctionEventMappingResource
@@ -130,5 +131,15 @@ class FunctionEnvironmentService(
         val dynamoStreamResource = DynamoStreamResource(store, nimbusState)
 
         function.getIamRoleResource().addAllowStatement("dynamodb:*", dynamoStreamResource, "")
+    }
+
+    fun newCronTrigger(cron: String, function: FunctionResource) {
+
+        val cronRule = CronRule(cron, function, nimbusState)
+        val lambdaPermissionResource = FunctionPermissionResource(function, cronRule, nimbusState)
+
+        updateResources.addResource(cronRule)
+        updateResources.addResource(lambdaPermissionResource)
+
     }
 }

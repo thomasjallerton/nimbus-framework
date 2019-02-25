@@ -36,7 +36,7 @@ class FunctionPermissionResource(
 
         properties.add("Principal", principal)
 
-        properties.add("SourceArn", trigger.getTriggerArn())
+                properties.add("SourceArn", trigger.getTriggerArn())
 
         permission.add("Properties", properties)
 
