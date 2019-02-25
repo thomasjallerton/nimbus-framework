@@ -6,6 +6,7 @@ import annotation.annotations.document.DocumentStore;
 import annotation.annotations.document.UsesDocumentStore;
 import annotation.annotations.keyvalue.KeyValueStore;
 import annotation.annotations.keyvalue.UsesKeyValueStore;
+import annotation.annotations.notification.UsesNotificationTopic;
 import annotation.annotations.persistent.Key;
 import annotation.annotations.queue.UsesQueue;
 import annotation.services.ResourceFinder;
@@ -21,6 +22,7 @@ import cloudformation.resource.ec2.*;
 import cloudformation.resource.database.RdsResource;
 import cloudformation.resource.dynamo.DynamoResource;
 import cloudformation.resource.function.FunctionResource;
+import cloudformation.resource.notification.SnsTopicResource;
 import cloudformation.resource.queue.QueueResource;
 import annotation.services.FileService;
 import annotation.services.FunctionEnvironmentService;
@@ -272,13 +274,16 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             functionResource.addEnvVariable("NIMBUS_QUEUE_URL_ID_" + usesQueue.id().toUpperCase(), referencedQueue.getRef());
             iamRoleResource.addAllowStatement("sqs:SendMessage", referencedQueue, "");
         }
-    }
 
-    private Resource getResource(ResourceCollection updateResources, String existingArn, String tableName, String elementName) {
-        if (existingArn.equals("")) {
-            return updateResources.get(determineTableName(tableName, elementName));
-        } else {
-            return new ExistingResource(existingArn, nimbusState);
+        for (UsesNotificationTopic notificationTopic: serverlessMethod.getAnnotationsByType(UsesNotificationTopic.class)) {
+
+            SnsTopicResource snsTopicResource = new SnsTopicResource(notificationTopic.topic(), null, nimbusState);
+            updateResources.addResource(snsTopicResource);
+
+            functionResource.addEnvVariable("SNS_TOPIC_ARN_" + notificationTopic.topic().toUpperCase(), snsTopicResource.getArn(""));
+            iamRoleResource.addAllowStatement("sns:Subscribe", snsTopicResource, "");
+            iamRoleResource.addAllowStatement("sns:Unsubscribe", snsTopicResource, "");
+            iamRoleResource.addAllowStatement("sns:Publish", snsTopicResource, "");
         }
     }
 
