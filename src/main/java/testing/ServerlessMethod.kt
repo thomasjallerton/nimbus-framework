@@ -13,9 +13,19 @@ abstract class ServerlessMethod(private val method: Method, private val eventTyp
 
     protected val objectMapper = ObjectMapper()
 
+
     protected fun eventIndex(): Int {
         for ((index, param) in method.parameterTypes.withIndex()) {
             if (param == eventType) {
+                return index
+            }
+        }
+        return -1
+    }
+
+    protected fun inputIndex(): Int {
+        for ((index, param) in method.parameterTypes.withIndex()) {
+            if (param != eventType) {
                 return index
             }
         }

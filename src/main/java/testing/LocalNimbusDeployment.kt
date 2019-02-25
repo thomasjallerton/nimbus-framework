@@ -3,6 +3,7 @@ package testing
 import annotation.annotations.document.DocumentStore
 import annotation.annotations.function.*
 import annotation.annotations.keyvalue.KeyValueStore
+import annotation.annotations.notification.UsesNotificationTopic
 import clients.document.DocumentStoreClient
 import clients.keyvalue.KeyValueStoreClient
 import clients.keyvalue.KeyValueStoreClientLocal
@@ -17,6 +18,8 @@ import testing.document.LocalDocumentStore
 import testing.http.LocalHttpMethod
 import testing.http.HttpRequest
 import testing.keyvalue.LocalKeyValueStore
+import testing.notification.LocalNotificationTopic
+import testing.notification.NotificationMethod
 import testing.queue.LocalQueue
 import testing.queue.QueueMethod
 import java.lang.reflect.InvocationTargetException
@@ -30,6 +33,7 @@ class LocalNimbusDeployment {
     private val localHttpMethods: MutableMap<HttpMethodIdentifier, LocalHttpMethod> = mutableMapOf()
     private val keyValueStores: MutableMap<String, LocalKeyValueStore<out Any, out Any>> = mutableMapOf()
     private val documentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
+    private val notificationTopics: MutableMap<String, LocalNotificationTopic> = mutableMapOf()
 
     private constructor(clazz: Class<out Any>) {
         createResources(clazz)
@@ -120,6 +124,37 @@ class LocalNimbusDeployment {
                         keyValueStore?.addMethod(documentMethod)
                     }
                 }
+
+                if (method.isAnnotationPresent(NotificationServerlessFunction::class.java)) {
+                    val notificationServerlessFunctions = method.getAnnotationsByType(NotificationServerlessFunction::class.java)
+
+                    val invokeOn = clazz.getConstructor().newInstance()
+                    for (notificationFunction in notificationServerlessFunctions) {
+                        val notificationMethod = NotificationMethod(method, invokeOn)
+
+                        val notificationTopic = if (notificationTopics.containsKey(notificationFunction.topic)) {
+                            notificationTopics[notificationFunction.topic]!!
+                        } else {
+                            val localNotificationTopic = LocalNotificationTopic()
+                            notificationTopics[notificationFunction.topic] = localNotificationTopic
+                            localNotificationTopic
+                        }
+
+                        notificationTopic.addSubscriber(notificationMethod)
+                        methods[functionIdentifier] = notificationMethod
+                    }
+                }
+
+                if (method.isAnnotationPresent(UsesNotificationTopic::class.java)) {
+                    val usesNotificationTopics = method.getAnnotationsByType(UsesNotificationTopic::class.java)
+
+                    for (usesNotificationTopic in usesNotificationTopics) {
+                        if (!notificationTopics.containsKey(usesNotificationTopic.topic)) {
+                            val localNotificationTopic = LocalNotificationTopic()
+                            notificationTopics[usesNotificationTopic.topic] = localNotificationTopic
+                        }
+                    }
+                }
             }
         } catch (e: InvocationTargetException) {
             System.err.println("Error creating handler class, it should have no constructor parameters")
@@ -152,6 +187,14 @@ class LocalNimbusDeployment {
     fun getQueue(id: String): LocalQueue {
         if (queues.containsKey(id)) {
             return queues[id]!!
+        } else {
+            throw ResourceNotFoundException()
+        }
+    }
+
+    fun getNotificationTopic(topic: String): LocalNotificationTopic {
+        if (notificationTopics.containsKey(topic)) {
+            return notificationTopics[topic]!!
         } else {
             throw ResourceNotFoundException()
         }

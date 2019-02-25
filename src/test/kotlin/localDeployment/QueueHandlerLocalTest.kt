@@ -1,15 +1,15 @@
 package localDeployment
 
 import localDeployment.exampleHandlers.ExampleQueueHandler
+import localDeployment.exampleModels.KeyValue
+import localDeployment.exampleModels.Person
 import org.junit.jupiter.api.Test
 import testing.LocalNimbusDeployment
-import localDeployment.exampleModels.House
-import localDeployment.exampleModels.Person
 import kotlin.test.assertEquals
 
 class QueueHandlerLocalTest {
 
-    private val houseOne = House("testHouse", listOf(Person("TestPerson", 22)))
+    private val houseOne = KeyValue("testHouse", listOf(Person("TestPerson", 22)))
 
     @Test
     fun addingOneItemToQueueTriggersFunction() {
