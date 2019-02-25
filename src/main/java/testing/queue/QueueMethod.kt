@@ -51,7 +51,7 @@ class QueueMethod(private val method: Method, private val invokeOn: Any, interna
         mostRecentValueReturned = if (params.isEmpty()) {
             method.invoke(invokeOn)
         } else if (params.size == 2) {
-            if (params[0].type.canonicalName.contains(QueueEvent::class.java.canonicalName)) {
+            if (eventIndex() == 0) {
                 mostRecentInvokeArgument = param
                 method.invoke(invokeOn, queueEvent, param)
             } else {
@@ -59,7 +59,7 @@ class QueueMethod(private val method: Method, private val invokeOn: Any, interna
                 method.invoke(invokeOn, param, queueEvent)
             }
         } else if (params.size == 1) {
-            if (params[0].type.canonicalName.contains(QueueEvent::class.java.canonicalName)) {
+            if (eventIndex() == 0) {
                 method.invoke(invokeOn, queueEvent)
             } else {
                 mostRecentInvokeArgument = param

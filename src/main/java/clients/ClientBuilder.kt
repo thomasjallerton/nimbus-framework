@@ -6,6 +6,7 @@ import clients.keyvalue.KeyValueStoreClient
 import clients.keyvalue.KeyValueStoreClientDynamo
 import clients.keyvalue.KeyValueStoreClientLocal
 import clients.notification.NotificationClient
+import clients.notification.NotificationClientLocal
 import clients.notification.NotificationClientSNS
 import clients.queue.QueueClient
 import clients.queue.QueueClientDynamo
@@ -53,9 +54,9 @@ object ClientBuilder {
     }
 
     @JvmStatic
-    fun <T> getNotificationClient(topic: String): NotificationClient {
+    fun getNotificationClient(topic: String): NotificationClient {
         return if (LocalNimbusDeployment.isLocalDeployment) {
-            NotificationClientSNS(topic)
+            NotificationClientLocal(topic)
         } else {
             NotificationClientSNS(topic)
         }
