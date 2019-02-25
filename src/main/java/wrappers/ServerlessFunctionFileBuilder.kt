@@ -12,14 +12,14 @@ abstract class ServerlessFunctionFileBuilder(
         protected val processingEnv: ProcessingEnvironment,
         protected val methodInformation: MethodInformation,
         private val functionType: String,
-        eventType: ServerlessEvent,
+        eventType: ServerlessEvent?,
         private val compilingElement: Element
 ) {
 
     private var tabLevel: Int = 0
 
-    private val eventCanonicalName = eventType::class.java.canonicalName
-    private val eventSimpleName = eventType::class.java.simpleName
+    private val eventCanonicalName = if (eventType != null) eventType::class.java.canonicalName else ""
+    private val eventSimpleName = if (eventType != null) eventType::class.java.simpleName else ""
 
     private var out: PrintWriter? = null
 

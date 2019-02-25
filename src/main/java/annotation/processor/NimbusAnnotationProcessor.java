@@ -44,8 +44,11 @@ import java.util.*;
         "annotation.annotations.function.QueueServerlessFunction",
         "annotation.annotations.function.DocumentStoreServerlessFunction",
         "annotation.annotations.function.NotificationServerlessFunction",
+        "annotation.annotations.function.BasicServerlessFunction",
+        "annotation.annotations.function.KeyValueStoreServerlessFunction",
         "annotation.annotations.dynamo.KeyValueStore",
-        "annotation.annotations.dynamo.DocumentStore"
+        "annotation.annotations.dynamo.DocumentStore",
+        "annotation.annotations.database.RelationalDatabase"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
@@ -102,6 +105,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         resourceCreators.add(new HttpFunctionResourceCreator(updateResources, nimbusState, processingEnv));
         resourceCreators.add(new NotificationFunctionResourceCreator(updateResources, nimbusState, processingEnv));
         resourceCreators.add(new QueueFunctionResourceCreator(updateResources, nimbusState, processingEnv, savedResources));
+        resourceCreators.add(new BasicFunctionResourceCreator(updateResources, nimbusState, processingEnv));
 
         for (FunctionResourceCreator creator : resourceCreators) {
             handleUseResources(creator.handle(roundEnv, functionEnvironmentService), updateResources);
