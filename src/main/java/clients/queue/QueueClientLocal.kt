@@ -2,7 +2,7 @@ package clients.queue
 
 import testing.LocalNimbusDeployment
 
-class QueueClientLocal(private val id: String): QueueClient {
+internal class QueueClientLocal(private val id: String): QueueClient {
 
     private val localDeployment = LocalNimbusDeployment.getInstance()
 

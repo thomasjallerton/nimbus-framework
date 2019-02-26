@@ -2,6 +2,9 @@ package clients
 
 import clients.document.DocumentStoreClient
 import clients.document.DocumentStoreClientDynamo
+import clients.function.BasicServerlessFunctionClient
+import clients.function.BasicServerlessFunctionClientLambda
+import clients.function.BasicServerlessFunctionClientLocal
 import clients.keyvalue.KeyValueStoreClient
 import clients.keyvalue.KeyValueStoreClientDynamo
 import clients.keyvalue.KeyValueStoreClientLocal
@@ -59,6 +62,15 @@ object ClientBuilder {
             NotificationClientLocal(topic)
         } else {
             NotificationClientSNS(topic)
+        }
+    }
+
+    @JvmStatic
+    fun getBasicServerlessFunctionClient(): BasicServerlessFunctionClient {
+        return if (LocalNimbusDeployment.isLocalDeployment) {
+            BasicServerlessFunctionClientLocal()
+        } else {
+            BasicServerlessFunctionClientLambda()
         }
     }
 }

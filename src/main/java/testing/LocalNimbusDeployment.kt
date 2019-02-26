@@ -13,6 +13,7 @@ import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
+import testing.basic.BasicMethod
 import testing.document.KeyValueMethod
 import testing.document.LocalDocumentStore
 import testing.http.LocalHttpMethod
@@ -31,6 +32,7 @@ class LocalNimbusDeployment {
     private val queues: MutableMap<String, LocalQueue> = mutableMapOf()
     private val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
     private val localHttpMethods: MutableMap<HttpMethodIdentifier, LocalHttpMethod> = mutableMapOf()
+    private val localBasicMethods: MutableMap<FunctionIdentifier, BasicMethod> = mutableMapOf()
     private val keyValueStores: MutableMap<String, LocalKeyValueStore<out Any, out Any>> = mutableMapOf()
     private val documentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
     private val notificationTopics: MutableMap<String, LocalNotificationTopic> = mutableMapOf()
@@ -84,6 +86,17 @@ class LocalNimbusDeployment {
                         val newQueue = LocalQueue(queueMethod)
                         queues[queueFunction.id] = newQueue
                         methods[functionIdentifier] = queueMethod
+                    }
+                }
+
+                if (method.isAnnotationPresent(BasicServerlessFunction::class.java)) {
+                    val basicServerlessFunctions = method.getAnnotationsByType(BasicServerlessFunction::class.java)
+
+                    val invokeOn = clazz.getConstructor().newInstance()
+                    for (basicFunction in basicServerlessFunctions) {
+                        val basicMethod = BasicMethod(method, invokeOn)
+                        methods[functionIdentifier] = basicMethod
+                        localBasicMethods[functionIdentifier] = basicMethod
                     }
                 }
 
@@ -204,6 +217,15 @@ class LocalNimbusDeployment {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, methodName)
         if (methods.containsKey(functionIdentifier)) {
             return methods[functionIdentifier]!!
+        } else {
+            throw ResourceNotFoundException()
+        }
+    }
+
+    fun <T> getBasicMethod(clazz: Class<T>, methodName: String): BasicMethod {
+        val functionIdentifier = FunctionIdentifier(clazz.canonicalName, methodName)
+        if (localBasicMethods.containsKey(functionIdentifier)) {
+            return localBasicMethods[functionIdentifier]!!
         } else {
             throw ResourceNotFoundException()
         }

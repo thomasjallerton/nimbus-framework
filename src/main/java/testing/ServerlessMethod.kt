@@ -3,7 +3,7 @@ package testing
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.lang.reflect.Method
 
-abstract class ServerlessMethod(private val method: Method, private val eventType: Class<out Any>) {
+abstract class ServerlessMethod(private val method: Method, private val eventType: Class<out Any>?) {
     var timesInvoked: Int = 0
         protected set
     var mostRecentInvokeArgument: Any? = null

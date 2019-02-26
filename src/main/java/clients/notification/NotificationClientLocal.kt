@@ -2,7 +2,7 @@ package clients.notification
 
 import testing.LocalNimbusDeployment
 
-class NotificationClientLocal(topic: String): NotificationClient {
+internal class NotificationClientLocal(topic: String): NotificationClient {
 
     private val localDeployment = LocalNimbusDeployment.getInstance()
     private val notificationTopic = localDeployment.getNotificationTopic(topic)
