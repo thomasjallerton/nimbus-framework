@@ -1,6 +1,6 @@
 package cloudformation.resource.dynamo
 
-import cloudformation.persisted.NimbusState
+import persisted.NimbusState
 import cloudformation.resource.Resource
 import com.google.gson.JsonObject
 

@@ -1,7 +1,7 @@
 package annotation.services.functions
 
 import annotation.annotations.function.HttpServerlessFunction
-import cloudformation.persisted.NimbusState
+import persisted.NimbusState
 import cloudformation.resource.ResourceCollection
 import cloudformation.resource.function.FunctionConfig
 import annotation.processor.FunctionInformation

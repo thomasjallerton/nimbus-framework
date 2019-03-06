@@ -1,6 +1,6 @@
 package annotation.services
 
-import cloudformation.persisted.UserConfig
+import persisted.UserConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import configuration.CONFIG_FILE

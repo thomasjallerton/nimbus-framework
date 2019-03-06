@@ -1,6 +1,6 @@
 package cloudformation.resource.http
 
-import cloudformation.persisted.NimbusState
+import persisted.NimbusState
 import cloudformation.resource.Resource
 import com.google.gson.JsonObject
 import java.util.*

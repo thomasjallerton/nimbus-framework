@@ -3,7 +3,7 @@ package annotation.services.functions
 import annotation.annotations.function.BasicServerlessFunction
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
-import cloudformation.persisted.NimbusState
+import persisted.NimbusState
 import cloudformation.resource.ResourceCollection
 import cloudformation.resource.function.FunctionConfig
 import wrappers.basic.BasicServerlessFunctionFileBuilder

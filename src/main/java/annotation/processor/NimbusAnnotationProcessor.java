@@ -14,8 +14,8 @@ import annotation.services.ResourceFinder;
 import annotation.wrappers.annotations.datamodel.*;
 import cloudformation.CloudFormationTemplate;
 import cloudformation.outputs.OutputCollection;
-import cloudformation.persisted.NimbusState;
-import cloudformation.persisted.UserConfig;
+import persisted.NimbusState;
+import persisted.UserConfig;
 import cloudformation.resource.*;
 import cloudformation.resource.database.DatabaseConfiguration;
 import cloudformation.resource.database.SubnetGroup;
@@ -307,6 +307,10 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             tableName = givenName;
         }
         return tableName;
+    }
+
+    private void handleAfterDeployment() {
+
     }
 }
 
