@@ -8,6 +8,7 @@ import cloudformation.resource.ExistingResource
 import cloudformation.resource.Resource
 import cloudformation.resource.ResourceCollection
 import annotation.wrappers.annotations.datamodel.DataModelAnnotation
+import cloudformation.resource.database.RdsResource
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
@@ -38,11 +39,11 @@ class ResourceFinder(private val resourceCollection: ResourceCollection, private
         }
     }
 
-    fun getRelationalDatabaseResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element): Resource? {
+    fun getRelationalDatabaseResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element): RdsResource? {
         return try {
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val relationalDatabase = typeElement.getAnnotation(RelationalDatabase::class.java)
-            return resourceCollection.get("${relationalDatabase.name}RdsInstance")
+            return resourceCollection.get("${relationalDatabase.name}RdsInstance") as RdsResource?
         } catch (e: NullPointerException) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod)
             null

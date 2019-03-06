@@ -41,7 +41,6 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.Function;
 
 @SupportedAnnotationTypes({
         "annotation.annotations.function.HttpServerlessFunction",
@@ -145,13 +144,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         for (Element type : annotatedElements) {
             RelationalDatabase relationalDatabase = type.getAnnotation(RelationalDatabase.class);
 
-            DatabaseConfiguration databaseConfiguration = new DatabaseConfiguration(
-                    relationalDatabase.name(),
-                    relationalDatabase.username(),
-                    relationalDatabase.password(),
-                    relationalDatabase.databaseLanguage(),
-                    relationalDatabase.databaseSize(),
-                    relationalDatabase.allocatedSizeGB());
+            DatabaseConfiguration databaseConfiguration = DatabaseConfiguration.fromRelationDatabase(relationalDatabase);
 
             Vpc vpc = new Vpc(nimbusState);
             SecurityGroupResource securityGroupResource = new SecurityGroupResource(vpc, nimbusState);
@@ -260,10 +253,12 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
         for (UsesRelationalDatabase usesRelationalDatabase : serverlessMethod.getAnnotationsByType(UsesRelationalDatabase.class)) {
             DataModelAnnotation annotation = new UsesRelationalDatabaseAnnotation(usesRelationalDatabase);
-            Resource resource = resourceFinder.getRelationalDatabaseResource(annotation, serverlessMethod);
+            RdsResource resource = resourceFinder.getRelationalDatabaseResource(annotation, serverlessMethod);
 
             if (resource != null) {
                 functionResource.addEnvVariable(resource.getName() + "_CONNECTION_URL", resource.getAttribute("Endpoint.Address"));
+                functionResource.addEnvVariable(resource.getName() + "_PASSWORD", resource.getDatabaseConfiguration().getPassword());
+                functionResource.addEnvVariable(resource.getName() + "_USERNAME", resource.getDatabaseConfiguration().getUsername());
                 functionResource.addDependsOn(resource);
             }
         }
