@@ -1,6 +1,6 @@
 package cloudformation.resource.basic
 
-import cloudformation.persisted.NimbusState
+import persisted.NimbusState
 import cloudformation.resource.Resource
 import cloudformation.resource.function.FunctionTrigger
 import com.google.gson.JsonArray

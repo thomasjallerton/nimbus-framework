@@ -1,4 +1,4 @@
-package cloudformation.persisted
+package persisted
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 

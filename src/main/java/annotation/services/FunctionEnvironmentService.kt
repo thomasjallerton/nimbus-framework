@@ -5,7 +5,7 @@ import annotation.annotations.function.NotificationServerlessFunction
 import annotation.annotations.function.QueueServerlessFunction
 import cloudformation.outputs.BucketNameOutput
 import cloudformation.outputs.OutputCollection
-import cloudformation.persisted.NimbusState
+import persisted.NimbusState
 import cloudformation.processing.MethodInformation
 import cloudformation.resource.*
 import cloudformation.resource.basic.CronRule

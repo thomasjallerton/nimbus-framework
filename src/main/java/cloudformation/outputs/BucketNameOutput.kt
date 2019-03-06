@@ -1,6 +1,6 @@
 package cloudformation.outputs
 
-import cloudformation.persisted.NimbusState
+import persisted.NimbusState
 import cloudformation.resource.NimbusBucketResource
 import com.google.gson.JsonObject
 import configuration.DEPLOYMENT_BUCKET_NAME

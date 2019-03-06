@@ -1,6 +1,6 @@
 package cloudformation.resource.notification
 
-import cloudformation.persisted.NimbusState
+import persisted.NimbusState
 import cloudformation.resource.Resource
 import cloudformation.resource.function.FunctionResource
 import cloudformation.resource.function.FunctionTrigger

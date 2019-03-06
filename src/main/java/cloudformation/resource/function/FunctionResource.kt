@@ -1,10 +1,9 @@
 package cloudformation.resource.function
 
-import cloudformation.persisted.NimbusState
+import persisted.NimbusState
 import cloudformation.processing.MethodInformation
 import cloudformation.resource.IamRoleResource
 import cloudformation.resource.Resource
-import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
 class FunctionResource(

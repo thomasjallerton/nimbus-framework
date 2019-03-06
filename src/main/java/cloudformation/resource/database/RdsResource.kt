@@ -1,6 +1,6 @@
 package cloudformation.resource.database
 
-import cloudformation.persisted.NimbusState
+import persisted.NimbusState
 import cloudformation.resource.Resource
 import cloudformation.resource.ec2.SecurityGroupResource
 import com.google.gson.JsonArray

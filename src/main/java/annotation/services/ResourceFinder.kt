@@ -3,7 +3,7 @@ package annotation.services
 import annotation.annotations.database.RelationalDatabase
 import annotation.annotations.document.DocumentStore
 import annotation.annotations.keyvalue.KeyValueStore
-import cloudformation.persisted.NimbusState
+import persisted.NimbusState
 import cloudformation.resource.ExistingResource
 import cloudformation.resource.Resource
 import cloudformation.resource.ResourceCollection
