@@ -87,6 +87,10 @@ class FunctionResource(
         jsonEnvVariables[key] = value
     }
 
+    fun getFunctionName(): String {
+        return functionName(nimbusState.projectName, methodInformation.className, methodInformation.methodName)
+    }
+
     companion object {
         fun functionName(projectName: String, className: String, methodName: String): String {
             return "$projectName-$className-$methodName"

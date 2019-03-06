@@ -51,7 +51,8 @@ import java.util.*;
         "annotation.annotations.function.KeyValueStoreServerlessFunction",
         "annotation.annotations.dynamo.KeyValueStore",
         "annotation.annotations.dynamo.DocumentStore",
-        "annotation.annotations.database.RelationalDatabase"
+        "annotation.annotations.database.RelationalDatabase",
+        "annotation.annotations.deployment.AfterDeployment"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
@@ -87,7 +88,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSzzz", Locale.US);
 
             String compilationTime = simpleDateFormat.format(cal.getTime());
-            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime);
+            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime, new LinkedList<>());
         }
 
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(
@@ -109,6 +110,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         resourceCreators.add(new NotificationFunctionResourceCreator(updateResources, nimbusState, processingEnv));
         resourceCreators.add(new QueueFunctionResourceCreator(updateResources, nimbusState, processingEnv, savedResources));
         resourceCreators.add(new BasicFunctionResourceCreator(updateResources, nimbusState, processingEnv));
+        resourceCreators.add(new AfterDeploymentResourceCreator(updateResources, nimbusState, processingEnv));
 
         List<FunctionInformation> allInformation = new LinkedList<>();
         for (FunctionResourceCreator creator : resourceCreators) {
@@ -307,10 +309,6 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             tableName = givenName;
         }
         return tableName;
-    }
-
-    private void handleAfterDeployment() {
-
     }
 }
 
