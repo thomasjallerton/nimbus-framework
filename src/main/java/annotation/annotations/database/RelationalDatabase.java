@@ -11,4 +11,7 @@ public @interface RelationalDatabase {
     String name();
     String username();
     String password();
+    DatabaseSize databaseSize() default DatabaseSize.FREE;
+    DatabaseLanguage databaseLanguage();
+    int allocatedSizeGB() default 20;
 }

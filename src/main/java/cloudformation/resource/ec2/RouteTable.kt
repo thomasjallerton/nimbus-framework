@@ -28,6 +28,6 @@ class RouteTable(
     }
 
     override fun getName(): String {
-        return "ReoutingTable${vpc.getName()}"
+        return "RoutingTable${vpc.getName()}"
     }
 }

@@ -31,6 +31,14 @@ class FunctionResource(
         return "${methodInformation.className}${methodInformation.methodName}Function"
     }
 
+    fun getShortName(): String {
+        return if (methodInformation.className.length > 5) {
+            "${methodInformation.className.substring(0, 5)}${methodInformation.methodName}"
+        } else {
+            "${methodInformation.className}${methodInformation.methodName}"
+        }
+    }
+
     override fun toCloudFormation(): JsonObject {
         val functionResource = JsonObject()
         functionResource.addProperty("Type", "AWS::Lambda::Function")
