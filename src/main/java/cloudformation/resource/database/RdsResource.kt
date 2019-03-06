@@ -7,7 +7,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
 class RdsResource(
-        private val databaseConfiguration: DatabaseConfiguration,
+        val databaseConfiguration: DatabaseConfiguration,
         private val securityGroup: SecurityGroupResource,
         private val subnetGroup: SubnetGroup,
         nimbusState: NimbusState
@@ -23,7 +23,7 @@ class RdsResource(
         dbInstance.addProperty("Type", "AWS::RDS::DBInstance")
 
         val properties = getProperties()
-        properties.addProperty("AllocatedStorage", "20")
+        properties.addProperty("AllocatedStorage", databaseConfiguration.size)
         properties.addProperty("DBInstanceIdentifier", databaseConfiguration.name)
         properties.addProperty("DBInstanceClass", databaseConfiguration.databaseSize.toInstanceClass())
         properties.addProperty("Engine", databaseConfiguration.databaseLanguage.toEngine(databaseConfiguration.databaseSize))

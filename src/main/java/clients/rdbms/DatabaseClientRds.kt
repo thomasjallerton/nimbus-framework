@@ -10,9 +10,11 @@ class DatabaseClientRds<T>(private val databaseObject: Class<T>) {
         val relationalDatabase = databaseObject.getDeclaredAnnotation(RelationalDatabase::class.java)
         println("KEY: ${relationalDatabase.name}RdsInstance_CONNECTION_URL")
         val url = System.getenv("${relationalDatabase.name}RdsInstance_CONNECTION_URL")
+        val username = System.getenv("${relationalDatabase.name}RdsInstance_USERNAME")
+        val password = System.getenv("${relationalDatabase.name}RdsInstance_PASSWORD")
         println("Url: $url")
-        println("Username: ${relationalDatabase.username}")
-        println("Password: ${relationalDatabase.password}")
-        return DriverManager.getConnection("jdbc:mysql://$url", relationalDatabase.username, relationalDatabase.password)
+        println("Username: $username")
+        println("Password: $password")
+        return DriverManager.getConnection("jdbc:mysql://$url", username, password)
     }
 }

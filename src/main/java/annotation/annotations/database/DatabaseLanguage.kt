@@ -12,7 +12,6 @@ enum class DatabaseLanguage {
                 MARIADB -> "mariadb"
                 SQLSERVER -> "sqlserver-ex"
                 POSTGRESQL -> "postgres"
-                else -> "mysql"
             }
         } else {
             when (this) {
@@ -21,7 +20,6 @@ enum class DatabaseLanguage {
                 MARIADB -> "mariadb"
                 SQLSERVER -> "sqlserver-ee"
                 POSTGRESQL -> "aurora-postgresql"
-                else -> "mysql"
             }
         }
     }
