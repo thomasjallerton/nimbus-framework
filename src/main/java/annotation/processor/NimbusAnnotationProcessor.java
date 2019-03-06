@@ -148,7 +148,10 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             DatabaseConfiguration databaseConfiguration = new DatabaseConfiguration(
                     relationalDatabase.name(),
                     relationalDatabase.username(),
-                    relationalDatabase.password());
+                    relationalDatabase.password(),
+                    relationalDatabase.databaseLanguage(),
+                    relationalDatabase.databaseSize(),
+                    relationalDatabase.allocatedSizeGB());
 
             Vpc vpc = new Vpc(nimbusState);
             SecurityGroupResource securityGroupResource = new SecurityGroupResource(vpc, nimbusState);

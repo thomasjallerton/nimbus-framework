@@ -31,6 +31,6 @@ class RouteTableAssociation(
     }
 
     override fun getName(): String {
-        return "Associartion${routeTable.getName()}${subnet.getName()}"
+        return "Association${routeTable.getName()}${subnet.getName()}"
     }
 }

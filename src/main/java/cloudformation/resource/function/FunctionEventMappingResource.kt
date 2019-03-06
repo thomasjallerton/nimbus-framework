@@ -29,6 +29,6 @@ class FunctionEventMappingResource(
     }
 
     override fun getName(): String {
-        return "${function.getName()}$sourceName"
+        return "${function.getShortName()}$sourceName"
     }
 }
