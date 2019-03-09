@@ -34,8 +34,7 @@ data class DatabaseConfiguration(
         private fun getValue(value: String): String {
             return if (value.startsWith("\${") && value.endsWith("}")) {
                 val envKey = value.substring(2, value.length - 1)
-                println(envKey)
-                return System.getenv(envKey)
+                return System.getenv(envKey) ?: ""
             } else {
                 value
             }
