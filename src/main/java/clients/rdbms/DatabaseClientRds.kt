@@ -1,32 +1,37 @@
 package clients.rdbms
 
+import annotation.annotations.database.DatabaseLanguage
 import annotation.annotations.database.RelationalDatabase
 import java.sql.Connection
 import java.sql.DriverManager
 
-class DatabaseClientRds<T>(private val databaseObject: Class<T>) {
+internal class DatabaseClientRds<T>(private val databaseObject: Class<T>): DatabaseClient {
 
-    fun getConnection(): Connection {
+    override fun getConnection(): Connection {
         val relationalDatabase = databaseObject.getDeclaredAnnotation(RelationalDatabase::class.java)
-        println("KEY: ${relationalDatabase.name}RdsInstance_CONNECTION_URL")
         val url = System.getenv("${relationalDatabase.name}RdsInstance_CONNECTION_URL")
         val username = System.getenv("${relationalDatabase.name}RdsInstance_USERNAME")
         val password = System.getenv("${relationalDatabase.name}RdsInstance_PASSWORD")
-        println("Url: $url")
-        println("Username: $username")
-        println("Password: $password")
-        return DriverManager.getConnection("jdbc:mysql://$url", username, password)
+        val languageParam = languageToParameter(relationalDatabase.databaseLanguage)
+        return DriverManager.getConnection("jdbc:$languageParam://$url", username, password)
     }
 
-    fun getConnection(databaseName: String, createIfNotExist: Boolean): Connection {
+    override fun getConnection(databaseName: String, createIfNotExist: Boolean): Connection {
         val relationalDatabase = databaseObject.getDeclaredAnnotation(RelationalDatabase::class.java)
-        println("KEY: ${relationalDatabase.name}RdsInstance_CONNECTION_URL")
         val url = System.getenv("${relationalDatabase.name}RdsInstance_CONNECTION_URL")
         val username = System.getenv("${relationalDatabase.name}RdsInstance_USERNAME")
         val password = System.getenv("${relationalDatabase.name}RdsInstance_PASSWORD")
-        println("Url: $url")
-        println("Username: $username")
-        println("Password: $password")
-        return DriverManager.getConnection("jdbc:mysql://$url/$databaseName?createDatabaseIfNotExist=$createIfNotExist", username, password)
+        val languageParam = languageToParameter(relationalDatabase.databaseLanguage)
+        return DriverManager.getConnection("jdbc:$languageParam://$url/$databaseName?createDatabaseIfNotExist=$createIfNotExist", username, password)
+    }
+
+    private fun languageToParameter(language: DatabaseLanguage): String {
+        return when(language) {
+            DatabaseLanguage.MYSQL -> "mysql"
+            DatabaseLanguage.MARIADB -> "mariadb"
+            DatabaseLanguage.POSTGRESQL -> "postgresql"
+            DatabaseLanguage.ORACLE -> "oracle"
+            DatabaseLanguage.SQLSERVER -> "sqlserver"
+        }
     }
 }

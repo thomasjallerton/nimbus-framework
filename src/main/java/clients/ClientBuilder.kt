@@ -14,6 +14,8 @@ import clients.notification.NotificationClientSNS
 import clients.queue.QueueClient
 import clients.queue.QueueClientDynamo
 import clients.queue.QueueClientLocal
+import clients.rdbms.DatabaseClient
+import clients.rdbms.DatabaseClientLocal
 import clients.rdbms.DatabaseClientRds
 import testing.LocalNimbusDeployment
 import java.sql.Connection
@@ -48,9 +50,9 @@ object ClientBuilder {
     }
 
     @JvmStatic
-    fun <T> getRelationalDatabase(databaseObject: Class<T>): DatabaseClientRds<T> {
+    fun <T> getRelationalDatabase(databaseObject: Class<T>): DatabaseClient {
         return if (LocalNimbusDeployment.isLocalDeployment) {
-            DatabaseClientRds(databaseObject)
+            DatabaseClientLocal(databaseObject)
         } else {
             DatabaseClientRds(databaseObject)
         }

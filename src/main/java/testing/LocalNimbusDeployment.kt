@@ -1,12 +1,16 @@
 package testing
 
+import annotation.annotations.deployment.AfterDeployment
 import annotation.annotations.document.DocumentStore
 import annotation.annotations.function.*
 import annotation.annotations.keyvalue.KeyValueStore
 import annotation.annotations.notification.UsesNotificationTopic
+import clients.ClientBuilder
 import clients.document.DocumentStoreClient
 import clients.keyvalue.KeyValueStoreClient
 import clients.keyvalue.KeyValueStoreClientLocal
+import clients.rdbms.DatabaseClient
+import clients.rdbms.DatabaseClientLocal
 import org.reflections.Reflections
 import org.reflections.scanners.ResourcesScanner
 import org.reflections.scanners.SubTypesScanner
@@ -24,6 +28,7 @@ import testing.notification.NotificationMethod
 import testing.queue.LocalQueue
 import testing.queue.QueueMethod
 import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
 import java.util.*
 
 
@@ -36,13 +41,16 @@ class LocalNimbusDeployment {
     private val keyValueStores: MutableMap<String, LocalKeyValueStore<out Any, out Any>> = mutableMapOf()
     private val documentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
     private val notificationTopics: MutableMap<String, LocalNotificationTopic> = mutableMapOf()
+    private val afterDeployments: Deque<Pair<Method, Any>> = LinkedList()
 
     private constructor(clazz: Class<out Any>) {
+        instance = this
         createResources(clazz)
         createHandlers(clazz)
     }
 
     private constructor(packageName: String) {
+        instance = this
         val classLoadersList = LinkedList<ClassLoader>()
         classLoadersList.add(ClasspathHelper.contextClassLoader())
         classLoadersList.add(ClasspathHelper.staticClassLoader())
@@ -59,6 +67,8 @@ class LocalNimbusDeployment {
 
         //Handle handlers
         allClasses.forEach { clazz -> createHandlers(clazz) }
+
+        afterDeployments.forEach { (method, obj) -> method.invoke(obj) }
     }
 
     private fun createResources(clazz: Class<out Any>) {
@@ -77,6 +87,18 @@ class LocalNimbusDeployment {
         try {
             for (method in clazz.declaredMethods) {
                 val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
+
+                if (method.isAnnotationPresent(UsesNotificationTopic::class.java)) {
+                    val usesNotificationTopics = method.getAnnotationsByType(UsesNotificationTopic::class.java)
+
+                    for (usesNotificationTopic in usesNotificationTopics) {
+                        if (!notificationTopics.containsKey(usesNotificationTopic.topic)) {
+                            val localNotificationTopic = LocalNotificationTopic()
+                            notificationTopics[usesNotificationTopic.topic] = localNotificationTopic
+                        }
+                    }
+                }
+
                 if (method.isAnnotationPresent(QueueServerlessFunction::class.java)) {
                     val queueServerlessFunctions = method.getAnnotationsByType(QueueServerlessFunction::class.java)
 
@@ -158,14 +180,15 @@ class LocalNimbusDeployment {
                     }
                 }
 
-                if (method.isAnnotationPresent(UsesNotificationTopic::class.java)) {
-                    val usesNotificationTopics = method.getAnnotationsByType(UsesNotificationTopic::class.java)
+                if (method.isAnnotationPresent(AfterDeployment::class.java)) {
+                    val afterDeployment = method.getAnnotation(AfterDeployment::class.java)
 
-                    for (usesNotificationTopic in usesNotificationTopics) {
-                        if (!notificationTopics.containsKey(usesNotificationTopic.topic)) {
-                            val localNotificationTopic = LocalNotificationTopic()
-                            notificationTopics[usesNotificationTopic.topic] = localNotificationTopic
-                        }
+                    val invokeOn = clazz.getConstructor().newInstance()
+
+                    if (afterDeployment.isTest) {
+                        afterDeployments.addLast(Pair(method, invokeOn))
+                    } else {
+                        afterDeployments.addFirst(Pair(method, invokeOn))
                     }
                 }
             }
@@ -186,6 +209,10 @@ class LocalNimbusDeployment {
 
     fun <K, V> getKeyValueStoreClient(keyClass: Class<K>, valueClass: Class<V>): KeyValueStoreClient<K, V> {
         return KeyValueStoreClientLocal(keyClass, valueClass)
+    }
+
+    fun <T> getRelationalDatabaseClient(dataClass: Class<T>): DatabaseClient {
+        return DatabaseClientLocal(dataClass)
     }
 
     fun <T> getDocumentStore(clazz: Class<T>): LocalDocumentStore<T> {
@@ -252,14 +279,14 @@ class LocalNimbusDeployment {
         @JvmStatic
         fun getNewInstance(packageName: String): LocalNimbusDeployment {
             isLocalDeployment = true
-            instance = LocalNimbusDeployment(packageName)
+            LocalNimbusDeployment(packageName)
             return instance
         }
 
         @JvmStatic
         fun getNewInstance(clazz: Class<out Any>): LocalNimbusDeployment {
             isLocalDeployment = true
-            instance = LocalNimbusDeployment(clazz)
+            LocalNimbusDeployment(clazz)
             return instance
         }
     }
