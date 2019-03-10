@@ -1,6 +1,7 @@
 package annotation.services.functions
 
 import annotation.annotations.function.BasicServerlessFunction
+import annotation.annotations.function.repeatable.BasicServerlessFunctions
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import cloudformation.CloudFormationDocuments
@@ -11,30 +12,40 @@ import wrappers.basic.BasicServerlessFunctionFileBuilder
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.element.Element
 
 class BasicFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
-): FunctionResourceCreator(cfDocuments, nimbusState, processingEnv) {
+) : FunctionResourceCreator(
+        cfDocuments,
+        nimbusState,
+        processingEnv,
+        BasicServerlessFunction::class.java,
+        BasicServerlessFunctions::class.java
+) {
 
-    override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
-        val annotatedElements = roundEnv.getElementsAnnotatedWith(BasicServerlessFunction::class.java)
-        val results = LinkedList<FunctionInformation>()
-        for (type in annotatedElements) {
-            val basicFunction = type.getAnnotation(BasicServerlessFunction::class.java)
-            val methodInformation = extractMethodInformation(type)
 
-            val cloudFormationDocuments = cfDocuments.getOrPut(basicFunction.stage) {CloudFormationDocuments()}
+
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+        val basicFunctions = type.getAnnotationsByType(BasicServerlessFunction::class.java)
+        val methodInformation = extractMethodInformation(type)
+
+        val fileBuilder = BasicServerlessFunctionFileBuilder(
+                processingEnv,
+                methodInformation,
+                type
+        )
+
+        fileBuilder.createClass()
+
+        val handler = fileBuilder.getHandler()
+
+        for (basicFunction in basicFunctions) {
+            val cloudFormationDocuments = cfDocuments.getOrPut(basicFunction.stage) { CloudFormationDocuments() }
             val updateResources = cloudFormationDocuments.updateResources
 
-            val fileBuilder = BasicServerlessFunctionFileBuilder(
-                    processingEnv,
-                    methodInformation,
-                    type
-            )
-
-            val handler = fileBuilder.getHandler()
 
             val config = FunctionConfig(basicFunction.timeout, basicFunction.memory, basicFunction.stage)
             val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
@@ -45,11 +56,8 @@ class BasicFunctionResourceCreator(
             }
             updateResources.addInvokableFunction(functionResource)
 
-            fileBuilder.createClass()
 
             results.add(FunctionInformation(type, functionResource))
         }
-        return results
     }
-
 }

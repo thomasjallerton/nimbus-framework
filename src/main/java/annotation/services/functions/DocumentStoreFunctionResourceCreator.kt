@@ -1,36 +1,44 @@
 package annotation.services.functions
 
 import annotation.annotations.function.DocumentStoreServerlessFunction
-import persisted.NimbusState
-import cloudformation.resource.ResourceCollection
-import cloudformation.resource.function.FunctionConfig
+import annotation.annotations.function.repeatable.DocumentStoreServerlessFunctions
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import annotation.wrappers.annotations.datamodel.DocumentStoreServerlessFunctionAnnotation
 import cloudformation.CloudFormationDocuments
+import cloudformation.resource.function.FunctionConfig
+import persisted.NimbusState
 import wrappers.store.document.DocumentStoreServerlessFunctionFileBuilder
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 
 class DocumentStoreFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
-): FunctionResourceCreator(cfDocuments, nimbusState, processingEnv) {
+) : FunctionResourceCreator(
+        cfDocuments,
+        nimbusState,
+        processingEnv,
+        DocumentStoreServerlessFunction::class.java,
+        DocumentStoreServerlessFunctions::class.java
+) {
 
-    override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
-        val annotatedElements = roundEnv.getElementsAnnotatedWith(DocumentStoreServerlessFunction::class.java)
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+        val documentStoreFunctions = type.getAnnotationsByType(DocumentStoreServerlessFunction::class.java)
 
-        val results = LinkedList<FunctionInformation>()
-        for (type in annotatedElements) {
-            val documentStoreFunction = type.getAnnotation(DocumentStoreServerlessFunction::class.java)
+        val methodInformation = extractMethodInformation(type)
 
-            if (type.kind == ElementKind.METHOD) {
-                val methodInformation = extractMethodInformation(type)
-                val dataModelAnnotation = DocumentStoreServerlessFunctionAnnotation(documentStoreFunction)
+        var fileWritten = false
+        var handler = ""
 
+        for (documentStoreFunction in documentStoreFunctions) {
+            val dataModelAnnotation = DocumentStoreServerlessFunctionAnnotation(documentStoreFunction)
+
+            if (!fileWritten) {
                 val fileBuilder = DocumentStoreServerlessFunctionFileBuilder<Any>(
                         processingEnv,
                         methodInformation,
@@ -39,22 +47,22 @@ class DocumentStoreFunctionResourceCreator(
                         dataModelAnnotation.getTypeElement(processingEnv)
                 )
 
-                val handler = fileBuilder.getHandler()
-
-                val config = FunctionConfig(documentStoreFunction.timeout, documentStoreFunction.memory, documentStoreFunction.stage)
-                val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
-
-                val dynamoResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, type)
-
-                if (dynamoResource != null) {
-                    functionEnvironmentService.newStoreTrigger(dynamoResource!!, functionResource)
-                }
-
+                handler = fileBuilder.getHandler()
                 fileBuilder.createClass()
-
-                results.add(FunctionInformation(type, functionResource))
+                fileWritten = true
             }
+
+            val config = FunctionConfig(documentStoreFunction.timeout, documentStoreFunction.memory, documentStoreFunction.stage)
+            val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
+
+            val dynamoResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, type)
+
+            if (dynamoResource != null) {
+                functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
+            }
+
+
+            results.add(FunctionInformation(type, functionResource))
         }
-        return results
     }
 }

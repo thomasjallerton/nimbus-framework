@@ -1,6 +1,7 @@
 package annotation.services.functions
 
 import annotation.annotations.function.KeyValueStoreServerlessFunction
+import annotation.annotations.function.repeatable.KeyValueStoreServerlessFunctions
 import persisted.NimbusState
 import cloudformation.resource.ResourceCollection
 import cloudformation.resource.function.FunctionConfig
@@ -12,26 +13,34 @@ import wrappers.store.keyvalue.KeyValueStoreServerlessFunctionFileBuilder
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 
 class KeyValueStoreFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
-): FunctionResourceCreator(cfDocuments, nimbusState, processingEnv) {
+) : FunctionResourceCreator(
+        cfDocuments,
+        nimbusState,
+        processingEnv,
+        KeyValueStoreServerlessFunction::class.java,
+        KeyValueStoreServerlessFunctions::class.java
+) {
 
 
-    override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
-        val annotatedElements = roundEnv.getElementsAnnotatedWith(KeyValueStoreServerlessFunction::class.java)
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+        val keyValueStoreFunctions = type.getAnnotationsByType(KeyValueStoreServerlessFunction::class.java)
 
-        val results = LinkedList<FunctionInformation>()
-        for (type in annotatedElements) {
-            val keyValueStoreFunction = type.getAnnotation(KeyValueStoreServerlessFunction::class.java)
+        val methodInformation = extractMethodInformation(type)
 
-            if (type.kind == ElementKind.METHOD) {
-                val methodInformation = extractMethodInformation(type)
-                val dataModelAnnotation = KeyValueStoreServerlessFunctionAnnotation(keyValueStoreFunction)
+        var fileWritten = false
+        var handler = ""
 
+        for (keyValueStoreFunction in keyValueStoreFunctions) {
+            val dataModelAnnotation = KeyValueStoreServerlessFunctionAnnotation(keyValueStoreFunction)
+
+            if (!fileWritten) {
                 val fileBuilder = KeyValueStoreServerlessFunctionFileBuilder<Any>(
                         processingEnv,
                         methodInformation,
@@ -40,22 +49,21 @@ class KeyValueStoreFunctionResourceCreator(
                         dataModelAnnotation.getTypeElement(processingEnv)
                 )
 
-                val handler = fileBuilder.getHandler()
-
-                val config = FunctionConfig(keyValueStoreFunction.timeout, keyValueStoreFunction.memory, keyValueStoreFunction.stage)
-                val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
-
-                val dynamoResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, type)
-
-                if (dynamoResource != null) {
-                    functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
-                }
-
+                handler = fileBuilder.getHandler()
                 fileBuilder.createClass()
-
-                results.add(FunctionInformation(type, functionResource))
+                fileWritten = true
             }
-        }
-        return results    }
 
+            val config = FunctionConfig(keyValueStoreFunction.timeout, keyValueStoreFunction.memory, keyValueStoreFunction.stage)
+            val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
+
+            val dynamoResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, type)
+
+            if (dynamoResource != null) {
+                functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
+            }
+
+            results.add(FunctionInformation(type, functionResource))
+        }
+    }
 }

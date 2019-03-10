@@ -1,6 +1,7 @@
 package annotation.services.functions
 
 import annotation.annotations.function.NotificationServerlessFunction
+import annotation.annotations.function.repeatable.NotificationServerlessFunctions
 import persisted.NimbusState
 import cloudformation.resource.ResourceCollection
 import cloudformation.resource.function.FunctionConfig
@@ -11,41 +12,43 @@ import wrappers.notification.NotificationServerlessFunctionFileBuilder
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 
 class NotificationFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
-) : FunctionResourceCreator(cfDocuments, nimbusState, processingEnv) {
+) : FunctionResourceCreator(
+        cfDocuments,
+        nimbusState,
+        processingEnv,
+        NotificationServerlessFunction::class.java,
+        NotificationServerlessFunctions::class.java
+) {
 
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+        val notificationFunctions = type.getAnnotationsByType(NotificationServerlessFunction::class.java)
 
-    override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
-        val annotatedElements = roundEnv.getElementsAnnotatedWith(NotificationServerlessFunction::class.java)
+        val methodInformation = extractMethodInformation(type)
 
-        val results = LinkedList<FunctionInformation>()
+        val fileBuilder = NotificationServerlessFunctionFileBuilder(
+                processingEnv,
+                methodInformation,
+                type
+        )
 
-        for (type in annotatedElements) {
-            val notificationFunction = type.getAnnotation(NotificationServerlessFunction::class.java)
+        for (notificationFunction in notificationFunctions) {
+            val config = FunctionConfig(notificationFunction.timeout, notificationFunction.memory, notificationFunction.stage)
+            val functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config)
 
-            if (type.kind == ElementKind.METHOD) {
-                val methodInformation = extractMethodInformation(type)
+            functionEnvironmentService.newNotification(notificationFunction, functionResource)
 
-                val fileBuilder = NotificationServerlessFunctionFileBuilder(
-                        processingEnv,
-                        methodInformation,
-                        type
-                )
+            fileBuilder.createClass()
 
-                val config = FunctionConfig(notificationFunction.timeout, notificationFunction.memory, notificationFunction.stage)
-                val functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config)
-
-                functionEnvironmentService.newNotification(notificationFunction, functionResource)
-
-                fileBuilder.createClass()
-
-                results.add(FunctionInformation(type, functionResource))
-            }
+            results.add(FunctionInformation(type, functionResource))
         }
-        return results    }
+
+    }
+
 }

@@ -1,5 +1,7 @@
 package annotation.services.functions
 
+import annotation.annotations.function.KeyValueStoreServerlessFunction
+import annotation.annotations.function.repeatable.KeyValueStoreServerlessFunctions
 import persisted.NimbusState
 import cloudformation.processing.MethodInformation
 import cloudformation.resource.ResourceCollection
@@ -7,6 +9,7 @@ import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import annotation.services.ResourceFinder
 import cloudformation.CloudFormationDocuments
+import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
@@ -16,13 +19,26 @@ import javax.lang.model.type.ExecutableType
 abstract class FunctionResourceCreator(
         protected val cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
-        protected val processingEnv: ProcessingEnvironment
+        protected val processingEnv: ProcessingEnvironment,
+        private val singleClass: Class<out Annotation>,
+        private val repeatableClass: Class<out Annotation>
 ) {
 
     protected val resourceFinder: ResourceFinder = ResourceFinder(cfDocuments, processingEnv, nimbusState)
     protected val messager = processingEnv.messager
 
-    abstract fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation>
+    fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
+        val annotatedElements = roundEnv.getElementsAnnotatedWith(singleClass)
+        val annotatedElementsRepeatable = roundEnv.getElementsAnnotatedWith(repeatableClass)
+        val results = LinkedList<FunctionInformation>()
+
+        annotatedElements.forEach { type -> handleElement(type, functionEnvironmentService, results) }
+        annotatedElementsRepeatable.forEach { type -> handleElement(type, functionEnvironmentService, results) }
+
+        return results
+    }
+
+    abstract fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>)
 
     protected fun extractMethodInformation(type: Element): MethodInformation {
         val methodName = type.simpleName.toString()

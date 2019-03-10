@@ -1,12 +1,12 @@
 package annotation.annotations.function;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import annotation.annotations.function.repeatable.BasicServerlessFunctions;
+
+import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
+@Repeatable(BasicServerlessFunctions.class)
 public @interface BasicServerlessFunction {
     String cron() default "";
     int timeout() default 10;

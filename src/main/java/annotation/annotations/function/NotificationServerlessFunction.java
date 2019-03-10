@@ -1,12 +1,12 @@
 package annotation.annotations.function;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import annotation.annotations.function.repeatable.NotificationServerlessFunctions;
+
+import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
+@Repeatable(NotificationServerlessFunctions.class)
 public @interface NotificationServerlessFunction {
     public String topic();
     int timeout() default 10;

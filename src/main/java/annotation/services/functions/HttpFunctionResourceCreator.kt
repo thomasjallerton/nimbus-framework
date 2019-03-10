@@ -19,21 +19,15 @@ class HttpFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
-) : FunctionResourceCreator(cfDocuments, nimbusState, processingEnv) {
+) : FunctionResourceCreator(
+        cfDocuments,
+        nimbusState,
+        processingEnv,
+        HttpServerlessFunction::class.java,
+        HttpServerlessFunctions::class.java
+) {
 
-    override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
-        val annotatedElements = roundEnv.getElementsAnnotatedWith(HttpServerlessFunction::class.java)
-        val annotatedElementsRepeatable = roundEnv.getElementsAnnotatedWith(HttpServerlessFunctions::class.java)
-
-        val results = LinkedList<FunctionInformation>()
-
-        annotatedElements.forEach { type -> handleElement(type, functionEnvironmentService, results) }
-        annotatedElementsRepeatable.forEach { type -> handleElement(type, functionEnvironmentService, results) }
-
-        return results
-    }
-
-    private fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
         val httpFunctions = type.getAnnotationsByType(HttpServerlessFunction::class.java)
 
         val methodInformation = extractMethodInformation(type)
