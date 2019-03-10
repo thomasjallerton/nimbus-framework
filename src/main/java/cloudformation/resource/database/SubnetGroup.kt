@@ -8,8 +8,9 @@ import com.google.gson.JsonObject
 
 class SubnetGroup(
         private val subnets: List<Subnet>,
-        nimbusState: NimbusState
-): Resource(nimbusState) {
+        nimbusState: NimbusState,
+        stage: String
+): Resource(nimbusState, stage) {
 
     init {
         subnets.forEach{subnet -> addDependsOn(subnet)}

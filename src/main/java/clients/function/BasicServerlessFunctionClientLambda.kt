@@ -19,7 +19,14 @@ internal class BasicServerlessFunctionClientLambda: BasicServerlessFunctionClien
         ""
     }
 
-    override fun invoke(handlerClass: Class<out Any>, functionName: String) {
+    private val stage = if (System.getenv().containsKey("FUNCTION_STAGE")) {
+        System.getenv("FUNCTION_STAGE")
+    } else {
+        "dev"
+    }
+
+
+        override fun invoke(handlerClass: Class<out Any>, functionName: String) {
         invoke(handlerClass, functionName, "", Unit.javaClass)
     }
 
@@ -29,7 +36,7 @@ internal class BasicServerlessFunctionClientLambda: BasicServerlessFunctionClien
 
     override fun <T> invoke(handlerClass: Class<out Any>, functionName: String, param: Any, responseType: Class<T>): T? {
         val invokeRequest = InvokeRequest()
-                .withFunctionName(FunctionResource.functionName(projectName, handlerClass.simpleName, functionName))
+                .withFunctionName(FunctionResource.functionName(projectName, handlerClass.simpleName, functionName, stage))
                 .withPayload(objectMapper.writeValueAsString(param))
                 .withInvocationType(InvocationType.RequestResponse)
         val result = lambdaClient.invoke(invokeRequest)
@@ -47,7 +54,7 @@ internal class BasicServerlessFunctionClientLambda: BasicServerlessFunctionClien
 
     override fun invokeAsync(handlerClass: Class<out Any>, functionName: String, param: Any) {
         val invokeRequest = InvokeRequest()
-                .withFunctionName(FunctionResource.functionName(projectName, handlerClass.simpleName, functionName))
+                .withFunctionName(FunctionResource.functionName(projectName, handlerClass.simpleName, functionName, stage))
                 .withPayload(objectMapper.writeValueAsString(param))
                 .withInvocationType(InvocationType.Event)
         lambdaClient.invoke(invokeRequest)

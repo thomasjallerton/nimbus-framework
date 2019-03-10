@@ -8,7 +8,7 @@ import com.google.gson.JsonObject
 class SecurityGroupResource(
         private val vpc: Vpc,
         nimbusState: NimbusState
-): Resource(nimbusState) {
+): Resource(nimbusState, vpc.stage) {
 
     init {
         addDependsOn(vpc)

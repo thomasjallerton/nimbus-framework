@@ -4,7 +4,7 @@ import persisted.NimbusState
 import cloudformation.resource.Resource
 import com.google.gson.JsonObject
 
-class Vpc(nimbusState: NimbusState): Resource(nimbusState) {
+class Vpc(nimbusState: NimbusState, stage: String): Resource(nimbusState, stage) {
     override fun toCloudFormation(): JsonObject {
         val vpc = JsonObject()
         vpc.addProperty("Type", "AWS::EC2::VPC")

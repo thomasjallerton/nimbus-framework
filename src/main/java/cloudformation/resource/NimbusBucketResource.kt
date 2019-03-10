@@ -3,7 +3,7 @@ package cloudformation.resource
 import persisted.NimbusState
 import com.google.gson.JsonObject
 
-class NimbusBucketResource(nimbusState: NimbusState): Resource(nimbusState) {
+class NimbusBucketResource(nimbusState: NimbusState, stage: String): Resource(nimbusState, stage) {
 
     override fun getName(): String {
         return "NimbusDeploymentBucket"

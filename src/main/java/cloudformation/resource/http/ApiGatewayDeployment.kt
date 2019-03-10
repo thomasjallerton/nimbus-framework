@@ -8,7 +8,7 @@ import java.util.*
 class ApiGatewayDeployment(
         private val restApi: RestApi,
         nimbusState: NimbusState
-):Resource(nimbusState) {
+):Resource(nimbusState, restApi.stage) {
 
     override fun toCloudFormation(): JsonObject {
         val deployment = JsonObject()

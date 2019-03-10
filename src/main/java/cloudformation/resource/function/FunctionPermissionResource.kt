@@ -9,7 +9,7 @@ class FunctionPermissionResource(
         private val function: FunctionResource,
         private val trigger: FunctionTrigger,
         nimbusState: NimbusState
-): Resource(nimbusState) {
+): Resource(nimbusState, function.stage) {
     override fun toCloudFormation(): JsonObject {
         val permission = JsonObject()
         permission.addProperty("Type", "AWS::Lambda::Permission")

@@ -12,4 +12,5 @@ public @interface KeyValueStore {
     Class<?> keyType();
     String keyName() default "PrimaryKey";
     String existingArn() default "";
+    String stage() default "dev";
 }

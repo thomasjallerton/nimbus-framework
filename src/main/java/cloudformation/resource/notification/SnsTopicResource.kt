@@ -10,8 +10,9 @@ import com.google.gson.JsonObject
 class SnsTopicResource(
         private val topic: String,
         private val function: FunctionResource?,
-        nimbusState: NimbusState
-): Resource(nimbusState), FunctionTrigger {
+        nimbusState: NimbusState,
+        stage: String
+): Resource(nimbusState, stage), FunctionTrigger {
     override fun getTriggerArn(): JsonObject {
         return getArn()
     }

@@ -11,7 +11,7 @@ class RdsResource(
         private val securityGroup: SecurityGroupResource,
         private val subnetGroup: SubnetGroup,
         nimbusState: NimbusState
-): Resource(nimbusState) {
+): Resource(nimbusState, securityGroup.stage) {
 
     init {
         addDependsOn(securityGroup)

@@ -14,4 +14,5 @@ public @interface DocumentStoreServerlessFunction {
     StoreUpdate method();
     int timeout() default 10;
     int memory() default 1024;
+    String stage() default "dev";
 }

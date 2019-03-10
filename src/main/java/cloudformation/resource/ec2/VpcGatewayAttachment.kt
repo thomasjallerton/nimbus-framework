@@ -8,7 +8,7 @@ class VpcGatewayAttachment(
         private val vpc: Vpc,
         private val internetGateway: InternetGateway,
         nimbusState: NimbusState
-): Resource(nimbusState) {
+): Resource(nimbusState, vpc.stage) {
 
     init {
         addDependsOn(vpc)

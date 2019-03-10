@@ -7,7 +7,7 @@ import com.google.gson.JsonObject
 class DynamoStreamResource(
         private val dynamoResource: Resource,
         nimbusState: NimbusState
-): Resource(nimbusState) {
+): Resource(nimbusState, dynamoResource.stage) {
     override fun toCloudFormation(): JsonObject {
         return JsonObject()
     }

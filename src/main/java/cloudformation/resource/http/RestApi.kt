@@ -6,8 +6,9 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
 class RestApi(
-    nimbusState: NimbusState
-): AbstractRestResource(nimbusState), FunctionTrigger {
+    nimbusState: NimbusState,
+    stage: String
+): AbstractRestResource(nimbusState, stage), FunctionTrigger {
     override fun getTriggerArn(): JsonObject {
         return getArn("/*/*")
     }
@@ -40,7 +41,7 @@ class RestApi(
         restApi.addProperty("Type", "AWS::ApiGateway::RestApi")
 
         val properties = getProperties()
-        properties.addProperty("Name", nimbusState.projectName)
+        properties.addProperty("Name", nimbusState.projectName + "-" + stage)
 
         val endpointConfig = JsonObject()
         val types = JsonArray()

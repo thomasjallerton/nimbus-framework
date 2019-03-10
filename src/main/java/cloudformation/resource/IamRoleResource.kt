@@ -6,8 +6,9 @@ import com.google.gson.JsonObject
 
 class IamRoleResource(
         private val functionName: String,
-        nimbusState: NimbusState
-) : Resource(nimbusState) {
+        nimbusState: NimbusState,
+        stage: String
+) : Resource(nimbusState, stage) {
 
     private val policy: Policy = Policy(functionName, nimbusState)
 

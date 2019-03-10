@@ -3,8 +3,8 @@ package annotation.services
 import annotation.annotations.function.HttpServerlessFunction
 import annotation.annotations.function.NotificationServerlessFunction
 import annotation.annotations.function.QueueServerlessFunction
+import cloudformation.CloudFormationDocuments
 import cloudformation.outputs.BucketNameOutput
-import cloudformation.outputs.OutputCollection
 import persisted.NimbusState
 import cloudformation.processing.MethodInformation
 import cloudformation.resource.*
@@ -20,26 +20,27 @@ import cloudformation.resource.queue.QueueResource
 import com.google.gson.JsonObject
 
 class FunctionEnvironmentService(
-        private val createResources: ResourceCollection,
-        private val updateResources: ResourceCollection,
-        private val createOutputs: OutputCollection,
-        private val updateOutputs: OutputCollection,
+        private val cloudFormationDocumentsCollection: MutableMap<String, CloudFormationDocuments>,
         private val nimbusState: NimbusState
 ) {
 
-    private val restApi: RestApi = RestApi(nimbusState)
-    private val apiGatewayDeployment: ApiGatewayDeployment = ApiGatewayDeployment(restApi, nimbusState)
 
     fun newFunction(handler: String, methodInformation: MethodInformation, functionConfig: FunctionConfig): FunctionResource {
         val function = FunctionResource(handler, methodInformation, functionConfig, nimbusState)
-        val logGroup = LogGroupResource(methodInformation.className, methodInformation.methodName, nimbusState)
-        val bucket = NimbusBucketResource(nimbusState)
+        val logGroup = LogGroupResource(methodInformation.className, methodInformation.methodName, nimbusState, functionConfig.stage)
+        val bucket = NimbusBucketResource(nimbusState, functionConfig.stage)
 
-        val iamRoleResource = IamRoleResource(function.getName(), nimbusState)
+        val iamRoleResource = IamRoleResource(function.getName(), nimbusState, functionConfig.stage)
         iamRoleResource.addAllowStatement("logs:CreateLogStream", logGroup, ":*")
         iamRoleResource.addAllowStatement("logs:PutLogEvents", logGroup, ":*:*")
 
         function.setIamRoleResource(iamRoleResource)
+
+        val cloudFormationDocuments = cloudFormationDocumentsCollection.getOrPut(functionConfig.stage) {CloudFormationDocuments()}
+        val updateResources = cloudFormationDocuments.updateResources
+        val createResources = cloudFormationDocuments.createResources
+        val createOutputs = cloudFormationDocuments.createOutputs
+        val updateOutputs = cloudFormationDocuments.updateOutputs
 
         updateResources.addResource(iamRoleResource)
         updateResources.addResource(function)
@@ -58,11 +59,28 @@ class FunctionEnvironmentService(
     fun newHttpMethod(httpFunction: HttpServerlessFunction, function: FunctionResource) {
         val pathParts = httpFunction.path.split("/")
 
-        updateResources.addResource(restApi)
-        updateResources.addResource(apiGatewayDeployment)
+        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
+        val updateResources = cfDocuments.updateResources
+
+        val restApi = if (cfDocuments.rootRestApi == null) {
+            val restApi = RestApi(nimbusState, httpFunction.stage)
+            cfDocuments.rootRestApi = restApi
+            updateResources.addResource(restApi)
+            restApi
+        } else {
+            cfDocuments.rootRestApi!!
+        }
+
+        val apiGatewayDeployment = if (cfDocuments.apiGatewayDeployment == null) {
+            val apiGatewayDeployment = ApiGatewayDeployment(restApi, nimbusState)
+            cfDocuments.apiGatewayDeployment = apiGatewayDeployment
+            updateResources.addResource(apiGatewayDeployment)
+            apiGatewayDeployment
+        } else {
+            cfDocuments.apiGatewayDeployment!!
+        }
 
         var resource: AbstractRestResource = restApi
-        updateResources.addResource(resource)
 
         for (part in pathParts) {
             if (part.isNotEmpty()) {
@@ -81,8 +99,10 @@ class FunctionEnvironmentService(
     }
 
     fun newNotification(notificationFunction: NotificationServerlessFunction, function: FunctionResource) {
+        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
+        val updateResources = cfDocuments.updateResources
 
-        val snsTopic = SnsTopicResource(notificationFunction.topic, function, nimbusState)
+        val snsTopic = SnsTopicResource(notificationFunction.topic, function, nimbusState, notificationFunction.stage)
         updateResources.addResource(snsTopic)
 
         val permission = FunctionPermissionResource(function, snsTopic, nimbusState)
@@ -90,8 +110,10 @@ class FunctionEnvironmentService(
     }
 
     fun newQueue(queueFunction: QueueServerlessFunction, function: FunctionResource): QueueResource {
+        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
+        val updateResources = cfDocuments.updateResources
 
-        val sqsQueue = QueueResource(nimbusState, queueFunction.id, queueFunction.timeout * 6)
+        val sqsQueue = QueueResource(nimbusState, queueFunction.id, queueFunction.timeout * 6, queueFunction.stage)
         updateResources.addResource(sqsQueue)
 
         val eventMapping = FunctionEventMappingResource(
@@ -113,6 +135,8 @@ class FunctionEnvironmentService(
     }
 
     fun newStoreTrigger(store: Resource, function: FunctionResource) {
+        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
+        val updateResources = cfDocuments.updateResources
 
         val eventMapping = FunctionEventMappingResource(
                 store.getAttribute("StreamArn"),
@@ -134,12 +158,13 @@ class FunctionEnvironmentService(
     }
 
     fun newCronTrigger(cron: String, function: FunctionResource) {
+        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
+        val updateResources = cfDocuments.updateResources
 
         val cronRule = CronRule(cron, function, nimbusState)
         val lambdaPermissionResource = FunctionPermissionResource(function, cronRule, nimbusState)
 
         updateResources.addResource(cronRule)
         updateResources.addResource(lambdaPermissionResource)
-
     }
 }

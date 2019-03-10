@@ -5,8 +5,9 @@ import cloudformation.resource.Resource
 import com.google.gson.JsonObject
 
 abstract class AbstractRestResource (
-        nimbusState: NimbusState
-): Resource(nimbusState) {
+        nimbusState: NimbusState,
+        stage: String
+): Resource(nimbusState, stage) {
 
     abstract fun getId(): JsonObject
 
