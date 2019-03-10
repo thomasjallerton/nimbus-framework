@@ -40,8 +40,8 @@ class QueueServerlessFunctionFileBuilder(
         write("import java.util.stream.Collectors;")
         write("import java.util.List;")
         write("import java.util.LinkedList;")
-        if (methodInformation.qualifiedName.isNotBlank()) {
-            write("import ${methodInformation.qualifiedName}.${methodInformation.className};")
+        if (methodInformation.packageName.isNotBlank()) {
+            write("import ${methodInformation.packageName}.${methodInformation.className};")
         }
         write("import ${QueueEvent::class.qualifiedName};")
         write("import ${RecordCollection::class.qualifiedName};")

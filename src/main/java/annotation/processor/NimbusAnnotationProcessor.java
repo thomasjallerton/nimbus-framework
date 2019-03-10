@@ -25,7 +25,7 @@ import cloudformation.resource.dynamo.DynamoResource;
 import cloudformation.resource.function.FunctionResource;
 import cloudformation.resource.notification.SnsTopicResource;
 import cloudformation.resource.queue.QueueResource;
-import annotation.services.FileService;
+import annotation.services.CloudformationWriter;
 import annotation.services.FunctionEnvironmentService;
 import annotation.services.ReadUserConfigService;
 import annotation.services.functions.*;
@@ -60,9 +60,9 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
     private NimbusState nimbusState = null;
 
-    private FileService fileService = new FileService();
+    private CloudformationWriter cloudformationWriter;
 
-    private UserConfig userConfig = new ReadUserConfigService().readUserConfig();
+    private UserConfig userConfig;
 
     private ResourceCollection updateResources = new ResourceCollection();
     private ResourceCollection createResources = new ResourceCollection();
@@ -78,10 +78,14 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
     public synchronized void init(final ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         messager = processingEnv.getMessager();
+        cloudformationWriter = new CloudformationWriter(processingEnv.getFiler());
+        userConfig = new ReadUserConfigService().readUserConfig();
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+
+
         if (nimbusState == null) {
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat simpleDateFormat =
@@ -123,13 +127,15 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         CloudFormationTemplate update = new CloudFormationTemplate(updateResources, updateOutputs);
         CloudFormationTemplate create = new CloudFormationTemplate(createResources, createOutputs);
 
-        fileService.saveTemplate("cloudformation-stack-update", update);
-        fileService.saveTemplate("cloudformation-stack-create", create);
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            fileService.saveJsonFile("nimbus-state", mapper.writeValueAsString(nimbusState));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+        if (roundEnv.processingOver()) {
+            cloudformationWriter.saveTemplate("cloudformation-stack-update", update);
+            cloudformationWriter.saveTemplate("cloudformation-stack-create", create);
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                cloudformationWriter.saveJsonFile("nimbus-state", mapper.writeValueAsString(nimbusState));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
         return true;
     }

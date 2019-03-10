@@ -36,8 +36,8 @@ class NotificationServerlessFunctionFileBuilder(
         write("import com.amazonaws.services.lambda.runtime.Context;")
         write("import java.io.*;")
         write("import java.util.stream.Collectors;")
-        if (methodInformation.qualifiedName.isNotBlank()) {
-            write("import ${methodInformation.qualifiedName}.${methodInformation.className};")
+        if (methodInformation.packageName.isNotBlank()) {
+            write("import ${methodInformation.packageName}.${methodInformation.className};")
         }
         write("import ${NotificationEvent::class.qualifiedName};")
         write("import ${RecordCollection::class.qualifiedName};")

@@ -1,7 +1,7 @@
 package document;
 
 import annotation.processor.NimbusAnnotationProcessor;
-import annotation.services.FileService;
+import annotation.services.FileReader;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 
@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DocumentCompiles {
 
-    private FileService fileService = new FileService();
+    private FileReader fileService = new FileReader();
 
     @Test
     public void correctCompiles() {

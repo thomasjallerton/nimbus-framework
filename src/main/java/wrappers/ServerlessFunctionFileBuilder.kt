@@ -48,11 +48,10 @@ abstract class ServerlessFunctionFileBuilder(
                 val params = findParamIndexes()
 
                 isValidFunction(params)
-
                 val builderFile = processingEnv.filer.createSourceFile(getGeneratedClassName())
                 out = PrintWriter(builderFile.openWriter())
 
-                val packageName = findPackageName(methodInformation.qualifiedName)
+                val packageName = findPackageName(methodInformation.packageName)
 
                 if (packageName != "") write("package $packageName;")
 
@@ -114,13 +113,17 @@ abstract class ServerlessFunctionFileBuilder(
 
     fun getHandler(): String {
         return if (customFunction()) {
-            if (methodInformation.qualifiedName == "") {
+            if (methodInformation.packageName == "") {
                 "${methodInformation.className}::${methodInformation.methodName}"
             } else {
-                "${methodInformation.qualifiedName}.${methodInformation.className}::${methodInformation.methodName}"
+                "${methodInformation.packageName}.${methodInformation.className}::${methodInformation.methodName}"
             }
         } else {
-            "${getGeneratedClassName()}::nimbusHandle"
+            if (methodInformation.packageName.contains(".")) {
+                methodInformation.packageName.substringBeforeLast(".") + ".${getGeneratedClassName()}::nimbusHandle"
+            } else {
+                "${getGeneratedClassName()}::nimbusHandle"
+            }
         }
     }
 
@@ -179,7 +182,9 @@ abstract class ServerlessFunctionFileBuilder(
     }
 
     protected data class Param(val type: TypeMirror?, val index: Int) {
-        fun isEmpty(): Boolean {return type == null}
+        fun isEmpty(): Boolean {
+            return type == null
+        }
     }
 
     protected data class FunctionParams(
