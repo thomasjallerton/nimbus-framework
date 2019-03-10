@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import java.nio.charset.Charset
 
 
-internal class BasicServerlessFunctionClientLambda: BasicServerlessFunctionClient {
+internal class BasicServerlessFunctionClientLambda : BasicServerlessFunctionClient {
 
     private val lambdaClient = AWSLambdaClientBuilder.defaultClient()
     private val objectMapper = ObjectMapper()
@@ -25,8 +25,7 @@ internal class BasicServerlessFunctionClientLambda: BasicServerlessFunctionClien
         "dev"
     }
 
-
-        override fun invoke(handlerClass: Class<out Any>, functionName: String) {
+    override fun invoke(handlerClass: Class<out Any>, functionName: String) {
         invoke(handlerClass, functionName, "", Unit.javaClass)
     }
 

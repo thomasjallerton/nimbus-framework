@@ -136,12 +136,13 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
                 cloudformationWriter.saveTemplate("cloudformation-stack-update-" + stage, update);
                 cloudformationWriter.saveTemplate("cloudformation-stack-create-" + stage, create);
-                ObjectMapper mapper = new ObjectMapper();
-                try {
-                    cloudformationWriter.saveJsonFile("nimbus-state", mapper.writeValueAsString(nimbusState));
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                cloudformationWriter.saveJsonFile("nimbus-state", mapper.writeValueAsString(nimbusState));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
             }
         }
         return true;

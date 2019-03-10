@@ -1,6 +1,7 @@
 package annotation.services.functions
 
 import annotation.annotations.deployment.AfterDeployment
+import annotation.annotations.deployment.AfterDeployments
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import cloudformation.CloudFormationDocuments
@@ -10,45 +11,48 @@ import wrappers.deployment.DeploymentFunctionFileBuilder
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.element.Element
 
 class AfterDeploymentResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationDocuments>,
         private val nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
-): FunctionResourceCreator(cfDocuments, nimbusState, processingEnv) {
+): FunctionResourceCreator(
+        cfDocuments,
+        nimbusState,
+        processingEnv,
+        AfterDeployment::class.java,
+        AfterDeployments::class.java
+) {
 
-    override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
-        val annotatedElements = roundEnv.getElementsAnnotatedWith(AfterDeployment::class.java)
-        val results = LinkedList<FunctionInformation>()
-        for (type in annotatedElements) {
-            val afterDeployment = type.getAnnotation(AfterDeployment::class.java)
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+        val afterDeployments = type.getAnnotationsByType(AfterDeployment::class.java)
 
-            val methodInformation = extractMethodInformation(type)
+        val methodInformation = extractMethodInformation(type)
+        val fileBuilder = DeploymentFunctionFileBuilder(
+                processingEnv,
+                methodInformation,
+                type
+        )
 
-            val cloudFormationDocuments = cfDocuments.getOrPut(afterDeployment.stage) {CloudFormationDocuments()}
+        fileBuilder.createClass()
+
+        val handler = fileBuilder.getHandler()
+
+        for (afterDeployment in afterDeployments) {
+            val cloudFormationDocuments = cfDocuments.getOrPut(afterDeployment.stage) { CloudFormationDocuments() }
             val updateResources = cloudFormationDocuments.updateResources
-
-            val fileBuilder = DeploymentFunctionFileBuilder(
-                    processingEnv,
-                    methodInformation,
-                    type
-            )
-
-            val handler = fileBuilder.getHandler()
 
             val config = FunctionConfig(300, 1024, afterDeployment.stage)
             val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
 
-            val afterDeploymentList = nimbusState.afterDeployments.getOrPut(afterDeployment.stage) { mutableListOf()}
+            val afterDeploymentList = nimbusState.afterDeployments.getOrPut(afterDeployment.stage) { mutableListOf() }
             afterDeploymentList.add(functionResource.getFunctionName())
 
             updateResources.addResource(functionResource)
 
-            fileBuilder.createClass()
-
             results.add(FunctionInformation(type, functionResource))
         }
-        return results
     }
 
 }
