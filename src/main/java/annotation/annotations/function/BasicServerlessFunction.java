@@ -11,4 +11,5 @@ public @interface BasicServerlessFunction {
     String cron() default "";
     int timeout() default 10;
     int memory() default 1024;
+    String stage() default "dev";
 }

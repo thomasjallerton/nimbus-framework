@@ -11,7 +11,7 @@ class FunctionResource(
         private val methodInformation: MethodInformation,
         private val functionConfig: FunctionConfig,
         nimbusState: NimbusState
-) : Resource(nimbusState) {
+) : Resource(nimbusState, functionConfig.stage) {
 
     private val envVariables: MutableMap<String, String> = mutableMapOf()
     private val jsonEnvVariables: MutableMap<String, JsonObject> = mutableMapOf()
@@ -51,7 +51,7 @@ class FunctionResource(
         code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${nimbusState.compilationTimeStamp}/lambdacode")
 
         properties.add("Code", code)
-        properties.addProperty("FunctionName", functionName(nimbusState.projectName, methodInformation.className, methodInformation.methodName))
+        properties.addProperty("FunctionName", functionName(nimbusState.projectName, methodInformation.className, methodInformation.methodName, functionConfig.stage))
         properties.addProperty("Handler", handler)
         properties.addProperty("MemorySize", functionConfig.memory)
 
@@ -88,12 +88,12 @@ class FunctionResource(
     }
 
     fun getFunctionName(): String {
-        return functionName(nimbusState.projectName, methodInformation.className, methodInformation.methodName)
+        return functionName(nimbusState.projectName, methodInformation.className, methodInformation.methodName, functionConfig.stage)
     }
 
     companion object {
-        fun functionName(projectName: String, className: String, methodName: String): String {
-            return "$projectName-$className-$methodName"
+        fun functionName(projectName: String, className: String, methodName: String, stage: String): String {
+            return "$projectName-$stage-$className-$methodName"
         }
     }
 

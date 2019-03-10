@@ -8,7 +8,7 @@ class Route(
         private val routeTable: RouteTable,
         private val internetGateway: InternetGateway,
         nimbusState: NimbusState
-): Resource(nimbusState) {
+): Resource(nimbusState, internetGateway.stage) {
 
     init {
         addDependsOn(routeTable)

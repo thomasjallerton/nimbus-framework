@@ -10,7 +10,7 @@ class Subnet(
         private val availabilityZone: String,
         private val cidr: String,
         nimbusState: NimbusState
-): Resource(nimbusState) {
+): Resource(nimbusState, vpc.stage) {
 
     init {
         addDependsOn(vpc)

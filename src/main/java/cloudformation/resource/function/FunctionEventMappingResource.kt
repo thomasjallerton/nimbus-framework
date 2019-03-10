@@ -10,7 +10,7 @@ class FunctionEventMappingResource(
         private val batchSize: Int,
         val function: FunctionResource,
         nimbusState: NimbusState
-): Resource(nimbusState) {
+): Resource(nimbusState, function.stage) {
     override fun toCloudFormation(): JsonObject {
         val eventMapping = JsonObject()
         eventMapping.addProperty("Type", "AWS::Lambda::EventSourceMapping")

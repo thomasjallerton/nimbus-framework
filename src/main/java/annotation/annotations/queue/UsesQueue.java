@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UsesQueue {
     String id();
+    String stage() default "dev";
 }

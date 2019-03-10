@@ -7,6 +7,7 @@ import cloudformation.resource.ResourceCollection
 import cloudformation.resource.function.FunctionConfig
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
+import cloudformation.CloudFormationDocuments
 import wrappers.queue.QueueServerlessFunctionFileBuilder
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
@@ -15,11 +16,10 @@ import javax.lang.model.element.ElementKind
 import javax.tools.Diagnostic
 
 class QueueFunctionResourceCreator(
-        updateResources: ResourceCollection,
+        cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment,
-        private val savedResources: MutableMap<String, Resource>
-) : FunctionResourceCreator(updateResources, nimbusState, processingEnv) {
+        processingEnv: ProcessingEnvironment
+) : FunctionResourceCreator(cfDocuments, nimbusState, processingEnv) {
     override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val annotatedElements = roundEnv.getElementsAnnotatedWith(QueueServerlessFunction::class.java)
 
@@ -37,10 +37,13 @@ class QueueFunctionResourceCreator(
                         type
                 )
 
-                val config = FunctionConfig(queueFunction.timeout, queueFunction.memory)
+                val config = FunctionConfig(queueFunction.timeout, queueFunction.memory, queueFunction.stage)
                 val functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config)
 
                 val newQueue = functionEnvironmentService.newQueue(queueFunction, functionResource)
+
+                val cloudFormationDocuments = cfDocuments.getOrPut(queueFunction.stage) {CloudFormationDocuments()}
+                val savedResources = cloudFormationDocuments.savedResources
 
                 if (savedResources.containsKey(queueFunction.id)) {
                     messager.printMessage(Diagnostic.Kind.ERROR, "Can't have multiple consumers of the same queue ("

@@ -6,6 +6,7 @@ import cloudformation.resource.ResourceCollection
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import annotation.services.ResourceFinder
+import cloudformation.CloudFormationDocuments
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
@@ -13,12 +14,12 @@ import javax.lang.model.element.PackageElement
 import javax.lang.model.type.ExecutableType
 
 abstract class FunctionResourceCreator(
-        updateResources: ResourceCollection,
+        protected val cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
         protected val processingEnv: ProcessingEnvironment
 ) {
 
-    protected val resourceFinder: ResourceFinder = ResourceFinder(updateResources, processingEnv, nimbusState)
+    protected val resourceFinder: ResourceFinder = ResourceFinder(cfDocuments, processingEnv, nimbusState)
     protected val messager = processingEnv.messager
 
     abstract fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation>

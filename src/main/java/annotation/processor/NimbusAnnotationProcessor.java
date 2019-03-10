@@ -11,7 +11,12 @@ import annotation.annotations.notification.UsesNotificationTopic;
 import annotation.annotations.persistent.Key;
 import annotation.annotations.queue.UsesQueue;
 import annotation.services.ResourceFinder;
+import annotation.services.resources.CloudResourceResourceCreator;
+import annotation.services.resources.DocumentStoreResourceCreator;
+import annotation.services.resources.KeyValueStoreResourceCreator;
+import annotation.services.resources.RelationalDatabaseResourceCreator;
 import annotation.wrappers.annotations.datamodel.*;
+import cloudformation.CloudFormationDocuments;
 import cloudformation.CloudFormationTemplate;
 import cloudformation.outputs.OutputCollection;
 import persisted.NimbusState;
@@ -64,15 +69,9 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
     private UserConfig userConfig;
 
-    private ResourceCollection updateResources = new ResourceCollection();
-    private ResourceCollection createResources = new ResourceCollection();
-
-    private OutputCollection updateOutputs = new OutputCollection();
-    private OutputCollection createOutputs = new OutputCollection();
+    private Map<String, CloudFormationDocuments> cfDocuments = new HashMap<>();
 
     private Messager messager;
-
-    private Map<String, Resource> savedResources = new HashMap<>();
 
     @Override
     public synchronized void init(final ProcessingEnvironment processingEnv) {
@@ -92,155 +91,71 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSzzz", Locale.US);
 
             String compilationTime = simpleDateFormat.format(cal.getTime());
-            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime, new LinkedList<>());
+            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime, new HashMap<>());
         }
 
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(
-                createResources,
-                updateResources,
-                createOutputs,
-                updateOutputs,
+                cfDocuments,
                 nimbusState
         );
 
-        handleDocumentStore(roundEnv, updateResources);
-        handleKeyValueStore(roundEnv, updateResources);
-        handleRelationalDatabase(roundEnv, updateResources);
 
-        List<FunctionResourceCreator> resourceCreators = new LinkedList<>();
-        resourceCreators.add(new DocumentStoreFunctionResourceCreator(updateResources, nimbusState, processingEnv));
-        resourceCreators.add(new KeyValueStoreFunctionResourceCreator(updateResources, nimbusState, processingEnv));
-        resourceCreators.add(new HttpFunctionResourceCreator(updateResources, nimbusState, processingEnv));
-        resourceCreators.add(new NotificationFunctionResourceCreator(updateResources, nimbusState, processingEnv));
-        resourceCreators.add(new QueueFunctionResourceCreator(updateResources, nimbusState, processingEnv, savedResources));
-        resourceCreators.add(new BasicFunctionResourceCreator(updateResources, nimbusState, processingEnv));
-        resourceCreators.add(new AfterDeploymentResourceCreator(updateResources, nimbusState, processingEnv));
+        List<CloudResourceResourceCreator> resourceCreators = new LinkedList<>();
+        resourceCreators.add(new DocumentStoreResourceCreator(roundEnv, cfDocuments, nimbusState));
+        resourceCreators.add(new KeyValueStoreResourceCreator(roundEnv, cfDocuments, nimbusState, processingEnv));
+        resourceCreators.add(new RelationalDatabaseResourceCreator(roundEnv, cfDocuments, nimbusState));
+
+        for (CloudResourceResourceCreator creator : resourceCreators) {
+            creator.create();
+        }
+
+        List<FunctionResourceCreator> functionResourceCreators = new LinkedList<>();
+        functionResourceCreators.add(new DocumentStoreFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
+        functionResourceCreators.add(new KeyValueStoreFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
+        functionResourceCreators.add(new HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
+        functionResourceCreators.add(new NotificationFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
+        functionResourceCreators.add(new QueueFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
+        functionResourceCreators.add(new BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
+        functionResourceCreators.add(new AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv));
 
         List<FunctionInformation> allInformation = new LinkedList<>();
-        for (FunctionResourceCreator creator : resourceCreators) {
+        for (FunctionResourceCreator creator : functionResourceCreators) {
             allInformation.addAll(creator.handle(roundEnv, functionEnvironmentService));
         }
 
-        handleUseResources(allInformation, updateResources);
-
-
-        CloudFormationTemplate update = new CloudFormationTemplate(updateResources, updateOutputs);
-        CloudFormationTemplate create = new CloudFormationTemplate(createResources, createOutputs);
+        handleUseResources(allInformation);
 
         if (roundEnv.processingOver()) {
-            cloudformationWriter.saveTemplate("cloudformation-stack-update", update);
-            cloudformationWriter.saveTemplate("cloudformation-stack-create", create);
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                cloudformationWriter.saveJsonFile("nimbus-state", mapper.writeValueAsString(nimbusState));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+
+            for (Map.Entry<String, CloudFormationDocuments> entry : cfDocuments.entrySet()) {
+                String stage = entry.getKey();
+                CloudFormationDocuments cloudFormationDocuments = entry.getValue();
+
+                CloudFormationTemplate update = new CloudFormationTemplate(cloudFormationDocuments.getUpdateResources(), cloudFormationDocuments.getUpdateOutputs());
+                CloudFormationTemplate create = new CloudFormationTemplate(cloudFormationDocuments.getCreateResources(), cloudFormationDocuments.getCreateOutputs());
+
+                cloudformationWriter.saveTemplate("cloudformation-stack-update-" + stage, update);
+                cloudformationWriter.saveTemplate("cloudformation-stack-create-" + stage, create);
+                ObjectMapper mapper = new ObjectMapper();
+                try {
+                    cloudformationWriter.saveJsonFile("nimbus-state", mapper.writeValueAsString(nimbusState));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
             }
         }
         return true;
     }
 
-    private void handleUseResources(List<FunctionInformation> functionInformationList, ResourceCollection updateResources) {
+    private void handleUseResources(List<FunctionInformation> functionInformationList) {
         for (FunctionInformation functionInformation : functionInformationList) {
-            handleUseResources(functionInformation.getElement(), functionInformation.getResource(), updateResources);
+            handleUseResources(functionInformation.getElement(), functionInformation.getResource());
         }
     }
 
-    private void handleRelationalDatabase(RoundEnvironment roundEnv, ResourceCollection updateResources) {
-        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(RelationalDatabase.class);
-
-        for (Element type : annotatedElements) {
-            RelationalDatabase relationalDatabase = type.getAnnotation(RelationalDatabase.class);
-
-            DatabaseConfiguration databaseConfiguration = DatabaseConfiguration.fromRelationDatabase(relationalDatabase);
-
-            Vpc vpc = new Vpc(nimbusState);
-            SecurityGroupResource securityGroupResource = new SecurityGroupResource(vpc, nimbusState);
-            Subnet publicSubnet = new Subnet(vpc, "a","10.0.1.0/24", nimbusState);
-            Subnet publicSubnet2 = new Subnet(vpc, "b", "10.0.0.0/24", nimbusState);
-            List<Subnet> subnets = new LinkedList<>();
-            subnets.add(publicSubnet);
-            subnets.add(publicSubnet2);
-
-            SubnetGroup subnetGroup = new SubnetGroup(subnets, nimbusState);
-            RdsResource rdsResource = new RdsResource(databaseConfiguration, securityGroupResource, subnetGroup, nimbusState);
-
-            InternetGateway internetGateway = new InternetGateway(nimbusState);
-            VpcGatewayAttachment vpcGatewayAttachment = new VpcGatewayAttachment(vpc, internetGateway, nimbusState);
-            RouteTable table = new RouteTable(vpc, nimbusState);
-            Route route = new Route(table, internetGateway, nimbusState);
-            RouteTableAssociation rta1 = new RouteTableAssociation(table, publicSubnet, nimbusState);
-            RouteTableAssociation rta2 = new RouteTableAssociation(table, publicSubnet2, nimbusState);
-
-            updateResources.addResource(vpc);
-            updateResources.addResource(publicSubnet);
-            updateResources.addResource(publicSubnet2);
-            updateResources.addResource(subnetGroup);
-            updateResources.addResource(securityGroupResource);
-            updateResources.addResource(rdsResource);
-            updateResources.addResource(internetGateway);
-            updateResources.addResource(vpcGatewayAttachment);
-            updateResources.addResource(table);
-            updateResources.addResource(route);
-            updateResources.addResource(rta1);
-            updateResources.addResource(rta2);
-        }
-    }
-
-    private void handleDocumentStore(RoundEnvironment roundEnv, ResourceCollection updateResources) {
-        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(DocumentStore.class);
-
-        for (Element type : annotatedElements) {
-            DocumentStore documentStore = type.getAnnotation(DocumentStore.class);
-
-            String tableName = determineTableName(documentStore.tableName(), type.getSimpleName().toString());
-            DynamoResource dynamoResource = new DynamoResource(tableName, nimbusState);
-
-            if (documentStore.existingArn().equals("")) {
-
-                if (type.getKind() == ElementKind.CLASS) {
-
-                    for (Element enclosedElement : type.getEnclosedElements()) {
-                        for (Key key : enclosedElement.getAnnotationsByType(Key.class)) {
-                            if (enclosedElement.getKind() == ElementKind.FIELD) {
-
-                                String columnName = key.columnName();
-                                if (columnName.equals("")) columnName = enclosedElement.getSimpleName().toString();
-
-                                Object fieldType = enclosedElement.asType();
-
-                                dynamoResource.addHashKey(columnName, fieldType);
-                            }
-                        }
-                    }
-                }
-                updateResources.addResource(dynamoResource);
-            }
-        }
-    }
-
-    private void handleKeyValueStore(RoundEnvironment roundEnv, ResourceCollection updateResources) {
-        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(KeyValueStore.class);
-
-        for (Element type : annotatedElements) {
-            KeyValueStore keyValueStore = type.getAnnotation(KeyValueStore.class);
-
-            if (keyValueStore.existingArn().equals("")) {
-                String tableName = determineTableName(keyValueStore.tableName(), type.getSimpleName().toString());
-                DynamoResource dynamoResource = new DynamoResource(tableName, nimbusState);
-
-                DataModelAnnotation dataModelAnnotation = new KeyValueStoreAnnotation(keyValueStore);
-                TypeElement element = dataModelAnnotation.getTypeElement(processingEnv);
-
-                dynamoResource.addHashKeyClass(keyValueStore.keyName(), element);
-                updateResources.addResource(dynamoResource);
-            }
-        }
-    }
-
-    private void handleUseResources(Element serverlessMethod, FunctionResource functionResource, ResourceCollection updateResources) {
+    private void handleUseResources(Element serverlessMethod, FunctionResource functionResource) {
         IamRoleResource iamRoleResource = functionResource.getIamRoleResource();
-        ResourceFinder resourceFinder = new ResourceFinder(updateResources, processingEnv, nimbusState);
+        ResourceFinder resourceFinder = new ResourceFinder(cfDocuments, processingEnv, nimbusState);
         for (UsesDocumentStore usesDocumentStore : serverlessMethod.getAnnotationsByType(UsesDocumentStore.class)) {
 
             DataModelAnnotation dataModelAnnotation = new UsesDocumentStoreAnnotation(usesDocumentStore);
@@ -271,8 +186,10 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             }
         }
 
-        for (UsesBasicServerlessFunctionClient ignored : serverlessMethod.getAnnotationsByType(UsesBasicServerlessFunctionClient.class)) {
+        for (UsesBasicServerlessFunctionClient usesBasicServerlessFunctionClient : serverlessMethod.getAnnotationsByType(UsesBasicServerlessFunctionClient.class)) {
             functionResource.addEnvVariable("NIMBUS_PROJECT_NAME", nimbusState.getProjectName());
+            functionResource.addEnvVariable("FUNCTION_STAGE", usesBasicServerlessFunctionClient.stage());
+            ResourceCollection updateResources = cfDocuments.get(usesBasicServerlessFunctionClient.stage()).getUpdateResources();
             List<Resource> invokableFunctions = updateResources.getInvokableFunctions();
             for (Resource invokableFunction : invokableFunctions) {
                 functionResource.getIamRoleResource().addAllowStatement("lambda:*", invokableFunction, "");
@@ -280,12 +197,14 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         }
 
         for (UsesQueue usesQueue : serverlessMethod.getAnnotationsByType(UsesQueue.class)) {
-            if (usesQueue.id().equals("") || savedResources.get(usesQueue.id()) == null) {
+            CloudFormationDocuments cloudFormationDocuments = cfDocuments.get(usesQueue.stage());
+
+            if (cloudFormationDocuments == null || usesQueue.id().equals("") || cloudFormationDocuments.getSavedResources().get(usesQueue.id()) == null) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find id of queue, have you set it in the @QueueServerlessFunction?", serverlessMethod);
                 return;
             }
 
-            Resource referencedQueue = savedResources.get(usesQueue.id());
+            Resource referencedQueue = cloudFormationDocuments.getSavedResources().get(usesQueue.id());
             if (!(referencedQueue instanceof QueueResource)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Resource with id " + usesQueue.id() + " is not a Queue", serverlessMethod);
                 return;
@@ -297,8 +216,12 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
         for (UsesNotificationTopic notificationTopic: serverlessMethod.getAnnotationsByType(UsesNotificationTopic.class)) {
 
-            SnsTopicResource snsTopicResource = new SnsTopicResource(notificationTopic.topic(), null, nimbusState);
-            updateResources.addResource(snsTopicResource);
+            SnsTopicResource snsTopicResource = new SnsTopicResource(notificationTopic.topic(), null, nimbusState, notificationTopic.stage());
+            CloudFormationDocuments cloudFormationDocuments = cfDocuments.get(notificationTopic.stage());
+            if (cloudFormationDocuments == null) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "No serverless function annotation found for UsesNotificationTopic", serverlessMethod);
+            }
+            cloudFormationDocuments.getUpdateResources().addResource(snsTopicResource);
 
             functionResource.addEnvVariable("SNS_TOPIC_ARN_" + notificationTopic.topic().toUpperCase(), snsTopicResource.getArn(""));
             iamRoleResource.addAllowStatement("sns:Subscribe", snsTopicResource, "");
@@ -307,14 +230,5 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private String determineTableName(String givenName, String className) {
-        String tableName;
-        if (givenName.equals("")) {
-            tableName = className;
-        } else {
-            tableName = givenName;
-        }
-        return tableName;
-    }
 }
 

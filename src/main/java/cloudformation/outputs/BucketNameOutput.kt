@@ -8,7 +8,7 @@ import configuration.DEPLOYMENT_BUCKET_NAME
 class BucketNameOutput(
         private val bucketResource: NimbusBucketResource,
         nimbusState: NimbusState
-): Output(nimbusState) {
+): Output(nimbusState, bucketResource.stage) {
     override fun getName(): String {
         return DEPLOYMENT_BUCKET_NAME
     }
@@ -21,7 +21,7 @@ class BucketNameOutput(
         bucketName.add("Value", value)
 
         val export = JsonObject()
-        export.addProperty("Name", "${nimbusState.projectName}-$DEPLOYMENT_BUCKET_NAME")
+        export.addProperty("Name", "${nimbusState.projectName}-$stage-$DEPLOYMENT_BUCKET_NAME")
 
         bucketName.add("Export", export)
 

@@ -12,7 +12,7 @@ class RestMethod (
         private val requestParams: Map<String, String>,
         private val function: FunctionResource,
         nimbusState: NimbusState
-): Resource(nimbusState){
+): Resource(nimbusState, function.stage){
 
     override fun getName(): String {
         return "ApiGatewayMethod${parent.getPath()}$method"

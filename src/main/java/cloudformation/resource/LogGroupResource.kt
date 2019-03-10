@@ -6,8 +6,9 @@ import com.google.gson.JsonObject
 class LogGroupResource(
         private val className: String,
         private val methodName: String,
-        nimbusState: NimbusState
-): Resource(nimbusState) {
+        nimbusState: NimbusState,
+        stage: String
+): Resource(nimbusState, stage) {
 
     override fun getArn(suffix: String): JsonObject {
         val arn = JsonObject()

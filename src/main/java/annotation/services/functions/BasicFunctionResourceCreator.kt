@@ -3,6 +3,7 @@ package annotation.services.functions
 import annotation.annotations.function.BasicServerlessFunction
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
+import cloudformation.CloudFormationDocuments
 import persisted.NimbusState
 import cloudformation.resource.ResourceCollection
 import cloudformation.resource.function.FunctionConfig
@@ -12,10 +13,10 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 
 class BasicFunctionResourceCreator(
-        private val updateResources: ResourceCollection,
+        cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
-): FunctionResourceCreator(updateResources, nimbusState, processingEnv) {
+): FunctionResourceCreator(cfDocuments, nimbusState, processingEnv) {
 
     override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val annotatedElements = roundEnv.getElementsAnnotatedWith(BasicServerlessFunction::class.java)
@@ -23,6 +24,9 @@ class BasicFunctionResourceCreator(
         for (type in annotatedElements) {
             val basicFunction = type.getAnnotation(BasicServerlessFunction::class.java)
             val methodInformation = extractMethodInformation(type)
+
+            val cloudFormationDocuments = cfDocuments.getOrPut(basicFunction.stage) {CloudFormationDocuments()}
+            val updateResources = cloudFormationDocuments.updateResources
 
             val fileBuilder = BasicServerlessFunctionFileBuilder(
                     processingEnv,
@@ -32,7 +36,7 @@ class BasicFunctionResourceCreator(
 
             val handler = fileBuilder.getHandler()
 
-            val config = FunctionConfig(basicFunction.timeout, basicFunction.memory)
+            val config = FunctionConfig(basicFunction.timeout, basicFunction.memory, basicFunction.stage)
             val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
 
             //Configure cron if necessary

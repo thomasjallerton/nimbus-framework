@@ -1,4 +1,6 @@
-package annotation.annotations.function;
+package annotation.annotations.function.repeatable;
+
+import annotation.annotations.function.HttpServerlessFunction;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,9 +9,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface NotificationServerlessFunction {
-    public String topic();
-    int timeout() default 10;
-    int memory() default 1024;
-    String stage() default "dev";
+public @interface HttpServerlessFunctions {
+    HttpServerlessFunction[] value();
 }

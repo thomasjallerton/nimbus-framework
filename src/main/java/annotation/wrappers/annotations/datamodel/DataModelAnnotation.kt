@@ -7,6 +7,7 @@ import javax.lang.model.type.PrimitiveType
 
 abstract class DataModelAnnotation {
 
+    abstract val stage: String
     protected abstract fun internalDataModel(): Class<out Any>
 
     fun getTypeElement(processingEnv: ProcessingEnvironment): TypeElement {
@@ -22,5 +23,4 @@ abstract class DataModelAnnotation {
         }
         throw Exception("Shouldn't have reached here!")
     }
-
 }

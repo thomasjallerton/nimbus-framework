@@ -7,6 +7,7 @@ import cloudformation.resource.function.FunctionConfig
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import annotation.wrappers.annotations.datamodel.DocumentStoreServerlessFunctionAnnotation
+import cloudformation.CloudFormationDocuments
 import wrappers.store.document.DocumentStoreServerlessFunctionFileBuilder
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
@@ -14,10 +15,10 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.ElementKind
 
 class DocumentStoreFunctionResourceCreator(
-        updateResources: ResourceCollection,
+        cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
-): FunctionResourceCreator(updateResources, nimbusState, processingEnv) {
+): FunctionResourceCreator(cfDocuments, nimbusState, processingEnv) {
 
     override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val annotatedElements = roundEnv.getElementsAnnotatedWith(DocumentStoreServerlessFunction::class.java)
@@ -40,7 +41,7 @@ class DocumentStoreFunctionResourceCreator(
 
                 val handler = fileBuilder.getHandler()
 
-                val config = FunctionConfig(documentStoreFunction.timeout, documentStoreFunction.memory)
+                val config = FunctionConfig(documentStoreFunction.timeout, documentStoreFunction.memory, documentStoreFunction.stage)
                 val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
 
                 val dynamoResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, type)

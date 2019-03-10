@@ -7,6 +7,7 @@ import cloudformation.resource.function.FunctionConfig
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import annotation.wrappers.annotations.datamodel.KeyValueStoreServerlessFunctionAnnotation
+import cloudformation.CloudFormationDocuments
 import wrappers.store.keyvalue.KeyValueStoreServerlessFunctionFileBuilder
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
@@ -14,10 +15,10 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.ElementKind
 
 class KeyValueStoreFunctionResourceCreator(
-        updateResources: ResourceCollection,
+        cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
-): FunctionResourceCreator(updateResources, nimbusState, processingEnv) {
+): FunctionResourceCreator(cfDocuments, nimbusState, processingEnv) {
 
 
     override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
@@ -41,7 +42,7 @@ class KeyValueStoreFunctionResourceCreator(
 
                 val handler = fileBuilder.getHandler()
 
-                val config = FunctionConfig(keyValueStoreFunction.timeout, keyValueStoreFunction.memory)
+                val config = FunctionConfig(keyValueStoreFunction.timeout, keyValueStoreFunction.memory, keyValueStoreFunction.stage)
                 val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
 
                 val dynamoResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, type)

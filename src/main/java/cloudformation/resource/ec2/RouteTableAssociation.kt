@@ -8,7 +8,7 @@ class RouteTableAssociation(
         private val routeTable: RouteTable,
         private val subnet: Subnet,
         nimbusState: NimbusState
-): Resource(nimbusState) {
+): Resource(nimbusState, routeTable.stage) {
 
     init {
         addDependsOn(routeTable)

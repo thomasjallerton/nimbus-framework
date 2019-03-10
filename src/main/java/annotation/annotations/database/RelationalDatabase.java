@@ -14,4 +14,5 @@ public @interface RelationalDatabase {
     DatabaseSize databaseSize() default DatabaseSize.FREE;
     DatabaseLanguage databaseLanguage();
     int allocatedSizeGB() default 20;
+    String stage() default "dev";
 }

@@ -6,6 +6,7 @@ import cloudformation.resource.ResourceCollection
 import cloudformation.resource.function.FunctionConfig
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
+import cloudformation.CloudFormationDocuments
 import wrappers.notification.NotificationServerlessFunctionFileBuilder
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
@@ -13,10 +14,10 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.ElementKind
 
 class NotificationFunctionResourceCreator(
-        updateResources: ResourceCollection,
+        cfDocuments: MutableMap<String, CloudFormationDocuments>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
-) : FunctionResourceCreator(updateResources, nimbusState, processingEnv) {
+) : FunctionResourceCreator(cfDocuments, nimbusState, processingEnv) {
 
 
     override fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
@@ -36,7 +37,7 @@ class NotificationFunctionResourceCreator(
                         type
                 )
 
-                val config = FunctionConfig(notificationFunction.timeout, notificationFunction.memory)
+                val config = FunctionConfig(notificationFunction.timeout, notificationFunction.memory, notificationFunction.stage)
                 val functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config)
 
                 functionEnvironmentService.newNotification(notificationFunction, functionResource)

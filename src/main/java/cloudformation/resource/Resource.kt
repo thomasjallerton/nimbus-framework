@@ -4,7 +4,7 @@ import persisted.NimbusState
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
-abstract class Resource(protected val nimbusState: NimbusState) {
+abstract class Resource(protected val nimbusState: NimbusState, val stage: String) {
     abstract fun toCloudFormation(): JsonObject
     abstract fun getName(): String
 

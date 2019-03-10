@@ -8,12 +8,13 @@ import cloudformation.resource.ExistingResource
 import cloudformation.resource.Resource
 import cloudformation.resource.ResourceCollection
 import annotation.wrappers.annotations.datamodel.DataModelAnnotation
+import cloudformation.CloudFormationDocuments
 import cloudformation.resource.database.RdsResource
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
-class ResourceFinder(private val resourceCollection: ResourceCollection, private val processingEnv: ProcessingEnvironment, private val nimbusState: NimbusState) {
+class ResourceFinder(private val resourceCollections: Map<String, CloudFormationDocuments>, private val processingEnv: ProcessingEnvironment, private val nimbusState: NimbusState) {
 
     private val messager = processingEnv.messager
 
@@ -21,7 +22,7 @@ class ResourceFinder(private val resourceCollection: ResourceCollection, private
         return try {
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val documentStore = typeElement.getAnnotation(DocumentStore::class.java)
-            getStoreResource(documentStore.existingArn, documentStore.tableName, typeElement.simpleName.toString())
+            getStoreResource(documentStore.existingArn, documentStore.tableName, typeElement.simpleName.toString(), dataModelAnnotation.stage)
         } catch (e: NullPointerException) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with DocumentStore but isn't", serverlessMethod)
             null
@@ -32,7 +33,7 @@ class ResourceFinder(private val resourceCollection: ResourceCollection, private
         return try {
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val keyValueStore = typeElement.getAnnotation(KeyValueStore::class.java)
-            getStoreResource(keyValueStore.existingArn, keyValueStore.tableName, typeElement.simpleName.toString())
+            getStoreResource(keyValueStore.existingArn, keyValueStore.tableName, typeElement.simpleName.toString(), dataModelAnnotation.stage)
         } catch (e: NullPointerException) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod)
             null
@@ -43,18 +44,18 @@ class ResourceFinder(private val resourceCollection: ResourceCollection, private
         return try {
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val relationalDatabase = typeElement.getAnnotation(RelationalDatabase::class.java)
-            return resourceCollection.get("${relationalDatabase.name}RdsInstance") as RdsResource?
+            return resourceCollections.getValue(dataModelAnnotation.stage).updateResources.get("${relationalDatabase.name}RdsInstance") as RdsResource?
         } catch (e: NullPointerException) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod)
             null
         }
     }
 
-    private fun getStoreResource(existingArn: String, tableName: String, elementName: String): Resource? {
+    private fun getStoreResource(existingArn: String, tableName: String, elementName: String, stage: String): Resource? {
         return if (existingArn == "") {
-            resourceCollection.get(determineTableName(tableName, elementName))
+            return resourceCollections.getValue(stage).updateResources.get(determineTableName(tableName, elementName))
         } else {
-            ExistingResource(existingArn, nimbusState)
+            ExistingResource(existingArn, nimbusState, stage)
         }
     }
 

@@ -5,8 +5,9 @@ import com.google.gson.JsonObject
 
 class ExistingResource(
         private val arn: String,
-        nimbusState: NimbusState
-) : Resource(nimbusState) {
+        nimbusState: NimbusState,
+        stage: String
+) : Resource(nimbusState, stage) {
     override fun toCloudFormation(): JsonObject {
         return JsonObject()
     }

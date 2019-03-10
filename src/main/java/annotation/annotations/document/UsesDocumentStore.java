@@ -8,5 +8,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UsesDocumentStore {
-    public Class<?> dataModel();
+    Class<?> dataModel();
+    String stage() default "dev";
 }

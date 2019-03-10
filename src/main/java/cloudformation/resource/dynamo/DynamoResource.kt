@@ -8,8 +8,9 @@ import javax.lang.model.element.TypeElement
 
 class DynamoResource(
         private val tableName: String,
-        nimbusState: NimbusState
-) : Resource(nimbusState) {
+        nimbusState: NimbusState,
+        stage: String
+) : Resource(nimbusState, stage) {
 
     private val keys: MutableList<Attribute> = mutableListOf()
     private val attributes: MutableList<Attribute> = mutableListOf()

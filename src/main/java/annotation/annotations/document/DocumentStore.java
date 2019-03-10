@@ -10,4 +10,5 @@ import java.lang.annotation.Target;
 public @interface DocumentStore {
     String tableName() default "";
     String existingArn() default "";
+    String stage() default "dev";
 }

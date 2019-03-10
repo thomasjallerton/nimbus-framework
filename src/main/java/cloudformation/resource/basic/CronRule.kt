@@ -10,7 +10,7 @@ class CronRule(
         private val cron: String,
         private val target: Resource,
         nimbusState: NimbusState
-): Resource(nimbusState), FunctionTrigger {
+): Resource(nimbusState, target.stage), FunctionTrigger {
 
     override fun getTriggerType(): String {
         return "events."
