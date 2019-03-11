@@ -27,41 +27,43 @@ class RelationalDatabaseResourceCreator(
         val relationalDatabases = type.getAnnotationsByType(RelationalDatabase::class.java)
 
         for (relationalDatabase in relationalDatabases) {
-            val cloudFormationDocuments = cfDocuments.getOrPut(relationalDatabase.stage) { CloudFormationDocuments() }
-            val updateResources = cloudFormationDocuments.updateResources
+            for (stage in relationalDatabase.stages) {
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val updateResources = cloudFormationDocuments.updateResources
 
-            val databaseConfiguration = DatabaseConfiguration.fromRelationDatabase(relationalDatabase)
+                val databaseConfiguration = DatabaseConfiguration.fromRelationDatabase(relationalDatabase)
 
-            val vpc = Vpc(nimbusState, relationalDatabase.stage)
-            val securityGroupResource = SecurityGroupResource(vpc, nimbusState)
-            val publicSubnet = Subnet(vpc, "a", "10.0.1.0/24", nimbusState)
-            val publicSubnet2 = Subnet(vpc, "b", "10.0.0.0/24", nimbusState)
-            val subnets = LinkedList<Subnet>()
-            subnets.add(publicSubnet)
-            subnets.add(publicSubnet2)
+                val vpc = Vpc(nimbusState, stage)
+                val securityGroupResource = SecurityGroupResource(vpc, nimbusState)
+                val publicSubnet = Subnet(vpc, "a", "10.0.1.0/24", nimbusState)
+                val publicSubnet2 = Subnet(vpc, "b", "10.0.0.0/24", nimbusState)
+                val subnets = LinkedList<Subnet>()
+                subnets.add(publicSubnet)
+                subnets.add(publicSubnet2)
 
-            val subnetGroup = SubnetGroup(subnets, nimbusState, relationalDatabase.stage)
-            val rdsResource = RdsResource(databaseConfiguration, securityGroupResource, subnetGroup, nimbusState)
+                val subnetGroup = SubnetGroup(subnets, nimbusState, stage)
+                val rdsResource = RdsResource(databaseConfiguration, securityGroupResource, subnetGroup, nimbusState)
 
-            val internetGateway = InternetGateway(nimbusState, relationalDatabase.stage)
-            val vpcGatewayAttachment = VpcGatewayAttachment(vpc, internetGateway, nimbusState)
-            val table = RouteTable(vpc, nimbusState)
-            val route = Route(table, internetGateway, nimbusState)
-            val rta1 = RouteTableAssociation(table, publicSubnet, nimbusState)
-            val rta2 = RouteTableAssociation(table, publicSubnet2, nimbusState)
+                val internetGateway = InternetGateway(nimbusState, stage)
+                val vpcGatewayAttachment = VpcGatewayAttachment(vpc, internetGateway, nimbusState)
+                val table = RouteTable(vpc, nimbusState)
+                val route = Route(table, internetGateway, nimbusState)
+                val rta1 = RouteTableAssociation(table, publicSubnet, nimbusState)
+                val rta2 = RouteTableAssociation(table, publicSubnet2, nimbusState)
 
-            updateResources.addResource(vpc)
-            updateResources.addResource(publicSubnet)
-            updateResources.addResource(publicSubnet2)
-            updateResources.addResource(subnetGroup)
-            updateResources.addResource(securityGroupResource)
-            updateResources.addResource(rdsResource)
-            updateResources.addResource(internetGateway)
-            updateResources.addResource(vpcGatewayAttachment)
-            updateResources.addResource(table)
-            updateResources.addResource(route)
-            updateResources.addResource(rta1)
-            updateResources.addResource(rta2)
+                updateResources.addResource(vpc)
+                updateResources.addResource(publicSubnet)
+                updateResources.addResource(publicSubnet2)
+                updateResources.addResource(subnetGroup)
+                updateResources.addResource(securityGroupResource)
+                updateResources.addResource(rdsResource)
+                updateResources.addResource(internetGateway)
+                updateResources.addResource(vpcGatewayAttachment)
+                updateResources.addResource(table)
+                updateResources.addResource(route)
+                updateResources.addResource(rta1)
+                updateResources.addResource(rta2)
+            }
         }
     }
 

@@ -41,24 +41,26 @@ class QueueFunctionResourceCreator(
         )
 
         for (queueFunction in queueFunctions) {
-            val config = FunctionConfig(queueFunction.timeout, queueFunction.memory, queueFunction.stage)
-            val functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config)
+            for (stage in queueFunction.stages) {
+                val config = FunctionConfig(queueFunction.timeout, queueFunction.memory, stage)
+                val functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config)
 
-            val newQueue = functionEnvironmentService.newQueue(queueFunction, functionResource)
+                val newQueue = functionEnvironmentService.newQueue(queueFunction, functionResource)
 
-            val cloudFormationDocuments = cfDocuments.getOrPut(queueFunction.stage) { CloudFormationDocuments() }
-            val savedResources = cloudFormationDocuments.savedResources
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val savedResources = cloudFormationDocuments.savedResources
 
-            if (savedResources.containsKey(queueFunction.id)) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "Can't have multiple consumers of the same queue ("
-                        + queueFunction.id + ")", type)
-                return
+                if (savedResources.containsKey(queueFunction.id)) {
+                    messager.printMessage(Diagnostic.Kind.ERROR, "Can't have multiple consumers of the same queue ("
+                            + queueFunction.id + ")", type)
+                    return
+                }
+                savedResources[queueFunction.id] = newQueue
+
+                fileBuilder.createClass()
+
+                results.add(FunctionInformation(type, functionResource))
             }
-            savedResources[queueFunction.id] = newQueue
-
-            fileBuilder.createClass()
-
-            results.add(FunctionInformation(type, functionResource))
         }
     }
 

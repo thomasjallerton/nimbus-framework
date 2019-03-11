@@ -1,5 +1,7 @@
 package annotation.annotations.keyvalue;
 
+import annotation.annotations.NimbusConstants;
+
 import java.lang.annotation.*;
 
 @Target(ElementType.TYPE)
@@ -10,5 +12,5 @@ public @interface KeyValueStore {
     Class<?> keyType();
     String keyName() default "PrimaryKey";
     String existingArn() default "";
-    String stage() default "dev";
+    String[] stages() default {NimbusConstants.stage};
 }

@@ -37,7 +37,7 @@ class FunctionEnvironmentService(
         function.setIamRoleResource(iamRoleResource)
         function.addEnvVariable("NIMBUS_STAGE", functionConfig.stage)
 
-        val cloudFormationDocuments = cloudFormationDocumentsCollection.getOrPut(functionConfig.stage) {CloudFormationDocuments()}
+        val cloudFormationDocuments = cloudFormationDocumentsCollection.getOrPut(functionConfig.stage) { CloudFormationDocuments() }
         val updateResources = cloudFormationDocuments.updateResources
         val createResources = cloudFormationDocuments.createResources
         val createOutputs = cloudFormationDocuments.createOutputs
@@ -64,7 +64,7 @@ class FunctionEnvironmentService(
         val updateResources = cfDocuments.updateResources
 
         val restApi = if (cfDocuments.rootRestApi == null) {
-            val restApi = RestApi(nimbusState, httpFunction.stage)
+            val restApi = RestApi(nimbusState, function.stage)
             cfDocuments.rootRestApi = restApi
             updateResources.addResource(restApi)
             restApi
@@ -97,13 +97,14 @@ class FunctionEnvironmentService(
 
         val permission = FunctionPermissionResource(function, restApi, nimbusState)
         updateResources.addResource(permission)
+
     }
 
     fun newNotification(notificationFunction: NotificationServerlessFunction, function: FunctionResource) {
         val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
         val updateResources = cfDocuments.updateResources
 
-        val snsTopic = SnsTopicResource(notificationFunction.topic, function, nimbusState, notificationFunction.stage)
+        val snsTopic = SnsTopicResource(notificationFunction.topic, function, nimbusState, function.stage)
         updateResources.addResource(snsTopic)
 
         val permission = FunctionPermissionResource(function, snsTopic, nimbusState)
@@ -114,7 +115,7 @@ class FunctionEnvironmentService(
         val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
         val updateResources = cfDocuments.updateResources
 
-        val sqsQueue = QueueResource(nimbusState, queueFunction.id, queueFunction.timeout * 6, queueFunction.stage)
+        val sqsQueue = QueueResource(nimbusState, queueFunction.id, queueFunction.timeout * 6, function.stage)
         updateResources.addResource(sqsQueue)
 
         val eventMapping = FunctionEventMappingResource(
@@ -130,7 +131,7 @@ class FunctionEnvironmentService(
 
         iamRoleResource.addAllowStatement("sqs:ReceiveMessage", sqsQueue, "")
         iamRoleResource.addAllowStatement("sqs:DeleteMessage", sqsQueue, "")
-        iamRoleResource.addAllowStatement( "sqs:GetQueueAttributes", sqsQueue, "")
+        iamRoleResource.addAllowStatement("sqs:GetQueueAttributes", sqsQueue, "")
 
         return sqsQueue
     }

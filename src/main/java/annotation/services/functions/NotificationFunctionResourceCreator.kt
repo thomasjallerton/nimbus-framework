@@ -39,14 +39,16 @@ class NotificationFunctionResourceCreator(
         )
 
         for (notificationFunction in notificationFunctions) {
-            val config = FunctionConfig(notificationFunction.timeout, notificationFunction.memory, notificationFunction.stage)
-            val functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config)
+            for (stage in notificationFunction.stages) {
+                val config = FunctionConfig(notificationFunction.timeout, notificationFunction.memory, stage)
+                val functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config)
 
-            functionEnvironmentService.newNotification(notificationFunction, functionResource)
+                functionEnvironmentService.newNotification(notificationFunction, functionResource)
 
-            fileBuilder.createClass()
+                fileBuilder.createClass()
 
-            results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource))
+            }
         }
 
     }

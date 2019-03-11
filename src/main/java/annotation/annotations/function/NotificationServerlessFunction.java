@@ -1,5 +1,6 @@
 package annotation.annotations.function;
 
+import annotation.annotations.NimbusConstants;
 import annotation.annotations.function.repeatable.NotificationServerlessFunctions;
 
 import java.lang.annotation.*;
@@ -11,5 +12,5 @@ public @interface NotificationServerlessFunction {
     public String topic();
     int timeout() default 10;
     int memory() default 1024;
-    String stage() default "dev";
+    String[] stages() default {NimbusConstants.stage};
 }

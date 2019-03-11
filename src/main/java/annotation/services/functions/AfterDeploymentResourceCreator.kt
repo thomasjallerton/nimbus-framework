@@ -40,18 +40,20 @@ class AfterDeploymentResourceCreator(
         val handler = fileBuilder.getHandler()
 
         for (afterDeployment in afterDeployments) {
-            val cloudFormationDocuments = cfDocuments.getOrPut(afterDeployment.stage) { CloudFormationDocuments() }
-            val updateResources = cloudFormationDocuments.updateResources
+            for (stage in afterDeployment.stages) {
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val updateResources = cloudFormationDocuments.updateResources
 
-            val config = FunctionConfig(300, 1024, afterDeployment.stage)
-            val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
+                val config = FunctionConfig(300, 1024, stage)
+                val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
 
-            val afterDeploymentList = nimbusState.afterDeployments.getOrPut(afterDeployment.stage) { mutableListOf() }
-            afterDeploymentList.add(functionResource.getFunctionName())
+                val afterDeploymentList = nimbusState.afterDeployments.getOrPut(stage) { mutableListOf() }
+                afterDeploymentList.add(functionResource.getFunctionName())
 
-            updateResources.addResource(functionResource)
+                updateResources.addResource(functionResource)
 
-            results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource))
+            }
         }
     }
 

@@ -54,16 +54,18 @@ class KeyValueStoreFunctionResourceCreator(
                 fileWritten = true
             }
 
-            val config = FunctionConfig(keyValueStoreFunction.timeout, keyValueStoreFunction.memory, keyValueStoreFunction.stage)
-            val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
+            for (stage in keyValueStoreFunction.stages) {
+                val config = FunctionConfig(keyValueStoreFunction.timeout, keyValueStoreFunction.memory, stage)
+                val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
 
-            val dynamoResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, type)
+                val dynamoResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, type, stage)
 
-            if (dynamoResource != null) {
-                functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
+                if (dynamoResource != null) {
+                    functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
+                }
+
+                results.add(FunctionInformation(type, functionResource))
             }
-
-            results.add(FunctionInformation(type, functionResource))
         }
     }
 }

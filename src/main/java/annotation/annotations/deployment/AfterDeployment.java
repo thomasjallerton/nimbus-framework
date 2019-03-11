@@ -1,5 +1,7 @@
 package annotation.annotations.deployment;
 
+import annotation.annotations.NimbusConstants;
+
 import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
@@ -7,5 +9,5 @@ import java.lang.annotation.*;
 @Repeatable(AfterDeployments.class)
 public @interface AfterDeployment {
     boolean isTest() default false;
-    String stage() default "dev";
+    String[] stages() default {NimbusConstants.stage};
 }

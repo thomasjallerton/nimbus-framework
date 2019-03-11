@@ -1,5 +1,7 @@
 package annotation.annotations.database;
 
+import annotation.annotations.NimbusConstants;
+
 import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
@@ -7,5 +9,5 @@ import java.lang.annotation.*;
 @Repeatable(UsesRelationalDatabases.class)
 public @interface UsesRelationalDatabase {
     Class<?> dataModel();
-    String stage() default "dev";
+    String[] stages() default {NimbusConstants.stage};
 }

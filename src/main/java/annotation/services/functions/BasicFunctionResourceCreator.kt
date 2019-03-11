@@ -43,21 +43,23 @@ class BasicFunctionResourceCreator(
         val handler = fileBuilder.getHandler()
 
         for (basicFunction in basicFunctions) {
-            val cloudFormationDocuments = cfDocuments.getOrPut(basicFunction.stage) { CloudFormationDocuments() }
-            val updateResources = cloudFormationDocuments.updateResources
+            for (stage in basicFunction.stages) {
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val updateResources = cloudFormationDocuments.updateResources
 
 
-            val config = FunctionConfig(basicFunction.timeout, basicFunction.memory, basicFunction.stage)
-            val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
+                val config = FunctionConfig(basicFunction.timeout, basicFunction.memory, stage)
+                val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
 
-            //Configure cron if necessary
-            if (basicFunction.cron != "") {
-                functionEnvironmentService.newCronTrigger(basicFunction.cron, functionResource)
+                //Configure cron if necessary
+                if (basicFunction.cron != "") {
+                    functionEnvironmentService.newCronTrigger(basicFunction.cron, functionResource)
+                }
+                updateResources.addInvokableFunction(functionResource)
+
+
+                results.add(FunctionInformation(type, functionResource))
             }
-            updateResources.addInvokableFunction(functionResource)
-
-
-            results.add(FunctionInformation(type, functionResource))
         }
     }
 }
