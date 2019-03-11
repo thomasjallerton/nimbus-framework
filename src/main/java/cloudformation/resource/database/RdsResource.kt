@@ -24,7 +24,7 @@ class RdsResource(
 
         val properties = getProperties()
         properties.addProperty("AllocatedStorage", databaseConfiguration.size)
-        properties.addProperty("DBInstanceIdentifier", databaseConfiguration.name)
+        properties.addProperty("DBInstanceIdentifier", "${databaseConfiguration.name}$stage")
         properties.addProperty("DBInstanceClass", databaseConfiguration.databaseSize.toInstanceClass())
         properties.addProperty("Engine", databaseConfiguration.databaseLanguage.toEngine(databaseConfiguration.databaseSize))
         properties.addProperty("PubliclyAccessible", true)

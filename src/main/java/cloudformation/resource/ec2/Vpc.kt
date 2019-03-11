@@ -19,6 +19,6 @@ class Vpc(nimbusState: NimbusState, stage: String): Resource(nimbusState, stage)
     }
 
     override fun getName(): String {
-        return "${nimbusState.projectName}VPC"
+        return "${nimbusState.projectName}${stage}VPC"
     }
 }
