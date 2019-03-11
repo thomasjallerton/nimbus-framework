@@ -5,8 +5,9 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue
 
 internal class KeyValueStoreClientDynamo<K, V>(
         private val keyClass: Class<K>,
-        valueClass: Class<V>
-): KeyValueStoreClient<K, V>(keyClass, valueClass){
+        valueClass: Class<V>,
+        stage: String
+): KeyValueStoreClient<K, V>(keyClass, valueClass, stage){
 
     private val dynamoClient: DynamoClient<V> = DynamoClient(tableName, valueClass)
 

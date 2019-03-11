@@ -3,13 +3,14 @@ package clients.document
 import annotation.annotations.document.DocumentStore
 import annotation.annotations.persistent.Attribute
 import annotation.annotations.persistent.Key
+import clients.InvalidStageException
 import java.lang.reflect.Field
 
-abstract class DocumentStoreClient<T>(clazz: Class<T>) {
+abstract class DocumentStoreClient<T>(clazz: Class<T>, stage: String) {
 
     protected val keys: MutableMap<String, Field> = mutableMapOf()
     protected val allAttributes: MutableMap<String, Field> = mutableMapOf()
-    protected val tableName: String = getTableName(clazz)
+    protected val tableName: String = getTableName(clazz, stage)
 
     init {
         for (field in clazz.declaredFields) {
@@ -37,9 +38,15 @@ abstract class DocumentStoreClient<T>(clazz: Class<T>) {
     abstract fun get(keyObj: Any): T?
 
     companion object {
-        fun <T> getTableName(clazz: Class<T>): String {
-            val documentStoreAnnotation = clazz.getDeclaredAnnotation(DocumentStore::class.java)
-            return if (documentStoreAnnotation.tableName != "") documentStoreAnnotation.tableName else clazz.simpleName
+        fun <T> getTableName(clazz: Class<T>, stage: String): String {
+            val documentStoreAnnotations = clazz.getDeclaredAnnotationsByType(DocumentStore::class.java)
+            for (documentStoreAnnotation in documentStoreAnnotations) {
+                if (documentStoreAnnotation.stage == stage) {
+                    val name = if (documentStoreAnnotation.tableName != "") documentStoreAnnotation.tableName else clazz.simpleName
+                    return "$name$stage"
+                }
+            }
+            throw InvalidStageException()
         }
     }
 }

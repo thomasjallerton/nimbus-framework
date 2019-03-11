@@ -24,19 +24,20 @@ object ClientBuilder {
 
     @JvmStatic
     fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>): KeyValueStoreClient<K, V> {
+
         return if (LocalNimbusDeployment.isLocalDeployment) {
-            KeyValueStoreClientLocal(key, value)
+            KeyValueStoreClientLocal(key, value, LocalNimbusDeployment.stage)
         } else {
-            KeyValueStoreClientDynamo(key, value)
+            KeyValueStoreClientDynamo(key, value, getStage())
         }
     }
 
     @JvmStatic
     fun <T> getDocumentStoreClient(document: Class<T>): DocumentStoreClient<T> {
         return if (LocalNimbusDeployment.isLocalDeployment) {
-            DocumentStoreClientDynamo(document)
+            DocumentStoreClientDynamo(document, LocalNimbusDeployment.stage)
         } else {
-            DocumentStoreClientDynamo(document)
+            DocumentStoreClientDynamo(document, getStage())
         }
     }
 
@@ -73,6 +74,14 @@ object ClientBuilder {
             BasicServerlessFunctionClientLocal()
         } else {
             BasicServerlessFunctionClientLambda()
+        }
+    }
+
+    private fun getStage(): String {
+        return if (System.getenv().containsKey("NIMBUS_STAGE")) {
+            System.getenv("NIMBUS_STAGE")
+        } else {
+            "dev"
         }
     }
 }

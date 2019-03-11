@@ -43,14 +43,17 @@ class LocalNimbusDeployment {
     private val notificationTopics: MutableMap<String, LocalNotificationTopic> = mutableMapOf()
     private val afterDeployments: Deque<Pair<Method, Any>> = LinkedList()
 
-    private constructor(clazz: Class<out Any>) {
+    private constructor(clazz: Class<out Any>, stageParam: String = "dev") {
         instance = this
         createResources(clazz)
         createHandlers(clazz)
+        stage = stageParam
     }
 
-    private constructor(packageName: String) {
+    private constructor(packageName: String, stageParam: String = "dev") {
         instance = this
+        stage = stageParam
+
         val classLoadersList = LinkedList<ClassLoader>()
         classLoadersList.add(ClasspathHelper.contextClassLoader())
         classLoadersList.add(ClasspathHelper.staticClassLoader())
@@ -73,13 +76,13 @@ class LocalNimbusDeployment {
 
     private fun createResources(clazz: Class<out Any>) {
         if (clazz.isAnnotationPresent(KeyValueStore::class.java)) {
-            val tableName = KeyValueStoreClient.getTableName(clazz)
+            val tableName = KeyValueStoreClient.getTableName(clazz, stage)
             val annotation = clazz.getDeclaredAnnotation(KeyValueStore::class.java)
-            keyValueStores[tableName] = LocalKeyValueStore(annotation.keyType.java, clazz)
+            keyValueStores[tableName] = LocalKeyValueStore(annotation.keyType.java, clazz, stage)
         }
         if (clazz.isAnnotationPresent(DocumentStore::class.java)) {
-            val tableName = DocumentStoreClient.getTableName(clazz)
-            documentStores[tableName] = LocalDocumentStore(clazz)
+            val tableName = DocumentStoreClient.getTableName(clazz, stage)
+            documentStores[tableName] = LocalDocumentStore(clazz, stage)
         }
     }
 
@@ -141,7 +144,7 @@ class LocalNimbusDeployment {
                     for (documentFunction in documentFunctions) {
                         val documentMethod = KeyValueMethod(method, invokeOn, documentFunction.method)
                         methods[functionIdentifier] = documentMethod
-                        val tableName = DocumentStoreClient.getTableName(documentFunction.dataModel.java)
+                        val tableName = DocumentStoreClient.getTableName(documentFunction.dataModel.java, stage)
                         val documentStore = documentStores[tableName]
                         documentStore?.addMethod(documentMethod)
                     }
@@ -154,7 +157,7 @@ class LocalNimbusDeployment {
                     for (keyValueFunction in keyValueFunctions) {
                         val documentMethod = KeyValueMethod(method, invokeOn, keyValueFunction.method)
                         methods[functionIdentifier] = documentMethod
-                        val tableName = KeyValueStoreClient.getTableName(keyValueFunction.dataModel.java)
+                        val tableName = KeyValueStoreClient.getTableName(keyValueFunction.dataModel.java, stage)
                         val keyValueStore = keyValueStores[tableName]
                         keyValueStore?.addMethod(documentMethod)
                     }
@@ -199,7 +202,7 @@ class LocalNimbusDeployment {
     }
 
     fun <K, V> getKeyValueStore(valueClass: Class<V>): LocalKeyValueStore<K, V> {
-        val tableName = KeyValueStoreClient.getTableName(valueClass)
+        val tableName = KeyValueStoreClient.getTableName(valueClass, stage)
         if (keyValueStores.containsKey(tableName)) {
             return keyValueStores[tableName] as LocalKeyValueStore<K, V>
         } else {
@@ -208,7 +211,7 @@ class LocalNimbusDeployment {
     }
 
     fun <K, V> getKeyValueStoreClient(keyClass: Class<K>, valueClass: Class<V>): KeyValueStoreClient<K, V> {
-        return KeyValueStoreClientLocal(keyClass, valueClass)
+        return KeyValueStoreClientLocal(keyClass, valueClass, stage)
     }
 
     fun <T> getRelationalDatabaseClient(dataClass: Class<T>): DatabaseClient {
@@ -216,7 +219,7 @@ class LocalNimbusDeployment {
     }
 
     fun <T> getDocumentStore(clazz: Class<T>): LocalDocumentStore<T> {
-        val tableName = DocumentStoreClient.getTableName(clazz)
+        val tableName = DocumentStoreClient.getTableName(clazz, stage)
         if (documentStores.containsKey(tableName)) {
             return documentStores[tableName] as LocalDocumentStore<T>
         } else {
@@ -269,6 +272,7 @@ class LocalNimbusDeployment {
 
     companion object {
         private lateinit var instance: LocalNimbusDeployment
+        internal lateinit var stage: String
         internal var isLocalDeployment: Boolean = false
 
         @JvmStatic

@@ -1,12 +1,10 @@
 package annotation.annotations.document;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
+@Repeatable(UsesDocumentStores.class)
 public @interface UsesDocumentStore {
     Class<?> dataModel();
     String stage() default "dev";

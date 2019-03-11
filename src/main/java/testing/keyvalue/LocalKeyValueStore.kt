@@ -4,7 +4,7 @@ import clients.keyvalue.KeyValueStoreClient
 import com.fasterxml.jackson.databind.ObjectMapper
 import testing.document.KeyValueMethod
 
-class LocalKeyValueStore<K, V>(keyClass: Class<K>, private val valueClass: Class<V>): KeyValueStoreClient<K, V>(keyClass, valueClass) {
+class LocalKeyValueStore<K, V>(keyClass: Class<K>, private val valueClass: Class<V>, stage: String): KeyValueStoreClient<K, V>(keyClass, valueClass, stage) {
 
     private val keyValueStore: MutableMap<K, String> = mutableMapOf()
     private val objectMapper = ObjectMapper()
