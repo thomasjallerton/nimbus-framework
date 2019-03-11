@@ -2,7 +2,7 @@ package clients.document
 
 import testing.LocalNimbusDeployment
 
-class DocumentStoreClientLocal<T>(private val clazz: Class<T>): DocumentStoreClient<T>(clazz) {
+class DocumentStoreClientLocal<T>(private val clazz: Class<T>, stage: String): DocumentStoreClient<T>(clazz, stage) {
 
     private val localNimbusDeployment = LocalNimbusDeployment.getInstance()
     private val documentStore = localNimbusDeployment.getDocumentStore(clazz)

@@ -3,13 +3,12 @@ package annotation.services
 import annotation.annotations.database.RelationalDatabase
 import annotation.annotations.document.DocumentStore
 import annotation.annotations.keyvalue.KeyValueStore
-import persisted.NimbusState
-import cloudformation.resource.ExistingResource
-import cloudformation.resource.Resource
-import cloudformation.resource.ResourceCollection
 import annotation.wrappers.annotations.datamodel.DataModelAnnotation
 import cloudformation.CloudFormationDocuments
+import cloudformation.resource.ExistingResource
+import cloudformation.resource.Resource
 import cloudformation.resource.database.RdsResource
+import persisted.NimbusState
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
@@ -19,24 +18,36 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
     private val messager = processingEnv.messager
 
     fun getDocumentStoreResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element): Resource? {
-        return try {
+        try {
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
-            val documentStore = typeElement.getAnnotation(DocumentStore::class.java)
-            getStoreResource(documentStore.existingArn, documentStore.tableName, typeElement.simpleName.toString(), dataModelAnnotation.stage)
+            val documentStores = typeElement.getAnnotationsByType(DocumentStore::class.java)
+            for (documentStore in documentStores) {
+                if (documentStore.stage == dataModelAnnotation.stage) {
+                    return getStoreResource(documentStore.existingArn, documentStore.tableName, typeElement.simpleName.toString(), dataModelAnnotation.stage)
+                }
+            }
+            messager.printMessage(Diagnostic.Kind.ERROR, "Could not find KeyValueStore on @UsesDocumentStore dataModel with same stage")
+            return null
         } catch (e: NullPointerException) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with DocumentStore but isn't", serverlessMethod)
-            null
+            return null
         }
     }
 
     fun getKeyValueStoreResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element): Resource? {
-        return try {
+        try {
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
-            val keyValueStore = typeElement.getAnnotation(KeyValueStore::class.java)
-            getStoreResource(keyValueStore.existingArn, keyValueStore.tableName, typeElement.simpleName.toString(), dataModelAnnotation.stage)
+            val keyValueStores = typeElement.getAnnotationsByType(KeyValueStore::class.java)
+            for (keyValueStore in keyValueStores) {
+                if (keyValueStore.stage == dataModelAnnotation.stage) {
+                    return getStoreResource(keyValueStore.existingArn, keyValueStore.tableName, typeElement.simpleName.toString(), dataModelAnnotation.stage)
+                }
+            }
+            messager.printMessage(Diagnostic.Kind.ERROR, "Could not find KeyValueStore on @UsesKeyValueStore dataModel with same stage")
+            return null
         } catch (e: NullPointerException) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod)
-            null
+            return null
         }
     }
 
@@ -53,17 +64,17 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
 
     private fun getStoreResource(existingArn: String, tableName: String, elementName: String, stage: String): Resource? {
         return if (existingArn == "") {
-            return resourceCollections.getValue(stage).updateResources.get(determineTableName(tableName, elementName))
+            return resourceCollections.getValue(stage).updateResources.get(determineTableName(tableName, elementName, stage))
         } else {
             ExistingResource(existingArn, nimbusState, stage)
         }
     }
 
-    private fun determineTableName(givenName: String, className: String): String {
+    private fun determineTableName(givenName: String, className: String, stage: String): String {
         return if (givenName == "") {
-            className
+            "$className$stage"
         } else {
-            givenName
+            "$givenName$stage"
         }
     }
 

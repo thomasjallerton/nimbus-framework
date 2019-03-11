@@ -3,7 +3,7 @@ package testing.document
 import clients.document.DocumentStoreClient
 import com.fasterxml.jackson.databind.ObjectMapper
 
-class LocalDocumentStore<T>(private val clazz: Class<T>): DocumentStoreClient<T>(clazz) {
+class LocalDocumentStore<T>(private val clazz: Class<T>, stage: String): DocumentStoreClient<T>(clazz, stage) {
 
     private val documentStore: MutableMap<Any?, String> = mutableMapOf()
     private val objectMapper = ObjectMapper()

@@ -5,8 +5,9 @@ import testing.keyvalue.LocalKeyValueStore
 
 internal class KeyValueStoreClientLocal<K, V>(
         keyClass: Class<K>,
-        valueClass: Class<V>
-): KeyValueStoreClient<K, V>(keyClass, valueClass) {
+        valueClass: Class<V>,
+        stage: String
+): KeyValueStoreClient<K, V>(keyClass, valueClass, stage) {
 
     private val localDeployment = LocalNimbusDeployment.getInstance()
     private val table: LocalKeyValueStore<K, V> = localDeployment.getKeyValueStore(valueClass)

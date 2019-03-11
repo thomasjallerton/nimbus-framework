@@ -2,24 +2,31 @@ package clients.keyvalue
 
 import annotation.annotations.keyvalue.KeyValueStore
 import annotation.annotations.persistent.Attribute
+import clients.InvalidStageException
 import clients.dynamo.MismatchedKeyTypeException
 import java.lang.reflect.Field
 
-abstract class KeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass: Class<V>) {
+abstract class KeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass: Class<V>, stage: String) {
 
-    private val keyType: Class<out Any>
-    protected val keyName: String
+    private var keyType: Class<out Any> = String::class.java
+    protected var keyName: String = ""
     protected val attributes: MutableMap<String, Field> = mutableMapOf()
-    protected val tableName: String
+    protected var tableName: String = ""
 
     init {
-        val keyValueStoreAnnotation = valueClass.getDeclaredAnnotation(KeyValueStore::class.java)
-        tableName = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else valueClass.simpleName
-        keyType = keyValueStoreAnnotation.keyType.java
+        val keyValueStoreAnnotations = valueClass.getAnnotationsByType(KeyValueStore::class.java)
+
+        for (keyValueStoreAnnotation in keyValueStoreAnnotations) {
+            if (keyValueStoreAnnotation.stage == stage) {
+                tableName = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else valueClass.simpleName
+                keyType = keyValueStoreAnnotation.keyType.java
+                keyName = keyValueStoreAnnotation.keyName
+                break
+            }
+        }
 
         if (keyType != keyClass) throw MismatchedKeyTypeException(keyType, keyClass)
 
-        keyName = keyValueStoreAnnotation.keyName
 
         for (field in valueClass.declaredFields) {
             if (field.isAnnotationPresent(Attribute::class.java)) {
@@ -40,9 +47,15 @@ abstract class KeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass: Class<V
     abstract fun get(keyObj: K): V?
 
     internal companion object {
-        fun <T> getTableName(clazz: Class<T>): String {
-            val keyValueStoreAnnotation = clazz.getDeclaredAnnotation(KeyValueStore::class.java)
-            return if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else clazz.simpleName
+        fun <T> getTableName(clazz: Class<T>, stage: String): String {
+            val keyValueStoreAnnotations = clazz.getAnnotationsByType(KeyValueStore::class.java)
+            for (keyValueStoreAnnotation in keyValueStoreAnnotations) {
+                if (keyValueStoreAnnotation.stage == stage) {
+                    val name = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else clazz.simpleName
+                    return "$name$stage"
+                }
+            }
+            throw InvalidStageException()
         }
     }
 }

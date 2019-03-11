@@ -1,6 +1,7 @@
 package annotation.services.resources
 
 import annotation.annotations.database.RelationalDatabase
+import annotation.annotations.database.RelationalDatabases
 import cloudformation.CloudFormationDocuments
 import cloudformation.resource.database.DatabaseConfiguration
 import cloudformation.resource.database.RdsResource
@@ -9,20 +10,24 @@ import cloudformation.resource.ec2.*
 import persisted.NimbusState
 import java.util.*
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.element.Element
 
 class RelationalDatabaseResourceCreator(
         roundEnvironment: RoundEnvironment,
         cfDocuments: MutableMap<String, CloudFormationDocuments>,
         private val nimbusState: NimbusState
-): CloudResourceResourceCreator(roundEnvironment, cfDocuments) {
+): CloudResourceResourceCreator(
+        roundEnvironment,
+        cfDocuments,
+        RelationalDatabase::class.java,
+        RelationalDatabases::class.java
+) {
 
-    override fun create() {
-        val annotatedElements = roundEnvironment.getElementsAnnotatedWith(RelationalDatabase::class.java)
+    override fun handleType(type: Element) {
+        val relationalDatabases = type.getAnnotationsByType(RelationalDatabase::class.java)
 
-        for (type in annotatedElements) {
-            val relationalDatabase = type.getAnnotation(RelationalDatabase::class.java)
-
-            val cloudFormationDocuments = cfDocuments.getOrPut(relationalDatabase.stage) {CloudFormationDocuments()}
+        for (relationalDatabase in relationalDatabases) {
+            val cloudFormationDocuments = cfDocuments.getOrPut(relationalDatabase.stage) { CloudFormationDocuments() }
             val updateResources = cloudFormationDocuments.updateResources
 
             val databaseConfiguration = DatabaseConfiguration.fromRelationDatabase(relationalDatabase)
@@ -59,4 +64,5 @@ class RelationalDatabaseResourceCreator(
             updateResources.addResource(rta2)
         }
     }
+
 }

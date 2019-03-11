@@ -27,7 +27,7 @@ class FunctionEnvironmentService(
 
     fun newFunction(handler: String, methodInformation: MethodInformation, functionConfig: FunctionConfig): FunctionResource {
         val function = FunctionResource(handler, methodInformation, functionConfig, nimbusState)
-        val logGroup = LogGroupResource(methodInformation.className, methodInformation.methodName, nimbusState, functionConfig.stage)
+        val logGroup = LogGroupResource(methodInformation.className, methodInformation.methodName, function, nimbusState, functionConfig.stage)
         val bucket = NimbusBucketResource(nimbusState, functionConfig.stage)
 
         val iamRoleResource = IamRoleResource(function.getName(), nimbusState, functionConfig.stage)
@@ -35,6 +35,7 @@ class FunctionEnvironmentService(
         iamRoleResource.addAllowStatement("logs:PutLogEvents", logGroup, ":*:*")
 
         function.setIamRoleResource(iamRoleResource)
+        function.addEnvVariable("NIMBUS_STAGE", functionConfig.stage)
 
         val cloudFormationDocuments = cloudFormationDocumentsCollection.getOrPut(functionConfig.stage) {CloudFormationDocuments()}
         val updateResources = cloudFormationDocuments.updateResources

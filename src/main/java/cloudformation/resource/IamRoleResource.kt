@@ -26,7 +26,7 @@ class IamRoleResource(
 
         properties.addProperty("Path", "/")
 
-        properties.addProperty("RoleName", "${nimbusState.projectName}-stage-$functionName")
+        properties.addProperty("RoleName", "${nimbusState.projectName}-$stage-$functionName")
 
         iamRoleResource.add("Properties", properties)
 

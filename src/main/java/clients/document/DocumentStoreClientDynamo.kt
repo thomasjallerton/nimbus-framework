@@ -3,7 +3,7 @@ package clients.document
 import clients.dynamo.DynamoClient
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 
-internal class DocumentStoreClientDynamo<T>(clazz: Class<T>): DocumentStoreClient<T>(clazz) {
+internal class DocumentStoreClientDynamo<T>(clazz: Class<T>, stage: String): DocumentStoreClient<T>(clazz, stage) {
 
     private val dynamoClient: DynamoClient<T> = DynamoClient(tableName, clazz)
 

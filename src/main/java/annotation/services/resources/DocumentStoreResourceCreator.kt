@@ -1,29 +1,34 @@
 package annotation.services.resources
 
 import annotation.annotations.document.DocumentStore
+import annotation.annotations.document.DocumentStores
 import annotation.annotations.persistent.Key
 import cloudformation.CloudFormationDocuments
 import cloudformation.resource.dynamo.DynamoResource
 import persisted.NimbusState
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 
 class DocumentStoreResourceCreator(
         roundEnvironment: RoundEnvironment,
         cfDocuments: MutableMap<String, CloudFormationDocuments>,
         private val nimbusState: NimbusState
-): CloudResourceResourceCreator(roundEnvironment, cfDocuments) {
+): CloudResourceResourceCreator(
+        roundEnvironment,
+        cfDocuments,
+        DocumentStore::class.java,
+        DocumentStores::class.java
+) {
 
-    override fun create() {
-        val annotatedElements = roundEnvironment.getElementsAnnotatedWith(DocumentStore::class.java)
+    override fun handleType(type: Element) {
+        val documentStores = type.getAnnotationsByType(DocumentStore::class.java)
 
-        for (type in annotatedElements) {
-            val documentStore = type.getAnnotation(DocumentStore::class.java)
-
-            val tableName = determineTableName(documentStore.tableName, type.simpleName.toString())
+        for (documentStore in documentStores) {
+            val tableName = determineTableName(documentStore.tableName, type.simpleName.toString(), documentStore.stage)
             val dynamoResource = DynamoResource(tableName, nimbusState, documentStore.stage)
 
-            val cloudFormationDocuments = cfDocuments.getOrPut(documentStore.stage) {CloudFormationDocuments()}
+            val cloudFormationDocuments = cfDocuments.getOrPut(documentStore.stage) { CloudFormationDocuments() }
             val updateResources = cloudFormationDocuments.updateResources
 
             if (documentStore.existingArn == "") {
