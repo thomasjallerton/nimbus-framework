@@ -4,7 +4,7 @@ import annotation.annotations.function.KeyValueStoreServerlessFunction
 
 class KeyValueStoreServerlessFunctionAnnotation(private val keyValueStoreServerlessFunction: KeyValueStoreServerlessFunction): DataModelAnnotation() {
 
-    override val stage: String = keyValueStoreServerlessFunction.stage
+    override val stages: Array<String> = keyValueStoreServerlessFunction.stages
 
     override fun internalDataModel(): Class<out Any> {
         return keyValueStoreServerlessFunction.dataModel.java

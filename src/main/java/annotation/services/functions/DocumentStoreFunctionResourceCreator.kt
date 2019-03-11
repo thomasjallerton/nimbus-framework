@@ -52,17 +52,19 @@ class DocumentStoreFunctionResourceCreator(
                 fileWritten = true
             }
 
-            val config = FunctionConfig(documentStoreFunction.timeout, documentStoreFunction.memory, documentStoreFunction.stage)
-            val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
+            for (stage in documentStoreFunction.stages) {
+                val config = FunctionConfig(documentStoreFunction.timeout, documentStoreFunction.memory, stage)
+                val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
 
-            val dynamoResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, type)
+                val dynamoResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, type, stage)
 
-            if (dynamoResource != null) {
-                functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
+                if (dynamoResource != null) {
+                    functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
+                }
+
+
+                results.add(FunctionInformation(type, functionResource))
             }
-
-
-            results.add(FunctionInformation(type, functionResource))
         }
     }
 }

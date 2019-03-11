@@ -1,5 +1,6 @@
 package annotation.annotations.function;
 
+import annotation.annotations.NimbusConstants;
 import annotation.annotations.function.repeatable.DocumentStoreServerlessFunctions;
 import annotation.annotations.persistent.StoreUpdate;
 
@@ -13,5 +14,5 @@ public @interface DocumentStoreServerlessFunction {
     StoreUpdate method();
     int timeout() default 10;
     int memory() default 1024;
-    String stage() default "dev";
+    String[] stages() default {NimbusConstants.stage};
 }

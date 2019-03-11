@@ -26,18 +26,20 @@ class KeyValueStoreResourceCreator(
         val keyValueStores = type.getAnnotationsByType(KeyValueStore::class.java)
 
         for (keyValueStore in keyValueStores) {
-            val cloudFormationDocuments = cfDocuments.getOrPut(keyValueStore.stage) { CloudFormationDocuments() }
-            val updateResources = cloudFormationDocuments.updateResources
+            for (stage in keyValueStore.stages) {
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val updateResources = cloudFormationDocuments.updateResources
 
-            if (keyValueStore.existingArn == "") {
-                val tableName = determineTableName(keyValueStore.tableName, type.simpleName.toString(), keyValueStore.stage)
-                val dynamoResource = DynamoResource(tableName, nimbusState, keyValueStore.stage)
+                if (keyValueStore.existingArn == "") {
+                    val tableName = determineTableName(keyValueStore.tableName, type.simpleName.toString(), stage)
+                    val dynamoResource = DynamoResource(tableName, nimbusState, stage)
 
-                val dataModelAnnotation = KeyValueStoreAnnotation(keyValueStore)
-                val element = dataModelAnnotation.getTypeElement(processingEnvironment)
+                    val dataModelAnnotation = KeyValueStoreAnnotation(keyValueStore)
+                    val element = dataModelAnnotation.getTypeElement(processingEnvironment)
 
-                dynamoResource.addHashKeyClass<Any>(keyValueStore.keyName, element)
-                updateResources.addResource(dynamoResource)
+                    dynamoResource.addHashKeyClass<Any>(keyValueStore.keyName, element)
+                    updateResources.addResource(dynamoResource)
+                }
             }
         }
     }

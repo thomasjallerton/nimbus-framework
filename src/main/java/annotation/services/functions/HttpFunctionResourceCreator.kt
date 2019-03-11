@@ -42,10 +42,10 @@ class HttpFunctionResourceCreator(
         fileBuilder.createClass()
 
         for (httpFunction in httpFunctions) {
-            if (type.kind == ElementKind.METHOD) {
+            for (stage in httpFunction.stages) {
                 val handler = fileBuilder.getHandler()
 
-                val config = FunctionConfig(httpFunction.timeout, httpFunction.memory, httpFunction.stage)
+                val config = FunctionConfig(httpFunction.timeout, httpFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
 
                 functionEnvironmentService.newHttpMethod(httpFunction, functionResource)

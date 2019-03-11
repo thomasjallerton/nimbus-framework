@@ -14,7 +14,7 @@ class DocumentStoreResourceCreator(
         roundEnvironment: RoundEnvironment,
         cfDocuments: MutableMap<String, CloudFormationDocuments>,
         private val nimbusState: NimbusState
-): CloudResourceResourceCreator(
+) : CloudResourceResourceCreator(
         roundEnvironment,
         cfDocuments,
         DocumentStore::class.java,
@@ -25,16 +25,14 @@ class DocumentStoreResourceCreator(
         val documentStores = type.getAnnotationsByType(DocumentStore::class.java)
 
         for (documentStore in documentStores) {
-            val tableName = determineTableName(documentStore.tableName, type.simpleName.toString(), documentStore.stage)
-            val dynamoResource = DynamoResource(tableName, nimbusState, documentStore.stage)
+            for (stage in documentStore.stages) {
+                val tableName = determineTableName(documentStore.tableName, type.simpleName.toString(), stage)
+                val dynamoResource = DynamoResource(tableName, nimbusState, stage)
 
-            val cloudFormationDocuments = cfDocuments.getOrPut(documentStore.stage) { CloudFormationDocuments() }
-            val updateResources = cloudFormationDocuments.updateResources
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val updateResources = cloudFormationDocuments.updateResources
 
-            if (documentStore.existingArn == "") {
-
-                if (type.kind == ElementKind.CLASS) {
-
+                if (documentStore.existingArn == "") {
                     for (enclosedElement in type.enclosedElements) {
                         for (key in enclosedElement.getAnnotationsByType(Key::class.java)) {
                             if (enclosedElement.kind == ElementKind.FIELD) {
@@ -48,8 +46,9 @@ class DocumentStoreResourceCreator(
                             }
                         }
                     }
+
+                    updateResources.addResource(dynamoResource)
                 }
-                updateResources.addResource(dynamoResource)
             }
         }
     }

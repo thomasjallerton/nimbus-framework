@@ -1,5 +1,6 @@
 package annotation.annotations.function;
 
+import annotation.annotations.NimbusConstants;
 import annotation.annotations.function.repeatable.QueueServerlessFunctions;
 
 import java.lang.annotation.*;
@@ -12,5 +13,5 @@ public @interface QueueServerlessFunction {
     String id();
     int timeout() default 10;
     int memory() default 1024;
-    String stage() default "dev";
+    String[] stages() default {NimbusConstants.stage};
 }

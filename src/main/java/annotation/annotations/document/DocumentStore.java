@@ -1,5 +1,7 @@
 package annotation.annotations.document;
 
+import annotation.annotations.NimbusConstants;
+
 import java.lang.annotation.*;
 
 @Target(ElementType.TYPE)
@@ -8,5 +10,5 @@ import java.lang.annotation.*;
 public @interface DocumentStore {
     String tableName() default "";
     String existingArn() default "";
-    String stage() default "dev";
+    String[] stages() default {NimbusConstants.stage};
 }

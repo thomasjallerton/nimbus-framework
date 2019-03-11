@@ -17,13 +17,15 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
 
     private val messager = processingEnv.messager
 
-    fun getDocumentStoreResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element): Resource? {
+    fun getDocumentStoreResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element, dataModelStage: String): Resource? {
         try {
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val documentStores = typeElement.getAnnotationsByType(DocumentStore::class.java)
             for (documentStore in documentStores) {
-                if (documentStore.stage == dataModelAnnotation.stage) {
-                    return getStoreResource(documentStore.existingArn, documentStore.tableName, typeElement.simpleName.toString(), dataModelAnnotation.stage)
+                for (stage in documentStore.stages) {
+                    if (stage == dataModelStage) {
+                        return getStoreResource(documentStore.existingArn, documentStore.tableName, typeElement.simpleName.toString(), dataModelStage)
+                    }
                 }
             }
             messager.printMessage(Diagnostic.Kind.ERROR, "Could not find KeyValueStore on @UsesDocumentStore dataModel with same stage")
@@ -34,13 +36,15 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
         }
     }
 
-    fun getKeyValueStoreResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element): Resource? {
+    fun getKeyValueStoreResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element, dataModelStage: String): Resource? {
         try {
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val keyValueStores = typeElement.getAnnotationsByType(KeyValueStore::class.java)
             for (keyValueStore in keyValueStores) {
-                if (keyValueStore.stage == dataModelAnnotation.stage) {
-                    return getStoreResource(keyValueStore.existingArn, keyValueStore.tableName, typeElement.simpleName.toString(), dataModelAnnotation.stage)
+                for (stage in keyValueStore.stages) {
+                    if (stage == dataModelStage) {
+                        return getStoreResource(keyValueStore.existingArn, keyValueStore.tableName, typeElement.simpleName.toString(), dataModelStage)
+                    }
                 }
             }
             messager.printMessage(Diagnostic.Kind.ERROR, "Could not find KeyValueStore on @UsesKeyValueStore dataModel with same stage")
@@ -51,11 +55,11 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
         }
     }
 
-    fun getRelationalDatabaseResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element): RdsResource? {
+    fun getRelationalDatabaseResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element, dataModelStage: String): RdsResource? {
         return try {
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val relationalDatabase = typeElement.getAnnotation(RelationalDatabase::class.java)
-            return resourceCollections.getValue(dataModelAnnotation.stage).updateResources.get("${relationalDatabase.name}RdsInstance") as RdsResource?
+            return resourceCollections.getValue(dataModelStage).updateResources.get("${relationalDatabase.name}RdsInstance") as RdsResource?
         } catch (e: NullPointerException) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod)
             null

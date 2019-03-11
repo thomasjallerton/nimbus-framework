@@ -164,90 +164,101 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         IamRoleResource iamRoleResource = functionResource.getIamRoleResource();
         ResourceFinder resourceFinder = new ResourceFinder(cfDocuments, processingEnv, nimbusState);
         for (UsesDocumentStore usesDocumentStore : serverlessMethod.getAnnotationsByType(UsesDocumentStore.class)) {
+            for (String stage : usesDocumentStore.stages()) {
+                if (stage.equals(functionResource.getStage())) {
+                    DataModelAnnotation dataModelAnnotation = new UsesDocumentStoreAnnotation(usesDocumentStore);
+                    Resource resource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, serverlessMethod, stage);
 
-            if (usesDocumentStore.stage().equals(functionResource.getStage())) {
-                DataModelAnnotation dataModelAnnotation = new UsesDocumentStoreAnnotation(usesDocumentStore);
-                Resource resource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, serverlessMethod);
-
-                if (resource != null) {
-                    iamRoleResource.addAllowStatement("dynamodb:*", resource, "");
+                    if (resource != null) {
+                        iamRoleResource.addAllowStatement("dynamodb:*", resource, "");
+                    }
                 }
             }
         }
         for (UsesKeyValueStore usesKeyValueStore : serverlessMethod.getAnnotationsByType(UsesKeyValueStore.class)) {
-            if (usesKeyValueStore.stage().equals(functionResource.getStage())) {
-                DataModelAnnotation annotation = new UsesKeyValueStoreAnnotation(usesKeyValueStore);
-                Resource resource = resourceFinder.getKeyValueStoreResource(annotation, serverlessMethod);
+            for (String stage : usesKeyValueStore.stages()) {
+                if (stage.equals(functionResource.getStage())) {
+                    DataModelAnnotation annotation = new UsesKeyValueStoreAnnotation(usesKeyValueStore);
+                    Resource resource = resourceFinder.getKeyValueStoreResource(annotation, serverlessMethod, stage);
 
-                if (resource != null) {
-                    iamRoleResource.addAllowStatement("dynamodb:*", resource, "");
+                    if (resource != null) {
+                        iamRoleResource.addAllowStatement("dynamodb:*", resource, "");
+                    }
                 }
             }
         }
 
         for (UsesRelationalDatabase usesRelationalDatabase : serverlessMethod.getAnnotationsByType(UsesRelationalDatabase.class)) {
-            if (usesRelationalDatabase.stage().equals(functionResource.getStage())) {
+            for (String stage : usesRelationalDatabase.stages()) {
+                if (stage.equals(functionResource.getStage())) {
 
-                DataModelAnnotation annotation = new UsesRelationalDatabaseAnnotation(usesRelationalDatabase);
-                RdsResource resource = resourceFinder.getRelationalDatabaseResource(annotation, serverlessMethod);
+                    DataModelAnnotation annotation = new UsesRelationalDatabaseAnnotation(usesRelationalDatabase);
+                    RdsResource resource = resourceFinder.getRelationalDatabaseResource(annotation, serverlessMethod, stage);
 
-                if (resource != null) {
-                    functionResource.addEnvVariable(resource.getName() + "_CONNECTION_URL", resource.getAttribute("Endpoint.Address"));
-                    functionResource.addEnvVariable(resource.getName() + "_PASSWORD", resource.getDatabaseConfiguration().getPassword());
-                    functionResource.addEnvVariable(resource.getName() + "_USERNAME", resource.getDatabaseConfiguration().getUsername());
-                    functionResource.addDependsOn(resource);
+                    if (resource != null) {
+                        functionResource.addEnvVariable(resource.getName() + "_CONNECTION_URL", resource.getAttribute("Endpoint.Address"));
+                        functionResource.addEnvVariable(resource.getName() + "_PASSWORD", resource.getDatabaseConfiguration().getPassword());
+                        functionResource.addEnvVariable(resource.getName() + "_USERNAME", resource.getDatabaseConfiguration().getUsername());
+                        functionResource.addDependsOn(resource);
+                    }
                 }
             }
         }
 
         for (UsesBasicServerlessFunctionClient usesBasicServerlessFunctionClient : serverlessMethod.getAnnotationsByType(UsesBasicServerlessFunctionClient.class)) {
-            if (usesBasicServerlessFunctionClient.stage().equals(functionResource.getStage())) {
+            for (String stage : usesBasicServerlessFunctionClient.stages()) {
+                if (stage.equals(functionResource.getStage())) {
 
-                functionResource.addEnvVariable("NIMBUS_PROJECT_NAME", nimbusState.getProjectName());
-                functionResource.addEnvVariable("FUNCTION_STAGE", usesBasicServerlessFunctionClient.stage());
-                ResourceCollection updateResources = cfDocuments.get(usesBasicServerlessFunctionClient.stage()).getUpdateResources();
-                List<Resource> invokableFunctions = updateResources.getInvokableFunctions();
-                for (Resource invokableFunction : invokableFunctions) {
-                    functionResource.getIamRoleResource().addAllowStatement("lambda:*", invokableFunction, "");
+                    functionResource.addEnvVariable("NIMBUS_PROJECT_NAME", nimbusState.getProjectName());
+                    functionResource.addEnvVariable("FUNCTION_STAGE", stage);
+                    ResourceCollection updateResources = cfDocuments.get(stage).getUpdateResources();
+                    List<Resource> invokableFunctions = updateResources.getInvokableFunctions();
+                    for (Resource invokableFunction : invokableFunctions) {
+                        functionResource.getIamRoleResource().addAllowStatement("lambda:*", invokableFunction, "");
+                    }
                 }
             }
         }
 
         for (UsesQueue usesQueue : serverlessMethod.getAnnotationsByType(UsesQueue.class)) {
-            if (usesQueue.stage().equals(functionResource.getStage())) {
+            for (String stage : usesQueue.stages()) {
+                if (stage.equals(functionResource.getStage())) {
 
-                CloudFormationDocuments cloudFormationDocuments = cfDocuments.get(usesQueue.stage());
+                    CloudFormationDocuments cloudFormationDocuments = cfDocuments.get(stage);
 
-                if (cloudFormationDocuments == null || usesQueue.id().equals("") || cloudFormationDocuments.getSavedResources().get(usesQueue.id()) == null) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find id of queue, have you set it in the @QueueServerlessFunction?", serverlessMethod);
-                    return;
+                    if (cloudFormationDocuments == null || usesQueue.id().equals("") || cloudFormationDocuments.getSavedResources().get(usesQueue.id()) == null) {
+                        messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find id of queue, have you set it in the @QueueServerlessFunction?", serverlessMethod);
+                        return;
+                    }
+
+                    Resource referencedQueue = cloudFormationDocuments.getSavedResources().get(usesQueue.id());
+                    if (!(referencedQueue instanceof QueueResource)) {
+                        messager.printMessage(Diagnostic.Kind.ERROR, "Resource with id " + usesQueue.id() + " is not a Queue", serverlessMethod);
+                        return;
+                    }
+
+                    functionResource.addEnvVariable("NIMBUS_QUEUE_URL_ID_" + usesQueue.id().toUpperCase(), referencedQueue.getRef());
+                    iamRoleResource.addAllowStatement("sqs:SendMessage", referencedQueue, "");
                 }
-
-                Resource referencedQueue = cloudFormationDocuments.getSavedResources().get(usesQueue.id());
-                if (!(referencedQueue instanceof QueueResource)) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Resource with id " + usesQueue.id() + " is not a Queue", serverlessMethod);
-                    return;
-                }
-
-                functionResource.addEnvVariable("NIMBUS_QUEUE_URL_ID_" + usesQueue.id().toUpperCase(), referencedQueue.getRef());
-                iamRoleResource.addAllowStatement("sqs:SendMessage", referencedQueue, "");
             }
         }
 
         for (UsesNotificationTopic notificationTopic: serverlessMethod.getAnnotationsByType(UsesNotificationTopic.class)) {
-            if (notificationTopic.stage().equals(functionResource.getStage())) {
+            for (String stage : notificationTopic.stages()) {
+                if (stage.equals(functionResource.getStage())) {
 
-                SnsTopicResource snsTopicResource = new SnsTopicResource(notificationTopic.topic(), null, nimbusState, notificationTopic.stage());
-                CloudFormationDocuments cloudFormationDocuments = cfDocuments.get(notificationTopic.stage());
-                if (cloudFormationDocuments == null) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "No serverless function annotation found for UsesNotificationTopic", serverlessMethod);
+                    SnsTopicResource snsTopicResource = new SnsTopicResource(notificationTopic.topic(), null, nimbusState, stage);
+                    CloudFormationDocuments cloudFormationDocuments = cfDocuments.get(stage);
+                    if (cloudFormationDocuments == null) {
+                        messager.printMessage(Diagnostic.Kind.ERROR, "No serverless function annotation found for UsesNotificationTopic", serverlessMethod);
+                    }
+                    cloudFormationDocuments.getUpdateResources().addResource(snsTopicResource);
+
+                    functionResource.addEnvVariable("SNS_TOPIC_ARN_" + notificationTopic.topic().toUpperCase(), snsTopicResource.getArn(""));
+                    iamRoleResource.addAllowStatement("sns:Subscribe", snsTopicResource, "");
+                    iamRoleResource.addAllowStatement("sns:Unsubscribe", snsTopicResource, "");
+                    iamRoleResource.addAllowStatement("sns:Publish", snsTopicResource, "");
                 }
-                cloudFormationDocuments.getUpdateResources().addResource(snsTopicResource);
-
-                functionResource.addEnvVariable("SNS_TOPIC_ARN_" + notificationTopic.topic().toUpperCase(), snsTopicResource.getArn(""));
-                iamRoleResource.addAllowStatement("sns:Subscribe", snsTopicResource, "");
-                iamRoleResource.addAllowStatement("sns:Unsubscribe", snsTopicResource, "");
-                iamRoleResource.addAllowStatement("sns:Publish", snsTopicResource, "");
             }
         }
     }

@@ -1,5 +1,7 @@
 package annotation.annotations.document;
 
+import annotation.annotations.NimbusConstants;
+
 import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
@@ -7,5 +9,5 @@ import java.lang.annotation.*;
 @Repeatable(UsesDocumentStores.class)
 public @interface UsesDocumentStore {
     Class<?> dataModel();
-    String stage() default "dev";
+    String[] stages() default {NimbusConstants.stage};
 }

@@ -17,11 +17,13 @@ abstract class KeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass: Class<V
         val keyValueStoreAnnotations = valueClass.getAnnotationsByType(KeyValueStore::class.java)
 
         for (keyValueStoreAnnotation in keyValueStoreAnnotations) {
-            if (keyValueStoreAnnotation.stage == stage) {
-                tableName = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else valueClass.simpleName
-                keyType = keyValueStoreAnnotation.keyType.java
-                keyName = keyValueStoreAnnotation.keyName
-                break
+            for (annotationStage in keyValueStoreAnnotation.stages) {
+                if (annotationStage == stage) {
+                    tableName = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else valueClass.simpleName
+                    keyType = keyValueStoreAnnotation.keyType.java
+                    keyName = keyValueStoreAnnotation.keyName
+                    break
+                }
             }
         }
 
@@ -50,9 +52,11 @@ abstract class KeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass: Class<V
         fun <T> getTableName(clazz: Class<T>, stage: String): String {
             val keyValueStoreAnnotations = clazz.getAnnotationsByType(KeyValueStore::class.java)
             for (keyValueStoreAnnotation in keyValueStoreAnnotations) {
-                if (keyValueStoreAnnotation.stage == stage) {
-                    val name = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else clazz.simpleName
-                    return "$name$stage"
+                for (annotationStage in keyValueStoreAnnotation.stages) {
+                    if (annotationStage == stage) {
+                        val name = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else clazz.simpleName
+                        return "$name$stage"
+                    }
                 }
             }
             throw InvalidStageException()

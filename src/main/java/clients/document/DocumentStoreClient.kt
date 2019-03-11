@@ -41,9 +41,11 @@ abstract class DocumentStoreClient<T>(clazz: Class<T>, stage: String) {
         fun <T> getTableName(clazz: Class<T>, stage: String): String {
             val documentStoreAnnotations = clazz.getDeclaredAnnotationsByType(DocumentStore::class.java)
             for (documentStoreAnnotation in documentStoreAnnotations) {
-                if (documentStoreAnnotation.stage == stage) {
-                    val name = if (documentStoreAnnotation.tableName != "") documentStoreAnnotation.tableName else clazz.simpleName
-                    return "$name$stage"
+                for (annotationStage in documentStoreAnnotation.stages) {
+                    if (annotationStage == stage) {
+                        val name = if (documentStoreAnnotation.tableName != "") documentStoreAnnotation.tableName else clazz.simpleName
+                        return "$name$stage"
+                    }
                 }
             }
             throw InvalidStageException()

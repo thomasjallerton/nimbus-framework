@@ -4,7 +4,7 @@ import annotation.annotations.keyvalue.UsesKeyValueStore
 
 class UsesKeyValueStoreAnnotation(private val usesKeyValueStoreAnnotation: UsesKeyValueStore): DataModelAnnotation() {
 
-    override val stage: String = usesKeyValueStoreAnnotation.stage
+    override val stages = usesKeyValueStoreAnnotation.stages
 
     override fun internalDataModel(): Class<out Any> {
         return usesKeyValueStoreAnnotation.dataModel.java
