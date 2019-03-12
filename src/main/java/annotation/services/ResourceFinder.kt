@@ -8,6 +8,7 @@ import cloudformation.CloudFormationDocuments
 import cloudformation.resource.ExistingResource
 import cloudformation.resource.Resource
 import cloudformation.resource.database.RdsResource
+import cloudformation.resource.file.FileBucket
 import persisted.NimbusState
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -81,6 +82,4 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
             "$givenName$stage"
         }
     }
-
-
 }

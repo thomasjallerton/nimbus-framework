@@ -1,5 +1,5 @@
 package annotation.annotations.persistent
 
-enum class StoreUpdate {
+enum class StoreEventType {
     REMOVE, INSERT, MODIFY
 }
