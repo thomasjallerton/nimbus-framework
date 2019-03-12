@@ -1,7 +1,7 @@
 package wrappers.store.keyvalue
 
 import annotation.annotations.function.KeyValueStoreServerlessFunction
-import annotation.annotations.persistent.StoreUpdate
+import annotation.annotations.persistent.StoreEventType
 import cloudformation.processing.MethodInformation
 import wrappers.store.StoreServerlessFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
@@ -12,7 +12,7 @@ class KeyValueStoreServerlessFunctionFileBuilder<T>(
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
         compilingElement: Element,
-        method: StoreUpdate,
+        method: StoreEventType,
         clazz: TypeElement
 ) : StoreServerlessFunctionFileBuilder(
         processingEnv,

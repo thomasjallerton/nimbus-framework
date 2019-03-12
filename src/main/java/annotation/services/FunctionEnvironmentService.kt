@@ -1,5 +1,7 @@
 package annotation.services
 
+import annotation.annotations.NimbusConstants.stage
+import annotation.annotations.file.FileStorageEventType
 import annotation.annotations.function.HttpServerlessFunction
 import annotation.annotations.function.NotificationServerlessFunction
 import annotation.annotations.function.QueueServerlessFunction
@@ -10,6 +12,8 @@ import cloudformation.processing.MethodInformation
 import cloudformation.resource.*
 import cloudformation.resource.basic.CronRule
 import cloudformation.resource.dynamo.DynamoStreamResource
+import cloudformation.resource.file.FileBucket
+import cloudformation.resource.file.LambdaConfiguration
 import cloudformation.resource.function.FunctionConfig
 import cloudformation.resource.function.FunctionEventMappingResource
 import cloudformation.resource.function.FunctionPermissionResource
@@ -168,5 +172,29 @@ class FunctionEnvironmentService(
 
         updateResources.addResource(cronRule)
         updateResources.addResource(lambdaPermissionResource)
+    }
+
+    fun newFileTrigger(name: String, eventType: FileStorageEventType, function: FunctionResource) {
+        val newBucket = FileBucket(nimbusState, name, function.stage)
+
+        val updateResources = cloudFormationDocumentsCollection[function.stage]!!.updateResources
+        val oldBucket = updateResources.get(newBucket.getName()) as FileBucket?
+
+        val lambdaConfiguration = LambdaConfiguration(eventType, function)
+
+        if (oldBucket != null) {
+            val permission = FunctionPermissionResource(function, oldBucket, nimbusState)
+            oldBucket.addDependsOn(function)
+            oldBucket.addDependsOn(permission)
+            updateResources.addResource(permission)
+            oldBucket.addLambdaConfiguration(lambdaConfiguration)
+        } else {
+            newBucket.addLambdaConfiguration(lambdaConfiguration)
+            val permission = FunctionPermissionResource(function, newBucket, nimbusState)
+            newBucket.addDependsOn(function)
+            newBucket.addDependsOn(permission)
+            updateResources.addResource(permission)
+            updateResources.addResource(newBucket)
+        }
     }
 }

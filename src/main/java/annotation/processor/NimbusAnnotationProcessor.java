@@ -55,6 +55,8 @@ import java.util.*;
         "annotation.annotations.function.repeatable.BasicServerlessFunctions",
         "annotation.annotations.function.KeyValueStoreServerlessFunction",
         "annotation.annotations.function.repeatable.KeyValueStoreServerlessFunctions",
+        "annotation.annotations.function.FileStorageServerlessFunction",
+        "annotation.annotations.function.repeatable.FileStorageServerlessFunctions",
         "annotation.annotations.dynamo.KeyValueStore",
         "annotation.annotations.dynamo.KeyValueStores",
         "annotation.annotations.dynamo.DocumentStore",
@@ -123,6 +125,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         functionResourceCreators.add(new QueueFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
         functionResourceCreators.add(new BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
         functionResourceCreators.add(new AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv));
+        functionResourceCreators.add(new FileStorageResourceCreator(cfDocuments, nimbusState, processingEnv));
 
         List<FunctionInformation> allInformation = new LinkedList<>();
         for (FunctionResourceCreator creator : functionResourceCreators) {
@@ -251,10 +254,11 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                     CloudFormationDocuments cloudFormationDocuments = cfDocuments.get(stage);
                     if (cloudFormationDocuments == null) {
                         messager.printMessage(Diagnostic.Kind.ERROR, "No serverless function annotation found for UsesNotificationTopic", serverlessMethod);
+                        return;
                     }
                     cloudFormationDocuments.getUpdateResources().addResource(snsTopicResource);
 
-                    functionResource.addEnvVariable("SNS_TOPIC_ARN_" + notificationTopic.topic().toUpperCase(), snsTopicResource.getArn(""));
+                    functionResource.addEnvVariable("SNS_TOPIC_ARN_" + notificationTopic.topic().toUpperCase(), snsTopicResource.getRef());
                     iamRoleResource.addAllowStatement("sns:Subscribe", snsTopicResource, "");
                     iamRoleResource.addAllowStatement("sns:Unsubscribe", snsTopicResource, "");
                     iamRoleResource.addAllowStatement("sns:Publish", snsTopicResource, "");

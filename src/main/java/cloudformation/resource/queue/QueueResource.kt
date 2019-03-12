@@ -16,6 +16,7 @@ class QueueResource(
 
         val properties = getProperties()
         properties.addProperty("VisibilityTimeout", visibilityTimeout)
+        properties.addProperty("QueueName", "$name$stage")
 
         queue.add("Properties", properties)
 

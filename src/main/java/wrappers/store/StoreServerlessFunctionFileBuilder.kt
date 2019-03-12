@@ -1,6 +1,6 @@
 package wrappers.store
 
-import annotation.annotations.persistent.StoreUpdate
+import annotation.annotations.persistent.StoreEventType
 import cloudformation.processing.MethodInformation
 import clients.dynamo.DynamoStreamParser
 import wrappers.ServerlessFunctionFileBuilder
@@ -16,7 +16,7 @@ abstract class StoreServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
         compilingElement: Element,
-        private val method: StoreUpdate,
+        private val method: StoreEventType,
         private val clazz: TypeElement,
         private val functionName: String
 ) : ServerlessFunctionFileBuilder(
@@ -38,7 +38,7 @@ abstract class StoreServerlessFunctionFileBuilder(
         val errorPrefix = "Incorrect $functionName annotated method parameters."
         val eventSimpleName = StoreEvent::class.java.simpleName
 
-        if (method == StoreUpdate.INSERT || method == StoreUpdate.REMOVE) {
+        if (method == StoreEventType.INSERT || method == StoreEventType.REMOVE) {
             if (methodInformation.parameters.size > 2) {
                 compilationError("$errorPrefix Too many arguments, can have at most two: T input, $eventSimpleName event.")
             } else if (methodInformation.parameters.size == 2) {
@@ -129,29 +129,29 @@ abstract class StoreServerlessFunctionFileBuilder(
 
     private fun handleOneParam(methodName: String) {
         when (method) {
-            StoreUpdate.INSERT -> write("handler.$methodName(parsedNewItem);")
-            StoreUpdate.REMOVE -> write("handler.$methodName(parsedOldItem);")
-            StoreUpdate.MODIFY -> write("handler.$methodName(parsedNewItem);")
+            StoreEventType.INSERT -> write("handler.$methodName(parsedNewItem);")
+            StoreEventType.REMOVE -> write("handler.$methodName(parsedOldItem);")
+            StoreEventType.MODIFY -> write("handler.$methodName(parsedNewItem);")
         }
     }
 
     private fun handleTwoParams(methodName: String, eventParam: Param) {
         when (method) {
-            StoreUpdate.INSERT -> {
+            StoreEventType.INSERT -> {
                 if (eventParam.index == 0) {
                     write("handler.$methodName(event, parsedNewItem);")
                 } else {
                     write("handler.$methodName(parsedNewItem, event);")
                 }
             }
-            StoreUpdate.REMOVE -> {
+            StoreEventType.REMOVE -> {
                 if (eventParam.index == 0) {
                     write("handler.$methodName(event, parsedOldItem);")
                 } else {
                     write("handler.$methodName(parsedOldItem, event);")
                 }
             }
-            StoreUpdate.MODIFY -> {
+            StoreEventType.MODIFY -> {
                 when {
                     eventParam.isEmpty() -> write("handler.$methodName(parsedOldItem, parsedNewItem);")
                     eventParam.index == 0 -> write("handler.$methodName(event, parsedNewItem);")

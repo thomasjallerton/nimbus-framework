@@ -26,7 +26,7 @@ class SnsTopicResource(
         snsTopic.addProperty("Type", "AWS::SNS::Topic")
 
         val properties = getProperties()
-        properties.addProperty("TopicName", topic)
+        properties.addProperty("TopicName", "$topic$stage")
         properties.addProperty("DisplayName", "")
 
         if (function != null) {
@@ -52,29 +52,6 @@ class SnsTopicResource(
     }
 
     override fun getArn(suffix: String): JsonObject {
-        val arn = JsonObject()
-        val joinFunc = JsonArray()
-        joinFunc.add("")
-
-        val join = JsonArray()
-        join.add("arn:")
-
-        join.add(getRefProperty("AWS::Partition"))
-
-        join.add(":sns:")
-
-        join.add(getRefProperty("AWS::Region"))
-
-        join.add(":")
-
-        join.add(getRefProperty("AWS::AccountId"))
-
-        join.add(":$topic$suffix")
-
-        joinFunc.add(join)
-
-        arn.add("Fn::Join", joinFunc)
-
-        return arn
+        return getRef()
     }
 }
