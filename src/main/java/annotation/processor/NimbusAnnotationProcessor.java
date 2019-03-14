@@ -2,6 +2,7 @@ package annotation.processor;
 
 import annotation.annotations.database.UsesRelationalDatabase;
 import annotation.annotations.document.UsesDocumentStore;
+import annotation.annotations.file.UsesFileStorageClient;
 import annotation.annotations.function.UsesBasicServerlessFunctionClient;
 import annotation.annotations.keyvalue.UsesKeyValueStore;
 import annotation.annotations.notification.UsesNotificationTopic;
@@ -25,6 +26,7 @@ import cloudformation.resource.IamRoleResource;
 import cloudformation.resource.Resource;
 import cloudformation.resource.ResourceCollection;
 import cloudformation.resource.database.RdsResource;
+import cloudformation.resource.file.FileBucket;
 import cloudformation.resource.function.FunctionResource;
 import cloudformation.resource.notification.SnsTopicResource;
 import cloudformation.resource.queue.QueueResource;
@@ -258,10 +260,36 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                     }
                     cloudFormationDocuments.getUpdateResources().addResource(snsTopicResource);
 
+                    functionResource.addEnvVariable("NIMBUS_STAGE", stage);
                     functionResource.addEnvVariable("SNS_TOPIC_ARN_" + notificationTopic.topic().toUpperCase(), snsTopicResource.getRef());
                     iamRoleResource.addAllowStatement("sns:Subscribe", snsTopicResource, "");
                     iamRoleResource.addAllowStatement("sns:Unsubscribe", snsTopicResource, "");
                     iamRoleResource.addAllowStatement("sns:Publish", snsTopicResource, "");
+                }
+            }
+        }
+
+        for (UsesFileStorageClient fileStorage: serverlessMethod.getAnnotationsByType(UsesFileStorageClient.class)) {
+            for (String stage : fileStorage.stages()) {
+                if (stage.equals(functionResource.getStage())) {
+
+                    FileBucket newBucket = new FileBucket(nimbusState, fileStorage.bucketName(), stage);
+
+                    ResourceCollection updateResources = cfDocuments.get(stage).getUpdateResources();
+                    FileBucket existingBucket = (FileBucket) updateResources.get(newBucket.getName());
+
+                    FileBucket permissionsBucket = existingBucket;
+                    if (existingBucket == null) {
+                        updateResources.addResource(newBucket);
+                        permissionsBucket = newBucket;
+                    }
+                    functionResource.addEnvVariable("NIMBUS_STAGE", stage);
+                    iamRoleResource.addAllowStatement("s3:GetObject", permissionsBucket, "");
+                    iamRoleResource.addAllowStatement("s3:DeleteObject", permissionsBucket, "");
+                    iamRoleResource.addAllowStatement("s3:PutObject", permissionsBucket, "");
+                    iamRoleResource.addAllowStatement("s3:GetObject", permissionsBucket, "/*");
+                    iamRoleResource.addAllowStatement("s3:DeleteObject", permissionsBucket, "/*");
+                    iamRoleResource.addAllowStatement("s3:PutObject", permissionsBucket, "/*");
                 }
             }
         }
