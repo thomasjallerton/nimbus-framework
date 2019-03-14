@@ -12,6 +12,13 @@ class FileBucket(nimbusState: NimbusState, private val name: String, stage: Stri
         return "s3."
     }
 
+    override fun getArn(suffix: String): JsonObject {
+        val values = JsonArray()
+        values.add("arn:aws:s3:::")
+        values.add(bucketName + suffix)
+        return joinJson("", values)
+    }
+
     override fun getTriggerArn(): JsonObject {
         val values = JsonArray()
         values.add("arn:aws:s3:::")
