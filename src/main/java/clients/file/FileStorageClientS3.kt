@@ -33,6 +33,10 @@ internal class FileStorageClientS3(bucketName: String): FileStorageClient {
         s3Client.putObject(bucketName, path, file)
     }
 
+    override fun saveFile(path: String, content: String) {
+        s3Client.putObject(bucketName, path, content)
+    }
+
     override fun deleteFile(path: String) {
         s3Client.deleteObject(bucketName, path)
     }
