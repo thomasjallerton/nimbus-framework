@@ -7,6 +7,8 @@ interface FileStorageClient {
 
     fun saveFile(path: String, file: File)
 
+    fun saveFile(path: String, content: String)
+
     fun deleteFile(path: String)
 
     fun listFiles(): List<FileInformation>

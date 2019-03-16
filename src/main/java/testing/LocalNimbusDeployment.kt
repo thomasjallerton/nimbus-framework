@@ -2,6 +2,7 @@ package testing
 
 import annotation.annotations.deployment.AfterDeployment
 import annotation.annotations.document.DocumentStore
+import annotation.annotations.file.UsesFileStorageClient
 import annotation.annotations.function.*
 import annotation.annotations.keyvalue.KeyValueStore
 import annotation.annotations.notification.UsesNotificationTopic
@@ -20,6 +21,8 @@ import org.reflections.util.FilterBuilder
 import testing.basic.BasicMethod
 import testing.document.KeyValueMethod
 import testing.document.LocalDocumentStore
+import testing.file.FileStorageMethod
+import testing.file.LocalFileStorage
 import testing.http.LocalHttpMethod
 import testing.http.HttpRequest
 import testing.keyvalue.LocalKeyValueStore
@@ -40,6 +43,7 @@ class LocalNimbusDeployment {
     private val localBasicMethods: MutableMap<FunctionIdentifier, BasicMethod> = mutableMapOf()
     private val keyValueStores: MutableMap<String, LocalKeyValueStore<out Any, out Any>> = mutableMapOf()
     private val documentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
+    private val fileStorage: MutableMap<String, LocalFileStorage> = mutableMapOf()
     private val notificationTopics: MutableMap<String, LocalNotificationTopic> = mutableMapOf()
     private val afterDeployments: Deque<Pair<Method, Any>> = LinkedList()
 
@@ -90,97 +94,99 @@ class LocalNimbusDeployment {
         try {
             for (method in clazz.declaredMethods) {
                 val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
+                val invokeOn = clazz.getConstructor().newInstance()
 
-                if (method.isAnnotationPresent(UsesNotificationTopic::class.java)) {
-                    val usesNotificationTopics = method.getAnnotationsByType(UsesNotificationTopic::class.java)
+                val usesNotificationTopics = method.getAnnotationsByType(UsesNotificationTopic::class.java)
 
-                    for (usesNotificationTopic in usesNotificationTopics) {
-                        if (!notificationTopics.containsKey(usesNotificationTopic.topic)) {
-                            val localNotificationTopic = LocalNotificationTopic()
-                            notificationTopics[usesNotificationTopic.topic] = localNotificationTopic
-                        }
+                for (usesNotificationTopic in usesNotificationTopics) {
+                    if (!notificationTopics.containsKey(usesNotificationTopic.topic)) {
+                        val localNotificationTopic = LocalNotificationTopic()
+                        notificationTopics[usesNotificationTopic.topic] = localNotificationTopic
                     }
                 }
 
-                if (method.isAnnotationPresent(QueueServerlessFunction::class.java)) {
-                    val queueServerlessFunctions = method.getAnnotationsByType(QueueServerlessFunction::class.java)
+                val usesFileStorages = method.getAnnotationsByType(UsesFileStorageClient::class.java)
 
-                    val invokeOn = clazz.getConstructor().newInstance()
-                    for (queueFunction in queueServerlessFunctions) {
-                        val queueMethod = QueueMethod(method, invokeOn, queueFunction.batchSize)
-                        val newQueue = LocalQueue(queueMethod)
-                        queues[queueFunction.id] = newQueue
-                        methods[functionIdentifier] = queueMethod
+                for (usesFileStorage in usesFileStorages) {
+                    if (!fileStorage.containsKey(usesFileStorage.bucketName)) {
+                        fileStorage[usesFileStorage.bucketName] = LocalFileStorage(usesFileStorage.bucketName)
                     }
                 }
 
-                if (method.isAnnotationPresent(BasicServerlessFunction::class.java)) {
-                    val basicServerlessFunctions = method.getAnnotationsByType(BasicServerlessFunction::class.java)
+                val fileStorageFunctions = method.getAnnotationsByType(FileStorageServerlessFunction::class.java)
 
-                    val invokeOn = clazz.getConstructor().newInstance()
-                    for (basicFunction in basicServerlessFunctions) {
-                        val basicMethod = BasicMethod(method, invokeOn)
-                        methods[functionIdentifier] = basicMethod
-                        localBasicMethods[functionIdentifier] = basicMethod
+                for (fileStorageFunction in fileStorageFunctions) {
+                    if (!fileStorage.containsKey(fileStorageFunction.bucketName)) {
+                        fileStorage[fileStorageFunction.bucketName] = LocalFileStorage(fileStorageFunction.bucketName)
                     }
+                    val localFileStorage = fileStorage[fileStorageFunction.bucketName]
+                    val fileStorageMethod = FileStorageMethod(method, invokeOn, fileStorageFunction.eventType)
+                    localFileStorage!!.addMethod(fileStorageMethod)
+                    methods[functionIdentifier] = fileStorageMethod
+
                 }
 
-                if (method.isAnnotationPresent(HttpServerlessFunction::class.java)) {
-                    val httpServerlessFunctions = method.getAnnotationsByType(HttpServerlessFunction::class.java)
+                val queueServerlessFunctions = method.getAnnotationsByType(QueueServerlessFunction::class.java)
 
-                    val invokeOn = clazz.getConstructor().newInstance()
-                    for (httpFunction in httpServerlessFunctions) {
-                        val httpMethod = LocalHttpMethod(method, invokeOn)
-                        val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
-                        localHttpMethods[httpIdentifier] = httpMethod
-                        methods[functionIdentifier] = httpMethod
-                    }
+                for (queueFunction in queueServerlessFunctions) {
+                    val queueMethod = QueueMethod(method, invokeOn, queueFunction.batchSize)
+                    val newQueue = LocalQueue(queueMethod)
+                    queues[queueFunction.id] = newQueue
+                    methods[functionIdentifier] = queueMethod
                 }
 
-                if (method.isAnnotationPresent(DocumentStoreServerlessFunction::class.java)) {
-                    val documentFunctions = method.getAnnotationsByType(DocumentStoreServerlessFunction::class.java)
+                val basicServerlessFunctions = method.getAnnotationsByType(BasicServerlessFunction::class.java)
 
-                    val invokeOn = clazz.getConstructor().newInstance()
-                    for (documentFunction in documentFunctions) {
-                        val documentMethod = KeyValueMethod(method, invokeOn, documentFunction.method)
-                        methods[functionIdentifier] = documentMethod
-                        val tableName = DocumentStoreClient.getTableName(documentFunction.dataModel.java, stage)
-                        val documentStore = documentStores[tableName]
-                        documentStore?.addMethod(documentMethod)
-                    }
+                for (basicFunction in basicServerlessFunctions) {
+                    val basicMethod = BasicMethod(method, invokeOn)
+                    methods[functionIdentifier] = basicMethod
+                    localBasicMethods[functionIdentifier] = basicMethod
                 }
 
-                if (method.isAnnotationPresent(KeyValueStoreServerlessFunction::class.java)) {
-                    val keyValueFunctions = method.getAnnotationsByType(KeyValueStoreServerlessFunction::class.java)
+                val httpServerlessFunctions = method.getAnnotationsByType(HttpServerlessFunction::class.java)
 
-                    val invokeOn = clazz.getConstructor().newInstance()
-                    for (keyValueFunction in keyValueFunctions) {
-                        val documentMethod = KeyValueMethod(method, invokeOn, keyValueFunction.method)
-                        methods[functionIdentifier] = documentMethod
-                        val tableName = KeyValueStoreClient.getTableName(keyValueFunction.dataModel.java, stage)
-                        val keyValueStore = keyValueStores[tableName]
-                        keyValueStore?.addMethod(documentMethod)
-                    }
+                for (httpFunction in httpServerlessFunctions) {
+                    val httpMethod = LocalHttpMethod(method, invokeOn)
+                    val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
+                    localHttpMethods[httpIdentifier] = httpMethod
+                    methods[functionIdentifier] = httpMethod
                 }
 
-                if (method.isAnnotationPresent(NotificationServerlessFunction::class.java)) {
-                    val notificationServerlessFunctions = method.getAnnotationsByType(NotificationServerlessFunction::class.java)
+                val documentFunctions = method.getAnnotationsByType(DocumentStoreServerlessFunction::class.java)
 
-                    val invokeOn = clazz.getConstructor().newInstance()
-                    for (notificationFunction in notificationServerlessFunctions) {
-                        val notificationMethod = NotificationMethod(method, invokeOn)
+                for (documentFunction in documentFunctions) {
+                    val documentMethod = KeyValueMethod(method, invokeOn, documentFunction.method)
+                    methods[functionIdentifier] = documentMethod
+                    val tableName = DocumentStoreClient.getTableName(documentFunction.dataModel.java, stage)
+                    val documentStore = documentStores[tableName]
+                    documentStore?.addMethod(documentMethod)
+                }
 
-                        val notificationTopic = if (notificationTopics.containsKey(notificationFunction.topic)) {
-                            notificationTopics[notificationFunction.topic]!!
-                        } else {
-                            val localNotificationTopic = LocalNotificationTopic()
-                            notificationTopics[notificationFunction.topic] = localNotificationTopic
-                            localNotificationTopic
-                        }
+                val keyValueFunctions = method.getAnnotationsByType(KeyValueStoreServerlessFunction::class.java)
 
-                        notificationTopic.addSubscriber(notificationMethod)
-                        methods[functionIdentifier] = notificationMethod
+                for (keyValueFunction in keyValueFunctions) {
+                    val documentMethod = KeyValueMethod(method, invokeOn, keyValueFunction.method)
+                    methods[functionIdentifier] = documentMethod
+                    val tableName = KeyValueStoreClient.getTableName(keyValueFunction.dataModel.java, stage)
+                    val keyValueStore = keyValueStores[tableName]
+                    keyValueStore?.addMethod(documentMethod)
+                }
+
+                val notificationServerlessFunctions = method.getAnnotationsByType(NotificationServerlessFunction::class.java)
+
+                for (notificationFunction in notificationServerlessFunctions) {
+                    val notificationMethod = NotificationMethod(method, invokeOn)
+
+                    val notificationTopic = if (notificationTopics.containsKey(notificationFunction.topic)) {
+                        notificationTopics[notificationFunction.topic]!!
+                    } else {
+                        val localNotificationTopic = LocalNotificationTopic()
+                        notificationTopics[notificationFunction.topic] = localNotificationTopic
+                        localNotificationTopic
                     }
+
+                    notificationTopic.addSubscriber(notificationMethod)
+                    methods[functionIdentifier] = notificationMethod
                 }
 
                 if (method.isAnnotationPresent(AfterDeployment::class.java)) {
@@ -216,6 +222,14 @@ class LocalNimbusDeployment {
 
     fun <T> getRelationalDatabaseClient(dataClass: Class<T>): DatabaseClient {
         return DatabaseClientLocal(dataClass)
+    }
+
+    fun getLocalFileStorage(bucketName: String): LocalFileStorage {
+        if (fileStorage.containsKey(bucketName)) {
+            return fileStorage[bucketName]!!
+        } else {
+            throw ResourceNotFoundException()
+        }
     }
 
     fun <T> getDocumentStore(clazz: Class<T>): LocalDocumentStore<T> {
