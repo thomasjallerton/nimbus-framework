@@ -43,7 +43,7 @@ class FileBucket(nimbusState: NimbusState, private val name: String, stage: Stri
     }
 
     override fun getName(): String {
-        return "${name}FileBucket"
+        return "${nimbusState.projectName}${name}FileBucket"
     }
 
     fun addLambdaConfiguration(lambdaConfiguration: LambdaConfiguration) {
