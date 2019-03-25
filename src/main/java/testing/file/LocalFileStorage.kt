@@ -8,7 +8,6 @@ import java.util.*
 
 
 class LocalFileStorage(bucketName: String) : FileStorageClient {
-
     private val tmpDir: String
     private val methods: MutableList<FileStorageMethod> = mutableListOf()
 
@@ -41,6 +40,10 @@ class LocalFileStorage(bucketName: String) : FileStorageClient {
         outStream.close()
 
         methods.forEach { method -> method.invoke(actualPath, f.length(), FileStorageEventType.OBJECT_CREATED) }
+    }
+
+    override fun saveHtmlFile(path: String, content: String) {
+        saveFile(path, content)
     }
 
     override fun saveFile(path: String, content: String) {
