@@ -17,6 +17,10 @@ class FileStorageClientLocal(bucketName: String): FileStorageClient {
         fileStorage.saveFile(path, content)
     }
 
+    override fun saveHtmlFile(path: String, content: String) {
+        fileStorage.saveHtmlFile(path, content)
+    }
+
     override fun deleteFile(path: String) {
         fileStorage.deleteFile(path)
     }

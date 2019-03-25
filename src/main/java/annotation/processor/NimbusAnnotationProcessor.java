@@ -12,10 +12,7 @@ import annotation.services.FunctionEnvironmentService;
 import annotation.services.ReadUserConfigService;
 import annotation.services.ResourceFinder;
 import annotation.services.functions.*;
-import annotation.services.resources.CloudResourceResourceCreator;
-import annotation.services.resources.DocumentStoreResourceCreator;
-import annotation.services.resources.KeyValueStoreResourceCreator;
-import annotation.services.resources.RelationalDatabaseResourceCreator;
+import annotation.services.resources.*;
 import annotation.wrappers.annotations.datamodel.DataModelAnnotation;
 import annotation.wrappers.annotations.datamodel.UsesDocumentStoreAnnotation;
 import annotation.wrappers.annotations.datamodel.UsesKeyValueStoreAnnotation;
@@ -66,7 +63,9 @@ import java.util.*;
         "annotation.annotations.database.RelationalDatabase",
         "annotation.annotations.database.RelationalDatabases",
         "annotation.annotations.deployment.AfterDeployment",
-        "annotation.annotations.deployment.AfterDeployments"
+        "annotation.annotations.deployment.AfterDeployments",
+        "annotation.annotations.file.FileStorageBucket",
+        "annotation.annotations.file.FileStorageBuckets"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
@@ -114,6 +113,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         resourceCreators.add(new DocumentStoreResourceCreator(roundEnv, cfDocuments, nimbusState));
         resourceCreators.add(new KeyValueStoreResourceCreator(roundEnv, cfDocuments, nimbusState, processingEnv));
         resourceCreators.add(new RelationalDatabaseResourceCreator(roundEnv, cfDocuments, nimbusState));
+        resourceCreators.add(new FileStorageBucketResourceCreator(roundEnv, cfDocuments, nimbusState));
 
         for (CloudResourceResourceCreator creator : resourceCreators) {
             creator.create();

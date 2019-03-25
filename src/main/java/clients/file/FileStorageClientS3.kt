@@ -1,6 +1,8 @@
 package clients.file
 
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import com.amazonaws.services.s3.model.ObjectMetadata
+import com.amazonaws.services.s3.model.PutObjectRequest
 import java.io.File
 import java.io.InputStream
 
@@ -40,5 +42,14 @@ internal class FileStorageClientS3(bucketName: String): FileStorageClient {
     override fun deleteFile(path: String) {
         s3Client.deleteObject(bucketName, path)
     }
+
+    override fun saveHtmlFile(path: String, content: String) {
+        val objectMetadata = ObjectMetadata()
+        objectMetadata.contentType = "text/html"
+        val putObjectRequest = PutObjectRequest(bucketName, path, content.byteInputStream(), objectMetadata)
+
+        s3Client.putObject(putObjectRequest)
+    }
+
 
 }
