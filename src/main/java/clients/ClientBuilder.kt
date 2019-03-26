@@ -3,6 +3,7 @@ package clients
 import clients.document.DocumentStoreClient
 import clients.document.DocumentStoreClientDynamo
 import clients.file.FileStorageClient
+import clients.file.FileStorageClientLocal
 import clients.file.FileStorageClientS3
 import clients.function.BasicServerlessFunctionClient
 import clients.function.BasicServerlessFunctionClientLambda
@@ -82,7 +83,7 @@ object ClientBuilder {
     @JvmStatic
     fun getFileStorageClient(bucketName: String): FileStorageClient {
         return if (LocalNimbusDeployment.isLocalDeployment) {
-            FileStorageClientS3(bucketName + getStage())
+            FileStorageClientLocal(bucketName)
         } else {
             FileStorageClientS3(bucketName + getStage())
         }
