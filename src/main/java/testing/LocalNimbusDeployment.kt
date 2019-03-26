@@ -2,6 +2,7 @@ package testing
 
 import annotation.annotations.deployment.AfterDeployment
 import annotation.annotations.document.DocumentStore
+import annotation.annotations.file.FileStorageBucket
 import annotation.annotations.file.UsesFileStorageClient
 import annotation.annotations.function.*
 import annotation.annotations.keyvalue.KeyValueStore
@@ -30,6 +31,7 @@ import testing.notification.LocalNotificationTopic
 import testing.notification.NotificationMethod
 import testing.queue.LocalQueue
 import testing.queue.QueueMethod
+import testing.webserver.LocalWebserver
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.*
@@ -46,12 +48,15 @@ class LocalNimbusDeployment {
     private val fileStorage: MutableMap<String, LocalFileStorage> = mutableMapOf()
     private val notificationTopics: MutableMap<String, LocalNotificationTopic> = mutableMapOf()
     private val afterDeployments: Deque<Pair<Method, Any>> = LinkedList()
+    private val localWebservers: MutableMap<String, LocalWebserver> = mutableMapOf()
 
     private constructor(clazz: Class<out Any>, stageParam: String = "dev") {
         instance = this
         createResources(clazz)
         createHandlers(clazz)
         stage = stageParam
+
+        afterDeployments.forEach { (method, obj) -> method.invoke(obj) }
     }
 
     private constructor(packageName: String, stageParam: String = "dev") {
@@ -79,14 +84,34 @@ class LocalNimbusDeployment {
     }
 
     private fun createResources(clazz: Class<out Any>) {
-        if (clazz.isAnnotationPresent(KeyValueStore::class.java)) {
+
+        val keyValueStoreAnnotations = clazz.getAnnotationsByType(KeyValueStore::class.java)
+
+        for (keyValueStoreAnnotation in keyValueStoreAnnotations) {
             val tableName = KeyValueStoreClient.getTableName(clazz, stage)
             val annotation = clazz.getDeclaredAnnotation(KeyValueStore::class.java)
             keyValueStores[tableName] = LocalKeyValueStore(annotation.keyType.java, clazz, stage)
         }
-        if (clazz.isAnnotationPresent(DocumentStore::class.java)) {
+
+        val documentStoreAnnotations = clazz.getAnnotationsByType(DocumentStore::class.java)
+
+        for (documentStoreAnnotation in documentStoreAnnotations) {
             val tableName = DocumentStoreClient.getTableName(clazz, stage)
             documentStores[tableName] = LocalDocumentStore(clazz, stage)
+        }
+
+
+        val fileStorageBuckets = clazz.getAnnotationsByType(FileStorageBucket::class.java)
+
+        for (fileStorageBucket in fileStorageBuckets) {
+            if (fileStorageBucket.staticWebsite && !localWebservers.containsKey(fileStorageBucket.bucketName)) {
+                val localWebserver = LocalWebserver(fileStorageBucket.indexFile, fileStorageBucket.errorFile)
+                localWebservers[fileStorageBucket.bucketName] = localWebserver
+            }
+
+            if (!fileStorage.containsKey(fileStorageBucket.bucketName)) {
+                fileStorage[fileStorageBucket.bucketName] = LocalFileStorage(fileStorageBucket.bucketName)
+            }
         }
     }
 
@@ -205,6 +230,23 @@ class LocalNimbusDeployment {
             System.err.println("Error creating handler class, it should have no constructor parameters")
             e.targetException.printStackTrace()
         }
+    }
+
+    internal fun getLocalWebserver(bucketName: String): LocalWebserver? {
+        return localWebservers[bucketName]
+    }
+
+    fun startWebserver(bucketName: String, port: Int = 8080) {
+        if (localWebservers.containsKey(bucketName)) {
+            val webserver = localWebservers[bucketName]
+            webserver?.startServer(port)
+        } else {
+            throw ResourceNotFoundException()
+        }
+    }
+
+    fun stopWebservers() {
+        localWebservers.forEach { _, server -> server.stopServer() }
     }
 
     fun <K, V> getKeyValueStore(valueClass: Class<V>): LocalKeyValueStore<K, V> {

@@ -3,40 +3,45 @@ package testing.file
 import annotation.annotations.file.FileStorageEventType
 import clients.file.FileInformation
 import clients.file.FileStorageClient
+import testing.LocalNimbusDeployment
+import testing.webserver.LocalWebserver
 import java.io.*
 import java.util.*
 
 
 class LocalFileStorage(bucketName: String) : FileStorageClient {
 
+    private val localNimbusClient = LocalNimbusDeployment.getInstance()
+    private val webserver: LocalWebserver? = localNimbusClient.getLocalWebserver(bucketName)
+
     override fun saveFile(path: String, inputStream: InputStream) {
-        val actualPath = tmpDir + File.separator + path
-        val f = File(actualPath)
-        f.parentFile?.mkdirs()
-        f.createNewFile()
+        val outputFile = saveInputStreamToFile(path, inputStream)
+        addNewWebHandler(path, outputFile)
+    }
 
-        val initialStream = FileInputStream(f)
-        val buffer = ByteArray(initialStream.available())
-        initialStream.read(buffer)
+    override fun saveFile(path: String, file: File) {
+        val outputFile = saveFileToFile(path, file)
+        addNewWebHandler(path, outputFile)
+    }
 
-        val outStream = FileOutputStream(f)
-        outStream.write(buffer)
-
-        outStream.close()
-
-        methods.forEach { method -> method.invoke(actualPath, f.length(), FileStorageEventType.OBJECT_CREATED) }
+    override fun saveFile(path: String, content: String) {
+        val outputFile = saveStringToFile(path, content)
+        addNewWebHandler(path, outputFile)
     }
 
     override fun saveFileWithContentType(path: String, content: String, contentType: String) {
-        saveFile(path, content)
+        val outputFile = saveStringToFile(path, content)
+        addNewWebHandler(path, outputFile, contentType)
     }
 
     override fun saveFileWithContentType(path: String, file: File, contentType: String) {
-        saveFile(path, file)
+        val outputFile = saveFileToFile(path, file)
+        addNewWebHandler(path, outputFile, contentType)
     }
 
     override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String) {
-        saveFile(path, inputStream)
+        val outputFile = saveInputStreamToFile(path, inputStream)
+        addNewWebHandler(path, outputFile, contentType)
     }
 
     private val tmpDir: String
@@ -53,38 +58,6 @@ class LocalFileStorage(bucketName: String) : FileStorageClient {
 
     internal fun addMethod(fileStorageMethod: FileStorageMethod) {
         methods.add(fileStorageMethod)
-    }
-
-    override fun saveFile(path: String, file: File) {
-        println(tmpDir + File.separator + path)
-        val actualPath = tmpDir + File.separator + path
-        val f = File(actualPath)
-        f.parentFile?.mkdirs()
-        f.createNewFile()
-        val initialStream = FileInputStream(file)
-        val buffer = ByteArray(initialStream.available())
-        initialStream.read(buffer)
-
-        val outStream = FileOutputStream(f)
-        outStream.write(buffer)
-
-        outStream.close()
-
-        methods.forEach { method -> method.invoke(actualPath, f.length(), FileStorageEventType.OBJECT_CREATED) }
-    }
-
-    override fun saveFile(path: String, content: String) {
-        val actualPath = tmpDir + File.separator + path
-        val f = File(actualPath)
-        f.parentFile?.mkdirs()
-        f.createNewFile()
-
-        val outputStream = FileOutputStream(f)
-        val dataOutStream = DataOutputStream(BufferedOutputStream(outputStream))
-        dataOutStream.writeUTF(content)
-        dataOutStream.close()
-
-        methods.forEach { method -> method.invoke(path, f.length(), FileStorageEventType.OBJECT_CREATED) }
     }
 
     override fun deleteFile(path: String) {
@@ -130,5 +103,61 @@ class LocalFileStorage(bucketName: String) : FileStorageClient {
         return FileInputStream(f)
     }
 
+    private fun addNewWebHandler(path: String, file: File, contentType: String = "text/html") {
+        webserver?.handler?.addWebResource(path, file, contentType)
+    }
 
+    private fun saveFileToFile(path: String, file: File): File {
+        val actualPath = tmpDir + File.separator + path
+        val f = File(actualPath)
+        f.parentFile?.mkdirs()
+        f.createNewFile()
+        val initialStream = FileInputStream(file)
+        val buffer = ByteArray(initialStream.available())
+        initialStream.read(buffer)
+
+        val outStream = FileOutputStream(f)
+        outStream.write(buffer)
+
+        outStream.close()
+
+        methods.forEach { method -> method.invoke(actualPath, f.length(), FileStorageEventType.OBJECT_CREATED) }
+
+        return f
+    }
+
+    private fun saveInputStreamToFile(path: String, inputStream: InputStream): File {
+        val actualPath = tmpDir + File.separator + path
+        val f = File(actualPath)
+        f.parentFile?.mkdirs()
+        f.createNewFile()
+
+        val buffer = ByteArray(inputStream.available())
+        inputStream.read(buffer)
+
+        val outStream = FileOutputStream(f)
+        outStream.write(buffer)
+
+        outStream.close()
+
+        methods.forEach { method -> method.invoke(actualPath, f.length(), FileStorageEventType.OBJECT_CREATED) }
+
+        return f
+    }
+
+    private fun saveStringToFile(path: String, content: String): File {
+        val actualPath = tmpDir + File.separator + path
+        val f = File(actualPath)
+        f.parentFile?.mkdirs()
+        f.createNewFile()
+
+        val outputStream = FileOutputStream(f)
+        val dataOutStream = DataOutputStream(BufferedOutputStream(outputStream))
+        dataOutStream.writeUTF(content)
+        dataOutStream.close()
+
+        methods.forEach { method -> method.invoke(path, f.length(), FileStorageEventType.OBJECT_CREATED) }
+
+        return f
+    }
 }
