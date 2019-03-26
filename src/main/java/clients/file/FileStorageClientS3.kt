@@ -8,6 +8,33 @@ import java.io.InputStream
 
 internal class FileStorageClientS3(bucketName: String): FileStorageClient {
 
+    override fun saveFile(path: String, inputStream: InputStream) {
+        s3Client.putObject(bucketName, path, inputStream, ObjectMetadata())
+    }
+
+    override fun saveFileWithContentType(path: String, content: String, contentType: String) {
+        val objectMetadata = ObjectMetadata()
+        objectMetadata.contentType = contentType
+        val putObjectRequest = PutObjectRequest(bucketName, path, content.byteInputStream(), objectMetadata)
+
+        s3Client.putObject(putObjectRequest)
+    }
+
+    override fun saveFileWithContentType(path: String, file: File, contentType: String) {
+        val objectMetadata = ObjectMetadata()
+        objectMetadata.contentType = contentType
+        val putObjectRequest = PutObjectRequest(bucketName, path, file.inputStream(), objectMetadata)
+
+        s3Client.putObject(putObjectRequest)
+    }
+
+    override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String) {
+        val objectMetadata = ObjectMetadata()
+        objectMetadata.contentType = contentType
+        val putObjectRequest = PutObjectRequest(bucketName, path, inputStream, objectMetadata)
+
+        s3Client.putObject(putObjectRequest)     }
+
     private val bucketName = bucketName.toLowerCase()
     private val s3Client = AmazonS3ClientBuilder.defaultClient()
 
@@ -42,14 +69,4 @@ internal class FileStorageClientS3(bucketName: String): FileStorageClient {
     override fun deleteFile(path: String) {
         s3Client.deleteObject(bucketName, path)
     }
-
-    override fun saveHtmlFile(path: String, content: String) {
-        val objectMetadata = ObjectMetadata()
-        objectMetadata.contentType = "text/html"
-        val putObjectRequest = PutObjectRequest(bucketName, path, content.byteInputStream(), objectMetadata)
-
-        s3Client.putObject(putObjectRequest)
-    }
-
-
 }
