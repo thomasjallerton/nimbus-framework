@@ -8,6 +8,37 @@ import java.util.*
 
 
 class LocalFileStorage(bucketName: String) : FileStorageClient {
+
+    override fun saveFile(path: String, inputStream: InputStream) {
+        val actualPath = tmpDir + File.separator + path
+        val f = File(actualPath)
+        f.parentFile?.mkdirs()
+        f.createNewFile()
+
+        val initialStream = FileInputStream(f)
+        val buffer = ByteArray(initialStream.available())
+        initialStream.read(buffer)
+
+        val outStream = FileOutputStream(f)
+        outStream.write(buffer)
+
+        outStream.close()
+
+        methods.forEach { method -> method.invoke(actualPath, f.length(), FileStorageEventType.OBJECT_CREATED) }
+    }
+
+    override fun saveFileWithContentType(path: String, content: String, contentType: String) {
+        saveFile(path, content)
+    }
+
+    override fun saveFileWithContentType(path: String, file: File, contentType: String) {
+        saveFile(path, file)
+    }
+
+    override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String) {
+        saveFile(path, inputStream)
+    }
+
     private val tmpDir: String
     private val methods: MutableList<FileStorageMethod> = mutableListOf()
 
@@ -40,10 +71,6 @@ class LocalFileStorage(bucketName: String) : FileStorageClient {
         outStream.close()
 
         methods.forEach { method -> method.invoke(actualPath, f.length(), FileStorageEventType.OBJECT_CREATED) }
-    }
-
-    override fun saveHtmlFile(path: String, content: String) {
-        saveFile(path, content)
     }
 
     override fun saveFile(path: String, content: String) {
