@@ -30,6 +30,7 @@ import testing.notification.LocalNotificationTopic
 import testing.notification.NotificationMethod
 import testing.queue.LocalQueue
 import testing.queue.QueueMethod
+import testing.webserver.AllResourcesWebserver
 import testing.webserver.LocalWebserver
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -48,7 +49,7 @@ class LocalNimbusDeployment {
     private val notificationTopics: MutableMap<String, LocalNotificationTopic> = mutableMapOf()
     private val afterDeployments: Deque<Pair<Method, Any>> = LinkedList()
     private val localWebservers: MutableMap<String, LocalWebserver> = mutableMapOf()
-    private val FUNCTION_WEBSERVER = "FUNCTION_WEBSERVER"
+    private val functionWebserverIdentifier = "function"
 
     private constructor(clazz: Class<out Any>, stageParam: String = "dev") {
         instance = this
@@ -175,7 +176,7 @@ class LocalNimbusDeployment {
                     localHttpMethods[httpIdentifier] = httpMethod
                     methods[functionIdentifier] = httpMethod
 
-                    val lambdaWebserver = localWebservers.getOrPut(FUNCTION_WEBSERVER) { LocalWebserver("", "") }
+                    val lambdaWebserver = localWebservers.getOrPut(functionWebserverIdentifier) { LocalWebserver("", "") }
                     lambdaWebserver.handler.addWebResource(httpFunction.path, httpFunction.method, httpMethod)
                 }
 
@@ -242,17 +243,22 @@ class LocalNimbusDeployment {
     }
 
     fun startServerlessFunctionWebserver(port: Int = 8080) {
-        if (localWebservers.containsKey(FUNCTION_WEBSERVER)) {
-            val webserver = localWebservers[FUNCTION_WEBSERVER]
+        if (localWebservers.containsKey(functionWebserverIdentifier)) {
+            val webserver = localWebservers[functionWebserverIdentifier]
             webserver?.startServer(port)
         } else {
             throw ResourceNotFoundException()
         }
     }
 
-    fun stopWebservers() {
-        localWebservers.forEach { _, server -> server.stopServer() }
+    fun startAllWebservers(port: Int = 8080) {
+        val allResourcesWebserver = AllResourcesWebserver()
+        for ((identifier, localWebserver) in localWebservers) {
+            allResourcesWebserver.handler.addResource(identifier, localWebserver.handler)
+        }
+        allResourcesWebserver.startServer(port)
     }
+
 
     fun <K, V> getKeyValueStore(valueClass: Class<V>): LocalKeyValueStore<K, V> {
         val tableName = KeyValueStoreClient.getTableName(valueClass, stage)
