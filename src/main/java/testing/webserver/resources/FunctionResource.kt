@@ -45,7 +45,6 @@ class FunctionResource(
 
             response.writer.print(result.body)
         } else if (result !is Unit){
-            println(result)
             response.writer.print(objectMapper.writeValueAsString(result))
         }
         response.writer.close()
