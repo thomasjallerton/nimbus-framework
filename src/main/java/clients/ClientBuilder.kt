@@ -2,6 +2,7 @@ package clients
 
 import clients.document.DocumentStoreClient
 import clients.document.DocumentStoreClientDynamo
+import clients.document.DocumentStoreClientLocal
 import clients.file.FileStorageClient
 import clients.file.FileStorageClientLocal
 import clients.file.FileStorageClientS3
@@ -38,7 +39,7 @@ object ClientBuilder {
     @JvmStatic
     fun <T> getDocumentStoreClient(document: Class<T>): DocumentStoreClient<T> {
         return if (LocalNimbusDeployment.isLocalDeployment) {
-            DocumentStoreClientDynamo(document, LocalNimbusDeployment.stage)
+            DocumentStoreClientLocal(document, LocalNimbusDeployment.stage)
         } else {
             DocumentStoreClientDynamo(document, getStage())
         }

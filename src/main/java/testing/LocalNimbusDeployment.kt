@@ -7,7 +7,6 @@ import annotation.annotations.file.UsesFileStorageClient
 import annotation.annotations.function.*
 import annotation.annotations.keyvalue.KeyValueStore
 import annotation.annotations.notification.UsesNotificationTopic
-import clients.ClientBuilder
 import clients.document.DocumentStoreClient
 import clients.keyvalue.KeyValueStoreClient
 import clients.keyvalue.KeyValueStoreClientLocal
@@ -49,6 +48,7 @@ class LocalNimbusDeployment {
     private val notificationTopics: MutableMap<String, LocalNotificationTopic> = mutableMapOf()
     private val afterDeployments: Deque<Pair<Method, Any>> = LinkedList()
     private val localWebservers: MutableMap<String, LocalWebserver> = mutableMapOf()
+    private val FUNCTION_WEBSERVER = "FUNCTION_WEBSERVER"
 
     private constructor(clazz: Class<out Any>, stageParam: String = "dev") {
         instance = this
@@ -113,6 +113,22 @@ class LocalNimbusDeployment {
                 fileStorage[fileStorageBucket.bucketName] = LocalFileStorage(fileStorageBucket.bucketName)
             }
         }
+
+        for (method in clazz.methods) {
+            val usesNotificationTopics = method.getAnnotationsByType(UsesNotificationTopic::class.java)
+
+            for (usesNotificationTopic in usesNotificationTopics) {
+                notificationTopics.putIfAbsent(usesNotificationTopic.topic, LocalNotificationTopic())
+            }
+
+            val usesFileStorages = method.getAnnotationsByType(UsesFileStorageClient::class.java)
+
+            for (usesFileStorage in usesFileStorages) {
+                if (!fileStorage.containsKey(usesFileStorage.bucketName)) {
+                    fileStorage[usesFileStorage.bucketName] = LocalFileStorage(usesFileStorage.bucketName)
+                }
+            }
+        }
     }
 
     private fun createHandlers(clazz: Class<out Any>) {
@@ -120,23 +136,6 @@ class LocalNimbusDeployment {
             for (method in clazz.declaredMethods) {
                 val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
                 val invokeOn = clazz.getConstructor().newInstance()
-
-                val usesNotificationTopics = method.getAnnotationsByType(UsesNotificationTopic::class.java)
-
-                for (usesNotificationTopic in usesNotificationTopics) {
-                    if (!notificationTopics.containsKey(usesNotificationTopic.topic)) {
-                        val localNotificationTopic = LocalNotificationTopic()
-                        notificationTopics[usesNotificationTopic.topic] = localNotificationTopic
-                    }
-                }
-
-                val usesFileStorages = method.getAnnotationsByType(UsesFileStorageClient::class.java)
-
-                for (usesFileStorage in usesFileStorages) {
-                    if (!fileStorage.containsKey(usesFileStorage.bucketName)) {
-                        fileStorage[usesFileStorage.bucketName] = LocalFileStorage(usesFileStorage.bucketName)
-                    }
-                }
 
                 val fileStorageFunctions = method.getAnnotationsByType(FileStorageServerlessFunction::class.java)
 
@@ -175,6 +174,9 @@ class LocalNimbusDeployment {
                     val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
                     localHttpMethods[httpIdentifier] = httpMethod
                     methods[functionIdentifier] = httpMethod
+
+                    val lambdaWebserver = localWebservers.getOrPut(FUNCTION_WEBSERVER) { LocalWebserver("", "") }
+                    lambdaWebserver.handler.addWebResource(httpFunction.path, httpFunction.method, httpMethod)
                 }
 
                 val documentFunctions = method.getAnnotationsByType(DocumentStoreServerlessFunction::class.java)
@@ -202,13 +204,7 @@ class LocalNimbusDeployment {
                 for (notificationFunction in notificationServerlessFunctions) {
                     val notificationMethod = NotificationMethod(method, invokeOn)
 
-                    val notificationTopic = if (notificationTopics.containsKey(notificationFunction.topic)) {
-                        notificationTopics[notificationFunction.topic]!!
-                    } else {
-                        val localNotificationTopic = LocalNotificationTopic()
-                        notificationTopics[notificationFunction.topic] = localNotificationTopic
-                        localNotificationTopic
-                    }
+                    val notificationTopic = notificationTopics.getOrPut(notificationFunction.topic) { LocalNotificationTopic() }
 
                     notificationTopic.addSubscriber(notificationMethod)
                     methods[functionIdentifier] = notificationMethod
@@ -227,7 +223,7 @@ class LocalNimbusDeployment {
                 }
             }
         } catch (e: InvocationTargetException) {
-            System.err.println("Error creating handler class, it should have no constructor parameters")
+            System.err.println("Error creating handler class ${clazz.canonicalName}, it should have no constructor parameters")
             e.targetException.printStackTrace()
         }
     }
@@ -239,6 +235,15 @@ class LocalNimbusDeployment {
     fun startWebserver(bucketName: String, port: Int = 8080) {
         if (localWebservers.containsKey(bucketName)) {
             val webserver = localWebservers[bucketName]
+            webserver?.startServer(port)
+        } else {
+            throw ResourceNotFoundException()
+        }
+    }
+
+    fun startServerlessFunctionWebserver(port: Int = 8080) {
+        if (localWebservers.containsKey(FUNCTION_WEBSERVER)) {
+            val webserver = localWebservers[FUNCTION_WEBSERVER]
             webserver?.startServer(port)
         } else {
             throw ResourceNotFoundException()

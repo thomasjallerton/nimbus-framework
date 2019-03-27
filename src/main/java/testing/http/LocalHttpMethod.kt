@@ -4,9 +4,9 @@ import testing.ServerlessMethod
 import wrappers.http.models.HttpEvent
 import java.lang.reflect.Method
 
-class LocalHttpMethod(private val method: Method, private val invokeOn: Any): ServerlessMethod(method, HttpEvent::class.java) {
+class LocalHttpMethod(private val method: Method, private val invokeOn: Any) : ServerlessMethod(method, HttpEvent::class.java) {
 
-    fun invoke(request: HttpRequest) {
+    fun invoke(request: HttpRequest): Any? {
         timesInvoked++
 
         val httpEvent = HttpEvent(
@@ -15,12 +15,7 @@ class LocalHttpMethod(private val method: Method, private val invokeOn: Any): Se
                 queryStringParameters = request.queryStringParams
         )
 
-        val strParam = if (request.body != null) {
-            objectMapper.writeValueAsString(request.body)
-        } else {
-            "null"
-        }
-
+        val strParam = request.body
         val eventIndex = eventIndex()
         val params = method.parameters
         mostRecentValueReturned = if (params.isEmpty()) {
@@ -46,5 +41,6 @@ class LocalHttpMethod(private val method: Method, private val invokeOn: Any): Se
         } else {
             throw Exception("Wrong number of params, shouldn't have compiled")
         }
+        return mostRecentValueReturned
     }
 }

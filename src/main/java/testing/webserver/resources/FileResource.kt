@@ -1,6 +1,7 @@
 package testing.webserver.resources
 
 import java.io.File
+import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class FileResource(
@@ -8,7 +9,7 @@ class FileResource(
         private val contentType: String
 ): WebResource {
 
-    override fun writeResponse(response: HttpServletResponse) {
+    override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse) {
         response.contentType = contentType
         response.status = HttpServletResponse.SC_OK
 
