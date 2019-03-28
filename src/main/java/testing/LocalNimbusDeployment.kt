@@ -1,13 +1,16 @@
 package testing
 
 import annotation.annotations.deployment.AfterDeployment
+import annotation.annotations.deployment.FileUpload
 import annotation.annotations.document.DocumentStore
 import annotation.annotations.file.FileStorageBucket
 import annotation.annotations.file.UsesFileStorageClient
 import annotation.annotations.function.*
 import annotation.annotations.keyvalue.KeyValueStore
 import annotation.annotations.notification.UsesNotificationTopic
+import clients.ClientBuilder
 import clients.document.DocumentStoreClient
+import clients.file.FileStorageClient
 import clients.keyvalue.KeyValueStoreClient
 import clients.keyvalue.KeyValueStoreClientLocal
 import clients.rdbms.DatabaseClient
@@ -32,6 +35,7 @@ import testing.queue.LocalQueue
 import testing.queue.QueueMethod
 import testing.webserver.AllResourcesWebserver
 import testing.webserver.LocalWebserver
+import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.*
@@ -51,6 +55,8 @@ class LocalNimbusDeployment {
     private val localWebservers: MutableMap<String, LocalWebserver> = mutableMapOf()
     private val functionWebserverIdentifier = "function"
 
+    private val fileUploadDetails: MutableMap<String, MutableMap<String, String>> = mutableMapOf()
+
     private constructor(clazz: Class<out Any>, stageParam: String = "dev") {
         instance = this
         createResources(clazz)
@@ -58,6 +64,8 @@ class LocalNimbusDeployment {
         stage = stageParam
 
         afterDeployments.forEach { (method, obj) -> method.invoke(obj) }
+
+        handleUploadingFile(fileUploadDetails)
     }
 
     private constructor(packageName: String, stageParam: String = "dev") {
@@ -82,6 +90,45 @@ class LocalNimbusDeployment {
         allClasses.forEach { clazz -> createHandlers(clazz) }
 
         afterDeployments.forEach { (method, obj) -> method.invoke(obj) }
+
+        handleUploadingFile(fileUploadDetails)
+    }
+
+    private fun handleUploadingFile(bucketUploads: MutableMap<String, MutableMap<String, String>>) {
+        for ((bucketName, fileUploads) in bucketUploads) {
+            val fileStorageClient = ClientBuilder.getFileStorageClient(bucketName)
+
+            for ((localFile, targetFile) in fileUploads) {
+                val file = File(localFile)
+
+                if (file.isFile) {
+                    fileStorageClient.saveFile(targetFile, file)
+                } else if (file.isDirectory){
+                    val newPath = if (targetFile.endsWith("/") || targetFile.isEmpty()) {
+                        targetFile
+                    } else {
+                        "$targetFile/"
+                    }
+                    uploadDirectory(fileStorageClient, file, newPath)
+                }
+            }
+        }
+    }
+
+    private fun uploadDirectory(fileClient: FileStorageClient, directory: File, s3Path: String) {
+        for (file in directory.listFiles()) {
+            val newPath = if (s3Path.isEmpty()) {
+                file.name
+            } else {
+                "$s3Path/${file.name}"
+            }
+
+            if (file.isFile) {
+                fileClient.saveFile(newPath, file)
+            } else if (file.isDirectory){
+                uploadDirectory(fileClient, file, newPath)
+            }
+        }
     }
 
     private fun createResources(clazz: Class<out Any>) {
@@ -115,6 +162,8 @@ class LocalNimbusDeployment {
             }
         }
 
+        handleFileUpload(clazz.getAnnotationsByType(FileUpload::class.java))
+
         for (method in clazz.methods) {
             val usesNotificationTopics = method.getAnnotationsByType(UsesNotificationTopic::class.java)
 
@@ -129,8 +178,20 @@ class LocalNimbusDeployment {
                     fileStorage[usesFileStorage.bucketName] = LocalFileStorage(usesFileStorage.bucketName)
                 }
             }
+
+            handleFileUpload(method.getAnnotationsByType(FileUpload::class.java))
         }
     }
+
+    private fun handleFileUpload(fileUploads: Array<out FileUpload>) {
+
+        for (fileUpload in fileUploads) {
+            val bucketFiles = fileUploadDetails.getOrPut(fileUpload.bucketName) { mutableMapOf()}
+            bucketFiles[fileUpload.localPath] = fileUpload.targetPath
+        }
+
+    }
+
 
     private fun createHandlers(clazz: Class<out Any>) {
         try {
@@ -176,7 +237,10 @@ class LocalNimbusDeployment {
                     localHttpMethods[httpIdentifier] = httpMethod
                     methods[functionIdentifier] = httpMethod
 
-                    val lambdaWebserver = localWebservers.getOrPut(functionWebserverIdentifier) { LocalWebserver("", "") }
+                    val lambdaWebserver = localWebservers.getOrPut(functionWebserverIdentifier) {
+                        LocalWebserver("", "")
+                    }
+
                     lambdaWebserver.handler.addWebResource(httpFunction.path, httpFunction.method, httpMethod)
                 }
 
@@ -254,6 +318,7 @@ class LocalNimbusDeployment {
     fun startAllWebservers(port: Int = 8080) {
         val allResourcesWebserver = AllResourcesWebserver()
         for ((identifier, localWebserver) in localWebservers) {
+            localWebserver.handler
             allResourcesWebserver.handler.addResource(identifier, localWebserver.handler)
         }
         allResourcesWebserver.startServer(port)
