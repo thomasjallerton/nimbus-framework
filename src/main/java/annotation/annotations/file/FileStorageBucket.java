@@ -8,7 +8,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(FileStorageBuckets.class)
 public @interface FileStorageBucket {
-    String bucketName() default "";
+    String bucketName();
     boolean staticWebsite() default false;
     String indexFile() default "index.html";
     String errorFile() default "error.html";
