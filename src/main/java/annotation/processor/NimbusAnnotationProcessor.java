@@ -62,6 +62,8 @@ import java.util.*;
         "annotation.annotations.dynamo.DocumentStores",
         "annotation.annotations.database.RelationalDatabase",
         "annotation.annotations.database.RelationalDatabases",
+        "annotation.annotations.deployment.FileUpload",
+        "annotation.annotations.deployment.FileUploads",
         "annotation.annotations.deployment.AfterDeployment",
         "annotation.annotations.deployment.AfterDeployments",
         "annotation.annotations.file.FileStorageBucket",
@@ -100,7 +102,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSzzz", Locale.US);
 
             String compilationTime = simpleDateFormat.format(cal.getTime());
-            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime, new HashMap<>());
+            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime, new HashMap<>(), new HashMap<>());
         }
 
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(
@@ -126,8 +128,10 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         functionResourceCreators.add(new NotificationFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
         functionResourceCreators.add(new QueueFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
         functionResourceCreators.add(new BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
-        functionResourceCreators.add(new AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv));
         functionResourceCreators.add(new FileStorageResourceCreator(cfDocuments, nimbusState, processingEnv));
+
+        functionResourceCreators.add(new FileUploadResourceCreator(cfDocuments, nimbusState, processingEnv));
+        functionResourceCreators.add(new AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv));
 
         List<FunctionInformation> allInformation = new LinkedList<>();
         for (FunctionResourceCreator creator : functionResourceCreators) {
