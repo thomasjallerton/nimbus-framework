@@ -20,7 +20,7 @@ class AllResourcesWebserverHandler : AbstractHandler() {
         val handler = handlerMap[pathPrefix]
         if (handler != null) {
             val subTarget = target.substringAfter("/$pathPrefix")
-            val subTargetSlash = if (subTarget.startsWith("/")) {
+            val subTargetSlash = if (subTarget.startsWith("/") || subTarget.isEmpty()) {
                 subTarget
             } else {
                 "/$subTarget"
