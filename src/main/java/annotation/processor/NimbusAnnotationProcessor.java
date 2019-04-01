@@ -7,6 +7,7 @@ import annotation.annotations.function.UsesBasicServerlessFunctionClient;
 import annotation.annotations.keyvalue.UsesKeyValueStore;
 import annotation.annotations.notification.UsesNotificationTopic;
 import annotation.annotations.queue.UsesQueue;
+import annotation.annotations.websocket.UsesServerlessFunctionWebSocketClient;
 import annotation.services.CloudformationWriter;
 import annotation.services.FunctionEnvironmentService;
 import annotation.services.ReadUserConfigService;
@@ -27,6 +28,7 @@ import cloudformation.resource.file.FileBucket;
 import cloudformation.resource.function.FunctionResource;
 import cloudformation.resource.notification.SnsTopicResource;
 import cloudformation.resource.queue.QueueResource;
+import cloudformation.resource.websocket.WebSocketApi;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
@@ -297,6 +299,20 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                     iamRoleResource.addAllowStatement("s3:GetObject", permissionsBucket, "/*");
                     iamRoleResource.addAllowStatement("s3:DeleteObject", permissionsBucket, "/*");
                     iamRoleResource.addAllowStatement("s3:PutObject", permissionsBucket, "/*");
+                }
+            }
+        }
+
+        for (UsesServerlessFunctionWebSocketClient webSocketClient: serverlessMethod.getAnnotationsByType(UsesServerlessFunctionWebSocketClient.class)) {
+            for (String stage : webSocketClient.stages()) {
+                if (stage.equals(functionResource.getStage())) {
+
+                    WebSocketApi webSocketApi = cfDocuments.get(stage).getRootWebSocketApi();
+                    if (webSocketApi != null) {
+                        functionResource.addEnvVariable("WEBSOCKET_ENDPOINT", webSocketApi.getEndpoint());
+
+                        iamRoleResource.addAllowStatement("execute-api:ManageConnections", webSocketApi, "/*");
+                    }
                 }
             }
         }

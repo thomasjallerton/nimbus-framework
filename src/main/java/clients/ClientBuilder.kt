@@ -21,6 +21,8 @@ import clients.queue.QueueClientLocal
 import clients.rdbms.DatabaseClient
 import clients.rdbms.DatabaseClientLocal
 import clients.rdbms.DatabaseClientRds
+import clients.websocket.ServerlessFunctionWebSocketClient
+import clients.websocket.ServerlessFunctionWebSocketClientApiGateway
 import testing.LocalNimbusDeployment
 import java.sql.Connection
 
@@ -87,6 +89,15 @@ object ClientBuilder {
             FileStorageClientLocal(bucketName)
         } else {
             FileStorageClientS3(bucketName + getStage())
+        }
+    }
+
+    @JvmStatic
+    fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient {
+        return if (LocalNimbusDeployment.isLocalDeployment) {
+            ServerlessFunctionWebSocketClientApiGateway()
+        } else {
+            ServerlessFunctionWebSocketClientApiGateway()
         }
     }
 
