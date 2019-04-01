@@ -11,6 +11,6 @@ public @interface FileUpload {
     String bucketName();
     String localPath();
     String targetPath();
-    //boolean recursive() default false;
+    boolean substituteNimbusVariables() default false;
     String[] stages() default {NimbusConstants.stage};
 }

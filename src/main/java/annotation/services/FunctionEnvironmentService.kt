@@ -7,6 +7,7 @@ import annotation.annotations.function.NotificationServerlessFunction
 import annotation.annotations.function.QueueServerlessFunction
 import cloudformation.CloudFormationDocuments
 import cloudformation.outputs.BucketNameOutput
+import cloudformation.outputs.RestApiOutput
 import persisted.NimbusState
 import cloudformation.processing.MethodInformation
 import cloudformation.resource.*
@@ -66,11 +67,14 @@ class FunctionEnvironmentService(
 
         val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
         val updateResources = cfDocuments.updateResources
+        val updateOutputs = cfDocuments.updateOutputs
 
         val restApi = if (cfDocuments.rootRestApi == null) {
             val restApi = RestApi(nimbusState, function.stage)
             cfDocuments.rootRestApi = restApi
             updateResources.addResource(restApi)
+            updateOutputs.addOutput(RestApiOutput(restApi, nimbusState))
+            nimbusState.hasHttpServerlessFunctions = true
             restApi
         } else {
             cfDocuments.rootRestApi!!
