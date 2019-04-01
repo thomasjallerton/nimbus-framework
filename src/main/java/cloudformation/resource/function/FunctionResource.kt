@@ -4,6 +4,7 @@ import persisted.NimbusState
 import cloudformation.processing.MethodInformation
 import cloudformation.resource.IamRoleResource
 import cloudformation.resource.Resource
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
 class FunctionResource(
@@ -89,6 +90,36 @@ class FunctionResource(
 
     fun getFunctionName(): String {
         return functionName(nimbusState.projectName, methodInformation.className, methodInformation.methodName, functionConfig.stage)
+    }
+
+    fun getUri(): JsonObject {
+        val uri = JsonObject()
+        val joinFunc = JsonArray()
+        joinFunc.add("")
+
+        val join = JsonArray()
+        join.add("arn:")
+
+        val partitionRef = JsonObject()
+        partitionRef.addProperty("Ref", "AWS::Partition")
+        join.add(partitionRef)
+
+        join.add(":apigateway:")
+
+        val regionRef = JsonObject()
+        regionRef.addProperty("Ref", "AWS::Region")
+        join.add(regionRef)
+
+        join.add(":lambda:path/2015-03-31/functions/")
+
+        join.add(getArn(""))
+
+        join.add("/invocations")
+
+        joinFunc.add(join)
+
+        uri.add("Fn::Join", joinFunc)
+        return uri
     }
 
     companion object {

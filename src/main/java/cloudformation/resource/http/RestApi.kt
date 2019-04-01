@@ -4,11 +4,15 @@ import persisted.NimbusState
 import cloudformation.resource.function.FunctionTrigger
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import java.util.*
 
 class RestApi(
     nimbusState: NimbusState,
     stage: String
 ): AbstractRestResource(nimbusState, stage), FunctionTrigger {
+
+    private val creationTime = Calendar.getInstance().timeInMillis
+
     override fun getTriggerArn(): JsonObject {
         return getArn("/*/*")
     }
@@ -41,7 +45,7 @@ class RestApi(
         restApi.addProperty("Type", "AWS::ApiGateway::RestApi")
 
         val properties = getProperties()
-        properties.addProperty("Name", nimbusState.projectName + "-" + stage)
+        properties.addProperty("Name", nimbusState.projectName + "-" + stage + "-" + "HTTP")
 
         val endpointConfig = JsonObject()
         val types = JsonArray()

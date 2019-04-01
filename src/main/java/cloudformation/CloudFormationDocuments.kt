@@ -5,6 +5,8 @@ import cloudformation.resource.Resource
 import cloudformation.resource.ResourceCollection
 import cloudformation.resource.http.ApiGatewayDeployment
 import cloudformation.resource.http.RestApi
+import cloudformation.resource.websocket.WebSocketApi
+import cloudformation.resource.websocket.WebSocketDeployment
 
 data class CloudFormationDocuments(
         val createResources: ResourceCollection = ResourceCollection(),
@@ -13,5 +15,7 @@ data class CloudFormationDocuments(
         val updateOutputs: OutputCollection = OutputCollection(),
         val savedResources: MutableMap<String, Resource> = mutableMapOf(),
         var rootRestApi: RestApi? = null,
-        var apiGatewayDeployment: ApiGatewayDeployment? = null
+        var apiGatewayDeployment: ApiGatewayDeployment? = null,
+        var rootWebSocketApi: WebSocketApi? = null,
+        var webSocketDeployment: WebSocketDeployment? = null
 )

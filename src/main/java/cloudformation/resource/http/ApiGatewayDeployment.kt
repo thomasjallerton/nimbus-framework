@@ -10,6 +10,8 @@ class ApiGatewayDeployment(
         nimbusState: NimbusState
 ):Resource(nimbusState, restApi.stage) {
 
+    private val creationTime = Calendar.getInstance().timeInMillis
+
     override fun toCloudFormation(): JsonObject {
         val deployment = JsonObject()
         deployment.addProperty("Type", "AWS::ApiGateway::Deployment")
@@ -24,6 +26,6 @@ class ApiGatewayDeployment(
 
     override fun getName(): String {
         val calendar = Calendar.getInstance()
-        return "${nimbusState.projectName}ApiGatewayDeployment${calendar.timeInMillis}"
+        return "${nimbusState.projectName}ApiGatewayDeployment$creationTime"
     }
 }

@@ -56,6 +56,8 @@ import java.util.*;
         "annotation.annotations.function.repeatable.KeyValueStoreServerlessFunctions",
         "annotation.annotations.function.FileStorageServerlessFunction",
         "annotation.annotations.function.repeatable.FileStorageServerlessFunctions",
+        "annotation.annotations.function.WebSocketServerlessFunction",
+        "annotation.annotations.function.repeatable.WebSocketServerlessFunctions",
         "annotation.annotations.dynamo.KeyValueStore",
         "annotation.annotations.dynamo.KeyValueStores",
         "annotation.annotations.dynamo.DocumentStore",
@@ -129,6 +131,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         functionResourceCreators.add(new QueueFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
         functionResourceCreators.add(new BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
         functionResourceCreators.add(new FileStorageResourceCreator(cfDocuments, nimbusState, processingEnv));
+        functionResourceCreators.add(new WebSocketFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
 
         functionResourceCreators.add(new FileUploadResourceCreator(cfDocuments, nimbusState, processingEnv));
         functionResourceCreators.add(new AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv));
