@@ -43,7 +43,7 @@ class RestMethod (
         val integration = JsonObject()
         integration.addProperty("IntegrationHttpMethod", "POST")
         integration.addProperty("Type", "AWS_PROXY")
-        integration.add("Uri", getFunctionUri())
+        integration.add("Uri", function.getUri())
         properties.add("Integration", integration)
 
         val methodResponses = JsonArray()
@@ -54,33 +54,4 @@ class RestMethod (
         return methodObj
     }
 
-    private fun getFunctionUri(): JsonObject {
-        val uri = JsonObject()
-        val joinFunc = JsonArray()
-        joinFunc.add("")
-
-        val join = JsonArray()
-        join.add("arn:")
-
-        val partitionRef = JsonObject()
-        partitionRef.addProperty("Ref", "AWS::Partition")
-        join.add(partitionRef)
-
-        join.add(":apigateway:")
-
-        val regionRef = JsonObject()
-        regionRef.addProperty("Ref", "AWS::Region")
-        join.add(regionRef)
-
-        join.add(":lambda:path/2015-03-31/functions/")
-
-        join.add(function.getArn(""))
-
-        join.add("/invocations")
-
-        joinFunc.add(join)
-
-        uri.add("Fn::Join", joinFunc)
-        return uri
-    }
 }

@@ -22,6 +22,7 @@ import cloudformation.resource.function.FunctionResource
 import cloudformation.resource.http.*
 import cloudformation.resource.notification.SnsTopicResource
 import cloudformation.resource.queue.QueueResource
+import cloudformation.resource.websocket.*
 import com.google.gson.JsonObject
 
 class FunctionEnvironmentService(
@@ -200,5 +201,43 @@ class FunctionEnvironmentService(
             updateResources.addResource(permission)
             updateResources.addResource(newBucket)
         }
+    }
+
+    fun newWebSocketRoute(routeKey: String, function: FunctionResource) {
+        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
+        val updateResources = cfDocuments.updateResources
+
+        val webSocketApi = if (cfDocuments.rootWebSocketApi == null) {
+            val webSocketApi = WebSocketApi(nimbusState, function.stage)
+            cfDocuments.rootWebSocketApi = webSocketApi
+            updateResources.addResource(webSocketApi)
+            updateResources.addResource(webSocketApi)
+            webSocketApi
+        } else {
+            cfDocuments.rootWebSocketApi!!
+        }
+
+        val webSocketDeployment = if (cfDocuments.webSocketDeployment == null) {
+            val webSocketDeployment = WebSocketDeployment(webSocketApi, nimbusState)
+            cfDocuments.webSocketDeployment = webSocketDeployment
+            val stage = WebSocketStage(webSocketApi, webSocketDeployment, nimbusState)
+            updateResources.addResource(webSocketDeployment)
+            updateResources.addResource(stage)
+            webSocketDeployment
+        } else {
+            cfDocuments.webSocketDeployment!!
+        }
+
+        val integration = WebSocketIntegration(webSocketApi, function, routeKey, nimbusState)
+        val route = WebSocketRoute(webSocketApi, integration, routeKey, nimbusState)
+
+        webSocketDeployment.addDependsOn(route)
+
+        updateResources.addResource(integration)
+        updateResources.addResource(route)
+
+        val functionPermissionResource = FunctionPermissionResource(function, webSocketApi, nimbusState)
+
+        updateResources.addResource(functionPermissionResource)
     }
 }

@@ -18,25 +18,21 @@ class FunctionPermissionResource(
         properties.add("FunctionName", function.getArn())
         properties.addProperty("Action", "lambda:InvokeFunction")
 
-        val principal = JsonObject()
-
-        val joinFunc = JsonArray()
-        joinFunc.add("")
-
-        val join = JsonArray()
-        join.add(trigger.getTriggerType())
+        val joinValues = JsonArray()
+        joinValues.add(trigger.getTriggerType())
 
         val urlSuffixRef = JsonObject()
         urlSuffixRef.addProperty("Ref", "AWS::URLSuffix")
-        join.add(urlSuffixRef)
+        joinValues.add(urlSuffixRef)
 
-        joinFunc.add(join)
 
-        principal.add("Fn::Join", joinFunc)
+        val principal = joinJson("", joinValues)
 
         properties.add("Principal", principal)
 
-        properties.add("SourceArn", trigger.getTriggerArn())
+        if (trigger.getTriggerArn() != JsonObject()) {
+            properties.add("SourceArn", trigger.getTriggerArn())
+        }
 
         permission.add("Properties", properties)
 
