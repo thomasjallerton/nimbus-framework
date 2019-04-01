@@ -1,14 +1,11 @@
 package annotation.services.functions
 
-import annotation.annotations.function.KeyValueStoreServerlessFunction
-import annotation.annotations.function.repeatable.KeyValueStoreServerlessFunctions
-import persisted.NimbusState
-import cloudformation.processing.MethodInformation
-import cloudformation.resource.ResourceCollection
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import annotation.services.ResourceFinder
 import cloudformation.CloudFormationDocuments
+import cloudformation.processing.MethodInformation
+import persisted.NimbusState
 import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment

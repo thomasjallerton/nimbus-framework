@@ -102,7 +102,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSzzz", Locale.US);
 
             String compilationTime = simpleDateFormat.format(cal.getTime());
-            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime, new HashMap<>(), new HashMap<>());
+            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime, new HashMap<>(), new HashMap<>(), false);
         }
 
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(

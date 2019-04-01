@@ -5,6 +5,7 @@ import annotation.annotations.deployment.FileUploads
 import annotation.processor.FunctionInformation
 import annotation.services.FunctionEnvironmentService
 import cloudformation.CloudFormationDocuments
+import persisted.FileUploadDescription
 import persisted.NimbusState
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -29,8 +30,9 @@ class FileUploadResourceCreator(
             for (stage in fileUpload.stages) {
 
                 val bucketMap = nimbusState.fileUploads.getOrPut(stage) { mutableMapOf() }
-                val fileMap = bucketMap.getOrPut("${fileUpload.bucketName}$stage".toLowerCase()) { mutableMapOf()}
-                fileMap[fileUpload.localPath] = fileUpload.targetPath
+                val fileList = bucketMap.getOrPut("${fileUpload.bucketName}$stage".toLowerCase()) { mutableListOf() }
+
+                fileList.add(FileUploadDescription(fileUpload.localPath, fileUpload.targetPath, fileUpload.substituteNimbusVariables))
             }
         }
     }
