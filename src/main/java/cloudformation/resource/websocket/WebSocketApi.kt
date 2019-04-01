@@ -2,6 +2,7 @@ package cloudformation.resource.websocket
 
 import cloudformation.resource.Resource
 import cloudformation.resource.function.FunctionTrigger
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import persisted.NimbusState
 import java.util.*
@@ -37,4 +38,20 @@ class WebSocketApi(
         return webSocketApi
     }
 
+    fun getEndpoint(): JsonObject {
+
+        val joinValues = JsonArray()
+        joinValues.add("https://")
+        joinValues.add(getRef())
+        joinValues.add(".execute-api.")
+        joinValues.add(getRegion())
+        joinValues.add(".amazonaws.com/$stage")
+
+        return joinJson("", joinValues)
+    }
+
+    override fun getArn(suffix: String): JsonObject {
+        val strArn = "arn:aws:execute-api:\${AWS::Region}:\${AWS::AccountId}:\${${getName()}}$suffix"
+        return subFunc(strArn)
+    }
 }

@@ -28,6 +28,12 @@ abstract class Resource(protected val nimbusState: NimbusState, val stage: Strin
         return arn
     }
 
+    fun getRegion(): JsonObject {
+        val region = JsonObject()
+        region.addProperty("Ref", "AWS::Region")
+        return region
+    }
+
     open fun getRef(): JsonObject {
         val ref = JsonObject()
         ref.addProperty("Ref", getName())
@@ -70,5 +76,11 @@ abstract class Resource(protected val nimbusState: NimbusState, val stage: Strin
         join.add("Fn::Join", params)
 
         return join
+    }
+
+    fun subFunc(strToSub: String): JsonObject {
+        val sub = JsonObject()
+        sub.addProperty("Fn::Sub", strToSub)
+        return sub
     }
 }
