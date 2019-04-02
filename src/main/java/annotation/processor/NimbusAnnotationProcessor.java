@@ -83,7 +83,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSzzz", Locale.US);
 
             String compilationTime = simpleDateFormat.format(cal.getTime());
-            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime, new HashMap<>(), new HashMap<>(), false);
+            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime, new HashMap<>(), new HashMap<>(), new HashMap<>());
         }
 
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(
@@ -152,7 +152,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
             ObjectMapper mapper = new ObjectMapper();
             try {
-                cloudformationWriter.saveJsonFile("nimbus-state", mapper.writeValueAsString(nimbusState));
+                cloudformationWriter.saveJsonFile("nimbus-state", mapper.writerWithDefaultPrettyPrinter().writeValueAsString(nimbusState));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }

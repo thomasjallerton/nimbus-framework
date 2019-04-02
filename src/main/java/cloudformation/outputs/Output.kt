@@ -24,4 +24,6 @@ abstract class Output(protected val nimbusState: NimbusState, protected val stag
         region.addProperty("Ref", "AWS::Region")
         return region
     }
+
+    abstract fun getExportName(): String
 }

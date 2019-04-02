@@ -20,12 +20,16 @@ abstract class Resource(protected val nimbusState: NimbusState, val stage: Strin
     }
 
     open fun getArn(suffix: String = ""): JsonObject {
-        val arn = JsonObject()
+        return getAttr("Arn")
+    }
+
+    fun getAttr(property: String): JsonObject {
+        val getAttr = JsonObject()
         val roleFunc = JsonArray()
         roleFunc.add(getName())
-        roleFunc.add("Arn")
-        arn.add("Fn::GetAtt", roleFunc)
-        return arn
+        roleFunc.add(property)
+        getAttr.add("Fn::GetAtt", roleFunc)
+        return getAttr
     }
 
     fun getRegion(): JsonObject {
