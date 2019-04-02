@@ -15,6 +15,7 @@ import clients.keyvalue.KeyValueStoreClient
 import clients.keyvalue.KeyValueStoreClientLocal
 import clients.rdbms.DatabaseClient
 import clients.rdbms.DatabaseClientLocal
+import org.eclipse.jetty.websocket.api.Session
 import org.reflections.Reflections
 import org.reflections.scanners.ResourcesScanner
 import org.reflections.scanners.SubTypesScanner
@@ -38,6 +39,8 @@ import testing.webserver.LocalWebserver
 import testing.webserver.WebserverHandler
 import testing.websocket.LocalWebsocketMethod
 import testing.websocket.WebSocketRequest
+import testing.websocketserver.LocalWebSocketServer
+import wrappers.websocket.models.RequestContext
 import java.io.File
 import java.io.InputStream
 import java.lang.reflect.InvocationTargetException
@@ -58,16 +61,22 @@ class LocalNimbusDeployment {
     private val fileStorage: MutableMap<String, LocalFileStorage> = mutableMapOf()
     private val notificationTopics: MutableMap<String, LocalNotificationTopic> = mutableMapOf()
     private val afterDeployments: Deque<Pair<Method, Any>> = LinkedList()
+
     private val localWebservers: MutableMap<String, WebserverHandler> = mutableMapOf()
+    private val webSocketSessions: MutableMap<String, Session> = mutableMapOf()
+    private val localWebSocketServer = LocalWebSocketServer(webSocketSessions)
+
     private val functionWebserverIdentifier = "function"
-    private val port: Int
+    private val httpPort: Int
+    private val webSocketPort: Int
 
     private val variableSubstitution: MutableMap<String, String> = mutableMapOf()
     private val fileUploadDetails: MutableMap<String, MutableList<FileUploadDescription>> = mutableMapOf()
 
-    private constructor(clazz: Class<out Any>, stageParam: String = "dev", port: Int = 8080) {
+    private constructor(clazz: Class<out Any>, stageParam: String = "dev", httpPort: Int = 8080, webSocketPort: Int = 8081) {
         instance = this
-        this.port = port
+        this.httpPort = httpPort
+        this.webSocketPort = webSocketPort
         createResources(clazz)
         createHandlers(clazz)
         stage = stageParam
@@ -77,10 +86,11 @@ class LocalNimbusDeployment {
         handleUploadingFile(fileUploadDetails)
     }
 
-    private constructor(packageName: String, stageParam: String = "dev", port: Int = 8080) {
+    private constructor(packageName: String, stageParam: String = "dev", httpPort: Int = 8080, webSocketPort: Int = 8081) {
         instance = this
         stage = stageParam
-        this.port = port
+        this.httpPort = httpPort
+        this.webSocketPort = webSocketPort
 
         val classLoadersList = LinkedList<ClassLoader>()
         classLoadersList.add(ClasspathHelper.contextClassLoader())
@@ -184,7 +194,7 @@ class LocalNimbusDeployment {
             if (fileStorageBucket.staticWebsite && !localWebservers.containsKey(fileStorageBucket.bucketName)) {
                 val localWebserver = WebserverHandler(fileStorageBucket.indexFile, fileStorageBucket.errorFile)
                 localWebservers[fileStorageBucket.bucketName] = localWebserver
-                variableSubstitution["\${${fileStorageBucket.bucketName.toUpperCase()}_URL}"] = "http://localhost:$port/${fileStorageBucket.bucketName}"
+                variableSubstitution["\${${fileStorageBucket.bucketName.toUpperCase()}_URL}"] = "http://localhost:$httpPort/${fileStorageBucket.bucketName}"
             }
 
             if (!fileStorage.containsKey(fileStorageBucket.bucketName)) {
@@ -269,7 +279,7 @@ class LocalNimbusDeployment {
                     methods[functionIdentifier] = httpMethod
 
                     val lambdaWebserver = localWebservers.getOrPut(functionWebserverIdentifier) {
-                        variableSubstitution["\${NIMBUS_REST_API_URL}"] = "http://localhost:$port/$functionWebserverIdentifier"
+                        variableSubstitution["\${NIMBUS_REST_API_URL}"] = "http://localhost:$httpPort/$functionWebserverIdentifier"
                         WebserverHandler("", "")
                     }
 
@@ -283,8 +293,9 @@ class LocalNimbusDeployment {
 
                     localWebsocketMethods[webSocketFunction.routeKey] = webSocketMethod
                     methods[functionIdentifier] = webSocketMethod
+                    localWebSocketServer.addTopic(webSocketFunction.routeKey, webSocketMethod)
 
-                    variableSubstitution["\${NIMBUS_WEBSOCKET_API_URL}"] = "wss://localhost"
+                    variableSubstitution["\${NIMBUS_WEBSOCKET_API_URL}"] = "ws://localhost:$webSocketPort"
                 }
 
                 val documentFunctions = method.getAnnotationsByType(DocumentStoreServerlessFunction::class.java)
@@ -340,12 +351,28 @@ class LocalNimbusDeployment {
         return localWebservers[bucketName]
     }
 
+    internal fun getWebSocketSessions(): Map<String, Session> {
+        return webSocketSessions
+    }
+
+    fun startWebSocketServer() {
+        localWebSocketServer.setup(webSocketPort)
+        localWebSocketServer.start()
+    }
+
+    fun startAllServers() {
+        localWebSocketServer.setup(webSocketPort)
+        localWebSocketServer.startWithoutJoin()
+        startAllWebservers()
+    }
+
     fun startWebserver(bucketName: String) {
         if (localWebservers.containsKey(bucketName)) {
             val handler = localWebservers[bucketName]!!
             val webserver = LocalWebserver()
             webserver.handler.addResource(bucketName, handler)
-            webserver.startServer(port)        } else {
+            webserver.startServer(httpPort)
+        } else {
             throw ResourceNotFoundException()
         }
     }
@@ -355,7 +382,7 @@ class LocalNimbusDeployment {
             val handler = localWebservers[functionWebserverIdentifier]!!
             val webserver = LocalWebserver()
             webserver.handler.addResource(functionWebserverIdentifier, handler)
-            webserver.startServer(port)
+            webserver.startServer(httpPort)
         } else {
             throw ResourceNotFoundException()
         }
@@ -366,7 +393,7 @@ class LocalNimbusDeployment {
         for ((identifier, handler) in localWebservers) {
             allResourcesWebserver.handler.addResource(identifier, handler)
         }
-        allResourcesWebserver.startServer(port)
+        allResourcesWebserver.startServer(httpPort)
     }
 
 
@@ -450,6 +477,7 @@ class LocalNimbusDeployment {
     fun connectToWebSockets(headers: Map<String, String> = mapOf(), queryStringParams: Map<String, String> = mapOf()) {
         val topic = "\$connect"
         val request = WebSocketRequest("{\"topic\":\"\$connect\"}", queryStringParams, headers)
+        request.requestContext = RequestContext("MESSAGE", "testConnection")
         if (localWebsocketMethods.containsKey(topic)) {
             localWebsocketMethods[topic]!!.invoke(request)
         } else {
@@ -460,6 +488,7 @@ class LocalNimbusDeployment {
     fun disconnectFromWebSockets() {
         val topic = "\$disconnect"
         val request = WebSocketRequest("{\"topic\":\"\$disconnect\"}")
+        request.requestContext = RequestContext("MESSAGE", "testConnection")
         if (localWebsocketMethods.containsKey(topic)) {
             localWebsocketMethods[topic]!!.invoke(request)
         } else {
@@ -469,6 +498,7 @@ class LocalNimbusDeployment {
 
     fun sendWebSocketRequest(request: WebSocketRequest) {
         val topic = request.getTopic()
+        request.requestContext = RequestContext("MESSAGE", "testConnection")
         if (localWebsocketMethods.containsKey(topic)) {
             localWebsocketMethods[topic]!!.invoke(request)
         } else {
@@ -494,9 +524,9 @@ class LocalNimbusDeployment {
         }
 
         @JvmStatic
-        fun getNewInstance(packageName: String, stage: String, port: Int): LocalNimbusDeployment {
+        fun getNewInstance(packageName: String, stage: String, httpPort: Int, webSocketPort: Int): LocalNimbusDeployment {
             isLocalDeployment = true
-            LocalNimbusDeployment(packageName, stage, port)
+            LocalNimbusDeployment(packageName, stage, httpPort, webSocketPort)
             return instance
         }
 
@@ -508,9 +538,9 @@ class LocalNimbusDeployment {
         }
 
         @JvmStatic
-        fun getNewInstance(clazz: Class<out Any>, stage: String, port: Int): LocalNimbusDeployment {
+        fun getNewInstance(clazz: Class<out Any>, stage: String, port: Int, webSocketPort: Int): LocalNimbusDeployment {
             isLocalDeployment = true
-            LocalNimbusDeployment(clazz, stage, port)
+            LocalNimbusDeployment(clazz, stage, port, webSocketPort)
             return instance
         }
     }

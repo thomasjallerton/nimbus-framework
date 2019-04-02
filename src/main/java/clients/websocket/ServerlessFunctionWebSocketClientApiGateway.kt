@@ -35,7 +35,6 @@ internal class ServerlessFunctionWebSocketClientApiGateway: ServerlessFunctionWe
         val postToConnectionRequest = PostToConnectionRequest()
                 .withConnectionId(connectionId)
                 .withData(buffer)
-
         apiGatewayManagementApi!!.postToConnection(postToConnectionRequest)
     }
 
