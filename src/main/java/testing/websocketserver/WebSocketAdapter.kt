@@ -36,7 +36,7 @@ class WebSocketAdapter(
     override fun onWebSocketClose(statusCode: Int, reason: String?) {
         val request = WebSocketRequest(
                 "",
-                parameters,
+                mapOf(),
                 headers,
                 RequestContext("DISCONNECT", sessionId)
         )
@@ -49,7 +49,7 @@ class WebSocketAdapter(
         if (message != null) {
             val request = WebSocketRequest(
                     message,
-                    parameters,
+                    mapOf(),
                     headers,
                     RequestContext("MESSAGE", sessionId)
             )
@@ -57,5 +57,11 @@ class WebSocketAdapter(
             topics[topic]?.invoke(request)
         }
         super.onWebSocketText(message)
+    }
+
+    override fun onWebSocketBinary(payload: ByteArray, offset: Int, len: Int) {
+        println("Binary message")
+        val message = String(payload, offset, len)
+        onWebSocketText(message)
     }
 }
