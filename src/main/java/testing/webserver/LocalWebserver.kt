@@ -2,10 +2,9 @@ package testing.webserver
 
 import org.eclipse.jetty.server.Server
 
+class LocalWebserver {
 
-class LocalWebserver(indexFile: String, errorFile: String) {
-
-    val handler: WebserverHandler = WebserverHandler(indexFile, errorFile)
+    val handler = AllResourcesWebserverHandler()
     var server: Server? = null
 
     fun startServer(port: Int) {

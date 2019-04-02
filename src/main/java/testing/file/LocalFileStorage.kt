@@ -4,7 +4,7 @@ import annotation.annotations.file.FileStorageEventType
 import clients.file.FileInformation
 import clients.file.FileStorageClient
 import testing.LocalNimbusDeployment
-import testing.webserver.LocalWebserver
+import testing.webserver.WebserverHandler
 import java.io.*
 import java.util.*
 
@@ -12,7 +12,7 @@ import java.util.*
 class LocalFileStorage(bucketName: String) : FileStorageClient {
 
     private val localNimbusClient = LocalNimbusDeployment.getInstance()
-    private val webserver: LocalWebserver? = localNimbusClient.getLocalWebserver(bucketName)
+    private val handler: WebserverHandler? = localNimbusClient.getLocalHandler(bucketName)
 
     override fun saveFile(path: String, inputStream: InputStream) {
         val outputFile = saveInputStreamToFile(path, inputStream)
@@ -104,7 +104,7 @@ class LocalFileStorage(bucketName: String) : FileStorageClient {
     }
 
     private fun addNewWebHandler(path: String, file: File, contentType: String = "text/html") {
-        webserver?.handler?.addWebResource(path, file, contentType)
+        handler?.addWebResource(path, file, contentType)
     }
 
     private fun saveFileToFile(path: String, file: File): File {
