@@ -73,6 +73,13 @@ class LocalNimbusDeployment {
     private val variableSubstitution: MutableMap<String, String> = mutableMapOf()
     private val fileUploadDetails: MutableMap<String, MutableList<FileUploadDescription>> = mutableMapOf()
 
+    private val tempDir = System.getProperty("java.io.tmpdir")
+    private val tempPath = if (tempDir.endsWith(File.pathSeparator)) {
+        tempDir + "nimbus" + File.pathSeparator
+    } else {
+        tempDir + File.pathSeparator + "nimbus" + File.pathSeparator
+    }
+
     private constructor(clazz: Class<out Any>, stageParam: String = "dev", httpPort: Int = 8080, webSocketPort: Int = 8081) {
         instance = this
         this.httpPort = httpPort
@@ -159,7 +166,7 @@ class LocalNimbusDeployment {
         }
     }
 
-    private fun substituteVariables(file: File): InputStream {
+    private fun substituteVariables(file: File): File {
         val charset = StandardCharsets.UTF_8
 
         var content = String(file.readBytes(), charset)
@@ -167,7 +174,9 @@ class LocalNimbusDeployment {
             content = content.replace(from, to)
         }
 
-        return content.byteInputStream(charset)
+        val newFile = File(tempPath + file.name)
+        newFile.writeBytes(content.toByteArray(charset))
+        return newFile
     }
 
     private fun createResources(clazz: Class<out Any>) {

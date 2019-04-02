@@ -6,6 +6,7 @@ import clients.file.FileStorageClient
 import testing.LocalNimbusDeployment
 import testing.webserver.WebserverHandler
 import java.io.*
+import java.nio.file.Files
 import java.util.*
 
 
@@ -21,7 +22,7 @@ class LocalFileStorage(bucketName: String) : FileStorageClient {
 
     override fun saveFile(path: String, file: File) {
         val outputFile = saveFileToFile(path, file)
-        addNewWebHandler(path, outputFile)
+        addNewWebHandler(path, outputFile, determineContentType(file))
     }
 
     override fun saveFile(path: String, content: String) {
@@ -159,5 +160,9 @@ class LocalFileStorage(bucketName: String) : FileStorageClient {
         methods.forEach { method -> method.invoke(path, f.length(), FileStorageEventType.OBJECT_CREATED) }
 
         return f
+    }
+
+    private fun determineContentType(file: File): String {
+        return Files.probeContentType(file.toPath())
     }
 }
