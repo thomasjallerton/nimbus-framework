@@ -9,12 +9,12 @@ class LocalWebserver {
 
     fun startServer(port: Int) {
         val localServer = Server(port)
+        server = localServer
+
         localServer.handler = handler
 
         localServer.start()
         localServer.join()
-
-        server = localServer
     }
 
     fun stopServer() {

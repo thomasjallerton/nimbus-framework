@@ -7,7 +7,7 @@ import wrappers.websocket.models.RequestContext
 import wrappers.websocket.models.WebSocketEvent
 import java.lang.reflect.Method
 
-class LocalWebsocketMethod(private val method: Method, private val invokeOn: Any) : ServerlessMethod(method, HttpEvent::class.java) {
+class LocalWebsocketMethod(private val method: Method, private val invokeOn: Any) : ServerlessMethod(method, WebSocketEvent::class.java) {
 
     init {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -20,7 +20,7 @@ class LocalWebsocketMethod(private val method: Method, private val invokeOn: Any
                 body = request.body,
                 headers = request.headers,
                 queryStringParameters = request.queryStringParams,
-                requestContext = RequestContext("", "testConnection")
+                requestContext = request.requestContext
         )
 
         val strParam = request.body
