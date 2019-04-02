@@ -1,6 +1,5 @@
 package annotation.services
 
-import annotation.annotations.NimbusConstants.stage
 import annotation.annotations.file.FileStorageEventType
 import annotation.annotations.function.HttpServerlessFunction
 import annotation.annotations.function.NotificationServerlessFunction
@@ -8,9 +7,12 @@ import annotation.annotations.function.QueueServerlessFunction
 import cloudformation.CloudFormationDocuments
 import cloudformation.outputs.BucketNameOutput
 import cloudformation.outputs.RestApiOutput
-import persisted.NimbusState
+import cloudformation.outputs.WebSocketApiOutput
 import cloudformation.processing.MethodInformation
-import cloudformation.resource.*
+import cloudformation.resource.IamRoleResource
+import cloudformation.resource.LogGroupResource
+import cloudformation.resource.NimbusBucketResource
+import cloudformation.resource.Resource
 import cloudformation.resource.basic.CronRule
 import cloudformation.resource.dynamo.DynamoStreamResource
 import cloudformation.resource.file.FileBucket
@@ -24,6 +26,8 @@ import cloudformation.resource.notification.SnsTopicResource
 import cloudformation.resource.queue.QueueResource
 import cloudformation.resource.websocket.*
 import com.google.gson.JsonObject
+import persisted.ExportInformation
+import persisted.NimbusState
 
 class FunctionEnvironmentService(
         private val cloudFormationDocumentsCollection: MutableMap<String, CloudFormationDocuments>,
@@ -74,8 +78,17 @@ class FunctionEnvironmentService(
             val restApi = RestApi(nimbusState, function.stage)
             cfDocuments.rootRestApi = restApi
             updateResources.addResource(restApi)
-            updateOutputs.addOutput(RestApiOutput(restApi, nimbusState))
-            nimbusState.hasHttpServerlessFunctions = true
+            val httpApiOutput = RestApiOutput(restApi, nimbusState)
+            updateOutputs.addOutput(httpApiOutput)
+
+            val exportInformation = ExportInformation(
+                    httpApiOutput.getExportName(),
+                    "Created REST API. Base URL is ",
+                    "\${NIMBUS_REST_API_URL}")
+
+            val exports = nimbusState.exports.getOrPut(function.stage) { mutableListOf()}
+            exports.add(exportInformation)
+
             restApi
         } else {
             cfDocuments.rootRestApi!!
@@ -206,12 +219,23 @@ class FunctionEnvironmentService(
     fun newWebSocketRoute(routeKey: String, function: FunctionResource) {
         val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
         val updateResources = cfDocuments.updateResources
+        val updateOutputs = cfDocuments.updateOutputs
 
         val webSocketApi = if (cfDocuments.rootWebSocketApi == null) {
             val webSocketApi = WebSocketApi(nimbusState, function.stage)
             cfDocuments.rootWebSocketApi = webSocketApi
             updateResources.addResource(webSocketApi)
-            updateResources.addResource(webSocketApi)
+            val webSocketApiOutput = WebSocketApiOutput(webSocketApi, nimbusState)
+            updateOutputs.addOutput(webSocketApiOutput)
+
+            val exportInformation = ExportInformation(
+                    webSocketApiOutput.getExportName(),
+                    "Created WebSocket API. Base URL is ",
+                    "\${NIMBUS_WEBSOCKET_API_URL}")
+
+            val exports = nimbusState.exports.getOrPut(function.stage) { mutableListOf()}
+            exports.add(exportInformation)
+
             webSocketApi
         } else {
             cfDocuments.rootWebSocketApi!!
