@@ -29,7 +29,7 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
                     }
                 }
             }
-            messager.printMessage(Diagnostic.Kind.ERROR, "Could not find KeyValueStore on @UsesDocumentStore dataModel with same stage")
+            messager.printMessage(Diagnostic.Kind.ERROR, "Could not find KeyValueStore on @UsesDocumentStoreHandler dataModel with same stage")
             return null
         } catch (e: NullPointerException) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with DocumentStore but isn't", serverlessMethod)
