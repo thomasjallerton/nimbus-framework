@@ -1,7 +1,9 @@
 package testing.webserver
 
+import annotation.annotations.function.HttpMethod
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
+import testing.webserver.resources.RedirectResource
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -36,6 +38,7 @@ class AllResourcesWebserverHandler : AbstractHandler() {
 
     fun addResource(pathPrefix: String, handler: WebserverHandler) {
         handlerMap[pathPrefix] = handler
+        handler.addNewResource("", HttpMethod.GET, RedirectResource("$pathPrefix/"))
     }
 
     private fun extractPathPrefix(path: String): String {

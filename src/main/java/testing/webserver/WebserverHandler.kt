@@ -7,6 +7,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler
 import testing.http.LocalHttpMethod
 import testing.webserver.resources.FileResource
 import testing.webserver.resources.FunctionResource
+import testing.webserver.resources.RedirectResource
 import testing.webserver.resources.WebResource
 import java.io.File
 import javax.servlet.http.HttpServletRequest
@@ -47,8 +48,9 @@ class WebserverHandler(private val indexFile: String,
         addNewResource(path, httpMethod, FunctionResource(path, httpMethod, method))
     }
 
-    private fun addNewResource(path: String, httpMethod: HttpMethod, webResource: WebResource) {
-        val fixedPath = "/$path"
+    fun addNewResource(path: String, httpMethod: HttpMethod, webResource: WebResource) {
+        val fixedPath = if (path.isNotEmpty()) "/$path" else path
+
         resources[HttpMethodIdentifier(fixedPath, httpMethod)] = webResource
         if (path == indexFile) {
             resources[HttpMethodIdentifier("/", HttpMethod.GET)] = webResource

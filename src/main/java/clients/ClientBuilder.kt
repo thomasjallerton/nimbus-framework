@@ -23,6 +23,7 @@ import clients.rdbms.DatabaseClientLocal
 import clients.rdbms.DatabaseClientRds
 import clients.websocket.ServerlessFunctionWebSocketClient
 import clients.websocket.ServerlessFunctionWebSocketClientApiGateway
+import clients.websocket.ServerlessFunctionWebsocketClientLocal
 import testing.LocalNimbusDeployment
 import java.sql.Connection
 
@@ -95,7 +96,7 @@ object ClientBuilder {
     @JvmStatic
     fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient {
         return if (LocalNimbusDeployment.isLocalDeployment) {
-            ServerlessFunctionWebSocketClientApiGateway()
+            ServerlessFunctionWebsocketClientLocal()
         } else {
             ServerlessFunctionWebSocketClientApiGateway()
         }
