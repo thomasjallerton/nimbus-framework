@@ -11,7 +11,7 @@ abstract class KeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass: Class<V
     private var keyType: Class<out Any> = String::class.java
     protected var keyName: String = ""
     protected val attributes: MutableMap<String, Field> = mutableMapOf()
-    protected var tableName: String = ""
+    protected var tableName: String = getTableName(valueClass, stage)
 
     init {
         val keyValueStoreAnnotations = valueClass.getAnnotationsByType(KeyValueStore::class.java)
@@ -19,7 +19,6 @@ abstract class KeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass: Class<V
         for (keyValueStoreAnnotation in keyValueStoreAnnotations) {
             for (annotationStage in keyValueStoreAnnotation.stages) {
                 if (annotationStage == stage) {
-                    tableName = if (keyValueStoreAnnotation.tableName != "") keyValueStoreAnnotation.tableName else valueClass.simpleName
                     keyType = keyValueStoreAnnotation.keyType.java
                     keyName = keyValueStoreAnnotation.keyName
                     break
