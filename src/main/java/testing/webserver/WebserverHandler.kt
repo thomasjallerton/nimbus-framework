@@ -60,6 +60,11 @@ class WebserverHandler(private val indexFile: String,
         }
     }
 
+    fun addRedirectResource(path: String, httpMethod: HttpMethod, webResource: WebResource) {
+        val fixedPath = if (path.isNotEmpty()) "/$path" else path
+        resources[HttpMethodIdentifier(fixedPath, httpMethod)] = webResource
+    }
+
     private data class HttpMethodIdentifier(val path: String, val method: HttpMethod)
 
 }

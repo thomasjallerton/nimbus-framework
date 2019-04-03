@@ -38,7 +38,7 @@ class AllResourcesWebserverHandler : AbstractHandler() {
 
     fun addResource(pathPrefix: String, handler: WebserverHandler) {
         handlerMap[pathPrefix] = handler
-        handler.addNewResource("", HttpMethod.GET, RedirectResource("$pathPrefix/"))
+        handler.addRedirectResource("", HttpMethod.GET, RedirectResource("$pathPrefix/"))
     }
 
     private fun extractPathPrefix(path: String): String {
