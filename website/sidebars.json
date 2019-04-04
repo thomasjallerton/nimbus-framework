@@ -1,10 +1,41 @@
 {
   "docs": {
-    "Docusaurus": ["doc1"],
-    "First Category": ["doc2"],
-    "Second Category": ["doc3"]
-  },
-  "docs-other": {
-    "First Category": ["doc4", "doc5"]
+    "Getting Started": [
+      "quickstart"
+    ],
+    "Deploying Resources": [
+      "resources/FileStorageBucket",
+      "resources/DocumentStore",
+      "resources/KeyValueStore",
+      "resources/RelationalDatabase",
+      {
+        "type": "subcategory",
+        "label": "Functions",
+        "ids": [
+          "resources/functions/HttpFunction",
+          "resources/functions/WebSocketFunction",
+          "resources/functions/DocumentStoreFunction",
+          "resources/functions/KeyValueStoreFunction",
+          "resources/functions/BasicFunction",
+          "resources/functions/FileStorageBucketFunction",
+          "resources/functions/AfterDeployment"
+        ]
+      }
+    ],
+    "Clients": [
+      "clients/DocumentStoreClient",
+      "clients/KeyValueStoreClient",
+      "clients/FileStorageClient",
+      "clients/WebSocketServerlessFunctionClient",
+      "clients/BasicServerlessFunctionClient",
+      "clients/NotificationClient",
+      "clients/QueueClient",
+      "clients/DatabaseClient"
+    ],
+    "Local Deployment": [
+      "localdeployment/LocalNimbusDeployment",
+      "localdeployment/UnitTests",
+      "localdeployment/LocalServer"
+    ]
   }
 }
