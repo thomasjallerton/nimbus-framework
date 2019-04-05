@@ -28,6 +28,8 @@ public class NotificationHandler {
 
 The `NotificationEvent` parameter gives you more details about the notification, like the timestamp and any additional parameters. 
 
+As with all serverless functions, a notification function must be inside of a class with a default constructor available. 
+
 ## Method Details
 ### Parameters 
 A notification function can have at most two parameters. One is a custom user type that is deserialized from the message in the notification, the second is the `NotificationEvent` parameter. An example is shown above. The deserialization is done using the jackson library, so any customisation you want can be done using jackson annotations in the target class. 

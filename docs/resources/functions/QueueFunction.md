@@ -30,6 +30,8 @@ class QueueFunction {
 
 This function will take an item off the queue, if it fails then the item will be put back onto the queue and the function will retry, or the queue will consume it. 
 
+As with all serverless functions, a queue function must be inside of a class with a default constructor available. 
+
 ## Method Details
 ### Parameters
 The annotated method can have at most two parameters. There are two cases, if the batchSize is set to one, or more than one. 
