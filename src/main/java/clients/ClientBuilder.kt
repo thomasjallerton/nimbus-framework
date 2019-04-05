@@ -16,7 +16,7 @@ import clients.notification.NotificationClient
 import clients.notification.NotificationClientLocal
 import clients.notification.NotificationClientSNS
 import clients.queue.QueueClient
-import clients.queue.QueueClientDynamo
+import clients.queue.QueueClientSQS
 import clients.queue.QueueClientLocal
 import clients.rdbms.DatabaseClient
 import clients.rdbms.DatabaseClientLocal
@@ -25,7 +25,6 @@ import clients.websocket.ServerlessFunctionWebSocketClient
 import clients.websocket.ServerlessFunctionWebSocketClientApiGateway
 import clients.websocket.ServerlessFunctionWebsocketClientLocal
 import testing.LocalNimbusDeployment
-import java.sql.Connection
 
 object ClientBuilder {
 
@@ -53,7 +52,7 @@ object ClientBuilder {
         return if (LocalNimbusDeployment.isLocalDeployment) {
             QueueClientLocal(id)
         } else {
-            QueueClientDynamo(id)
+            QueueClientSQS(id)
         }
     }
 

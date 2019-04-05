@@ -26,7 +26,7 @@ class UsesKeyValueStoreHandler(
                     val resource = resourceFinder.getKeyValueStoreResource(annotation, serverlessMethod, stage)
 
                     if (resource != null) {
-                        iamRoleResource.addAllowStatement("dynamodb:*", resource, "")
+                        iamRoleResource.addAllowStatement("storeUpdateDetails:*", resource, "")
                     }
                 }
             }
