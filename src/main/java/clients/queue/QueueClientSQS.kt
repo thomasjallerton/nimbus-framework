@@ -3,7 +3,7 @@ package clients.queue
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import com.fasterxml.jackson.databind.ObjectMapper
 
-internal class QueueClientDynamo(id: String): QueueClient {
+internal class QueueClientSQS(id: String): QueueClient {
 
     private val sqsClient = AmazonSQSClientBuilder.defaultClient()
     private val objectMapper = ObjectMapper()

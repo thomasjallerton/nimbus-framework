@@ -7,7 +7,7 @@ sidebar_label: HTTP Function
 HTTP functions are used to build up a REST api for your project. You can only have one REST api in a nimbus project (i.e. there will be only one endpoint). 
 
 ## Basic Usage
-To configure a HTTP function, you need to provide it a unique path and method. This function will be triggered when a request is made that matches this path and method. 
+To configure a HTTP function, you annotate a method with `@HttpServerlessFunction` and provide it a unique path and method. This function will be triggered when a request is made that matches this path and method. 
 
 A basic example is shown below:
 ```java

@@ -2,7 +2,7 @@ package testing.document
 
 import annotation.annotations.persistent.StoreEventType
 import testing.ServerlessMethod
-import wrappers.store.models.DynamoUpdate
+import wrappers.store.models.StoreUpdateDetails
 import wrappers.store.models.StoreEvent
 import java.lang.reflect.Method
 
@@ -14,7 +14,7 @@ class DocumentMethod(private val method: Method, private val invokeOn: Any, priv
 
         if (type != StoreEventType.INSERT) return
 
-        val event = StoreEvent(DynamoUpdate(), type.name)
+        val event = StoreEvent(StoreUpdateDetails(), type.name)
 
         val params = method.parameters
         val eventIndex = eventIndex()
@@ -39,7 +39,7 @@ class DocumentMethod(private val method: Method, private val invokeOn: Any, priv
 
         if (type != StoreEventType.MODIFY) return
 
-        val event = StoreEvent(DynamoUpdate(), type.name)
+        val event = StoreEvent(StoreUpdateDetails(), type.name)
 
         val params = method.parameters
         val eventIndex = eventIndex()
@@ -68,7 +68,7 @@ class DocumentMethod(private val method: Method, private val invokeOn: Any, priv
 
         if (type != StoreEventType.REMOVE) return
 
-        val event = StoreEvent(DynamoUpdate(), type.name)
+        val event = StoreEvent(StoreUpdateDetails(), type.name)
 
         val params = method.parameters
         val eventIndex = eventIndex()

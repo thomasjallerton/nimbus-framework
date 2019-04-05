@@ -5,7 +5,7 @@ import cloudformation.processing.MethodInformation
 import clients.dynamo.DynamoStreamParser
 import wrappers.ServerlessFunctionFileBuilder
 import wrappers.store.models.DynamoRecords
-import wrappers.store.models.DynamoUpdate
+import wrappers.store.models.StoreUpdateDetails
 import wrappers.store.models.StoreEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -90,7 +90,7 @@ abstract class StoreServerlessFunctionFileBuilder(
             write("import ${methodInformation.packageName}.${methodInformation.className};")
         }
         write("import ${DynamoRecords::class.qualifiedName};")
-        write("import ${DynamoUpdate::class.qualifiedName};")
+        write("import ${StoreUpdateDetails::class.qualifiedName};")
         write("import ${DynamoStreamParser::class.qualifiedName};")
         write("import ${StoreEvent::class.qualifiedName};")
 
@@ -103,7 +103,7 @@ abstract class StoreServerlessFunctionFileBuilder(
         if (param.type != null) {
             write("StoreEvent event = records.getRecord().get(0);")
             write("if (!\"${method.name}\".equals(event.getEventName())) return;")
-            write("DynamoUpdate update = event.getDynamodb();")
+            write("StoreUpdateDetails update = event.getStoreUpdateDetails();")
             write("DynamoStreamParser<${param.type}> parser = new DynamoStreamParser(${param.type}.class);")
             write("${param.type} parsedNewItem = parser.toObject(update.getNewImage());")
             write("${param.type} parsedOldItem = parser.toObject(update.getOldImage());")

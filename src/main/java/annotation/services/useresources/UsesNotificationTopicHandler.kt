@@ -32,7 +32,6 @@ class UsesNotificationTopicHandler(
                     }
                     cloudFormationDocuments.updateResources.addResource(snsTopicResource)
 
-                    functionResource.addEnvVariable("NIMBUS_STAGE", stage)
                     functionResource.addEnvVariable("SNS_TOPIC_ARN_" + notificationTopic.topic.toUpperCase(), snsTopicResource.getRef())
                     iamRoleResource.addAllowStatement("sns:Subscribe", snsTopicResource, "")
                     iamRoleResource.addAllowStatement("sns:Unsubscribe", snsTopicResource, "")
