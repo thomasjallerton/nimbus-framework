@@ -1,7 +1,9 @@
 package wrappers.queue.models
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import wrappers.ServerlessEvent
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class QueueEvent(
         val messageId: String? = null,
         val receiptHandle: String? = null,
@@ -10,7 +12,5 @@ data class QueueEvent(
         val messageAttributes: Map<String, MessageAttribute>? = null,
         val md5OfMessageAttributes: String? = null,
         val md5OfBody: String? = null,
-        val eventSource: String? = null,
-        val eventSourceARN: String? = null,
-        val awsRegion: String? = null
+        val eventSource: String? = null
 ): ServerlessEvent
