@@ -1,5 +1,7 @@
 package wrappers.http.models
 
+import com.fasterxml.jackson.databind.ObjectMapper
+
 data class HttpResponse(
         var statusCode: Int = 200,
         var headers: Map<String, String> = mutableMapOf(),
@@ -8,6 +10,11 @@ data class HttpResponse(
 
     fun withBody(body: String): HttpResponse {
         this.body = body
+        return this
+    }
+
+    fun withJsonBody(body: Any): HttpResponse {
+        this.body = ObjectMapper().writeValueAsString(body)
         return this
     }
 

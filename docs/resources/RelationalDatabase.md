@@ -10,7 +10,7 @@ A traditional relational database deployment.
 To declare a relational database a class is annotated with @RelationalDatabase. A database name needs to be provided, along with master login credentials. Finally the database language needs to be provided. 
 
 A basic example is shown below: 
-```
+```java
 @RelationalDatabase(
         name = "NimbusExampleDatabase",
         username = "master",
@@ -34,7 +34,7 @@ Additionally, the database performance can be configured with the `databaseSize`
 As it is likely you do not want the master credentials exposed in the project you can use environment variables to set the username and password. To do this you replace the username and/or password values with `${ENVIRONMENT_VARIABLE}` where ENVIRONMENT_VARIABLE is the key name of an environment variable. This environment variable needs to be available during the compile time of your code. 
 
 An example of this is:
-```
+```java
 @RelationalDatabase(
         name = "NimbusExampleDatabase",
         username = "master",
@@ -48,7 +48,7 @@ public class ProjectDatabase {}
 The database will initially not contain any schema, so this will need to be created. To do this it is recommended that you use the `@AfterDeployment` annotation on a function to perform the creation. You can use a `RelationalDatabaseClient` to get the connection to the database and then plug that into a framework of your choice. Any deployment scripts/files must be included in the resources of your project as the `@AfterDeployment` function is deployed as a serverless function. 
 
 An example of a complete database with a liquibase migration is:
-```
+```java
 @RelationalDatabase(
         name = "NimbusExampleDatabase",
         username = "master",
@@ -78,7 +78,8 @@ public class ProjectDatabase {
 }
 ```
 
-## @RelationalDatabase
+## Annotation Specification
+### @RelationalDatabase
 #### Required Parameters
 * `name` - The name of the deployed database in the cloud provider.
 * `username` - Username for the master account. Can be set using environment variables.

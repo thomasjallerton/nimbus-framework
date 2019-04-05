@@ -11,7 +11,7 @@ The @KeyValueStore annotation on a class is used to deploy a key-value store tab
 
 This is an example of a class declared as a KeyValueStore: 
 
-```
+```java
 @KeyValueStore(keyType = String.class)
 public class ConnectionDetail {
 
@@ -42,7 +42,8 @@ To interact with a KeyValueStore see [Key Value Store Client](clients/KeyValueSt
 
 
 
-## @KeyValueStore
+## Annotation Specification
+### @KeyValueStore
 #### Required Parameters
 * `keyType` - The class type which will be used as the primary key of the table, e.g. `String.class` or `int.class`. The key type provided to the client must be the same as this type. 
 
@@ -56,7 +57,7 @@ To interact with a KeyValueStore see [Key Value Store Client](clients/KeyValueSt
 
 * `stages` - A list of stages that this resource should be deployed to. 
 
-## @@Attribute
+### @@Attribute
 #### Optional Parameters
 
 * `columnName` - The column name in the key value store. If this is not set defaults to the field name

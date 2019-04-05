@@ -12,7 +12,7 @@ To define a File Storage Bucket a class is annotated with `@FileStorageBucket`. 
 
 A basic example is shown below: 
 
-```
+```java
 @FileStorageBucket(bucketName = "imagebucket")
 public class ImageBucket {}
 ``` 
@@ -29,7 +29,7 @@ When a file storage bucket is created as a website, then once a deployment is co
 
 An example usage to create a static website is shown below:
 
-```
+```java
 @FileStorageBucket(
         bucketName = "NimbusExampleWebsite",
         staticWebsite = true
@@ -48,7 +48,7 @@ If a path to a directory is a provided then each file in the directory (and all 
 The content-type used for a file when hosted in a static website is determined automatically by looking at the file uploaded. This means if a HTML file is uploaded then it is likely to be hosted with a content-type of `text/html`, however is not guaranteed to work.
 
 An example file storage bucket, with file uploads is shown below:
-```
+```java
 @FileStorageBucket(
         bucketName = Website.WEBSITE_BUCKET,
         staticWebsite = true
@@ -67,9 +67,10 @@ The website you host may also want to connect to other resources created by the 
 The variables that can be substituted are:
 * `${NIMBUS_REST_API_URL}` - Returns the base URL for a serverless function REST API (one created by `@HttpServerlessFunction` annotations). Does not have a "/" at the end, e.g. `http://www.target-invokation.com`. 
 * `${NIMBUS_WEBSOCKET_API_URL}` - Returns the base URL for a serverless function WebSocket API (one create by `@WebSocketServerlessFunction` annotations) Does not have a "/" at the end, e.g. `http://www.websocket-invokation.com`. 
-* `${BUCKETNAME_URL}` - where BUCKETNAME is the name of the bucket, as supplied in the annotation entirely uppercase. This means it does not have the stage appended to the end. This returns the URL of a file storage bucket that is configured as a static website. Does not have a "/" at the end. 
+* `${BUCKETNAME_URL}` - where BUCKETNAME is the name of the bucket, as supplied in the annotation and entirely uppercase. This means it does not have the stage appended to the end. This returns the URL of a file storage bucket that is configured as a static website. Does not have a "/" at the end. 
 
-## @FileStorageBucket
+## Annotation Specification
+### @FileStorageBucket
 #### Required Parameters
 * `bucketName` - The name of the file storage bucket in the cloud provider. In the actual cloud provider will be appended with the stage. 
 
@@ -79,7 +80,7 @@ The variables that can be substituted are:
 * `errorFile` - The file to be returned when an error occurs. Only used in static websites. Defaults to "error.html" 
 * `stages` - The stages that this file storage bucket should be deployed to. 
 
-## @FileUpload
+### @FileUpload
 #### Required Parameters
 * `bucketName` - The name of the bucket to be uploaded to, as specified in the @FileStorageBucket annotation
 * `localPath` - Path to file or directory on the local system

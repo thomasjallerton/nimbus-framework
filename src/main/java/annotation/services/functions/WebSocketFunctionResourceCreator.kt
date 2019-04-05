@@ -7,7 +7,6 @@ import annotation.services.FunctionEnvironmentService
 import cloudformation.CloudFormationDocuments
 import cloudformation.resource.function.FunctionConfig
 import persisted.NimbusState
-import wrappers.http.HttpServerlessFunctionFileBuilder
 import wrappers.websocket.WebSocketServerlessFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -45,7 +44,7 @@ class WebSocketFunctionResourceCreator(
                 val config = FunctionConfig(webSocketFunction.timeout, webSocketFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
 
-                functionEnvironmentService.newWebSocketRoute(webSocketFunction.routeKey, functionResource)
+                functionEnvironmentService.newWebSocketRoute(webSocketFunction.topic, functionResource)
 
                 results.add(FunctionInformation(type, functionResource))
             }
