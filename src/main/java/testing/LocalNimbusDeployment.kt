@@ -42,7 +42,6 @@ import testing.websocket.WebSocketRequest
 import testing.websocketserver.LocalWebSocketServer
 import wrappers.websocket.models.RequestContext
 import java.io.File
-import java.io.InputStream
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.nio.charset.StandardCharsets
@@ -300,9 +299,9 @@ class LocalNimbusDeployment {
                 for (webSocketFunction in webSocketServerlessFunctions) {
                     val webSocketMethod = LocalWebsocketMethod(method, invokeOn)
 
-                    localWebsocketMethods[webSocketFunction.routeKey] = webSocketMethod
+                    localWebsocketMethods[webSocketFunction.topic] = webSocketMethod
                     methods[functionIdentifier] = webSocketMethod
-                    localWebSocketServer.addTopic(webSocketFunction.routeKey, webSocketMethod)
+                    localWebSocketServer.addTopic(webSocketFunction.topic, webSocketMethod)
 
                     variableSubstitution["\${NIMBUS_WEBSOCKET_API_URL}"] = "ws://localhost:$webSocketPort"
                 }

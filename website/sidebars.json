@@ -16,6 +16,8 @@
           "resources/functions/WebSocketFunction",
           "resources/functions/DocumentStoreFunction",
           "resources/functions/KeyValueStoreFunction",
+          "resources/functions/NotificationFunction",
+          "resources/functions/QueueFunction",
           "resources/functions/BasicFunction",
           "resources/functions/FileStorageBucketFunction",
           "resources/functions/AfterDeployment"

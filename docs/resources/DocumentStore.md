@@ -11,7 +11,7 @@ The `@DocumentStore` annotation on a class is used to deploy a document store ta
 
 This is an example of a class declared as a DocumentStore: 
 
-```
+```java
 @DocumentStore
 public class UserDetail {
 
@@ -50,9 +50,10 @@ A default constructor is required to instantiate the class when reading from the
 
 If there is a field which does not have either a @Key or @Attribute annotation then when it is read from the table it will be given its default value.
 
-To interact with a DocumentStore see [Document Store Client](clients/DocumentStoreClient.md)
+To interact with a DocumentStore see [Document Store Client](../clients/DocumentStoreClient.md)
 
-## @DocumentStore
+## Annotation Specification
+### @DocumentStore
 #### Optional Parameters
 
 * `tableName` - The table name found in the cloud provider. If no table name provided this defaults to the name of the class, followed by the stage. If this is set then the table name will be the one set followed by the stage name. Must be alphanumerical.
@@ -61,7 +62,7 @@ To interact with a DocumentStore see [Document Store Client](clients/DocumentSto
 
 * `stages` - A list of stages that this resource should be deployed to. 
 
-## @Key and @Attribute
+### @Key and @Attribute
 #### Optional Parameters
 
 * `columnName` - The column name in the document store. If this is not set defaults to the field name
