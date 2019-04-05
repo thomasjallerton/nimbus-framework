@@ -1,5 +1,6 @@
 package clients.queue
 
 interface QueueClient {
-    fun sendMessage(obj: Any)
+    fun sendMessage(message: String)
+    fun sendMessageAsJson(obj: Any)
 }

@@ -9,6 +9,7 @@ class FunctionEventMappingResource(
         private val sourceName: String,
         private val batchSize: Int,
         val function: FunctionResource,
+        private val includeStartingPosition: Boolean,
         nimbusState: NimbusState
 ): Resource(nimbusState, function.stage) {
     override fun toCloudFormation(): JsonObject {
@@ -21,7 +22,10 @@ class FunctionEventMappingResource(
         properties.add("EventSourceArn", source)
         properties.add("FunctionName", function.getArn())
         properties.addProperty("Enabled", "True")
-        properties.addProperty("StartingPosition", "LATEST")
+
+        if (includeStartingPosition) {
+            properties.addProperty("StartingPosition", "LATEST")
+        }
 
         eventMapping.add("Properties", properties)
 

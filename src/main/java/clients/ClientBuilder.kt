@@ -57,7 +57,7 @@ object ClientBuilder {
     }
 
     @JvmStatic
-    fun <T> getRelationalDatabase(databaseObject: Class<T>): DatabaseClient {
+    fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient {
         return if (LocalNimbusDeployment.isLocalDeployment) {
             DatabaseClientLocal(databaseObject)
         } else {
