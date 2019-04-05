@@ -145,6 +145,7 @@ class FunctionEnvironmentService(
                 sqsQueue.getName(),
                 queueFunction.batchSize,
                 function,
+                false,
                 nimbusState
         )
         updateResources.addResource(eventMapping)
@@ -167,6 +168,7 @@ class FunctionEnvironmentService(
                 store.getName(),
                 1,
                 function,
+                true,
                 nimbusState
         )
 
