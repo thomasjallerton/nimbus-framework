@@ -431,6 +431,15 @@ class LocalNimbusDeployment {
         }
     }
 
+    internal fun <T> getBasicMethod(clazz:Class<T>, methodName: String): BasicMethod {
+        val functionIdentifier = FunctionIdentifier(clazz.canonicalName, methodName)
+        if (localBasicMethods.containsKey(functionIdentifier)) {
+            return localBasicMethods[functionIdentifier]!!
+        } else {
+            throw ResourceNotFoundException()
+        }
+    }
+
     fun getQueue(id: String): LocalQueue {
         if (queues.containsKey(id)) {
             return queues[id]!!
