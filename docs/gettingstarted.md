@@ -6,7 +6,8 @@ sidebar_label: Getting Started
 
 ## Installation
 
-First download from maven, annotation processor and deployment plugin
+Nimbus is made available though maven and is hosted in the maven central repository.
+
 First you need to added the nimbus-core dependency to your pom. This adds the annotation processor and local testing capabilities.
 ```xml
 <dependency>
