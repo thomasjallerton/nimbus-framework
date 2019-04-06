@@ -414,14 +414,6 @@ class LocalNimbusDeployment {
         }
     }
 
-    fun <K, V> getKeyValueStoreClient(keyClass: Class<K>, valueClass: Class<V>): KeyValueStoreClient<K, V> {
-        return KeyValueStoreClientLocal(keyClass, valueClass, stage)
-    }
-
-    fun <T> getRelationalDatabaseClient(dataClass: Class<T>): DatabaseClient {
-        return DatabaseClientLocal(dataClass)
-    }
-
     fun getLocalFileStorage(bucketName: String): LocalFileStorage {
         if (fileStorage.containsKey(bucketName)) {
             return fileStorage[bucketName]!!
@@ -464,16 +456,7 @@ class LocalNimbusDeployment {
         }
     }
 
-    fun <T> getBasicMethod(clazz: Class<T>, methodName: String): BasicMethod {
-        val functionIdentifier = FunctionIdentifier(clazz.canonicalName, methodName)
-        if (localBasicMethods.containsKey(functionIdentifier)) {
-            return localBasicMethods[functionIdentifier]!!
-        } else {
-            throw ResourceNotFoundException()
-        }
-    }
-
-    fun sendHttpReguest(request: HttpRequest) {
+    fun sendHttpRequest(request: HttpRequest) {
         val httpIdentifier = HttpMethodIdentifier(request.path, request.method)
         if (localHttpMethods.containsKey(httpIdentifier)) {
             localHttpMethods[httpIdentifier]!!.invoke(request)
