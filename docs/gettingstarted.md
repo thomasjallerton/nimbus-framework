@@ -8,7 +8,7 @@ sidebar_label: Getting Started
 
 Nimbus is made available though maven and is hosted in the maven central repository.
 
-First you need to added the nimbus-core dependency to your pom. This adds the annotation processor and local testing capabilities.
+First you need to add the nimbus-core dependency to your pom. This adds the annotation processor and local testing capabilities.
 ```xml
 <dependency>
     <groupId>com.allerton</groupId>
@@ -29,7 +29,7 @@ Next the deployment plugin needs to be added. Currently only AWS is supported, s
 </plugin>
 ```
 
-You also need to use the maven shade plugin to package your project into a fat jar:
+You also need to use the maven shade plugin to package your project into a shaded jar:
 ```xml
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
@@ -62,7 +62,7 @@ Caution: projectName needs to be alphanumeric.
 
 * `stage` - The project stage that will be deployed to
 
-* `shadedJarPath` - The location where the fat jar is found. Defaults to `target/lambda.jar`. 
+* `shadedJarPath` - The location where the shaded jar is found. Defaults to `target/lambda.jar`. 
 
 * `compiledSourcePath` - The location where compiled nimbus files are found. This will be in the compiled annotation sources. Defaults to `target/generated-sources/annotations/` (Correct for default java projects, for other languages will likely change)
 
