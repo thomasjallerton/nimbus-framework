@@ -1,7 +1,7 @@
 ---
-id: quickstart
-title: Quickstart
-sidebar_label: Quickstart
+id: gettingstarted
+title: Getting Started
+sidebar_label: Getting Started
 ---
 
 ## Installation
