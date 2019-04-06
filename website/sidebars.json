@@ -35,7 +35,6 @@
       "clients/DatabaseClient"
     ],
     "Local Deployment": [
-      "localdeployment/LocalNimbusDeployment",
       "localdeployment/UnitTests",
       "localdeployment/LocalServer"
     ]

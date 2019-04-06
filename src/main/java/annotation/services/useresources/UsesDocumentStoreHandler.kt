@@ -25,9 +25,10 @@ class UsesDocumentStoreHandler(
                     val resource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, serverlessMethod, stage)
 
                     if (resource != null) {
-                        iamRoleResource.addAllowStatement("storeUpdateDetails:*", resource, "")
+                        iamRoleResource.addAllowStatement("dynamodb:*", resource, "")
                     }
                 }
             }
-        }    }
+        }
+    }
 }

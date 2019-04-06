@@ -180,7 +180,7 @@ class FunctionEnvironmentService(
 
         val dynamoStreamResource = DynamoStreamResource(store, nimbusState)
 
-        function.getIamRoleResource().addAllowStatement("storeUpdateDetails:*", dynamoStreamResource, "")
+        function.getIamRoleResource().addAllowStatement("dynamodb:*", dynamoStreamResource, "")
     }
 
     fun newCronTrigger(cron: String, function: FunctionResource) {
