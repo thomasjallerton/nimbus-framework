@@ -3,6 +3,7 @@ package com.nimbusframework.nimbuscore.annotation.services.resources
 import com.nimbusframework.nimbuscore.annotation.annotations.document.DocumentStore
 import com.nimbusframework.nimbuscore.annotation.annotations.document.DocumentStores
 import com.nimbusframework.nimbuscore.annotation.annotations.persistent.Key
+import com.nimbusframework.nimbuscore.annotation.wrappers.DynamoConfiguration
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.cloudformation.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -27,7 +28,14 @@ class DocumentStoreResourceCreator(
         for (documentStore in documentStores) {
             for (stage in documentStore.stages) {
                 val tableName = determineTableName(documentStore.tableName, type.simpleName.toString(), stage)
-                val dynamoResource = DynamoResource(tableName, nimbusState, stage)
+
+                val dynamoConfiguration = DynamoConfiguration(
+                        tableName,
+                        documentStore.readCapacityUnits,
+                        documentStore.writeCapacityUnits
+                )
+
+                val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
 
                 val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
                 val updateResources = cloudFormationDocuments.updateResources
