@@ -7,7 +7,7 @@ sidebar_label: Key-Value Store
 Key-Value stores allow you to store objects based on an external key. Similar to Java `Maps<Key, Value>` where the Value is the defined object. 
 
 ## Basic Usage
-The @KeyValueStore com.nimbusframework.nimbuscore.annotation on a class is used to deploy a key-value store table. Fields that you want to be included in the table must be annotated with `@Attribute`. 
+The @KeyValueStore annotation on a class is used to deploy a key-value store table. Fields that you want to be included in the table must be annotated with `@Attribute`. 
 
 This is an example of a class declared as a KeyValueStore: 
 
@@ -36,7 +36,7 @@ public class ConnectionDetail {
 
 A default constructor is required to instantiate the class when reading from the table (similar to deserializing JSON in jackson). 
 
-If there is a field which does not have an @Attribute com.nimbusframework.nimbuscore.annotation then when it is read from the table it will be given its default value.
+If there is a field which does not have an @Attribute annotation then when it is read from the table it will be given its default value.
 
 To interact with a KeyValueStore see [Key Value Store Client](clients/KeyValueStoreClient.md)
 
