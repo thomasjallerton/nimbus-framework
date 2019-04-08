@@ -45,7 +45,7 @@ public class ProjectDatabase {}
 ```
 
 ## Migrating Schema
-The database will initially not contain any schema, so this will need to be created. To do this it is recommended that you use the `@AfterDeployment` com.nimbusframework.nimbuscore.annotation on a function to perform the creation. You can use a `RelationalDatabaseClient` to get the connection to the database and then plug that into a framework of your choice. Any deployment scripts/files must be included in the resources of your project as the `@AfterDeployment` function is deployed as a serverless function. 
+The database will initially not contain any schema, so this will need to be created. To do this it is recommended that you use the `@AfterDeployment` annotation on a function to perform the creation. You can use a `RelationalDatabaseClient` to get the connection to the database and then plug that into a framework of your choice. Any deployment scripts/files must be included in the resources of your project as the `@AfterDeployment` function is deployed as a serverless function. 
 
 An example of a complete database with a liquibase migration is:
 ```java
@@ -87,6 +87,6 @@ public class ProjectDatabase {
 * `databaseLanguage` - Database language.
 
 #### Optional Parameters
-* `databaseSize` - Performance com.nimbusframework.nimbuscore.configuration for the database, defaults to FREE.
+* `databaseSize` - Performance configuration for the database, defaults to FREE.
 * `allocatedSizeGB` - Size of space to allocate in GB, default 20.
 * `stages` - A list of stages that the relational database should be deployed to. 

@@ -52,12 +52,12 @@ This will start up a webserver, accessible at `http://localhost:8080`. The endpo
 #### Function endpoints (from @HttpServerlessFunction)
 These endpoints will be `http://localhost:HTTP_PORT/function/FUNCTION_ENDPOINT`
 * `HTTP_PORT` is either 8080 or the port specified in the constructor. 
-* `FUNCTION_ENDPOINT` is the endpoint specified in the @HttpServerlessFunction com.nimbusframework.nimbuscore.annotation.
+* `FUNCTION_ENDPOINT` is the endpoint specified in the @HttpServerlessFunction annotation.
 
 #### Static Website (from @FileStorageBucket)
 These endpoints will be `http://localhost:HTTP_PORT/BUCKET_NAME/FILE_PATH`
 * `HTTP_PORT` is either 8080 or the port specified in the constructor. 
-* `BUCKET_NAME` is the name of the bucket as specified in the @FileStorageBucket com.nimbusframework.nimbuscore.annotation.
+* `BUCKET_NAME` is the name of the bucket as specified in the @FileStorageBucket annotation.
 * `FILE_PATH` is the path to the file in the bucket. If an index file is specified can be left blank to access this file.
 
 ### WebSocket
