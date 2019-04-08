@@ -82,7 +82,7 @@ The variables that can be substituted are:
 
 ### @FileUpload
 #### Required Parameters
-* `bucketName` - The name of the bucket to be uploaded to, as specified in the @FileStorageBucket .annotation
+* `bucketName` - The name of the bucket to be uploaded to, as specified in the @FileStorageBucket annotation
 * `localPath` - Path to file or directory on the local system
 * `targetPath` - Path to file or directory where file(s) will be uploaded
 
