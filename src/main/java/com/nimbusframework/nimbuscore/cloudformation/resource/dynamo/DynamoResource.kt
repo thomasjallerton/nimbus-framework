@@ -4,10 +4,11 @@ import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.cloudformation.resource.Resource
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbuscore.annotation.wrappers.DynamoConfiguration
 import javax.lang.model.element.TypeElement
 
 class DynamoResource(
-        private val tableName: String,
+        private val dynamoConfiguration: DynamoConfiguration,
         nimbusState: NimbusState,
         stage: String
 ) : Resource(nimbusState, stage) {
@@ -22,13 +23,13 @@ class DynamoResource(
         dynamoTable.addProperty("Type", "AWS::DynamoDB::Table")
 
         val properties = getProperties()
-        properties.addProperty("TableName", tableName)
+        properties.addProperty("TableName", dynamoConfiguration.tableName)
         properties.add("AttributeDefinitions", attributeDefsCloudFormation())
         properties.add("KeySchema", keyDefsCloudFormation())
 
         val provisionedThroughput = JsonObject()
-        provisionedThroughput.addProperty("ReadCapacityUnits", 1)
-        provisionedThroughput.addProperty("WriteCapacityUnits", 1)
+        provisionedThroughput.addProperty("ReadCapacityUnits", dynamoConfiguration.readCapacity)
+        provisionedThroughput.addProperty("WriteCapacityUnits", dynamoConfiguration.writeCapacity)
         properties.add("ProvisionedThroughput", provisionedThroughput)
 
         dynamoTable.add("Properties", properties)
@@ -36,7 +37,7 @@ class DynamoResource(
     }
 
     override fun getName(): String {
-        return tableName
+        return dynamoConfiguration.tableName
     }
 
     private fun attributeDefsCloudFormation(): JsonArray {

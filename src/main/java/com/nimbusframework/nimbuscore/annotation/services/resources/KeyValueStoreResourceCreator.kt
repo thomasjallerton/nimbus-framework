@@ -2,6 +2,7 @@ package com.nimbusframework.nimbuscore.annotation.services.resources
 
 import com.nimbusframework.nimbuscore.annotation.annotations.keyvalue.KeyValueStore
 import com.nimbusframework.nimbuscore.annotation.annotations.keyvalue.KeyValueStores
+import com.nimbusframework.nimbuscore.annotation.wrappers.DynamoConfiguration
 import com.nimbusframework.nimbuscore.annotation.wrappers.annotations.datamodel.KeyValueStoreAnnotation
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.cloudformation.resource.dynamo.DynamoResource
@@ -32,7 +33,14 @@ class KeyValueStoreResourceCreator(
 
                 if (keyValueStore.existingArn == "") {
                     val tableName = determineTableName(keyValueStore.tableName, type.simpleName.toString(), stage)
-                    val dynamoResource = DynamoResource(tableName, nimbusState, stage)
+
+                    val dynamoConfiguration = DynamoConfiguration(
+                            tableName,
+                            keyValueStore.readCapacityUnits,
+                            keyValueStore.writeCapacityUnits
+                    )
+
+                    val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
 
                     val dataModelAnnotation = KeyValueStoreAnnotation(keyValueStore)
                     val element = dataModelAnnotation.getTypeElement(processingEnvironment)
