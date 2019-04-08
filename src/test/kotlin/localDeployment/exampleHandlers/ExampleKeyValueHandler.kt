@@ -1,7 +1,7 @@
 package localDeployment.exampleHandlers
 
-import annotation.annotations.function.KeyValueStoreServerlessFunction
-import annotation.annotations.persistent.StoreEventType
+import com.nimbusframework.nimbuscore.annotation.annotations.function.KeyValueStoreServerlessFunction
+import com.nimbusframework.nimbuscore.annotation.annotations.persistent.StoreEventType
 import localDeployment.exampleModels.KeyValue
 
 class ExampleKeyValueHandler {

@@ -1,9 +1,10 @@
 package localDeployment
 
+import com.nimbusframework.nimbuscore.clients.ClientBuilder
+import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 import localDeployment.exampleModels.KeyValue
 import localDeployment.exampleModels.Person
 import org.junit.jupiter.api.Test
-import testing.LocalNimbusDeployment
 import kotlin.test.assertEquals
 
 class KeyValueStoreClientLocalTest {
@@ -16,7 +17,7 @@ class KeyValueStoreClientLocalTest {
         val localDeployment = LocalNimbusDeployment.getNewInstance(KeyValue::class.java)
 
         val keyValueStore = localDeployment.getKeyValueStore<Int, KeyValue>(KeyValue::class.java)
-        val keyValueStoreClient = localDeployment.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
+        val keyValueStoreClient = ClientBuilder.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
 
         assertEquals(0, keyValueStore.size())
 
@@ -31,7 +32,7 @@ class KeyValueStoreClientLocalTest {
         val localDeployment = LocalNimbusDeployment.getNewInstance(KeyValue::class.java)
 
         val keyValueStore = localDeployment.getKeyValueStore<Int, KeyValue>(KeyValue::class.java)
-        val keyValueStoreClient = localDeployment.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
+        val keyValueStoreClient = ClientBuilder.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
 
         keyValueStore.put(10, houseOne)
         keyValueStoreClient.delete(10)
@@ -44,7 +45,7 @@ class KeyValueStoreClientLocalTest {
         val localDeployment = LocalNimbusDeployment.getNewInstance(KeyValue::class.java)
 
         val keyValueStore = localDeployment.getKeyValueStore<Int, KeyValue>(KeyValue::class.java)
-        val keyValueStoreClient = localDeployment.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
+        val keyValueStoreClient = ClientBuilder.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
 
         keyValueStore.put(10, houseOne)
         keyValueStore.put(5, houseTwo)
@@ -59,7 +60,7 @@ class KeyValueStoreClientLocalTest {
         val localDeployment = LocalNimbusDeployment.getNewInstance(KeyValue::class.java)
 
         val keyValueStore = localDeployment.getKeyValueStore<Int, KeyValue>(KeyValue::class.java)
-        val keyValueStoreClient = localDeployment.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
+        val keyValueStoreClient = ClientBuilder.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
 
         keyValueStore.put(10, houseOne)
         keyValueStore.put(5, houseTwo)
@@ -72,7 +73,7 @@ class KeyValueStoreClientLocalTest {
         val localDeployment = LocalNimbusDeployment.getNewInstance(KeyValue::class.java)
 
         val keyValueStore = localDeployment.getKeyValueStore<Int, KeyValue>(KeyValue::class.java)
-        val keyValueStoreClient = localDeployment.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
+        val keyValueStoreClient = ClientBuilder.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
 
         keyValueStore.put(10, houseOne)
         keyValueStore.put(5, houseTwo)

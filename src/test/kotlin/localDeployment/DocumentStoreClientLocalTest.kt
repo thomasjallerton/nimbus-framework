@@ -1,9 +1,9 @@
 package localDeployment
 
+import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 import localDeployment.exampleModels.Document
-import org.junit.jupiter.api.Test
-import testing.LocalNimbusDeployment
 import localDeployment.exampleModels.Person
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 

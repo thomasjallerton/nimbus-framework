@@ -1,9 +1,9 @@
 package localDeployment
 
+import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
+import com.nimbusframework.nimbuscore.wrappers.file.models.FileStorageEvent
 import localDeployment.exampleHandlers.ExampleFileStorageHandler
 import org.junit.jupiter.api.Test
-import testing.LocalNimbusDeployment
-import wrappers.file.models.FileStorageEvent
 import java.io.File
 import kotlin.test.assertEquals
 

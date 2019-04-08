@@ -1,7 +1,7 @@
 package localDeployment.exampleHandlers
 
-import annotation.annotations.function.DocumentStoreServerlessFunction
-import annotation.annotations.persistent.StoreEventType
+import com.nimbusframework.nimbuscore.annotation.annotations.function.DocumentStoreServerlessFunction
+import com.nimbusframework.nimbuscore.annotation.annotations.persistent.StoreEventType
 import localDeployment.exampleModels.Document
 
 class ExampleDocumentHandler {

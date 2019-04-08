@@ -1,8 +1,8 @@
 package localDeployment.exampleHandlers
 
-import annotation.annotations.function.QueueServerlessFunction
+import com.nimbusframework.nimbuscore.annotation.annotations.function.QueueServerlessFunction
+import com.nimbusframework.nimbuscore.wrappers.queue.models.QueueEvent
 import localDeployment.exampleModels.KeyValue
-import wrappers.queue.models.QueueEvent
 
 class ExampleQueueHandler {
 

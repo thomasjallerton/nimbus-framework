@@ -21,6 +21,7 @@ import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
 import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
 import com.nimbusframework.nimbuscore.testing.basic.BasicMethod
+import com.nimbusframework.nimbuscore.testing.document.DocumentMethod
 import com.nimbusframework.nimbuscore.testing.document.KeyValueMethod
 import com.nimbusframework.nimbuscore.testing.document.LocalDocumentStore
 import com.nimbusframework.nimbuscore.testing.file.FileStorageMethod
@@ -279,8 +280,16 @@ class LocalNimbusDeployment {
 
                 for (httpFunction in httpServerlessFunctions) {
                     val httpMethod = LocalHttpMethod(method, invokeOn)
-                    val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
-                    localHttpMethods[httpIdentifier] = httpMethod
+                    if (httpFunction.method != HttpMethod.ANY) {
+                        val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
+                        localHttpMethods[httpIdentifier] = httpMethod
+
+                    } else {
+                        for (httpMethodType in HttpMethod.values()) {
+                            val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpMethodType)
+                            localHttpMethods[httpIdentifier] = httpMethod
+                        }
+                    }
                     methods[functionIdentifier] = httpMethod
 
                     val lambdaWebserver = localWebservers.getOrPut(functionWebserverIdentifier) {
@@ -306,7 +315,7 @@ class LocalNimbusDeployment {
                 val documentFunctions = method.getAnnotationsByType(DocumentStoreServerlessFunction::class.java)
 
                 for (documentFunction in documentFunctions) {
-                    val documentMethod = KeyValueMethod(method, invokeOn, documentFunction.method)
+                    val documentMethod = DocumentMethod(method, invokeOn, documentFunction.method)
                     methods[functionIdentifier] = documentMethod
                     val tableName = DocumentStoreClient.getTableName(documentFunction.dataModel.java, stage)
                     val documentStore = documentStores[tableName]

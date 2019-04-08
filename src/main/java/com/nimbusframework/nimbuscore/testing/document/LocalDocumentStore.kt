@@ -7,9 +7,9 @@ class LocalDocumentStore<T>(private val clazz: Class<T>, stage: String): Documen
 
     private val documentStore: MutableMap<Any?, String> = mutableMapOf()
     private val objectMapper = ObjectMapper()
-    private val methods: MutableList<KeyValueMethod> = mutableListOf()
+    private val methods: MutableList<DocumentMethod> = mutableListOf()
 
-    internal fun addMethod(method: KeyValueMethod) {
+    internal fun addMethod(method: DocumentMethod) {
         methods.add(method)
     }
 

@@ -1,8 +1,8 @@
 package localDeployment
 
-import clients.ClientBuilder
-import clients.notification.Protocol
-import testing.LocalNimbusDeployment
+import com.nimbusframework.nimbuscore.clients.ClientBuilder
+import com.nimbusframework.nimbuscore.clients.notification.Protocol
+import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 import localDeployment.exampleHandlers.ExampleNotificationHandler
 import localDeployment.exampleModels.Person
 import org.junit.jupiter.api.Assertions.assertEquals
