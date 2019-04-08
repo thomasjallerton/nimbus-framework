@@ -24,7 +24,7 @@ class AfterDeploymentFunction {
 
 This is an after deployment function that adds an email to a notification topic so that when notification is sent the email address is notified. 
 
-If you are using any clients then it is required that you still use the corresponding `@UsesClient` annotation, as above. 
+If you are using any com.nimbusframework.nimbuscore.clients then it is required that you still use the corresponding `@UsesClient` com.nimbusframework.nimbuscore.annotation, as above. 
 
 ## Method Details
 ### Parameters

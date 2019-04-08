@@ -1,8 +1,7 @@
 package document.models;
 
-import annotation.annotations.keyvalue.KeyValueStore;
-import annotation.annotations.persistent.Attribute;
-import annotation.annotations.persistent.Key;
+import com.nimbusframework.nimbuscore.annotation.annotations.keyvalue.KeyValueStore;
+import com.nimbusframework.nimbuscore.annotation.annotations.persistent.Attribute;
 
 import java.util.Objects;
 

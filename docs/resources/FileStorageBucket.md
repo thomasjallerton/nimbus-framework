@@ -21,7 +21,7 @@ An important thing to note for AWS is that the bucket name must be unique across
 
 ## Static Website
 
-To define a file storage bucket as a static website, the static website flag must be set to true. The website has an index file and error file that default to `index.html` and `error.html` respectively. These can be changed with the fields in the annotation. The index file is returned when the "/" path is requested. Whenever an error occurs, for example a file is not found, then the error page is returned. 
+To define a file storage bucket as a static website, the static website flag must be set to true. The website has an index file and error file that default to `index.html` and `error.html` respectively. These can be changed with the fields in the com.nimbusframework.nimbuscore.annotation. The index file is returned when the "/" path is requested. Whenever an error occurs, for example a file is not found, then the error page is returned. 
 
 The path of a resource in the website is relative to its path in the file system. For example, if there is a file `examplefile.html` at the top level of the file bucket, then the URL to access this resource is `http://example-url.com/examplefile.html`. Similarly if there is a file within a directory of the file bucket, `directory/examplefile.html`, then this will be found at `http://example-url.com/directory/examplefile.html`.
 
@@ -39,7 +39,7 @@ public class Website {}
 
 ## File Uploads
 
-File uploads can be done using the FileStorageBucketClient class, however this can only be done from serverless functions. If you want to upload files from your local machine then the `@FileUpload` annotation can be used. This allows you to specify files or directories to be uploaded to the bucket after it has been created. Specifically it is run on every deployment, after creation and before any `@AfterDeployment` scripts. These will trigger any functions set up to listen to the FileStorageBucket.
+File uploads can be done using the FileStorageBucketClient class, however this can only be done from serverless functions. If you want to upload files from your local machine then the `@FileUpload` com.nimbusframework.nimbuscore.annotation can be used. This allows you to specify files or directories to be uploaded to the bucket after it has been created. Specifically it is run on every deployment, after creation and before any `@AfterDeployment` scripts. These will trigger any functions set up to listen to the FileStorageBucket.
 
 If a path to a file is provided, then it will be uploaded to the path specified in the target path exactly, i.e. target path should be a file like "helloworld.html".
 
@@ -67,7 +67,7 @@ The website you host may also want to connect to other resources created by the 
 The variables that can be substituted are:
 * `${NIMBUS_REST_API_URL}` - Returns the base URL for a serverless function REST API (one created by `@HttpServerlessFunction` annotations). Does not have a "/" at the end, e.g. `http://www.target-invokation.com`. 
 * `${NIMBUS_WEBSOCKET_API_URL}` - Returns the base URL for a serverless function WebSocket API (one create by `@WebSocketServerlessFunction` annotations) Does not have a "/" at the end, e.g. `http://www.websocket-invokation.com`. 
-* `${BUCKETNAME_URL}` - where BUCKETNAME is the name of the bucket, as supplied in the annotation and entirely uppercase. This means it does not have the stage appended to the end. This returns the URL of a file storage bucket that is configured as a static website. Does not have a "/" at the end. 
+* `${BUCKETNAME_URL}` - where BUCKETNAME is the name of the bucket, as supplied in the com.nimbusframework.nimbuscore.annotation and entirely uppercase. This means it does not have the stage appended to the end. This returns the URL of a file storage bucket that is configured as a static website. Does not have a "/" at the end. 
 
 ## Annotation Specification
 ### @FileStorageBucket
@@ -82,7 +82,7 @@ The variables that can be substituted are:
 
 ### @FileUpload
 #### Required Parameters
-* `bucketName` - The name of the bucket to be uploaded to, as specified in the @FileStorageBucket annotation
+* `bucketName` - The name of the bucket to be uploaded to, as specified in the @FileStorageBucket com.nimbusframework.nimbuscore.annotation
 * `localPath` - Path to file or directory on the local system
 * `targetPath` - Path to file or directory where file(s) will be uploaded
 

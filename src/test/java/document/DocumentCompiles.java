@@ -1,7 +1,7 @@
 package document;
 
-import annotation.processor.NimbusAnnotationProcessor;
-import annotation.services.FileReader;
+import com.nimbusframework.nimbuscore.annotation.processor.NimbusAnnotationProcessor;
+import com.nimbusframework.nimbuscore.annotation.services.FileReader;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 
