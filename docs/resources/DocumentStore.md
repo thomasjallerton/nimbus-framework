@@ -60,6 +60,10 @@ To interact with a DocumentStore see [Document Store Client](../clients/Document
 
 * `existingArn` - For AWS. If you want to use an exiting table not declared in this project then prove its ARN here. The class must be configured with the same schema as the existing table. 
 
+* `readCapacityUnits` - For AWS. The allocated read capacity for the DynamoDB table."
+
+* `writeCapacityUnits` - For AWS. The allocated write capacity for the DynamoDB table."
+
 * `stages` - A list of stages that this resource should be deployed to. 
 
 ### @Key and @Attribute
