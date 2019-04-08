@@ -1,9 +1,9 @@
 package localDeployment
 
+import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 import localDeployment.exampleHandlers.ExampleNotificationHandler
 import localDeployment.exampleModels.Person
 import org.junit.jupiter.api.Test
-import testing.LocalNimbusDeployment
 import kotlin.test.assertEquals
 
 class NotificationHandlerLocalTest {

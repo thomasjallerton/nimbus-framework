@@ -1,7 +1,7 @@
 package localDeployment.exampleHandlers
 
-import annotation.annotations.function.NotificationServerlessFunction
-import annotation.annotations.notification.UsesNotificationTopic
+import com.nimbusframework.nimbuscore.annotation.annotations.function.NotificationServerlessFunction
+import com.nimbusframework.nimbuscore.annotation.annotations.notification.UsesNotificationTopic
 import localDeployment.exampleModels.Person
 
 class ExampleNotificationHandler {

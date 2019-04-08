@@ -1,10 +1,10 @@
 package localDeployment
 
+import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 import localDeployment.exampleHandlers.ExampleQueueHandler
 import localDeployment.exampleModels.KeyValue
 import localDeployment.exampleModels.Person
 import org.junit.jupiter.api.Test
-import testing.LocalNimbusDeployment
 import kotlin.test.assertEquals
 
 class QueueHandlerLocalTest {

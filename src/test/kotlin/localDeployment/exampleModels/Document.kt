@@ -1,8 +1,8 @@
 package localDeployment.exampleModels
 
-import annotation.annotations.document.DocumentStore
-import annotation.annotations.persistent.Attribute
-import annotation.annotations.persistent.Key
+import com.nimbusframework.nimbuscore.annotation.annotations.document.DocumentStore
+import com.nimbusframework.nimbuscore.annotation.annotations.persistent.Attribute
+import com.nimbusframework.nimbuscore.annotation.annotations.persistent.Key
 
 @DocumentStore
 data class Document(

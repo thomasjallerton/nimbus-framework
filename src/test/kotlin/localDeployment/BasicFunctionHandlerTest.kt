@@ -1,9 +1,9 @@
 package localDeployment
 
-import clients.ClientBuilder
+import com.nimbusframework.nimbuscore.clients.ClientBuilder
+import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 import localDeployment.exampleHandlers.ExampleBasicFunctionHandler
 import org.junit.jupiter.api.Test
-import testing.LocalNimbusDeployment
 import kotlin.test.assertEquals
 
 class BasicFunctionHandlerTest {

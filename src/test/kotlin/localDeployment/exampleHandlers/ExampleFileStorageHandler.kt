@@ -1,8 +1,8 @@
 package localDeployment.exampleHandlers
 
-import annotation.annotations.file.FileStorageEventType
-import annotation.annotations.function.FileStorageServerlessFunction
-import wrappers.file.models.FileStorageEvent
+import com.nimbusframework.nimbuscore.annotation.annotations.file.FileStorageEventType
+import com.nimbusframework.nimbuscore.annotation.annotations.function.FileStorageServerlessFunction
+import com.nimbusframework.nimbuscore.wrappers.file.models.FileStorageEvent
 
 class ExampleFileStorageHandler {
 

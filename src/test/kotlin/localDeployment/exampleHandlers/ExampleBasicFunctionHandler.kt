@@ -1,6 +1,6 @@
 package localDeployment.exampleHandlers
 
-import annotation.annotations.function.BasicServerlessFunction
+import com.nimbusframework.nimbuscore.annotation.annotations.function.BasicServerlessFunction
 
 class ExampleBasicFunctionHandler {
 

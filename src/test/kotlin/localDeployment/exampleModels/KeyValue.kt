@@ -1,7 +1,7 @@
 package localDeployment.exampleModels
 
-import annotation.annotations.keyvalue.KeyValueStore
-import annotation.annotations.persistent.Attribute
+import com.nimbusframework.nimbuscore.annotation.annotations.keyvalue.KeyValueStore
+import com.nimbusframework.nimbuscore.annotation.annotations.persistent.Attribute
 
 @KeyValueStore(keyType = Int::class)
 data class KeyValue (
