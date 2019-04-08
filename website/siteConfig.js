@@ -6,7 +6,7 @@
  */
 
 // See https://docusaurus.io/docs/site-config for all the possible
-// site configuration options.
+// site com.nimbusframework.nimbuscore.configuration options.
 
 // List of projects/orgs using your project for the users page.
 const users = [];

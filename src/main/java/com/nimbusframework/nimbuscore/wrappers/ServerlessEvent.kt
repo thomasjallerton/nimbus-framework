@@ -1,0 +1,3 @@
+package com.nimbusframework.nimbuscore.wrappers
+
+interface ServerlessEvent

@@ -83,7 +83,7 @@ There are a few ways to get a `LocalNimbusDeployment` object. These are:
 
 `LocalNimbusDeployment.getNewInstance(Class<T> object)` - Creates and simulates resources found only in this class, completely new instance.
 `LocalNimbusDeployment.getInstance(String packageName)` - Creates and simulates resources found in the package, looking in all subpackages. Also a completely new instance.
-`LocalNimbusDeployment.getInstance()` - Returns an existing LocalNimbusDeployment object. This is used by the nimbus clients primarily to interact with the local deployment. Not recommended for general use.
+`LocalNimbusDeployment.getInstance()` - Returns an existing LocalNimbusDeployment object. This is used by the nimbus com.nimbusframework.nimbuscore.clients primarily to interact with the local deployment. Not recommended for general use.
 
 ## LocalNimbusDeployment Methods for Unit Tests
 
@@ -107,5 +107,5 @@ There are a few ways to get a `LocalNimbusDeployment` object. These are:
 
 * `sendWebSocketRequest(WebSocketRequest request)` - Send a request which will trigger any WebSocket function set to listen to the specified topic.
 
-These, along with the usual ClientBuilder.getClient() methods should allow for extensive unit testing of your project. 
+These, along with the usual ClientBuilder.getClient() methods should allow for extensive unit com.nimbusframework.nimbuscore.testing of your project. 
 

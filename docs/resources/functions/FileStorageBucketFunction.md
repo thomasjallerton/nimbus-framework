@@ -4,7 +4,7 @@ title: File Storage Function
 sidebar_label: File Storage Function
 ---
 
-A file storage function is triggered whenever a File Storage Bucket either has an item created or deleted. This annotation will create the bucket if it does not already exist within the project. 
+A file storage function is triggered whenever a File Storage Bucket either has an item created or deleted. This com.nimbusframework.nimbuscore.annotation will create the bucket if it does not already exist within the project. 
 
 ## Basic Usage
 A method is annotated with `@FileStorageServerlessFunction` which is provided with a bucketName and an event type. 

@@ -1,9 +1,9 @@
 package document.handlers;
 
-import annotation.annotations.function.KeyValueStoreServerlessFunction;
-import annotation.annotations.persistent.StoreEventType;
+import com.nimbusframework.nimbuscore.annotation.annotations.function.KeyValueStoreServerlessFunction;
+import com.nimbusframework.nimbuscore.annotation.annotations.persistent.StoreEventType;
 import document.models.KeyValue;
-import wrappers.store.models.StoreEvent;
+import com.nimbusframework.nimbuscore.wrappers.store.models.StoreEvent;
 
 public class KeyValueStoreHandlers {
 

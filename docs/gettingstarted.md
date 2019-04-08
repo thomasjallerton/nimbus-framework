@@ -8,7 +8,7 @@ sidebar_label: Getting Started
 
 Nimbus is made available though maven and is hosted in the maven central repository.
 
-First you need to add the nimbus-core dependency to your pom. This adds the annotation processor and local testing capabilities.
+First you need to add the nimbus-core dependency to your pom. This adds the com.nimbusframework.nimbuscore.annotation processor and local com.nimbusframework.nimbuscore.testing capabilities.
 ```xml
 <dependency>
     <groupId>com.allerton</groupId>
@@ -17,15 +17,15 @@ First you need to add the nimbus-core dependency to your pom. This adds the anno
 </dependency>
 ```
 
-Next the deployment plugin needs to be added. Currently only AWS is supported, so the region parameter needs to be supplied to the plugin configuration.
+Next the deployment plugin needs to be added. Currently only AWS is supported, so the region parameter needs to be supplied to the plugin com.nimbusframework.nimbuscore.configuration.
 ```xml
 <plugin>
     <groupId>com.allerton</groupId>
     <artifactId>nimbus-deployment-maven-plugin</artifactId>
     <version>0.1</version>
-    <configuration>
+    <com.nimbusframework.nimbuscore.configuration>
         <region>eu-west-1</region>
-    </configuration>
+    </com.nimbusframework.nimbuscore.configuration>
 </plugin>
 ```
 
@@ -41,9 +41,9 @@ You also need to use the maven shade plugin to package your project into a shade
             <goals>
                 <goal>shade</goal>
             </goals>
-            <configuration>
+            <com.nimbusframework.nimbuscore.configuration>
                 <outputFile>target/lambda.jar</outputFile>
-            </configuration>
+            </com.nimbusframework.nimbuscore.configuration>
         </execution>
     </executions>
 </plugin>
@@ -64,7 +64,7 @@ Caution: projectName needs to be alphanumeric.
 
 * `shadedJarPath` - The location where the shaded jar is found. Defaults to `target/lambda.jar`. 
 
-* `compiledSourcePath` - The location where compiled nimbus files are found. This will be in the compiled annotation sources. Defaults to `target/generated-sources/annotations/` (Correct for default java projects, for other languages will likely change)
+* `compiledSourcePath` - The location where compiled nimbus files are found. This will be in the compiled com.nimbusframework.nimbuscore.annotation sources. Defaults to `target/generated-sources/annotations/` (Correct for default java projects, for other languages will likely change)
 
 ## How to Deploy
 To deploy to AWS you need to provide your AWS credentials. This can be done in three ways:
@@ -109,7 +109,7 @@ After this we run `mvn nimbus-deployment:deploy`. On a successful run we get thi
 [info] Stack created
 [info] Uploading lambda file
 [info] Uploaded file
-[info] Uploading cloudformation file
+[info] Uploading com.nimbusframework.nimbuscore.cloudformation file
 [info] Uploaded file
 [info] Updating stack
 **********************

@@ -4,10 +4,10 @@ title: WebSocket Function
 sidebar_label: WebSocket Function
 ---
 
-WebSocket functions allow you to build up a WebSocket API for realtime communication with clients. You can only have one WebSocket API in a nimbus project (i.e. only one endpoint).
+WebSocket functions allow you to build up a WebSocket API for realtime communication with com.nimbusframework.nimbuscore.clients. You can only have one WebSocket API in a nimbus project (i.e. only one endpoint).
 
 ## Basic Usage
-Using the `WebSocketServerlessFunction` annotation a topic where the function will be triggered is specified. There are three important topics, these are:
+Using the `WebSocketServerlessFunction` com.nimbusframework.nimbuscore.annotation a topic where the function will be triggered is specified. There are three important topics, these are:
 
 * `$default` - Used when the topic selection expression produces a value that does not match any of the other route keys in your API routes. This can be used, for example, to implement a generic error handling mechanism.
 * `$connect` - The associated route is used when a client first connects to your WebSocket API.

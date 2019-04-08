@@ -1,3 +1,0 @@
-package wrappers
-
-interface ServerlessEvent

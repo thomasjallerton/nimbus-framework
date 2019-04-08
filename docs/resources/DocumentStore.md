@@ -7,7 +7,7 @@ sidebar_label: Document Store
 Document Stores allow you to store objects where the primary key is defined within them. It acts similar to a Java `Set<StoredObject>` where the comparison is done on the primary key field.
 
 ## Basic Usage
-The `@DocumentStore` annotation on a class is used to deploy a document store table.Fields that you want to be included in the table must be annotated. One field must be selected as the primary key and annotated with `@Key`. The others that are to be included are annotated with `@Attribute`. 
+The `@DocumentStore` com.nimbusframework.nimbuscore.annotation on a class is used to deploy a document store table.Fields that you want to be included in the table must be annotated. One field must be selected as the primary key and annotated with `@Key`. The others that are to be included are annotated with `@Attribute`. 
 
 This is an example of a class declared as a DocumentStore: 
 
@@ -48,7 +48,7 @@ public class UserDetail {
 
 A default constructor is required to instantiate the class when reading from the table (similar to deserializing JSON in jackson). 
 
-If there is a field which does not have either a @Key or @Attribute annotation then when it is read from the table it will be given its default value.
+If there is a field which does not have either a @Key or @Attribute com.nimbusframework.nimbuscore.annotation then when it is read from the table it will be given its default value.
 
 To interact with a DocumentStore see [Document Store Client](../clients/DocumentStoreClient.md)
 
