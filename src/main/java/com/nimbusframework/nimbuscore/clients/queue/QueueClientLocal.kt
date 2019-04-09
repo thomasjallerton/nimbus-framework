@@ -1,16 +1,25 @@
 package com.nimbusframework.nimbuscore.clients.queue
 
-import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
+import com.nimbusframework.nimbuscore.clients.LocalClient
+import com.nimbusframework.nimbuscore.testing.function.PermissionType
 
-internal class QueueClientLocal(private val id: String): QueueClient {
+internal class QueueClientLocal(private val id: String): QueueClient, LocalClient() {
 
-    private val localDeployment = LocalNimbusDeployment.getInstance()
+    override fun canUse(): Boolean {
+        return checkPermissions(PermissionType.QUEUE, id)
+    }
+
+    override val clientName: String = QueueClient::class.java.simpleName
+
+    private val queue = localNimbusDeployment.getQueue(id)
 
     override fun sendMessage(message: String) {
-        localDeployment.getQueue(id).add(message)
+        checkClientUse()
+        queue.add(message)
     }
 
     override fun sendMessageAsJson(obj: Any) {
-        localDeployment.getQueue(id).add(obj)
+        checkClientUse()
+        queue.add(obj)
     }
 }

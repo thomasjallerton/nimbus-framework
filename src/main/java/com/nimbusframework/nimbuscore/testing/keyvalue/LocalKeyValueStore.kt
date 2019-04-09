@@ -1,10 +1,10 @@
 package com.nimbusframework.nimbuscore.testing.keyvalue
 
-import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
+import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbuscore.testing.document.KeyValueMethod
 
-class LocalKeyValueStore<K, V>(keyClass: Class<K>, private val valueClass: Class<V>, stage: String): KeyValueStoreClient<K, V>(keyClass, valueClass, stage) {
+class LocalKeyValueStore<K, V>(keyClass: Class<K>, private val valueClass: Class<V>, stage: String): AbstractKeyValueStoreClient<K, V>(keyClass, valueClass, stage) {
 
     private val keyValueStore: MutableMap<K, String> = mutableMapOf()
     private val objectMapper = ObjectMapper()
