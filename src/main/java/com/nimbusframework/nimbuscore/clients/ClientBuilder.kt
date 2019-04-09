@@ -6,9 +6,8 @@ import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClientLocal
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClientLocal
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClientS3
-import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient
-import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClientLambda
-import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClientLocal
+import com.nimbusframework.nimbuscore.clients.function.*
+import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClientDynamo
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClientLocal
@@ -30,9 +29,8 @@ object ClientBuilder {
 
     @JvmStatic
     fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>): KeyValueStoreClient<K, V> {
-
         return if (LocalNimbusDeployment.isLocalDeployment) {
-            KeyValueStoreClientLocal(key, value, LocalNimbusDeployment.stage)
+            KeyValueStoreClientLocal(value)
         } else {
             KeyValueStoreClientDynamo(key, value, getStage())
         }
@@ -64,6 +62,16 @@ object ClientBuilder {
             DatabaseClientRds(databaseObject)
         }
     }
+
+    @JvmStatic
+    fun <T> getEnvironmentVariableClient(): EnvironmentVariableClient {
+        return if (LocalNimbusDeployment.isLocalDeployment) {
+            EnvironmentVariableClientLocal()
+        } else {
+            EnvironmentVariableClientLambda()
+        }
+    }
+
 
     @JvmStatic
     fun getNotificationClient(topic: String): NotificationClient {

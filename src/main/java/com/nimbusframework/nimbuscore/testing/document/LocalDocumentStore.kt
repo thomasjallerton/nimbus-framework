@@ -1,9 +1,9 @@
 package com.nimbusframework.nimbuscore.testing.document
 
-import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClient
+import com.nimbusframework.nimbuscore.clients.document.AbstractDocumentStoreClient
 import com.fasterxml.jackson.databind.ObjectMapper
 
-class LocalDocumentStore<T>(private val clazz: Class<T>, stage: String): DocumentStoreClient<T>(clazz, stage) {
+class LocalDocumentStore<T>(private val clazz: Class<T>, stage: String): AbstractDocumentStoreClient<T>(clazz, stage) {
 
     private val documentStore: MutableMap<Any?, String> = mutableMapOf()
     private val objectMapper = ObjectMapper()

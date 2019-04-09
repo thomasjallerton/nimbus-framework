@@ -130,6 +130,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         usesResourcesHandlers.add(new UsesQueueHandler(cfDocuments, processingEnv));
         usesResourcesHandlers.add(new UsesRelationalDatabaseHandler(cfDocuments, processingEnv, nimbusState));
         usesResourcesHandlers.add(new UsesServerlessFunctionWebSocketClientHandler(cfDocuments));
+        usesResourcesHandlers.add(new EnvironmentVariablesHandler(messager));
 
         for (FunctionInformation functionInformation : allInformation) {
             for (UsesResourcesHandler handler : usesResourcesHandlers) {

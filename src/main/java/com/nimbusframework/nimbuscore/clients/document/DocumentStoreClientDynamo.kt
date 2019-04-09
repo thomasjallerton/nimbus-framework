@@ -3,7 +3,7 @@ package com.nimbusframework.nimbuscore.clients.document
 import com.nimbusframework.nimbuscore.clients.dynamo.DynamoClient
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 
-internal class DocumentStoreClientDynamo<T>(clazz: Class<T>, stage: String): DocumentStoreClient<T>(clazz, stage) {
+internal class DocumentStoreClientDynamo<T>(clazz: Class<T>, stage: String): AbstractDocumentStoreClient<T>(clazz, stage) {
 
     private val dynamoClient: DynamoClient<T> = DynamoClient(tableName, clazz)
 

@@ -1,17 +1,27 @@
 package com.nimbusframework.nimbuscore.testing
 
-import com.nimbusframework.nimbuscore.annotation.annotations.deployment.AfterDeployment
-import com.nimbusframework.nimbuscore.annotation.annotations.deployment.FileUpload
-import com.nimbusframework.nimbuscore.annotation.annotations.document.DocumentStore
-import com.nimbusframework.nimbuscore.annotation.annotations.file.FileStorageBucket
-import com.nimbusframework.nimbuscore.annotation.annotations.file.UsesFileStorageClient
-import com.nimbusframework.nimbuscore.annotation.annotations.function.*
-import com.nimbusframework.nimbuscore.annotation.annotations.keyvalue.KeyValueStore
-import com.nimbusframework.nimbuscore.annotation.annotations.notification.UsesNotificationTopic
-import com.nimbusframework.nimbuscore.clients.ClientBuilder
-import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClient
-import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
-import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
+import com.nimbusframework.nimbuscore.clients.document.AbstractDocumentStoreClient
+import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
+import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
+import com.nimbusframework.nimbuscore.testing.basic.BasicMethod
+import com.nimbusframework.nimbuscore.testing.document.LocalDocumentStore
+import com.nimbusframework.nimbuscore.testing.file.LocalFileStorage
+import com.nimbusframework.nimbuscore.testing.function.FunctionEnvironment
+import com.nimbusframework.nimbuscore.testing.function.FunctionIdentifier
+import com.nimbusframework.nimbuscore.testing.http.HttpMethodIdentifier
+import com.nimbusframework.nimbuscore.testing.http.HttpRequest
+import com.nimbusframework.nimbuscore.testing.keyvalue.LocalKeyValueStore
+import com.nimbusframework.nimbuscore.testing.notification.LocalNotificationTopic
+import com.nimbusframework.nimbuscore.testing.queue.LocalQueue
+import com.nimbusframework.nimbuscore.testing.services.FileService
+import com.nimbusframework.nimbuscore.testing.services.LocalResourceHolder
+import com.nimbusframework.nimbuscore.testing.services.function.*
+import com.nimbusframework.nimbuscore.testing.services.resource.*
+import com.nimbusframework.nimbuscore.testing.services.usesresources.*
+import com.nimbusframework.nimbuscore.testing.webserver.LocalWebserver
+import com.nimbusframework.nimbuscore.testing.webserver.WebserverHandler
+import com.nimbusframework.nimbuscore.testing.websocket.WebSocketRequest
+import com.nimbusframework.nimbuscore.wrappers.websocket.models.RequestContext
 import org.eclipse.jetty.websocket.api.Session
 import org.reflections.Reflections
 import org.reflections.scanners.ResourcesScanner
@@ -19,75 +29,75 @@ import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
-import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
-import com.nimbusframework.nimbuscore.testing.basic.BasicMethod
-import com.nimbusframework.nimbuscore.testing.document.DocumentMethod
-import com.nimbusframework.nimbuscore.testing.document.KeyValueMethod
-import com.nimbusframework.nimbuscore.testing.document.LocalDocumentStore
-import com.nimbusframework.nimbuscore.testing.file.FileStorageMethod
-import com.nimbusframework.nimbuscore.testing.file.LocalFileStorage
-import com.nimbusframework.nimbuscore.testing.http.LocalHttpMethod
-import com.nimbusframework.nimbuscore.testing.http.HttpRequest
-import com.nimbusframework.nimbuscore.testing.keyvalue.LocalKeyValueStore
-import com.nimbusframework.nimbuscore.testing.notification.LocalNotificationTopic
-import com.nimbusframework.nimbuscore.testing.notification.NotificationMethod
-import com.nimbusframework.nimbuscore.testing.queue.LocalQueue
-import com.nimbusframework.nimbuscore.testing.queue.QueueMethod
-import com.nimbusframework.nimbuscore.testing.webserver.LocalWebserver
-import com.nimbusframework.nimbuscore.testing.webserver.WebserverHandler
-import com.nimbusframework.nimbuscore.testing.websocket.LocalWebsocketMethod
-import com.nimbusframework.nimbuscore.testing.websocket.WebSocketRequest
-import com.nimbusframework.nimbuscore.testing.websocketserver.LocalWebSocketServer
-import com.nimbusframework.nimbuscore.wrappers.websocket.models.RequestContext
-import java.io.File
 import java.lang.reflect.InvocationTargetException
-import java.lang.reflect.Method
-import java.nio.charset.StandardCharsets
 import java.util.*
 
 
 class LocalNimbusDeployment {
 
-    private val queues: MutableMap<String, LocalQueue> = mutableMapOf()
-    private val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
-    private val localHttpMethods: MutableMap<HttpMethodIdentifier, LocalHttpMethod> = mutableMapOf()
-    private val localWebsocketMethods: MutableMap<String, LocalWebsocketMethod> = mutableMapOf()
-    private val localBasicMethods: MutableMap<FunctionIdentifier, BasicMethod> = mutableMapOf()
-    private val keyValueStores: MutableMap<String, LocalKeyValueStore<out Any, out Any>> = mutableMapOf()
-    private val documentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
-    private val fileStorage: MutableMap<String, LocalFileStorage> = mutableMapOf()
-    private val notificationTopics: MutableMap<String, LocalNotificationTopic> = mutableMapOf()
-    private val afterDeployments: Deque<Pair<Method, Any>> = LinkedList()
-
-    private val localWebservers: MutableMap<String, WebserverHandler> = mutableMapOf()
-    private val webSocketSessions: MutableMap<String, Session> = mutableMapOf()
-    private val localWebSocketServer = LocalWebSocketServer(webSocketSessions)
-
-    private val functionWebserverIdentifier = "function"
     private val httpPort: Int
     private val webSocketPort: Int
+
+    private val localResourceHolder = LocalResourceHolder()
+
+    private val localFunctionHandlers: MutableList<LocalFunctionHandler> = mutableListOf()
+    private val localCreateResourcesHandlers: MutableList<LocalCreateResourcesHandler> = mutableListOf()
+    private val localUseResourceHandlers: MutableList<LocalUsesResourcesHandler> = mutableListOf()
 
     private val variableSubstitution: MutableMap<String, String> = mutableMapOf()
     private val fileUploadDetails: MutableMap<String, MutableList<FileUploadDescription>> = mutableMapOf()
 
-    private val tempDir = System.getProperty("java.io.tmpdir")
-    private val tempPath = if (tempDir.endsWith(File.pathSeparator)) {
-        tempDir + "nimbus" + File.pathSeparator
-    } else {
-        tempDir + File.pathSeparator + "nimbus" + File.pathSeparator
+    private fun initialiseFunctionHandlers() {
+        localFunctionHandlers.add(LocalAfterDeploymentHandler(localResourceHolder, stage))
+        localFunctionHandlers.add(LocalBasicFunctionHandler(localResourceHolder, stage))
+        localFunctionHandlers.add(LocalDocumentStoreFunctionHandler(localResourceHolder, stage))
+        localFunctionHandlers.add(LocalFileStorageFunctionHandler(localResourceHolder, stage))
+        localFunctionHandlers.add(LocalHttpFunctionHandler(localResourceHolder, httpPort, variableSubstitution, stage))
+        localFunctionHandlers.add(LocalKeyValueStoreFunctionHandler(localResourceHolder, stage))
+        localFunctionHandlers.add(LocalNotificationFunctionHandler(localResourceHolder, stage))
+        localFunctionHandlers.add(LocalQueueFunctionHandler(localResourceHolder, stage))
+        localFunctionHandlers.add(LocalWebSocketFunctionHandler(localResourceHolder, webSocketPort, variableSubstitution, stage))
+    }
+
+    private fun initialiseResourceCreators() {
+        localCreateResourcesHandlers.add(LocalDocumentStoreCreator(localResourceHolder, stage))
+        localCreateResourcesHandlers.add(LocalFileStorageCreator(localResourceHolder, httpPort, variableSubstitution, fileUploadDetails, stage))
+        localCreateResourcesHandlers.add(LocalKeyValueStoreCreator(localResourceHolder, stage))
+        localCreateResourcesHandlers.add(LocalNotificationTopicCreator(localResourceHolder, stage))
+    }
+
+    private fun initialiseUseResourceHandlers() {
+        localUseResourceHandlers.add(LocalUsesBasicFunctionHandler(localResourceHolder, stage))
+        localUseResourceHandlers.add(LocalUsesDocumentStoreHandler(localResourceHolder, stage))
+        localUseResourceHandlers.add(LocalUsesFileStorageClientHandler(localResourceHolder, stage))
+        localUseResourceHandlers.add(LocalUsesKeyValueStoreHandler(localResourceHolder, stage))
+        localUseResourceHandlers.add(LocalUsesNotificationTopicHandler(localResourceHolder, stage))
+        localUseResourceHandlers.add(LocalUsesQueueHandler(localResourceHolder, stage))
+        localUseResourceHandlers.add(LocalUsesRelationalDatabaseHandler(localResourceHolder, stage))
+        localUseResourceHandlers.add(LocalEnvironmentVariableHandler(localResourceHolder, stage))
+        localUseResourceHandlers.add(LocalUsesWebSocketHandler(localResourceHolder, stage))
     }
 
     private constructor(clazz: Class<out Any>, stageParam: String = "dev", httpPort: Int = 8080, webSocketPort: Int = 8081) {
         instance = this
         this.httpPort = httpPort
         this.webSocketPort = webSocketPort
+
+        initialiseFunctionHandlers()
+        initialiseResourceCreators()
+        initialiseUseResourceHandlers()
+
         createResources(clazz)
         createHandlers(clazz)
+        handleUseResources(clazz)
+
         stage = stageParam
 
-        afterDeployments.forEach { (method, obj) -> method.invoke(obj) }
+        localResourceHolder.afterDeployments.forEach { (method, obj) -> method.invoke(obj) }
 
-        handleUploadingFile(fileUploadDetails)
+        val fileService = FileService(variableSubstitution)
+
+        fileService.handleUploadingFile(fileUploadDetails)
     }
 
     private constructor(packageName: String, stageParam: String = "dev", httpPort: Int = 8080, webSocketPort: Int = 8081) {
@@ -95,6 +105,10 @@ class LocalNimbusDeployment {
         stage = stageParam
         this.httpPort = httpPort
         this.webSocketPort = webSocketPort
+
+        initialiseFunctionHandlers()
+        initialiseResourceCreators()
+        initialiseUseResourceHandlers()
 
         val classLoadersList = LinkedList<ClassLoader>()
         classLoadersList.add(ClasspathHelper.contextClassLoader())
@@ -110,250 +124,28 @@ class LocalNimbusDeployment {
         //Handle Resources that need to exist for handlers to work
         allClasses.forEach { clazz -> createResources(clazz) }
 
-        //Handle handlers
+        //Handle function handlers
         allClasses.forEach { clazz -> createHandlers(clazz) }
 
-        afterDeployments.forEach { (method, obj) -> method.invoke(obj) }
+        //Handle use resources
+        allClasses.forEach { clazz -> handleUseResources(clazz) }
 
-        handleUploadingFile(fileUploadDetails)
+        localResourceHolder.afterDeployments.forEach { (method, obj) -> method.invoke(obj) }
+
+        val fileService = FileService(variableSubstitution)
+
+        fileService.handleUploadingFile(fileUploadDetails)
     }
 
-    private fun handleUploadingFile(bucketUploads: Map<String, List<FileUploadDescription>>) {
-        for ((bucketName, fileUploads) in bucketUploads) {
-            val fileStorageClient = ClientBuilder.getFileStorageClient(bucketName)
-
-            for ((localFile, targetFile, substituteVariables) in fileUploads) {
-                val file = File(localFile)
-
-                if (file.isFile) {
-                    if (substituteVariables) {
-                        fileStorageClient.saveFile(targetFile, substituteVariables(file))
-                    } else {
-                        fileStorageClient.saveFile(targetFile, file)
-                    }
-                } else if (file.isDirectory){
-                    val newPath = if (targetFile.endsWith("/") || targetFile.isEmpty()) {
-                        targetFile
-                    } else {
-                        "$targetFile/"
-                    }
-                    uploadDirectory(fileStorageClient, file, newPath, substituteVariables)
-                }
-            }
-        }
-    }
-
-    private fun uploadDirectory(fileStorageClient: FileStorageClient, directory: File, s3Path: String, substituteVariables: Boolean) {
-        for (file in directory.listFiles()) {
-            val newPath = if (s3Path.isEmpty()) {
-                file.name
-            } else {
-                "$s3Path/${file.name}"
-            }
-
-            if (file.isFile) {
-                if (substituteVariables) {
-                    fileStorageClient.saveFile(newPath, substituteVariables(file))
-                } else {
-                    fileStorageClient.saveFile(newPath, file)
-                }
-            } else if (file.isDirectory){
-                uploadDirectory(fileStorageClient, file, newPath, substituteVariables)
-            }
-        }
-    }
-
-    private fun substituteVariables(file: File): File {
-        val charset = StandardCharsets.UTF_8
-
-        var content = String(file.readBytes(), charset)
-        for ((from, to) in variableSubstitution) {
-            content = content.replace(from, to)
-        }
-
-        val newFile = File(tempPath + file.name)
-        newFile.writeBytes(content.toByteArray(charset))
-        return newFile
-    }
 
     private fun createResources(clazz: Class<out Any>) {
-
-        val keyValueStoreAnnotations = clazz.getAnnotationsByType(KeyValueStore::class.java)
-
-        for (keyValueStoreAnnotation in keyValueStoreAnnotations) {
-            val tableName = KeyValueStoreClient.getTableName(clazz, stage)
-            val annotation = clazz.getDeclaredAnnotation(KeyValueStore::class.java)
-            keyValueStores[tableName] = LocalKeyValueStore(annotation.keyType.java, clazz, stage)
-        }
-
-        val documentStoreAnnotations = clazz.getAnnotationsByType(DocumentStore::class.java)
-
-        for (documentStoreAnnotation in documentStoreAnnotations) {
-            val tableName = DocumentStoreClient.getTableName(clazz, stage)
-            documentStores[tableName] = LocalDocumentStore(clazz, stage)
-        }
-
-
-        val fileStorageBuckets = clazz.getAnnotationsByType(FileStorageBucket::class.java)
-
-        for (fileStorageBucket in fileStorageBuckets) {
-            if (fileStorageBucket.staticWebsite && !localWebservers.containsKey(fileStorageBucket.bucketName)) {
-                val localWebserver = WebserverHandler(fileStorageBucket.indexFile, fileStorageBucket.errorFile)
-                localWebservers[fileStorageBucket.bucketName] = localWebserver
-                variableSubstitution["\${${fileStorageBucket.bucketName.toUpperCase()}_URL}"] = "http://localhost:$httpPort/${fileStorageBucket.bucketName}"
-            }
-
-            if (!fileStorage.containsKey(fileStorageBucket.bucketName)) {
-                fileStorage[fileStorageBucket.bucketName] = LocalFileStorage(fileStorageBucket.bucketName)
-            }
-        }
-
-        handleFileUpload(clazz.getAnnotationsByType(FileUpload::class.java))
-
-        for (method in clazz.methods) {
-            val usesNotificationTopics = method.getAnnotationsByType(UsesNotificationTopic::class.java)
-
-            for (usesNotificationTopic in usesNotificationTopics) {
-                notificationTopics.putIfAbsent(usesNotificationTopic.topic, LocalNotificationTopic())
-            }
-
-            val usesFileStorages = method.getAnnotationsByType(UsesFileStorageClient::class.java)
-
-            for (usesFileStorage in usesFileStorages) {
-                if (!fileStorage.containsKey(usesFileStorage.bucketName)) {
-                    fileStorage[usesFileStorage.bucketName] = LocalFileStorage(usesFileStorage.bucketName)
-                }
-            }
-
-            handleFileUpload(method.getAnnotationsByType(FileUpload::class.java))
-        }
+        localCreateResourcesHandlers.forEach { handler -> handler.createResource(clazz) }
     }
-
-    private fun handleFileUpload(fileUploads: Array<out FileUpload>) {
-
-        for (fileUpload in fileUploads) {
-            val bucketFiles = fileUploadDetails.getOrPut(fileUpload.bucketName) { mutableListOf() }
-            val description = FileUploadDescription(fileUpload.localPath, fileUpload.targetPath, fileUpload.substituteNimbusVariables)
-            bucketFiles.add(description)
-        }
-
-    }
-
 
     private fun createHandlers(clazz: Class<out Any>) {
         try {
             for (method in clazz.declaredMethods) {
-                val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
-                val invokeOn = clazz.getConstructor().newInstance()
-
-                val fileStorageFunctions = method.getAnnotationsByType(FileStorageServerlessFunction::class.java)
-
-                for (fileStorageFunction in fileStorageFunctions) {
-                    if (!fileStorage.containsKey(fileStorageFunction.bucketName)) {
-                        fileStorage[fileStorageFunction.bucketName] = LocalFileStorage(fileStorageFunction.bucketName)
-                    }
-                    val localFileStorage = fileStorage[fileStorageFunction.bucketName]
-                    val fileStorageMethod = FileStorageMethod(method, invokeOn, fileStorageFunction.eventType)
-                    localFileStorage!!.addMethod(fileStorageMethod)
-                    methods[functionIdentifier] = fileStorageMethod
-
-                }
-
-                val queueServerlessFunctions = method.getAnnotationsByType(QueueServerlessFunction::class.java)
-
-                for (queueFunction in queueServerlessFunctions) {
-                    val queueMethod = QueueMethod(method, invokeOn, queueFunction.batchSize)
-                    val newQueue = LocalQueue(queueMethod)
-                    queues[queueFunction.id] = newQueue
-                    methods[functionIdentifier] = queueMethod
-                }
-
-                val basicServerlessFunctions = method.getAnnotationsByType(BasicServerlessFunction::class.java)
-
-                for (basicFunction in basicServerlessFunctions) {
-                    val basicMethod = BasicMethod(method, invokeOn)
-                    methods[functionIdentifier] = basicMethod
-                    localBasicMethods[functionIdentifier] = basicMethod
-                }
-
-                val httpServerlessFunctions = method.getAnnotationsByType(HttpServerlessFunction::class.java)
-
-                for (httpFunction in httpServerlessFunctions) {
-                    val httpMethod = LocalHttpMethod(method, invokeOn)
-                    if (httpFunction.method != HttpMethod.ANY) {
-                        val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpFunction.method)
-                        localHttpMethods[httpIdentifier] = httpMethod
-
-                    } else {
-                        for (httpMethodType in HttpMethod.values()) {
-                            val httpIdentifier = HttpMethodIdentifier(httpFunction.path, httpMethodType)
-                            localHttpMethods[httpIdentifier] = httpMethod
-                        }
-                    }
-                    methods[functionIdentifier] = httpMethod
-
-                    val lambdaWebserver = localWebservers.getOrPut(functionWebserverIdentifier) {
-                        variableSubstitution["\${NIMBUS_REST_API_URL}"] = "http://localhost:$httpPort/$functionWebserverIdentifier"
-                        WebserverHandler("", "")
-                    }
-
-                    lambdaWebserver.addWebResource(httpFunction.path, httpFunction.method, httpMethod)
-                }
-
-                val webSocketServerlessFunctions = method.getAnnotationsByType(WebSocketServerlessFunction::class.java)
-
-                for (webSocketFunction in webSocketServerlessFunctions) {
-                    val webSocketMethod = LocalWebsocketMethod(method, invokeOn)
-
-                    localWebsocketMethods[webSocketFunction.topic] = webSocketMethod
-                    methods[functionIdentifier] = webSocketMethod
-                    localWebSocketServer.addTopic(webSocketFunction.topic, webSocketMethod)
-
-                    variableSubstitution["\${NIMBUS_WEBSOCKET_API_URL}"] = "ws://localhost:$webSocketPort"
-                }
-
-                val documentFunctions = method.getAnnotationsByType(DocumentStoreServerlessFunction::class.java)
-
-                for (documentFunction in documentFunctions) {
-                    val documentMethod = DocumentMethod(method, invokeOn, documentFunction.method)
-                    methods[functionIdentifier] = documentMethod
-                    val tableName = DocumentStoreClient.getTableName(documentFunction.dataModel.java, stage)
-                    val documentStore = documentStores[tableName]
-                    documentStore?.addMethod(documentMethod)
-                }
-
-                val keyValueFunctions = method.getAnnotationsByType(KeyValueStoreServerlessFunction::class.java)
-
-                for (keyValueFunction in keyValueFunctions) {
-                    val documentMethod = KeyValueMethod(method, invokeOn, keyValueFunction.method)
-                    methods[functionIdentifier] = documentMethod
-                    val tableName = KeyValueStoreClient.getTableName(keyValueFunction.dataModel.java, stage)
-                    val keyValueStore = keyValueStores[tableName]
-                    keyValueStore?.addMethod(documentMethod)
-                }
-
-                val notificationServerlessFunctions = method.getAnnotationsByType(NotificationServerlessFunction::class.java)
-
-                for (notificationFunction in notificationServerlessFunctions) {
-                    val notificationMethod = NotificationMethod(method, invokeOn)
-
-                    val notificationTopic = notificationTopics.getOrPut(notificationFunction.topic) { LocalNotificationTopic() }
-
-                    notificationTopic.addSubscriber(notificationMethod)
-                    methods[functionIdentifier] = notificationMethod
-                }
-
-                if (method.isAnnotationPresent(AfterDeployment::class.java)) {
-                    val afterDeployment = method.getAnnotation(AfterDeployment::class.java)
-
-                    val invokeOn = clazz.getConstructor().newInstance()
-
-                    if (afterDeployment.isTest) {
-                        afterDeployments.addLast(Pair(method, invokeOn))
-                    } else {
-                        afterDeployments.addFirst(Pair(method, invokeOn))
-                    }
-                }
+                localFunctionHandlers.forEach { functionHandler -> functionHandler.createLocalFunctions(clazz, method) }
             }
         } catch (e: InvocationTargetException) {
             System.err.println("Error creating handler class ${clazz.canonicalName}, it should have no constructor parameters")
@@ -361,26 +153,41 @@ class LocalNimbusDeployment {
         }
     }
 
+    private fun handleUseResources(clazz: Class<out Any>) {
+        for (method in clazz.methods) {
+            localUseResourceHandlers.forEach { handler -> handler.handleFunctionEnvironment(clazz, method) }
+        }
+    }
+
+
     internal fun getLocalHandler(bucketName: String): WebserverHandler? {
-        return localWebservers[bucketName]
+        return localResourceHolder.webservers[bucketName]
     }
 
     internal fun getWebSocketSessions(): Map<String, Session> {
-        return webSocketSessions
+        return localResourceHolder.webSocketSessions
     }
 
+    internal fun getFunctionEnvironments(): Map<FunctionIdentifier, FunctionEnvironment> {
+        return localResourceHolder.functionEnvironments
+    }
+
+    //--------------------------------------------User Facing Methods---------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------------
+
     fun startWebSocketServer() {
-        localWebSocketServer.setup(webSocketPort)
-        localWebSocketServer.start()
+        localResourceHolder.webSocketServer.setup(webSocketPort)
+        localResourceHolder.webSocketServer.start()
     }
 
     fun startAllServers() {
-        localWebSocketServer.setup(webSocketPort)
-        localWebSocketServer.startWithoutJoin()
+        localResourceHolder.webSocketServer.setup(webSocketPort)
+        localResourceHolder.webSocketServer.startWithoutJoin()
         startAllWebservers()
     }
 
     fun startWebserver(bucketName: String) {
+        val localWebservers = localResourceHolder.webservers
         if (localWebservers.containsKey(bucketName)) {
             val handler = localWebservers[bucketName]!!
             val webserver = LocalWebserver()
@@ -392,10 +199,11 @@ class LocalNimbusDeployment {
     }
 
     fun startServerlessFunctionWebserver() {
-        if (localWebservers.containsKey(functionWebserverIdentifier)) {
-            val handler = localWebservers[functionWebserverIdentifier]!!
+        val localWebservers = localResourceHolder.webservers
+        if (localWebservers.containsKey(Companion.functionWebserverIdentifier)) {
+            val handler = localWebservers[Companion.functionWebserverIdentifier]!!
             val webserver = LocalWebserver()
-            webserver.handler.addResource(functionWebserverIdentifier, handler)
+            webserver.handler.addResource(Companion.functionWebserverIdentifier, handler)
             webserver.startServer(httpPort)
         } else {
             throw ResourceNotFoundException()
@@ -404,7 +212,7 @@ class LocalNimbusDeployment {
 
     fun startAllWebservers() {
         val allResourcesWebserver = LocalWebserver()
-        for ((identifier, handler) in localWebservers) {
+        for ((identifier, handler) in localResourceHolder.webservers) {
             allResourcesWebserver.handler.addResource(identifier, handler)
         }
         allResourcesWebserver.startServer(httpPort)
@@ -412,7 +220,9 @@ class LocalNimbusDeployment {
 
 
     fun <K, V> getKeyValueStore(valueClass: Class<V>): LocalKeyValueStore<K, V> {
-        val tableName = KeyValueStoreClient.getTableName(valueClass, stage)
+        val tableName = AbstractKeyValueStoreClient.getTableName(valueClass, stage)
+        val keyValueStores = localResourceHolder.keyValueStores
+
         if (keyValueStores.containsKey(tableName)) {
             return keyValueStores[tableName] as LocalKeyValueStore<K, V>
         } else {
@@ -421,6 +231,8 @@ class LocalNimbusDeployment {
     }
 
     fun getLocalFileStorage(bucketName: String): LocalFileStorage {
+        val fileStorage = localResourceHolder.fileStorage
+
         if (fileStorage.containsKey(bucketName)) {
             return fileStorage[bucketName]!!
         } else {
@@ -429,7 +241,9 @@ class LocalNimbusDeployment {
     }
 
     fun <T> getDocumentStore(clazz: Class<T>): LocalDocumentStore<T> {
-        val tableName = DocumentStoreClient.getTableName(clazz, stage)
+        val tableName = AbstractDocumentStoreClient.getTableName(clazz, stage)
+        val documentStores = localResourceHolder.documentStores
+
         if (documentStores.containsKey(tableName)) {
             return documentStores[tableName] as LocalDocumentStore<T>
         } else {
@@ -439,6 +253,8 @@ class LocalNimbusDeployment {
 
     internal fun <T> getBasicMethod(clazz:Class<T>, methodName: String): BasicMethod {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, methodName)
+        val localBasicMethods = localResourceHolder.basicMethods
+
         if (localBasicMethods.containsKey(functionIdentifier)) {
             return localBasicMethods[functionIdentifier]!!
         } else {
@@ -447,14 +263,18 @@ class LocalNimbusDeployment {
     }
 
     fun getQueue(id: String): LocalQueue {
-        if (queues.containsKey(id)) {
-            return queues[id]!!
+        val localQueues = localResourceHolder.queues
+
+        if (localQueues.containsKey(id)) {
+            return localQueues[id]!!
         } else {
             throw ResourceNotFoundException()
         }
     }
 
     fun getNotificationTopic(topic: String): LocalNotificationTopic {
+        val notificationTopics = localResourceHolder.notificationTopics
+
         if (notificationTopics.containsKey(topic)) {
             return notificationTopics[topic]!!
         } else {
@@ -464,6 +284,8 @@ class LocalNimbusDeployment {
 
     fun <T> getMethod(clazz: Class<T>, methodName: String): ServerlessMethod {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, methodName)
+        val methods = localResourceHolder.methods
+
         if (methods.containsKey(functionIdentifier)) {
             return methods[functionIdentifier]!!
         } else {
@@ -473,6 +295,8 @@ class LocalNimbusDeployment {
 
     fun sendHttpRequest(request: HttpRequest) {
         val httpIdentifier = HttpMethodIdentifier(request.path, request.method)
+        val localHttpMethods = localResourceHolder.httpMethods
+
         if (localHttpMethods.containsKey(httpIdentifier)) {
             localHttpMethods[httpIdentifier]!!.invoke(request)
         } else {
@@ -484,6 +308,8 @@ class LocalNimbusDeployment {
         val topic = "\$connect"
         val request = WebSocketRequest("{\"topic\":\"\$connect\"}", queryStringParams, headers)
         request.requestContext = RequestContext("MESSAGE", "testConnection")
+        val localWebsocketMethods = localResourceHolder.websocketMethods
+
         if (localWebsocketMethods.containsKey(topic)) {
             localWebsocketMethods[topic]!!.invoke(request)
         } else {
@@ -495,6 +321,8 @@ class LocalNimbusDeployment {
         val topic = "\$disconnect"
         val request = WebSocketRequest("{\"topic\":\"\$disconnect\"}")
         request.requestContext = RequestContext("MESSAGE", "testConnection")
+        val localWebsocketMethods = localResourceHolder.websocketMethods
+
         if (localWebsocketMethods.containsKey(topic)) {
             localWebsocketMethods[topic]!!.invoke(request)
         } else {
@@ -505,6 +333,8 @@ class LocalNimbusDeployment {
     fun sendWebSocketRequest(request: WebSocketRequest) {
         val topic = request.getTopic()
         request.requestContext = RequestContext("MESSAGE", "testConnection")
+        val localWebsocketMethods = localResourceHolder.websocketMethods
+
         if (localWebsocketMethods.containsKey(topic)) {
             localWebsocketMethods[topic]!!.invoke(request)
         } else {
@@ -549,9 +379,7 @@ class LocalNimbusDeployment {
             LocalNimbusDeployment(clazz, stage, port, webSocketPort)
             return instance
         }
+
+        const val functionWebserverIdentifier = "function"
     }
-
-    private data class FunctionIdentifier(val className: String, val methodName: String)
-
-    private data class HttpMethodIdentifier(val path: String, val method: HttpMethod)
 }
