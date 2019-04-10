@@ -39,7 +39,7 @@ public class Website {}
 
 ## File Uploads
 
-File uploads can be done using the FileStorageBucketClient class, however this can only be done from serverless functions. If you want to upload files from your local machine then the `@FileUpload` annotation can be used. This allows you to specify files or directories to be uploaded to the bucket after it has been created. Specifically it is run on every deployment, after creation and before any `@AfterDeployment` scripts. These will trigger any functions set up to listen to the FileStorageBucket.
+File uploads can be done using the FileStorageBucketClient class, however this can only be done from serverless functions. If you want to upload files from your local machine then the `@FileUpload` annotation can be used. This allows you to specify files or directories to be uploaded to the bucket after it has been created. Specifically it is run on every deployment, after deployment and before any `@AfterDeployment` scripts. These will trigger any functions set up to listen to the FileStorageBucket.
 
 If a path to a file is provided, then it will be uploaded to the path specified in the target path exactly, i.e. target path should be a file like "helloworld.html".
 
