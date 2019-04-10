@@ -20,7 +20,8 @@
           "resources/functions/QueueFunction",
           "resources/functions/BasicFunction",
           "resources/functions/FileStorageBucketFunction",
-          "resources/functions/AfterDeployment"
+          "resources/functions/AfterDeployment",
+          "resources/functions/EnvironmentVariables"
         ]
       }
     ],
@@ -32,7 +33,8 @@
       "clients/BasicServerlessFunctionClient",
       "clients/NotificationClient",
       "clients/QueueClient",
-      "clients/DatabaseClient"
+      "clients/DatabaseClient",
+      "clients/EnvironmentVariableClient"
     ],
     "Local Deployment": [
       "localdeployment/UnitTests",
