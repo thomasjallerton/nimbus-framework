@@ -7,6 +7,7 @@ import com.nimbusframework.nimbuscore.testing.function.PermissionType
 
 internal class BasicServerlessFunctionClientLocal: BasicServerlessFunctionClient, LocalClient() {
 
+
     override fun canUse(): Boolean {
         return checkPermissions(PermissionType.BASIC_FUNCTION, "")
     }
@@ -16,13 +17,19 @@ internal class BasicServerlessFunctionClientLocal: BasicServerlessFunctionClient
     override fun invoke(handlerClass: Class<out Any>, functionName: String) {
         checkClientUse()
         val method = localNimbusDeployment.getBasicMethod(handlerClass, functionName)
-        method.invoke("", Unit.javaClass)
+        method.invoke(null, Unit.javaClass)
     }
 
     override fun invoke(handlerClass: Class<out Any>, functionName: String, param: Any) {
         checkClientUse()
         val method = localNimbusDeployment.getBasicMethod(handlerClass, functionName)
         method.invoke(param, Unit.javaClass)
+    }
+
+    override fun <T> invoke(handlerClass: Class<out Any>, functionName: String, responseType: Class<T>): T? {
+        checkClientUse()
+        val method = localNimbusDeployment.getBasicMethod(handlerClass, functionName)
+        return method.invoke(null, responseType)
     }
 
     override fun <T> invoke(handlerClass: Class<out Any>, functionName: String, param: Any, responseType: Class<T>): T? {
@@ -34,7 +41,7 @@ internal class BasicServerlessFunctionClientLocal: BasicServerlessFunctionClient
     override fun invokeAsync(handlerClass: Class<out Any>, functionName: String) {
         checkClientUse()
         val method = localNimbusDeployment.getBasicMethod(handlerClass, functionName)
-        method.invoke("", Unit.javaClass)
+        method.invoke(null, Unit.javaClass)
     }
 
     override fun invokeAsync(handlerClass: Class<out Any>, functionName: String, param: Any) {

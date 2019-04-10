@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbuscore.testing.services.function
 
 import com.nimbusframework.nimbuscore.annotation.annotations.deployment.AfterDeployment
+import com.nimbusframework.nimbuscore.testing.deployment.AfterDeploymentMethod
 import com.nimbusframework.nimbuscore.testing.services.LocalResourceHolder
 import java.lang.reflect.Method
 
@@ -17,9 +18,9 @@ class LocalAfterDeploymentHandler(
                 val invokeOn = clazz.getConstructor().newInstance()
 
                 if (afterDeployment.isTest) {
-                    localResourceHolder.afterDeployments.addLast(Pair(method, invokeOn))
+                    localResourceHolder.afterDeployments.addLast(AfterDeploymentMethod(method, invokeOn))
                 } else {
-                    localResourceHolder.afterDeployments.addFirst(Pair(method, invokeOn))
+                    localResourceHolder.afterDeployments.addFirst(AfterDeploymentMethod(method, invokeOn))
                 }
             }
         }

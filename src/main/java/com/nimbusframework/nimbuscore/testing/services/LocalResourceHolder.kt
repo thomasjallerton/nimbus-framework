@@ -2,6 +2,7 @@ package com.nimbusframework.nimbuscore.testing.services
 
 import com.nimbusframework.nimbuscore.testing.ServerlessMethod
 import com.nimbusframework.nimbuscore.testing.basic.BasicMethod
+import com.nimbusframework.nimbuscore.testing.deployment.AfterDeploymentMethod
 import com.nimbusframework.nimbuscore.testing.document.LocalDocumentStore
 import com.nimbusframework.nimbuscore.testing.file.LocalFileStorage
 import com.nimbusframework.nimbuscore.testing.function.FunctionEnvironment
@@ -29,7 +30,7 @@ class LocalResourceHolder {
     val documentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
     val fileStorage: MutableMap<String, LocalFileStorage> = mutableMapOf()
     val notificationTopics: MutableMap<String, LocalNotificationTopic> = mutableMapOf()
-    val afterDeployments: Deque<Pair<Method, Any>> = LinkedList()
+    val afterDeployments: Deque<AfterDeploymentMethod> = LinkedList()
 
     val functionEnvironments: MutableMap<FunctionIdentifier, FunctionEnvironment> = mutableMapOf()
 
