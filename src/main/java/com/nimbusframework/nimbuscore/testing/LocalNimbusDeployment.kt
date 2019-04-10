@@ -93,7 +93,7 @@ class LocalNimbusDeployment {
 
         stage = stageParam
 
-        localResourceHolder.afterDeployments.forEach { (method, obj) -> method.invoke(obj) }
+        localResourceHolder.afterDeployments.forEach { method -> method.invoke() }
 
         val fileService = FileService(variableSubstitution)
 
@@ -130,7 +130,7 @@ class LocalNimbusDeployment {
         //Handle use resources
         allClasses.forEach { clazz -> handleUseResources(clazz) }
 
-        localResourceHolder.afterDeployments.forEach { (method, obj) -> method.invoke(obj) }
+        localResourceHolder.afterDeployments.forEach { method -> method.invoke() }
 
         val fileService = FileService(variableSubstitution)
 

@@ -33,6 +33,10 @@ internal class BasicServerlessFunctionClientLambda : BasicServerlessFunctionClie
         invoke(handlerClass, functionName, param, Unit.javaClass)
     }
 
+    override fun <T> invoke(handlerClass: Class<out Any>, functionName: String, responseType: Class<T>): T? {
+        return invoke(handlerClass, functionName, "", responseType)
+    }
+
     override fun <T> invoke(handlerClass: Class<out Any>, functionName: String, param: Any, responseType: Class<T>): T? {
         val invokeRequest = InvokeRequest()
                 .withFunctionName(FunctionResource.functionName(projectName, handlerClass.simpleName, functionName, stage))
