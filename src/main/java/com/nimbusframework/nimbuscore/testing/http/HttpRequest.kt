@@ -7,9 +7,7 @@ data class HttpRequest(
         var path: String,
         var method: HttpMethod,
         var body: String = "null",
-        var pathParameters: Map<String, String> = mapOf(),
-        var queryStringParams: Map<String, String> = mapOf(),
-        var headers: Map<String, String> = mapOf()
+        var headers: Map<String, List<String>> = mapOf()
 ) {
     constructor(path: String, method: HttpMethod): this(path, method, "null")
     constructor(path: String, method: HttpMethod, body: String): this(path, method, body, mapOf())

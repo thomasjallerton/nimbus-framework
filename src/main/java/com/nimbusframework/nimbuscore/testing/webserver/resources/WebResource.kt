@@ -5,5 +5,5 @@ import javax.servlet.http.HttpServletResponse
 
 interface WebResource {
 
-    fun writeResponse(request: HttpServletRequest, response: HttpServletResponse)
+    fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String)
 }

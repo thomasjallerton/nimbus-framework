@@ -294,14 +294,15 @@ class LocalNimbusDeployment {
     }
 
     fun sendHttpRequest(request: HttpRequest) {
-        val httpIdentifier = HttpMethodIdentifier(request.path, request.method)
         val localHttpMethods = localResourceHolder.httpMethods
 
-        if (localHttpMethods.containsKey(httpIdentifier)) {
-            localHttpMethods[httpIdentifier]!!.invoke(request)
-        } else {
-            throw ResourceNotFoundException()
+        for ((identifier, method) in localHttpMethods) {
+            if (identifier.matches(request.path, request.method)) {
+                method.invoke(request, identifier)
+                return
+            }
         }
+        throw ResourceNotFoundException()
     }
 
     fun connectToWebSockets(headers: Map<String, String> = mapOf(), queryStringParams: Map<String, String> = mapOf()) {
