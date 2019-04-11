@@ -13,7 +13,7 @@ const users = [];
 
 const siteConfig = {
   title: 'Nimbus', // Title for your website.
-  tagline: 'A comprehensive framework for deployment of serverless applications',
+  tagline: 'A framework for deploying and testing Java serverless applications',
   url: 'https://nimbusframework.com', // Your website URL
   baseUrl: '/', // Base URL for your project */
   // For github.io type URLs, you would set the url and baseUrl like:
