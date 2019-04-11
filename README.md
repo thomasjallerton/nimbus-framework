@@ -1,8 +1,5 @@
----
-id: gettingstarted
-title: Getting Started
-sidebar_label: Getting Started
----
+Nimbus is a Java framework that allows for easy deployment and testing of serverless applications.
+
 
 ## Installation
 
