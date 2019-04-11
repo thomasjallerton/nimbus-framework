@@ -9,7 +9,7 @@ class FileResource(
         private val contentType: String
 ): WebResource {
 
-    override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse) {
+    override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
         response.contentType = contentType
         response.status = HttpServletResponse.SC_OK
 

@@ -27,17 +27,20 @@ As with all serverless functions, a HTTP function must be inside of a class with
 ### Parameters
 A HTTP serverless function method can have at most two parameters. One of these is a `HttpEvent` type, which contains the header, path and query parameters. The second method parameter available is a custom user type which will be read and deserialized from the JSON body of the request. For example `String` can be used to read the body in as a string. This is done using the jackson library, so any customisation you want can be done using jackson annotations in the target class. 
 
-Here is an example using both of these parameters:
+To specify desired path parameters to the HTTP function, in the `@HttpServerlessFunction` path parameter include any desired path parameters inside curly braces, for example `path = "event/{id}""`. 
+
+Here is an example using these parameters:
 ```java
 class RestHandlers {
    
-    @HttpServerlessFunction(method = HttpMethod.POST, path = "person")
+    @HttpServerlessFunction(method = HttpMethod.POST, path = "person/{id}")
     public String sendPerson(Person person, HttpEvent event) {
         String log = event.getQueryStringParameters().get("log");
+        String id = event.getPathParameters().get("id");
         if (log != null && log.equals("true")) {
             System.out.println(person);
         }
-        return "Got person in request! " + person.toString();
+        return "Got person in request! " + person.toString() + ", id: " + id;
     }
     
     class Person {

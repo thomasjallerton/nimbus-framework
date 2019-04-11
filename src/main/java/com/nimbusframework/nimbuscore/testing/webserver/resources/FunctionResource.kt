@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpMethod
 import com.amazonaws.util.IOUtils
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.testing.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuscore.testing.http.HttpRequest
 import com.nimbusframework.nimbuscore.testing.http.LocalHttpMethod
 import com.nimbusframework.nimbuscore.wrappers.http.models.HttpResponse
@@ -25,14 +26,19 @@ class FunctionResource(
         objectMapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
     }
 
-    override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse) {
+    override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
         val strBody = IOUtils.toString(request.inputStream)
-        val queryStringParams = getQueryParameters(request)
         val headers = getHeaders(request)
 
-        val httpRequest = HttpRequest(path, httpMethod, strBody, mutableMapOf(), queryStringParams, headers)
+        val correctedPath = if (request.queryString.isNullOrEmpty()) {
+            target
+        } else {
+            "$target?${request.queryString}"
+        }
 
-        val result = method.invoke(httpRequest)
+        val httpRequest = HttpRequest(correctedPath, httpMethod, strBody, headers)
+
+        val result = method.invoke(httpRequest, HttpMethodIdentifier(path, httpMethod))
 
         response.contentType = "application/json"
 
@@ -49,32 +55,12 @@ class FunctionResource(
         response.writer.close()
     }
 
-    private fun getQueryParameters(request: HttpServletRequest): Map<String, String> {
-        val queryParameters = HashMap<String, String>()
-
-        if (request.queryString.isNullOrEmpty()) return queryParameters
-
-        val queryString = request.queryString
-
-        if (queryString.isEmpty()) {
-            return queryParameters
-        }
-
-        val parameters = queryString.split("&".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-
-        for (parameter in parameters) {
-            val keyValuePair = parameter.split("=".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            queryParameters[keyValuePair[0]] = keyValuePair[1]
-        }
-        return queryParameters
-    }
-
-    private fun getHeaders(request: HttpServletRequest): Map<String, String> {
+    private fun getHeaders(request: HttpServletRequest): Map<String, List<String>> {
         val headerNames = request.headerNames
-        val result: MutableMap<String, String> = mutableMapOf()
-
+        val result: MutableMap<String, List<String>> = mutableMapOf()
         for (headerName in headerNames) {
-            result[headerName] = request.getHeader(headerName)
+            val headerVal = request.getHeader(headerName)
+            result[headerName] = headerVal.split(",")
         }
         return result
     }

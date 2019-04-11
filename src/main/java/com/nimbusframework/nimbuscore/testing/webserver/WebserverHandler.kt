@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbuscore.testing.webserver
 
 import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.testing.http.HttpMethodIdentifier
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
 import com.nimbusframework.nimbuscore.testing.http.LocalHttpMethod
@@ -24,12 +25,20 @@ class WebserverHandler(private val indexFile: String,
             request: HttpServletRequest,
             response: HttpServletResponse
     ) {
-        val webResource = resources[HttpMethodIdentifier(target, HttpMethod.valueOf(request.method))]
+        val httpMethod = HttpMethod.valueOf(request.method)
+        var webResource: WebResource? = null
+        for ((identifier, resource) in resources) {
+            if (identifier.matches(target, httpMethod)) {
+                webResource = resource
+                break
+            }
+        }
+
         if (webResource != null) {
-            webResource.writeResponse(request, response)
+            webResource.writeResponse(request, response, target)
         } else {
             if (errorResource != null) {
-                errorResource!!.writeResponse(request, response)
+                errorResource!!.writeResponse(request, response, target)
             } else {
                 response.status = HttpServletResponse.SC_NOT_FOUND
                 response.writer.close()
@@ -46,7 +55,7 @@ class WebserverHandler(private val indexFile: String,
         addNewResource(path, httpMethod, FunctionResource(path, httpMethod, method))
     }
 
-    fun addNewResource(path: String, httpMethod: HttpMethod, webResource: WebResource) {
+    private fun addNewResource(path: String, httpMethod: HttpMethod, webResource: WebResource) {
         val fixedPath = if (path.isNotEmpty()) "/$path" else path
 
         resources[HttpMethodIdentifier(fixedPath, httpMethod)] = webResource
@@ -62,7 +71,4 @@ class WebserverHandler(private val indexFile: String,
         val fixedPath = if (path.isNotEmpty()) "/$path" else path
         resources[HttpMethodIdentifier(fixedPath, httpMethod)] = webResource
     }
-
-    private data class HttpMethodIdentifier(val path: String, val method: HttpMethod)
-
 }
