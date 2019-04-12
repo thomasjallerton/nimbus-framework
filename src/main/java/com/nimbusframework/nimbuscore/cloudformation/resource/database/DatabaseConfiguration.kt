@@ -9,7 +9,8 @@ data class DatabaseConfiguration(
         val username: String,
         val password: String,
         val databaseLanguage: DatabaseLanguage,
-        val databaseSize: DatabaseSize,
+        val databaseClass: DatabaseSize,
+        val awsDatabaseClass: String,
         val size: Int
 ) {
 
@@ -25,7 +26,8 @@ data class DatabaseConfiguration(
                     username,
                     password,
                     relationalDatabase.databaseLanguage,
-                    relationalDatabase.databaseSize,
+                    relationalDatabase.databaseClass,
+                    relationalDatabase.awsDatabaseInstance,
                     relationalDatabase.allocatedSizeGB
             )
 

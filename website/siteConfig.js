@@ -6,7 +6,7 @@
  */
 
 // See https://docusaurus.io/docs/site-config for all the possible
-// site com.nimbusframework.nimbuscore.configuration options.
+// site configuration options.
 
 // List of projects/orgs using your project for the users page.
 const users = [];
@@ -91,6 +91,9 @@ const siteConfig = {
   // You may provide arbitrary config keys to be used as needed by your
   // template. For example, if you need your repo's URL...
   repoUrl: 'https://github.com/thomasjallerton/nimbus-core',
+
+  gaTrackingId: "UA-138229567-1",
+  ogImage: "img/nimbus.png"
 };
 
 module.exports = siteConfig;

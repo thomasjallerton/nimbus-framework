@@ -10,7 +10,7 @@ First you need to add the nimbus-core dependency to your pom. This adds the anno
 <dependency>
     <groupId>com.nimbusframework</groupId>
     <artifactId>nimbus-core</artifactId>
-    <version>0.5</version>
+    <version>0.6</version>
 </dependency>
 ```
 
@@ -19,7 +19,7 @@ Next the deployment plugin needs to be added. Currently only AWS is supported, s
 <plugin>
     <groupId>com.nimbusframework</groupId>
     <artifactId>nimbus-deployment-maven-plugin</artifactId>
-    <version>0.2</version>
+    <version>0.3</version>
     <configuration>
         <region>eu-west-1</region>
     </configuration>

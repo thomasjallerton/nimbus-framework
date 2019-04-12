@@ -22,11 +22,17 @@ class RdsResource(
         val dbInstance = JsonObject()
         dbInstance.addProperty("Type", "AWS::RDS::DBInstance")
 
+        val databaseClass = if (databaseConfiguration.awsDatabaseClass.isNotBlank()) {
+            databaseConfiguration.awsDatabaseClass
+        } else {
+            databaseConfiguration.databaseClass.toInstanceClass()
+        }
+
         val properties = getProperties()
         properties.addProperty("AllocatedStorage", databaseConfiguration.size)
         properties.addProperty("DBInstanceIdentifier", "${databaseConfiguration.name}$stage")
-        properties.addProperty("DBInstanceClass", databaseConfiguration.databaseSize.toInstanceClass())
-        properties.addProperty("Engine", databaseConfiguration.databaseLanguage.toEngine(databaseConfiguration.databaseSize))
+        properties.addProperty("DBInstanceClass", databaseClass)
+        properties.addProperty("Engine", databaseConfiguration.databaseLanguage.toEngine(databaseConfiguration.databaseClass))
         properties.addProperty("PubliclyAccessible", true)
         properties.addProperty("MasterUsername", databaseConfiguration.username)
         properties.addProperty("MasterUserPassword", databaseConfiguration.password)
