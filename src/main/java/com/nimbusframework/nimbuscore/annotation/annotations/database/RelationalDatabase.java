@@ -11,7 +11,8 @@ public @interface RelationalDatabase {
     String name();
     String username();
     String password();
-    DatabaseSize databaseSize() default DatabaseSize.FREE;
+    DatabaseSize databaseClass() default DatabaseSize.FREE;
+    String awsDatabaseInstance() default "";
     DatabaseLanguage databaseLanguage();
     int allocatedSizeGB() default 20;
     String[] stages() default {NimbusConstants.stage};

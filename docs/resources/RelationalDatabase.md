@@ -87,6 +87,7 @@ public class ProjectDatabase {
 * `databaseLanguage` - Database language.
 
 #### Optional Parameters
-* `databaseSize` - Performance configuration for the database, defaults to FREE.
+* `databaseClass` - Performance configuration for the database, defaults to FREE.
+* `awsDatabaseInstance` - Type of database instance in AWS, e.g. `db.r4.large`. If this is set then the `databaseClass` parameter is ignored. 
 * `allocatedSizeGB` - Size of space to allocate in GB, default 20.
 * `stages` - A list of stages that the relational database should be deployed to. 
