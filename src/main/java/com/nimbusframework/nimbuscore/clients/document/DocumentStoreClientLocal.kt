@@ -4,7 +4,7 @@ import com.nimbusframework.nimbuscore.clients.LocalClient
 import com.nimbusframework.nimbuscore.clients.PermissionException
 import com.nimbusframework.nimbuscore.testing.function.PermissionType
 
-class DocumentStoreClientLocal<T>(private val clazz: Class<T>, stage: String) : DocumentStoreClient<T>, LocalClient() {
+class DocumentStoreClientLocal<T>(private val clazz: Class<T>) : DocumentStoreClient<T>, LocalClient() {
 
     private val documentStore = localNimbusDeployment.getDocumentStore(clazz)
 

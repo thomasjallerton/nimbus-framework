@@ -32,7 +32,8 @@ class QueueFunctionResourceCreator(
         val fileBuilder = QueueServerlessFunctionFileBuilder(
                 processingEnv,
                 methodInformation,
-                type
+                type,
+                nimbusState
         )
 
         for (queueFunction in queueFunctions) {

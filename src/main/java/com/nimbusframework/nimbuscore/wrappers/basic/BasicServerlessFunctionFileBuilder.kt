@@ -2,6 +2,7 @@ package com.nimbusframework.nimbuscore.wrappers.basic
 
 import com.nimbusframework.nimbuscore.annotation.annotations.function.BasicServerlessFunction
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.ServerlessFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -9,13 +10,15 @@ import javax.lang.model.element.Element
 class BasicServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
-        compilingElement: Element
+        compilingElement: Element,
+        nimbusState: NimbusState
 ) : ServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         BasicServerlessFunction::class.java.simpleName,
         null,
-        compilingElement
+        compilingElement,
+        nimbusState
 ) {
     override fun getGeneratedClassName(): String {
         return "BasicServerlessFunction${methodInformation.className}${methodInformation.methodName}"

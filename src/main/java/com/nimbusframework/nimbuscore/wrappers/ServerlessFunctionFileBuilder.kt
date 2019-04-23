@@ -1,6 +1,8 @@
 package com.nimbusframework.nimbuscore.wrappers
 
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbuscore.persisted.NimbusState
+import java.io.File
 import java.io.PrintWriter
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -13,7 +15,8 @@ abstract class ServerlessFunctionFileBuilder(
         protected val methodInformation: MethodInformation,
         private val functionType: String,
         eventType: ServerlessEvent?,
-        private val compilingElement: Element
+        private val compilingElement: Element,
+        private val nimbusState: NimbusState
 ) {
 
     private var tabLevel: Int = 0
@@ -48,10 +51,22 @@ abstract class ServerlessFunctionFileBuilder(
                 val params = findParamIndexes()
 
                 isValidFunction(params)
-                val builderFile = processingEnv.filer.createSourceFile(getGeneratedClassName())
+
+                val className = getGeneratedClassName()
+                val builderFile = processingEnv.filer.createSourceFile(className)
+
                 out = PrintWriter(builderFile.openWriter())
 
                 val packageName = findPackageName(methodInformation.packageName)
+
+                val packagePath = packageName.replace(".", File.separator)
+                println("$packagePath $className")
+                val classFilePath = if (packageName.isEmpty()) {
+                    className
+                } else {
+                    "$packagePath${File.separator}$className"
+                }
+                nimbusState.handlerFiles.add(classFilePath)
 
                 if (packageName != "") write("package $packageName;")
 
@@ -164,7 +179,7 @@ abstract class ServerlessFunctionFileBuilder(
     }
 
 
-    protected fun findPackageName(qualifiedName: String): String {
+    private fun findPackageName(qualifiedName: String): String {
         val lastDot = qualifiedName.lastIndexOf('.')
         return if (lastDot > 0) {
             qualifiedName.substring(0, lastDot)

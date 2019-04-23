@@ -2,6 +2,7 @@ package com.nimbusframework.nimbuscore.wrappers.queue
 
 import com.nimbusframework.nimbuscore.annotation.annotations.function.QueueServerlessFunction
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.wrappers.queue.models.QueueEvent
 import com.nimbusframework.nimbuscore.wrappers.queue.models.RecordCollection
@@ -12,13 +13,16 @@ import javax.tools.Diagnostic
 class QueueServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
-        compilingElement: Element
+        compilingElement: Element,
+        nimbusState: NimbusState
+
 ) : ServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         QueueServerlessFunction::class.java.simpleName,
         QueueEvent(),
-        compilingElement
+        compilingElement,
+        nimbusState
 ) {
 
     override fun writeOutput() {}

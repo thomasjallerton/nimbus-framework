@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbuscore.testing
 
+import com.nimbusframework.nimbuscore.clients.ClientBuilder
 import com.nimbusframework.nimbuscore.clients.document.AbstractDocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
 import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
@@ -346,7 +347,6 @@ class LocalNimbusDeployment {
     companion object {
         private lateinit var instance: LocalNimbusDeployment
         internal lateinit var stage: String
-        internal var isLocalDeployment: Boolean = false
 
         @JvmStatic
         fun getInstance(): LocalNimbusDeployment {
@@ -355,28 +355,28 @@ class LocalNimbusDeployment {
 
         @JvmStatic
         fun getNewInstance(packageName: String): LocalNimbusDeployment {
-            isLocalDeployment = true
+            ClientBuilder.isLocalDeployment = true
             LocalNimbusDeployment(packageName)
             return instance
         }
 
         @JvmStatic
         fun getNewInstance(packageName: String, stage: String, httpPort: Int, webSocketPort: Int): LocalNimbusDeployment {
-            isLocalDeployment = true
+            ClientBuilder.isLocalDeployment = true
             LocalNimbusDeployment(packageName, stage, httpPort, webSocketPort)
             return instance
         }
 
         @JvmStatic
         fun getNewInstance(clazz: Class<out Any>): LocalNimbusDeployment {
-            isLocalDeployment = true
+            ClientBuilder.isLocalDeployment = true
             LocalNimbusDeployment(clazz)
             return instance
         }
 
         @JvmStatic
         fun getNewInstance(clazz: Class<out Any>, stage: String, port: Int, webSocketPort: Int): LocalNimbusDeployment {
-            isLocalDeployment = true
+            ClientBuilder.isLocalDeployment = true
             LocalNimbusDeployment(clazz, stage, port, webSocketPort)
             return instance
         }

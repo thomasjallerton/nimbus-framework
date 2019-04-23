@@ -2,6 +2,7 @@ package com.nimbusframework.nimbuscore.wrappers.notification
 
 import com.nimbusframework.nimbuscore.annotation.annotations.function.NotificationServerlessFunction
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.wrappers.notification.models.NotificationEvent
 import com.nimbusframework.nimbuscore.wrappers.notification.models.RecordCollection
@@ -13,13 +14,15 @@ import javax.tools.Diagnostic
 class NotificationServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
-        compilingElement: Element
+        compilingElement: Element,
+        nimbusState: NimbusState
 ): ServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         NotificationServerlessFunction::class.java.simpleName,
         NotificationEvent(),
-        compilingElement
+        compilingElement,
+        nimbusState
 ) {
 
 

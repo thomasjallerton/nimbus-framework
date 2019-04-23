@@ -31,7 +31,8 @@ class NotificationFunctionResourceCreator(
         val fileBuilder = NotificationServerlessFunctionFileBuilder(
                 processingEnv,
                 methodInformation,
-                type
+                type,
+                nimbusState
         )
 
         for (notificationFunction in notificationFunctions) {

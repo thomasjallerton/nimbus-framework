@@ -41,7 +41,8 @@ class DocumentStoreFunctionResourceCreator(
                         methodInformation,
                         type,
                         documentStoreFunction.method,
-                        dataModelAnnotation.getTypeElement(processingEnv)
+                        dataModelAnnotation.getTypeElement(processingEnv),
+                        nimbusState
                 )
 
                 handler = fileBuilder.getHandler()

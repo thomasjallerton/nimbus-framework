@@ -7,7 +7,6 @@ import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClientLocal
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClientS3
 import com.nimbusframework.nimbuscore.clients.function.*
-import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClientDynamo
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClientLocal
@@ -23,13 +22,14 @@ import com.nimbusframework.nimbuscore.clients.rdbms.DatabaseClientRds
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClientApiGateway
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebsocketClientLocal
-import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 
 object ClientBuilder {
 
+    var isLocalDeployment = false
+
     @JvmStatic
     fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>): KeyValueStoreClient<K, V> {
-        return if (LocalNimbusDeployment.isLocalDeployment) {
+        return if (isLocalDeployment) {
             KeyValueStoreClientLocal(value)
         } else {
             KeyValueStoreClientDynamo(key, value, getStage())
@@ -38,8 +38,8 @@ object ClientBuilder {
 
     @JvmStatic
     fun <T> getDocumentStoreClient(document: Class<T>): DocumentStoreClient<T> {
-        return if (LocalNimbusDeployment.isLocalDeployment) {
-            DocumentStoreClientLocal(document, LocalNimbusDeployment.stage)
+        return if (isLocalDeployment) {
+            DocumentStoreClientLocal(document)
         } else {
             DocumentStoreClientDynamo(document, getStage())
         }
@@ -47,7 +47,7 @@ object ClientBuilder {
 
     @JvmStatic
     fun getQueueClient(id: String): QueueClient {
-        return if (LocalNimbusDeployment.isLocalDeployment) {
+        return if (isLocalDeployment) {
             QueueClientLocal(id)
         } else {
             QueueClientSQS(id)
@@ -56,7 +56,7 @@ object ClientBuilder {
 
     @JvmStatic
     fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient {
-        return if (LocalNimbusDeployment.isLocalDeployment) {
+        return if (isLocalDeployment) {
             DatabaseClientLocal(databaseObject)
         } else {
             DatabaseClientRds(databaseObject)
@@ -65,7 +65,7 @@ object ClientBuilder {
 
     @JvmStatic
     fun <T> getEnvironmentVariableClient(): EnvironmentVariableClient {
-        return if (LocalNimbusDeployment.isLocalDeployment) {
+        return if (isLocalDeployment) {
             EnvironmentVariableClientLocal()
         } else {
             EnvironmentVariableClientLambda()
@@ -75,7 +75,7 @@ object ClientBuilder {
 
     @JvmStatic
     fun getNotificationClient(topic: String): NotificationClient {
-        return if (LocalNimbusDeployment.isLocalDeployment) {
+        return if (isLocalDeployment) {
             NotificationClientLocal(topic)
         } else {
             NotificationClientSNS(topic)
@@ -84,7 +84,7 @@ object ClientBuilder {
 
     @JvmStatic
     fun getBasicServerlessFunctionClient(): BasicServerlessFunctionClient {
-        return if (LocalNimbusDeployment.isLocalDeployment) {
+        return if (isLocalDeployment) {
             BasicServerlessFunctionClientLocal()
         } else {
             BasicServerlessFunctionClientLambda()
@@ -93,7 +93,7 @@ object ClientBuilder {
 
     @JvmStatic
     fun getFileStorageClient(bucketName: String): FileStorageClient {
-        return if (LocalNimbusDeployment.isLocalDeployment) {
+        return if (isLocalDeployment) {
             FileStorageClientLocal(bucketName)
         } else {
             FileStorageClientS3(bucketName + getStage())
@@ -102,7 +102,7 @@ object ClientBuilder {
 
     @JvmStatic
     fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient {
-        return if (LocalNimbusDeployment.isLocalDeployment) {
+        return if (isLocalDeployment) {
             ServerlessFunctionWebsocketClientLocal()
         } else {
             ServerlessFunctionWebSocketClientApiGateway()

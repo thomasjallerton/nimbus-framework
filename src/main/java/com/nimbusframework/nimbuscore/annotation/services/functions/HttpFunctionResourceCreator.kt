@@ -32,7 +32,8 @@ class HttpFunctionResourceCreator(
         val fileBuilder = HttpServerlessFunctionFileBuilder(
                 processingEnv,
                 methodInformation,
-                type
+                type,
+                nimbusState
         )
 
         fileBuilder.createClass()

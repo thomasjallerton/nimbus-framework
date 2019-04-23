@@ -30,7 +30,8 @@ class FileStorageResourceCreator(
         val fileStorageFileBuilder = FileStorageServerlessFunctionFileBuilder(
                 processingEnv,
                 methodInformation,
-                type
+                type,
+                nimbusState
         )
 
         fileStorageFileBuilder.createClass()

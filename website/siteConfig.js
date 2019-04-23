@@ -77,7 +77,7 @@ const siteConfig = {
   onPageNav: 'separate',
   // No .html extensions for paths.
   cleanUrl: true,
-  
+
   // Show documentation's last contributor's name.
   // enableUpdateBy: true,
 
@@ -89,6 +89,7 @@ const siteConfig = {
   repoUrl: 'https://github.com/thomasjallerton/nimbus-core',
 
   gaTrackingId: "UA-138229567-1",
+  gaGtag: true,
   ogImage: "img/nimbus.png"
 };
 

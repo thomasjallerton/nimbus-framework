@@ -12,7 +12,7 @@ import javax.lang.model.element.Element
 
 class FileUploadResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationDocuments>,
-        private val nimbusState: NimbusState,
+        nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
 ): FunctionResourceCreator(
         cfDocuments,

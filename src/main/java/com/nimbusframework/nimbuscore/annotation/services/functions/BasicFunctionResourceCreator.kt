@@ -32,7 +32,8 @@ class BasicFunctionResourceCreator(
         val fileBuilder = BasicServerlessFunctionFileBuilder(
                 processingEnv,
                 methodInformation,
-                type
+                type,
+                nimbusState
         )
 
         fileBuilder.createClass()

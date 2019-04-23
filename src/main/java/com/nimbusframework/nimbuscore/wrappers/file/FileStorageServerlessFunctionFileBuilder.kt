@@ -2,6 +2,7 @@ package com.nimbusframework.nimbuscore.wrappers.file
 
 import com.nimbusframework.nimbuscore.annotation.annotations.function.FileStorageServerlessFunction
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.wrappers.file.models.FileRecords
 import com.nimbusframework.nimbuscore.wrappers.file.models.FileStorageEvent
@@ -12,13 +13,15 @@ import javax.tools.Diagnostic
 class FileStorageServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
-        compilingElement: Element
+        compilingElement: Element,
+        nimbusState: NimbusState
 ): ServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         FileStorageServerlessFunction::class.java.simpleName,
         FileStorageEvent(),
-        compilingElement
+        compilingElement,
+        nimbusState
 ) {
 
 
