@@ -32,7 +32,8 @@ class WebSocketFunctionResourceCreator(
         val fileBuilder = WebSocketServerlessFunctionFileBuilder(
                 processingEnv,
                 methodInformation,
-                type
+                type,
+                nimbusState
         )
 
         fileBuilder.createClass()

@@ -6,5 +6,6 @@ data class NimbusState(
         val afterDeployments: MutableMap<String, MutableList<String>> = mutableMapOf(),
         //Stage -> Bucket -> LocalFile -> RemoteFile
         val fileUploads: MutableMap<String, MutableMap<String, MutableList<FileUploadDescription>>> = mutableMapOf(),
-        val exports: MutableMap<String, MutableList<ExportInformation>> = mutableMapOf()
+        val exports: MutableMap<String, MutableList<ExportInformation>> = mutableMapOf(),
+        val handlerFiles: MutableList<String> = mutableListOf()
 )

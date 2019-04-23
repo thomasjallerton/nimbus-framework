@@ -15,7 +15,7 @@ import javax.lang.model.type.ExecutableType
 
 abstract class FunctionResourceCreator(
         protected val cfDocuments: MutableMap<String, CloudFormationDocuments>,
-        nimbusState: NimbusState,
+        protected val nimbusState: NimbusState,
         protected val processingEnv: ProcessingEnvironment,
         private val singleClass: Class<out Annotation>,
         private val repeatableClass: Class<out Annotation>

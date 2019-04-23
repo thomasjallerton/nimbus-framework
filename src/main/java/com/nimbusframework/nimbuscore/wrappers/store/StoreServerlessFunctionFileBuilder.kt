@@ -3,6 +3,7 @@ package com.nimbusframework.nimbuscore.wrappers.store
 import com.nimbusframework.nimbuscore.annotation.annotations.persistent.StoreEventType
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.clients.dynamo.DynamoStreamParser
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.wrappers.store.models.DynamoRecords
 import com.nimbusframework.nimbuscore.wrappers.store.models.StoreUpdateDetails
@@ -18,13 +19,15 @@ abstract class StoreServerlessFunctionFileBuilder(
         compilingElement: Element,
         private val method: StoreEventType,
         private val clazz: TypeElement,
-        private val functionName: String
+        private val functionName: String,
+        nimbusState: NimbusState
 ) : ServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         functionName,
         StoreEvent(),
-        compilingElement
+        compilingElement,
+        nimbusState
 ) {
     override fun getGeneratedClassName(): String {
         return "$functionName${methodInformation.className}${methodInformation.methodName}"

@@ -11,10 +11,10 @@ class FileService(
 ) {
 
     private val tempDir = System.getProperty("java.io.tmpdir")
-    private val tempPath = if (tempDir.endsWith(File.pathSeparator)) {
-        tempDir + "nimbus" + File.pathSeparator
+    private val tempPath = if (tempDir.endsWith(File.separator)) {
+        tempDir + "nimbus" + File.separator
     } else {
-        tempDir + File.pathSeparator + "nimbus" + File.pathSeparator
+        tempDir + File.separator + "nimbus" + File.separator
     }
 
     fun handleUploadingFile(bucketUploads: Map<String, List<FileUploadDescription>>) {

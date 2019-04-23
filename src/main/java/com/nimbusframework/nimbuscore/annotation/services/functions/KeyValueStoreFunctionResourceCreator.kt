@@ -42,7 +42,8 @@ class KeyValueStoreFunctionResourceCreator(
                         methodInformation,
                         type,
                         keyValueStoreFunction.method,
-                        dataModelAnnotation.getTypeElement(processingEnv)
+                        dataModelAnnotation.getTypeElement(processingEnv),
+                        nimbusState
                 )
 
                 handler = fileBuilder.getHandler()

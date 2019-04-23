@@ -13,7 +13,7 @@ import javax.lang.model.element.Element
 
 class AfterDeploymentResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationDocuments>,
-        private val nimbusState: NimbusState,
+        nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
 ): FunctionResourceCreator(
         cfDocuments,
@@ -30,7 +30,8 @@ class AfterDeploymentResourceCreator(
         val fileBuilder = DeploymentFunctionFileBuilder(
                 processingEnv,
                 methodInformation,
-                type
+                type,
+                nimbusState
         )
 
         fileBuilder.createClass()

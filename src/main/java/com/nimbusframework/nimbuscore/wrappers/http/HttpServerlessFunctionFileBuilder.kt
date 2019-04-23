@@ -2,6 +2,7 @@ package com.nimbusframework.nimbuscore.wrappers.http
 
 import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.wrappers.http.models.HttpEvent
 import com.nimbusframework.nimbuscore.wrappers.http.models.HttpResponse
@@ -11,13 +12,15 @@ import javax.lang.model.element.Element
 class HttpServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
-        compilingElement: Element
+        compilingElement: Element,
+        nimbusState: NimbusState
 ): ServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         HttpServerlessFunction::class.java.simpleName,
         HttpEvent(),
-        compilingElement
+        compilingElement,
+        nimbusState
 ) {
 
     override fun getGeneratedClassName(): String {
