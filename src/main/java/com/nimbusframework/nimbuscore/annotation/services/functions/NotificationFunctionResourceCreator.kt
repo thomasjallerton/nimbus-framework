@@ -7,6 +7,7 @@ import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionC
 import com.nimbusframework.nimbuscore.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.wrappers.notification.NotificationServerlessFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -38,7 +39,14 @@ class NotificationFunctionResourceCreator(
         for (notificationFunction in notificationFunctions) {
             for (stage in notificationFunction.stages) {
                 val config = FunctionConfig(notificationFunction.timeout, notificationFunction.memory, stage)
-                val functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config)
+                val handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
+
+                val functionResource = functionEnvironmentService.newFunction(
+                        fileBuilder.getHandler(),
+                        methodInformation,
+                        handlerInformation,
+                        config
+                )
 
                 functionEnvironmentService.newNotification(notificationFunction, functionResource)
 

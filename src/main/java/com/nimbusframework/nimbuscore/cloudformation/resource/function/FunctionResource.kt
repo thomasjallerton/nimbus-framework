@@ -6,11 +6,14 @@ import com.nimbusframework.nimbuscore.cloudformation.resource.IamRoleResource
 import com.nimbusframework.nimbuscore.cloudformation.resource.Resource
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbuscore.persisted.ClientType
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 
 class FunctionResource(
         private val handler: String,
         private val methodInformation: MethodInformation,
         private val functionConfig: FunctionConfig,
+        private val handlerInformation: HandlerInformation,
         nimbusState: NimbusState
 ) : Resource(nimbusState, functionConfig.stage) {
 
@@ -25,6 +28,14 @@ class FunctionResource(
 
     fun getIamRoleResource(): IamRoleResource {
         return iamRoleResource
+    }
+
+    fun addClient(client: ClientType) {
+        handlerInformation.usesClients.add(client)
+    }
+
+    fun addExtraDependency(classPath: String) {
+        handlerInformation.extraDependencies.add(classPath)
     }
 
     override fun getName(): String {
@@ -49,7 +60,11 @@ class FunctionResource(
         s3Bucket.addProperty("Ref", "NimbusDeploymentBucket")
 
         code.add("S3Bucket", s3Bucket)
-        code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${nimbusState.compilationTimeStamp}/lambdacode")
+        if (!nimbusState.assemble) {
+            code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${nimbusState.compilationTimeStamp}/lambdacode")
+        } else {
+            code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${nimbusState.compilationTimeStamp}/${handlerInformation.handlerFile}")
+        }
 
         properties.add("Code", code)
         properties.addProperty("FunctionName", functionName(nimbusState.projectName, methodInformation.className, methodInformation.methodName, functionConfig.stage))

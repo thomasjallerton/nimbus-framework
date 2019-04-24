@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbuscore.wrappers
 
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import java.io.File
 import java.io.PrintWriter
@@ -44,6 +45,22 @@ abstract class ServerlessFunctionFileBuilder(
         return true
     }
 
+    fun classFilePath(): String {
+        val className = getGeneratedClassName()
+        val packageName = findPackageName(methodInformation.packageName)
+        val packagePath = packageName.replace(".", File.separator)
+
+        return if (packageName.isEmpty()) {
+            className
+        } else {
+            "$packagePath${File.separator}$className"
+        }
+    }
+
+    fun handlerFile(): String {
+        return getGeneratedClassName() + ".jar"
+    }
+
     fun createClass() {
         if (!customFunction()) {
             try {
@@ -58,15 +75,6 @@ abstract class ServerlessFunctionFileBuilder(
                 out = PrintWriter(builderFile.openWriter())
 
                 val packageName = findPackageName(methodInformation.packageName)
-
-                val packagePath = packageName.replace(".", File.separator)
-                println("$packagePath $className")
-                val classFilePath = if (packageName.isEmpty()) {
-                    className
-                } else {
-                    "$packagePath${File.separator}$className"
-                }
-                nimbusState.handlerFiles.add(classFilePath)
 
                 if (packageName != "") write("package $packageName;")
 

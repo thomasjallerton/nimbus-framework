@@ -3,6 +3,7 @@ package com.nimbusframework.nimbuscore.annotation.services.useresources
 import com.nimbusframework.nimbuscore.annotation.annotations.function.UsesBasicServerlessFunctionClient
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.lang.model.element.Element
 
@@ -12,7 +13,10 @@ class UsesBasicServerlessFunctionClientHandler(
 ): UsesResourcesHandler {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
+
         for (usesBasicServerlessFunctionClient in serverlessMethod.getAnnotationsByType(UsesBasicServerlessFunctionClient::class.java)) {
+            functionResource.addClient(ClientType.BasicFunction)
+
             for (stage in usesBasicServerlessFunctionClient.stages) {
                 if (stage == functionResource.stage) {
 

@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotation.annotations.file.UsesFileStorag
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.cloudformation.resource.file.FileBucket
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.lang.model.element.Element
 
@@ -16,6 +17,8 @@ class UsesFileStorageClientHandler(
         val iamRoleResource = functionResource.getIamRoleResource()
 
         for (fileStorage in serverlessMethod.getAnnotationsByType(UsesFileStorageClient::class.java)) {
+            functionResource.addClient(ClientType.FileStorage)
+
             for (stage in fileStorage.stages) {
                 if (stage == functionResource.stage) {
 

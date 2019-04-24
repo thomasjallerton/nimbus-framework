@@ -8,6 +8,7 @@ import com.nimbusframework.nimbuscore.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbuscore.annotation.wrappers.annotations.datamodel.KeyValueStoreServerlessFunctionAnnotation
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.wrappers.store.keyvalue.KeyValueStoreServerlessFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -32,6 +33,8 @@ class KeyValueStoreFunctionResourceCreator(
 
         var fileWritten = false
         var handler = ""
+        var handlerInformation = HandlerInformation()
+
 
         for (keyValueStoreFunction in keyValueStoreFunctions) {
             val dataModelAnnotation = KeyValueStoreServerlessFunctionAnnotation(keyValueStoreFunction)
@@ -49,11 +52,19 @@ class KeyValueStoreFunctionResourceCreator(
                 handler = fileBuilder.getHandler()
                 fileBuilder.createClass()
                 fileWritten = true
+                handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
+
             }
 
             for (stage in keyValueStoreFunction.stages) {
                 val config = FunctionConfig(keyValueStoreFunction.timeout, keyValueStoreFunction.memory, stage)
-                val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
+
+                val functionResource = functionEnvironmentService.newFunction(
+                        handler,
+                        methodInformation,
+                        handlerInformation,
+                        config
+                )
 
                 val dynamoResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, type, stage)
 

@@ -6,6 +6,7 @@ import com.nimbusframework.nimbuscore.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionConfig
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.deployment.DeploymentFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
@@ -43,8 +44,16 @@ class AfterDeploymentResourceCreator(
                 val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
                 val updateResources = cloudFormationDocuments.updateResources
 
+                val handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
+
                 val config = FunctionConfig(300, 1024, stage)
-                val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
+
+                val functionResource = functionEnvironmentService.newFunction(
+                        handler,
+                        methodInformation,
+                        handlerInformation,
+                        config
+                )
 
                 val afterDeploymentList = nimbusState.afterDeployments.getOrPut(stage) { mutableListOf() }
                 afterDeploymentList.add(functionResource.getFunctionName())

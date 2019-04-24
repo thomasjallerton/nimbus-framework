@@ -2,6 +2,7 @@ package com.nimbusframework.nimbuscore.annotation.services.useresources
 
 import com.nimbusframework.nimbuscore.annotation.annotations.function.EnvironmentVariable
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbuscore.persisted.ClientType
 import javax.annotation.processing.Messager
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
@@ -12,6 +13,8 @@ class EnvironmentVariablesHandler(
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
         for (environmentVariable in serverlessMethod.getAnnotationsByType(EnvironmentVariable::class.java)) {
+            functionResource.addClient(ClientType.EnvironmentVariable)
+
             for (stage in environmentVariable.stages) {
                 if (stage == functionResource.stage) {
                     val envValue = handleEnvironmentVariable(environmentVariable.value)
