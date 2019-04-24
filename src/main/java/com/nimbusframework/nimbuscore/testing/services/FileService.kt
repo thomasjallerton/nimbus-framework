@@ -71,6 +71,7 @@ class FileService(
         }
 
         val newFile = File(tempPath + file.name)
+        newFile.parentFile.mkdirs()
         newFile.writeBytes(content.toByteArray(charset))
         return newFile
     }
