@@ -7,6 +7,7 @@ import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentSer
 import com.nimbusframework.nimbuscore.annotation.wrappers.annotations.datamodel.DocumentStoreServerlessFunctionAnnotation
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionConfig
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.store.document.DocumentStoreServerlessFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
@@ -31,6 +32,8 @@ class DocumentStoreFunctionResourceCreator(
 
         var fileWritten = false
         var handler = ""
+        var handlerInformation = HandlerInformation()
+
 
         for (documentStoreFunction in documentStoreFunctions) {
             val dataModelAnnotation = DocumentStoreServerlessFunctionAnnotation(documentStoreFunction)
@@ -48,11 +51,18 @@ class DocumentStoreFunctionResourceCreator(
                 handler = fileBuilder.getHandler()
                 fileBuilder.createClass()
                 fileWritten = true
+                handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
+
             }
 
             for (stage in documentStoreFunction.stages) {
                 val config = FunctionConfig(documentStoreFunction.timeout, documentStoreFunction.memory, stage)
-                val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
+                val functionResource = functionEnvironmentService.newFunction(
+                        handler,
+                        methodInformation,
+                        handlerInformation,
+                        config
+                )
 
                 val dynamoResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, type, stage)
 

@@ -7,6 +7,7 @@ import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionC
 import com.nimbusframework.nimbuscore.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.wrappers.queue.QueueServerlessFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -39,7 +40,14 @@ class QueueFunctionResourceCreator(
         for (queueFunction in queueFunctions) {
             for (stage in queueFunction.stages) {
                 val config = FunctionConfig(queueFunction.timeout, queueFunction.memory, stage)
-                val functionResource = functionEnvironmentService.newFunction(fileBuilder.getHandler(), methodInformation, config)
+                val handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
+
+                val functionResource = functionEnvironmentService.newFunction(
+                        fileBuilder.getHandler(),
+                        methodInformation,
+                        handlerInformation,
+                        config
+                )
 
                 val newQueue = functionEnvironmentService.newQueue(queueFunction, functionResource)
 

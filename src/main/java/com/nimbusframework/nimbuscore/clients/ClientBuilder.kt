@@ -3,36 +3,52 @@ package com.nimbusframework.nimbuscore.clients
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClientDynamo
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClientLocal
+import com.nimbusframework.nimbuscore.clients.document.EmptyDocumentStoreClient
+import com.nimbusframework.nimbuscore.clients.file.EmptyFileStorageClient
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClientLocal
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClientS3
 import com.nimbusframework.nimbuscore.clients.function.*
+import com.nimbusframework.nimbuscore.clients.keyvalue.EmptyKeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClientDynamo
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClientLocal
+import com.nimbusframework.nimbuscore.clients.notification.EmptyNotificationClient
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClientLocal
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClientSNS
+import com.nimbusframework.nimbuscore.clients.queue.EmptyQueueClient
 import com.nimbusframework.nimbuscore.clients.queue.QueueClient
-import com.nimbusframework.nimbuscore.clients.queue.QueueClientSQS
 import com.nimbusframework.nimbuscore.clients.queue.QueueClientLocal
+import com.nimbusframework.nimbuscore.clients.queue.QueueClientSQS
 import com.nimbusframework.nimbuscore.clients.rdbms.DatabaseClient
 import com.nimbusframework.nimbuscore.clients.rdbms.DatabaseClientLocal
 import com.nimbusframework.nimbuscore.clients.rdbms.DatabaseClientRds
+import com.nimbusframework.nimbuscore.clients.rdbms.EmptyDatabaseClient
+import com.nimbusframework.nimbuscore.clients.websocket.EmptyServerlessFunctionWebSocketClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClientApiGateway
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebsocketClientLocal
 
+//Need to ensure that the only dependencies are clients, for the assumption made in the assembly
+
 object ClientBuilder {
 
     var isLocalDeployment = false
+
 
     @JvmStatic
     fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>): KeyValueStoreClient<K, V> {
         return if (isLocalDeployment) {
             KeyValueStoreClientLocal(value)
         } else {
-            KeyValueStoreClientDynamo(key, value, getStage())
+            try {
+                KeyValueStoreClientDynamo(key, value, getStage())
+            } catch (e: ClassNotFoundException) {
+                EmptyKeyValueStoreClient<K, V>()
+            } catch (e: NoClassDefFoundError) {
+                EmptyKeyValueStoreClient<K, V>()
+            }
         }
     }
 
@@ -41,7 +57,13 @@ object ClientBuilder {
         return if (isLocalDeployment) {
             DocumentStoreClientLocal(document)
         } else {
-            DocumentStoreClientDynamo(document, getStage())
+            try {
+                DocumentStoreClientDynamo(document, getStage())
+            } catch (e: ClassNotFoundException) {
+                EmptyDocumentStoreClient<T>()
+            } catch (e: NoClassDefFoundError) {
+                EmptyDocumentStoreClient<T>()
+            }
         }
     }
 
@@ -50,7 +72,13 @@ object ClientBuilder {
         return if (isLocalDeployment) {
             QueueClientLocal(id)
         } else {
-            QueueClientSQS(id)
+            try {
+                QueueClientSQS(id)
+            } catch (e: ClassNotFoundException) {
+                EmptyQueueClient()
+            } catch (e: NoClassDefFoundError) {
+                EmptyQueueClient()
+            }
         }
     }
 
@@ -59,7 +87,13 @@ object ClientBuilder {
         return if (isLocalDeployment) {
             DatabaseClientLocal(databaseObject)
         } else {
-            DatabaseClientRds(databaseObject)
+            try {
+                DatabaseClientRds(databaseObject)
+            } catch (e: ClassNotFoundException) {
+                EmptyDatabaseClient()
+            } catch (e: NoClassDefFoundError) {
+                EmptyDatabaseClient()
+            }
         }
     }
 
@@ -68,7 +102,13 @@ object ClientBuilder {
         return if (isLocalDeployment) {
             EnvironmentVariableClientLocal()
         } else {
-            EnvironmentVariableClientLambda()
+            try {
+                EnvironmentVariableClientLambda()
+            } catch (e: ClassNotFoundException) {
+                EmptyEnvironmentVariableClient()
+            } catch (e: NoClassDefFoundError) {
+                EmptyEnvironmentVariableClient()
+            }
         }
     }
 
@@ -78,7 +118,13 @@ object ClientBuilder {
         return if (isLocalDeployment) {
             NotificationClientLocal(topic)
         } else {
-            NotificationClientSNS(topic)
+            try {
+                NotificationClientSNS(topic)
+            } catch (e: ClassNotFoundException) {
+                EmptyNotificationClient()
+            } catch (e: NoClassDefFoundError) {
+                EmptyNotificationClient()
+            }
         }
     }
 
@@ -87,7 +133,13 @@ object ClientBuilder {
         return if (isLocalDeployment) {
             BasicServerlessFunctionClientLocal()
         } else {
-            BasicServerlessFunctionClientLambda()
+            try {
+                BasicServerlessFunctionClientLambda()
+            } catch (e: ClassNotFoundException) {
+                EmptyBasicServerlessFunctionClient()
+            } catch (e: NoClassDefFoundError) {
+                EmptyBasicServerlessFunctionClient()
+            }
         }
     }
 
@@ -96,7 +148,13 @@ object ClientBuilder {
         return if (isLocalDeployment) {
             FileStorageClientLocal(bucketName)
         } else {
-            FileStorageClientS3(bucketName + getStage())
+            try {
+                FileStorageClientS3(bucketName + getStage())
+            } catch (e: ClassNotFoundException) {
+                EmptyFileStorageClient()
+            } catch (e: NoClassDefFoundError) {
+                EmptyFileStorageClient()
+            }
         }
     }
 
@@ -105,7 +163,13 @@ object ClientBuilder {
         return if (isLocalDeployment) {
             ServerlessFunctionWebsocketClientLocal()
         } else {
-            ServerlessFunctionWebSocketClientApiGateway()
+            try {
+                ServerlessFunctionWebSocketClientApiGateway()
+            } catch (e: ClassNotFoundException) {
+                EmptyServerlessFunctionWebSocketClient()
+            } catch (e: NoClassDefFoundError) {
+                EmptyServerlessFunctionWebSocketClient()
+            }
         }
     }
 

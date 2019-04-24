@@ -59,8 +59,8 @@ public class ProjectDatabase {
 
     @AfterDeployment
     @UsesRelationalDatabase(dataModel = ProjectDatabase.class)
-    private String migrationSchema()  {
-        DatabaseClient databaseClient = ClientBuilder.getRelationalDatabase(ProjectDatabase.class);
+    public String migrationSchema()  {
+        DatabaseClient databaseClient = ClientBuilder.getDatabaseClient(ProjectDatabase.class);
         Connection connection = databaseClient.getConnection();
 
         try {

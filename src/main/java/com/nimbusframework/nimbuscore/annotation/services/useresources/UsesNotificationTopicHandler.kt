@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotation.annotations.notification.UsesNo
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.cloudformation.resource.notification.SnsTopicResource
+import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -21,6 +22,8 @@ class UsesNotificationTopicHandler(
         val iamRoleResource = functionResource.getIamRoleResource()
 
         for (notificationTopic in serverlessMethod.getAnnotationsByType(UsesNotificationTopic::class.java)) {
+            functionResource.addClient(ClientType.Notification)
+
             for (stage in notificationTopic.stages) {
                 if (stage == functionResource.stage) {
 

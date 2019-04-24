@@ -7,6 +7,7 @@ import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentSer
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionConfig
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.wrappers.basic.BasicServerlessFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -45,9 +46,15 @@ class BasicFunctionResourceCreator(
                 val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
                 val updateResources = cloudFormationDocuments.updateResources
 
+                val handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
 
                 val config = FunctionConfig(basicFunction.timeout, basicFunction.memory, stage)
-                val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
+                val functionResource = functionEnvironmentService.newFunction(
+                        handler,
+                        methodInformation,
+                        handlerInformation,
+                        config
+                )
 
                 //Configure cron if necessary
                 if (basicFunction.cron != "") {

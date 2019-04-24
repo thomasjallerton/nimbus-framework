@@ -6,6 +6,7 @@ import com.nimbusframework.nimbuscore.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionConfig
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.file.FileStorageServerlessFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
@@ -39,7 +40,14 @@ class FileStorageResourceCreator(
         for (fileStorageFunction in fileStorageFunctions) {
             for (stage in fileStorageFunction.stages) {
                 val config = FunctionConfig(fileStorageFunction.timeout, fileStorageFunction.memory, stage)
-                val functionResource = functionEnvironmentService.newFunction(fileStorageFileBuilder.getHandler(), methodInformation, config)
+                val handlerInformation = HandlerInformation(handlerClassPath = fileStorageFileBuilder.classFilePath(), handlerFile = fileStorageFileBuilder.handlerFile())
+
+                val functionResource = functionEnvironmentService.newFunction(
+                        fileStorageFileBuilder.getHandler(),
+                        methodInformation,
+                        handlerInformation,
+                        config
+                )
 
                 functionEnvironmentService.newFileTrigger(fileStorageFunction.bucketName, fileStorageFunction.eventType, functionResource)
 

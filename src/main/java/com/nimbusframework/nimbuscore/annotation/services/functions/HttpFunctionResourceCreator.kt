@@ -7,6 +7,7 @@ import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionC
 import com.nimbusframework.nimbuscore.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.wrappers.http.HttpServerlessFunctionFileBuilder
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -42,8 +43,15 @@ class HttpFunctionResourceCreator(
             for (stage in httpFunction.stages) {
                 val handler = fileBuilder.getHandler()
 
+                val handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
+
                 val config = FunctionConfig(httpFunction.timeout, httpFunction.memory, stage)
-                val functionResource = functionEnvironmentService.newFunction(handler, methodInformation, config)
+                val functionResource = functionEnvironmentService.newFunction(
+                        handler,
+                        methodInformation,
+                        handlerInformation,
+                        config
+                )
 
                 functionEnvironmentService.newHttpMethod(httpFunction, functionResource)
 

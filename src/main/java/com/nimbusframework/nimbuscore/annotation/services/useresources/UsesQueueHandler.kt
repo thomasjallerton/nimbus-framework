@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotation.annotations.queue.UsesQueue
 import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.cloudformation.resource.queue.QueueResource
+import com.nimbusframework.nimbuscore.persisted.ClientType
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
@@ -19,6 +20,8 @@ class UsesQueueHandler(
         val iamRoleResource = functionResource.getIamRoleResource()
 
         for (usesQueue in serverlessMethod.getAnnotationsByType(UsesQueue::class.java)) {
+            functionResource.addClient(ClientType.Queue)
+
             for (stage in usesQueue.stages) {
                 if (stage == functionResource.stage) {
 

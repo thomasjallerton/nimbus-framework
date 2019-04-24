@@ -27,6 +27,7 @@ import com.nimbusframework.nimbuscore.cloudformation.resource.queue.QueueResourc
 import com.nimbusframework.nimbuscore.cloudformation.resource.websocket.*
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbuscore.persisted.ExportInformation
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 
 class FunctionEnvironmentService(
@@ -35,8 +36,10 @@ class FunctionEnvironmentService(
 ) {
 
 
-    fun newFunction(handler: String, methodInformation: MethodInformation, functionConfig: FunctionConfig): FunctionResource {
-        val function = FunctionResource(handler, methodInformation, functionConfig, nimbusState)
+    fun newFunction(handler: String, methodInformation: MethodInformation, handlerInformation: HandlerInformation, functionConfig: FunctionConfig): FunctionResource {
+        nimbusState.handlerFiles.add(handlerInformation)
+
+        val function = FunctionResource(handler, methodInformation, functionConfig, handlerInformation, nimbusState)
         val logGroup = LogGroupResource(methodInformation.className, methodInformation.methodName, function, nimbusState, functionConfig.stage)
         val bucket = NimbusBucketResource(nimbusState, functionConfig.stage)
 
