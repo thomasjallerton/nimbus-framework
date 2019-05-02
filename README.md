@@ -22,6 +22,7 @@ Next the deployment plugin needs to be added. Currently only AWS is supported, s
     <version>0.3</version>
     <configuration>
         <region>eu-west-1</region>
+        <compiledSourcePath>target/generated-sources/annotations/</compiledSourcePath>
     </configuration>
 </plugin>
 ```
@@ -39,7 +40,7 @@ You also need to use the maven shade plugin to package your project into a shade
                 <goal>shade</goal>
             </goals>
             <configuration>
-                <outputFile>target/lambda.jar</outputFile>
+                <outputFile>target/functions.jar</outputFile>
             </configuration>
         </execution>
     </executions>
@@ -59,7 +60,7 @@ Caution: projectName needs to be alphanumeric.
 
 * `stage` - The project stage that will be deployed to
 
-* `shadedJarPath` - The location where the shaded jar is found. Defaults to `target/lambda.jar`. 
+* `shadedJarPath` - The location where the shaded jar is found. Defaults to `target/functions.jar`. 
 
 * `compiledSourcePath` - The location where compiled nimbus files are found. This will be in the compiled annotation sources. Defaults to `target/generated-sources/annotations/` (Correct for default java projects, for other languages will likely change)
 
