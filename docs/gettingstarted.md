@@ -25,6 +25,7 @@ Next the deployment plugin needs to be added. Currently only AWS is supported, s
     <version>0.3</version>
     <configuration>
         <region>eu-west-1</region>
+        <compiledSourcePath>target/generated-sources/annotations/</compiledSourcePath>
     </configuration>
 </plugin>
 ```
