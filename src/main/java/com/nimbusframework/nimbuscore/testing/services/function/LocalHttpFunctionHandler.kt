@@ -39,7 +39,7 @@ class LocalHttpFunctionHandler(
                 }
                 localResourceHolder.methods[functionIdentifier] = httpMethod
 
-                val lambdaWebserver = localResourceHolder.webservers.getOrPut(functionWebserverIdentifier) {
+                val lambdaWebserver = localResourceHolder.httpServers.getOrPut(functionWebserverIdentifier) {
                     variableSubstitution["\${NIMBUS_REST_API_URL}"] = "http://localhost:$httpPort/$functionWebserverIdentifier"
                     WebserverHandler("", "")
                 }

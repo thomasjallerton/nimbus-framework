@@ -9,7 +9,6 @@ import com.nimbusframework.nimbuscore.testing.document.LocalDocumentStore
 import com.nimbusframework.nimbuscore.testing.file.LocalFileStorage
 import com.nimbusframework.nimbuscore.testing.function.FunctionEnvironment
 import com.nimbusframework.nimbuscore.testing.function.FunctionIdentifier
-import com.nimbusframework.nimbuscore.testing.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuscore.testing.http.HttpRequest
 import com.nimbusframework.nimbuscore.testing.keyvalue.LocalKeyValueStore
 import com.nimbusframework.nimbuscore.testing.notification.LocalNotificationTopic
@@ -19,7 +18,6 @@ import com.nimbusframework.nimbuscore.testing.services.LocalResourceHolder
 import com.nimbusframework.nimbuscore.testing.services.function.*
 import com.nimbusframework.nimbuscore.testing.services.resource.*
 import com.nimbusframework.nimbuscore.testing.services.usesresources.*
-import com.nimbusframework.nimbuscore.testing.webserver.LocalWebserver
 import com.nimbusframework.nimbuscore.testing.webserver.WebserverHandler
 import com.nimbusframework.nimbuscore.testing.websocket.WebSocketRequest
 import com.nimbusframework.nimbuscore.wrappers.websocket.models.RequestContext
@@ -162,7 +160,7 @@ class LocalNimbusDeployment {
 
 
     internal fun getLocalHandler(bucketName: String): WebserverHandler? {
-        return localResourceHolder.webservers[bucketName]
+        return localResourceHolder.httpServers[bucketName]
     }
 
     internal fun getWebSocketSessions(): Map<String, Session> {
@@ -184,39 +182,58 @@ class LocalNimbusDeployment {
     fun startAllServers() {
         localResourceHolder.webSocketServer.setup(webSocketPort)
         localResourceHolder.webSocketServer.startWithoutJoin()
-        startAllWebservers()
+        startAllHttpServers()
     }
 
-    fun startWebserver(bucketName: String) {
-        val localWebservers = localResourceHolder.webservers
-        if (localWebservers.containsKey(bucketName)) {
-            val handler = localWebservers[bucketName]!!
-            val webserver = LocalWebserver()
-            webserver.handler.addResource(bucketName, handler)
-            webserver.startServer(httpPort)
+    fun startAllServersAsync() {
+        localResourceHolder.webSocketServer.setup(webSocketPort)
+        localResourceHolder.webSocketServer.startWithoutJoin()
+        startAllHttpServersAsync()
+    }
+
+    fun stopAllServers() {
+        localResourceHolder.webSocketServer.stop()
+        localResourceHolder.httpServer.stopServer()
+    }
+
+    fun startFileBucketHttpServer(bucketName: String) {
+        val localHttpServers = localResourceHolder.httpServers
+        if (localHttpServers.containsKey(bucketName)) {
+            val handler = localHttpServers[bucketName]!!
+            val httpServer = localResourceHolder.httpServer
+            httpServer.handler.addResource(bucketName, handler)
+            httpServer.startServer(httpPort)
         } else {
             throw ResourceNotFoundException()
         }
     }
 
     fun startServerlessFunctionWebserver() {
-        val localWebservers = localResourceHolder.webservers
-        if (localWebservers.containsKey(Companion.functionWebserverIdentifier)) {
-            val handler = localWebservers[Companion.functionWebserverIdentifier]!!
-            val webserver = LocalWebserver()
-            webserver.handler.addResource(Companion.functionWebserverIdentifier, handler)
-            webserver.startServer(httpPort)
+        val localHttpServers = localResourceHolder.httpServers
+        if (localHttpServers.containsKey(functionWebserverIdentifier)) {
+            val handler = localHttpServers[functionWebserverIdentifier]!!
+            val httpServer = localResourceHolder.httpServer
+            httpServer.handler.addResource(functionWebserverIdentifier, handler)
+            httpServer.startServer(httpPort)
         } else {
             throw ResourceNotFoundException()
         }
     }
 
-    fun startAllWebservers() {
-        val allResourcesWebserver = LocalWebserver()
-        for ((identifier, handler) in localResourceHolder.webservers) {
-            allResourcesWebserver.handler.addResource(identifier, handler)
+    fun startAllHttpServers() {
+        val allResourcesHttpServer = localResourceHolder.httpServer
+        for ((identifier, handler) in localResourceHolder.httpServers) {
+            allResourcesHttpServer.handler.addResource(identifier, handler)
         }
-        allResourcesWebserver.startServer(httpPort)
+        allResourcesHttpServer.startServer(httpPort)
+    }
+
+    private fun startAllHttpServersAsync() {
+        val allResourcesHttpServer = localResourceHolder.httpServer
+        for ((identifier, handler) in localResourceHolder.httpServers) {
+            allResourcesHttpServer.handler.addResource(identifier, handler)
+        }
+        allResourcesHttpServer.startServerWithoutJoin(httpPort)
     }
 
 

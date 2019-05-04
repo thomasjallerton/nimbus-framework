@@ -12,6 +12,7 @@ import com.nimbusframework.nimbuscore.testing.http.LocalHttpMethod
 import com.nimbusframework.nimbuscore.testing.keyvalue.LocalKeyValueStore
 import com.nimbusframework.nimbuscore.testing.notification.LocalNotificationTopic
 import com.nimbusframework.nimbuscore.testing.queue.LocalQueue
+import com.nimbusframework.nimbuscore.testing.webserver.LocalHttpServer
 import com.nimbusframework.nimbuscore.testing.webserver.WebserverHandler
 import com.nimbusframework.nimbuscore.testing.websocket.LocalWebsocketMethod
 import com.nimbusframework.nimbuscore.testing.websocketserver.LocalWebSocketServer
@@ -34,8 +35,9 @@ class LocalResourceHolder {
 
     val functionEnvironments: MutableMap<FunctionIdentifier, FunctionEnvironment> = mutableMapOf()
 
-    val webservers: MutableMap<String, WebserverHandler> = mutableMapOf()
+    val httpServers: MutableMap<String, WebserverHandler> = mutableMapOf()
     val webSocketSessions: MutableMap<String, Session> = mutableMapOf()
     val webSocketServer = LocalWebSocketServer(webSocketSessions)
+    val httpServer = LocalHttpServer()
 
 }

@@ -5,8 +5,6 @@ import com.nimbusframework.nimbuscore.annotation.annotations.file.FileStorageBuc
 import com.nimbusframework.nimbuscore.annotation.annotations.file.UsesFileStorageClient
 import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
 import com.nimbusframework.nimbuscore.testing.file.LocalFileStorage
-import com.nimbusframework.nimbuscore.testing.function.PermissionType
-import com.nimbusframework.nimbuscore.testing.function.permissions.FileStoragePermission
 import com.nimbusframework.nimbuscore.testing.services.LocalResourceHolder
 import com.nimbusframework.nimbuscore.testing.webserver.WebserverHandler
 
@@ -20,7 +18,7 @@ class LocalFileStorageCreator(
 
     override fun createResource(clazz: Class<out Any>) {
         val fileStorageBuckets = clazz.getAnnotationsByType(FileStorageBucket::class.java)
-        val localWebservers = localResourceHolder.webservers
+        val localWebservers = localResourceHolder.httpServers
 
         for (fileStorageBucket in fileStorageBuckets) {
             if (fileStorageBucket.stages.contains(stage)) {
