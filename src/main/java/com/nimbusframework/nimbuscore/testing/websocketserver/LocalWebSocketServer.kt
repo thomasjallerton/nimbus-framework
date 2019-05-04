@@ -11,33 +11,42 @@ class LocalWebSocketServer(
         private val sessions: MutableMap<String, Session>
 ) {
 
-    private val server: Server = Server()
+    private var server: Server? = null
     private var connectMethod: LocalWebsocketMethod? = null
     private var disconnectMethod: LocalWebsocketMethod? = null
     private val topics: MutableMap<String, LocalWebsocketMethod> = mutableMapOf()
 
     fun setup(port: Int) {
-        val connector = ServerConnector(server)
+        val newServer = Server()
+        val connector = ServerConnector(newServer)
+
         connector.port = port
-        server.addConnector(connector)
+        newServer.addConnector(connector)
 
         val handler = ServletContextHandler(ServletContextHandler.SESSIONS)
         handler.contextPath = "/"
-        server.handler = handler
+        newServer.handler = handler
 
         val servletHolder = ServletHolder()
         servletHolder.servlet = WebSocketServlet(connectMethod, disconnectMethod, topics, sessions)
 
         handler.addServlet(servletHolder, "")
+
+        server = newServer
     }
 
     fun start() {
-        server.start()
-        server.join()
+        server?.start()
+        server?.join()
+    }
+
+    fun stop() {
+        server?.stop()
+        server = null
     }
 
     fun startWithoutJoin() {
-        server.start()
+        server?.start()
     }
 
     fun addTopic(topic: String, method: LocalWebsocketMethod) {
