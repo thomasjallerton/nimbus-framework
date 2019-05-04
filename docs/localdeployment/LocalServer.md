@@ -29,23 +29,25 @@ class TestRestHandlers {
     public void testStorePersonPutsItemIntoStore() {
         LocalNimbusDeployment localNimbusDeployment = LocalNimbusDeployment.getNewInstance(RestHandlers.class);
         
-        localNimbusDeployment.startAllWebservers();
+        localNimbusDeployment.startAllHttpServers();
     }
 }
 ```
 
-This will start up a webserver, accessible at `http://localhost:8080`. The endpoint for this function will be `http://localhost:8080/function/testEndpoint`.
+This will start up a http server, accessible at `http://localhost:8080`. The endpoint for this function will be `http://localhost:8080/function/testEndpoint`.
 
 ## LocalNimbusDeployment Methods for Local Servers
 * `void startWebSocketServer()` - Starts a WebSocket server on the port specified in the constructor, or default 8081. Blocking call.
 
-* `void startWebserver(String bucketName)` - Starts a HTTP server on the port specified in the constructor, or default 8080. Only hosts the static website that is held in the file storage bucket specified by bucketName. Blocking call.
+* `void startFileBucketHttpServer(String bucketName)` - Starts a HTTP server on the port specified in the constructor, or default 8080. Only hosts the static website that is held in the file storage bucket specified by bucketName. Blocking call.
 
 * `void startServerlessFunctionWebserver()` - Starts a HTTP server on the port specified in the constructor, or default 8080. Only hosts endpoints specified by `@HttpServerlessFunction`. Blocking call.
 
-* `void startAllWebservers()` - Starts a HTTP server on the port specified in the constructor, or default 8080. Hosts both static websites from file storage buckets and serverless functions. Blocking call.
+* `void startAllHttpServers()` - Starts a HTTP server on the port specified in the constructor, or default 8080. Hosts both static websites from file storage buckets and serverless functions. Blocking call.
     
 * `startAllServers()` - Starts two servers, HTTP on 8080 (or the port specified in constructor) and WebSocket on 8081 (or the port specified in the constructor). For the HTTP will hosts both static websites from file storage buckets and serverless functions. Blocking call.
+
+* `startAllServersAsync` - Starts two servers, HTTP on 8080 (or the port specified in constructor) and WebSocket on 8081 (or the port specified in the constructor). For the HTTP will hosts both static websites from file storage buckets and serverless functions. Non-blocking call.
 
 ## Endpoint Specification
 ### HTTP
