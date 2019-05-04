@@ -4,7 +4,7 @@
 
     <groupId>com.nimbusframework</groupId>
     <artifactId>nimbus-core</artifactId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.7</version>
     <packaging>jar</packaging>
 
     <name>Nimbus core</name>
@@ -32,7 +32,7 @@
         <connection>scm:git:git://github.com/thomasjallerton/nimbus-core.git</connection>
         <developerConnection>scm:git:ssh://github.com:thomasjallerton/nimbus-core.git</developerConnection>
         <url>http://github.com/thomasjallerton/nimbus-core/tree/master</url>
-        <tag>HEAD</tag>
+        <tag>nimbus-core-0.7</tag>
     </scm>
 
     <distributionManagement>
