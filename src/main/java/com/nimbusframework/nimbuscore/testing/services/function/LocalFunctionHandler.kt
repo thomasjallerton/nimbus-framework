@@ -9,15 +9,15 @@ abstract class LocalFunctionHandler(
         private val localResourceHolder: LocalResourceHolder
 ) {
 
-    protected abstract fun handleMethod(clazz: Class<out Any>, method: Method)
+    protected abstract fun handleMethod(clazz: Class<out Any>, method: Method): Boolean
 
     fun createLocalFunctions(clazz: Class<out Any>, method: Method) {
         val functionIdentifier = FunctionIdentifier(clazz.name, method.name)
-        if (!localResourceHolder.functionEnvironments.containsKey(functionIdentifier)) {
-            localResourceHolder.functionEnvironments[functionIdentifier] = FunctionEnvironment()
+        if (handleMethod(clazz, method)) {
+            if (!localResourceHolder.functionEnvironments.containsKey(functionIdentifier)) {
+                localResourceHolder.functionEnvironments[functionIdentifier] = FunctionEnvironment()
+            }
         }
-
-        handleMethod(clazz, method)
     }
 
 }

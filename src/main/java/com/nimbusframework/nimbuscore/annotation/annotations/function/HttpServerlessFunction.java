@@ -13,5 +13,7 @@ public @interface HttpServerlessFunction {
     String path();
     int timeout() default 10;
     int memory() default 1024;
+    String allowedCorsOrigin() default "";
+    String[] allowedCorsHeaders() default {};
     String[] stages() default {NimbusConstants.stage};
 }

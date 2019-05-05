@@ -13,10 +13,12 @@ class LocalKeyValueStoreFunctionHandler(
         private val stage: String
 ) : LocalFunctionHandler(localResourceHolder) {
 
-    override fun handleMethod(clazz: Class<out Any>, method: Method) {
+    override fun handleMethod(clazz: Class<out Any>, method: Method): Boolean {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
 
         val keyValueFunctions = method.getAnnotationsByType(KeyValueStoreServerlessFunction::class.java)
+        if (keyValueFunctions.isEmpty()) return false
+
 
         for (keyValueFunction in keyValueFunctions) {
             if (keyValueFunction.stages.contains(stage)) {
@@ -29,5 +31,6 @@ class LocalKeyValueStoreFunctionHandler(
                 keyValueStore?.addMethod(documentMethod)
             }
         }
+        return true
     }
 }

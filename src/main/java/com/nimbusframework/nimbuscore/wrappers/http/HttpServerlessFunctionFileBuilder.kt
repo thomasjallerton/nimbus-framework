@@ -14,7 +14,7 @@ class HttpServerlessFunctionFileBuilder(
         methodInformation: MethodInformation,
         compilingElement: Element,
         nimbusState: NimbusState
-): ServerlessFunctionFileBuilder(
+) : ServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         HttpServerlessFunction::class.java.simpleName,
@@ -55,6 +55,7 @@ class HttpServerlessFunctionFileBuilder(
             write("} catch (Exception e) {")
             write("e.printStackTrace();")
             write("HttpResponse response = new HttpResponse().withStatusCode(500).withBody(\"{\\\"message\\\":\\\"JSON parsing error\\\"}\");")
+            addCorsHeader("response")
             write("String responseString = objectMapper.writeValueAsString(response);")
             write("PrintWriter writer = new PrintWriter(output);")
             write("writer.print(responseString);")
@@ -86,13 +87,14 @@ class HttpServerlessFunctionFileBuilder(
     override fun writeOutput() {
         if (methodInformation.returnType.toString() != HttpResponse::class.qualifiedName) {
             write("HttpResponse response = new HttpResponse();")
-
+            addCorsHeader("response")
             if (methodInformation.returnType.toString() != "void") {
                 write("String resultString = objectMapper.writeValueAsString(result);")
                 write("response.setBody(resultString);")
             }
         } else {
             write("HttpResponse response = result;")
+            addCorsHeader("response")
         }
 
         write("String responseString = objectMapper.writeValueAsString(response);")
@@ -107,6 +109,7 @@ class HttpServerlessFunctionFileBuilder(
 
         write("try {")
         write("HttpResponse errorResponse = HttpResponse.Companion.serverErrorResponse();")
+        addCorsHeader("errorResponse")
         write("String responseString = objectMapper.writeValueAsString(errorResponse);")
 
         write("PrintWriter writer = new PrintWriter(output);")
@@ -116,6 +119,15 @@ class HttpServerlessFunctionFileBuilder(
 
         write("} catch (IOException e2) {")
         write("e2.printStackTrace();")
+        write("}")
+    }
+
+    private fun addCorsHeader(variableName: String) {
+        write("if (!$variableName.getHeaders().containsKey(\"Access-Control-Allow-Origin\")) {")
+        write("String allowedCorsOrigin = System.getenv(\"NIMBUS_ALLOWED_CORS_ORIGIN\");")
+        write("if (allowedCorsOrigin != null && !allowedCorsOrigin.equals(\"\")) {")
+        write("$variableName.getHeaders().put(\"Access-Control-Allow-Origin\", allowedCorsOrigin);")
+        write("}")
         write("}")
     }
 }

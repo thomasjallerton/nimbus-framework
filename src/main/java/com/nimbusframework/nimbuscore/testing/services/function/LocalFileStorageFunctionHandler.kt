@@ -12,10 +12,11 @@ class LocalFileStorageFunctionHandler(
         private val stage: String
 ) : LocalFunctionHandler(localResourceHolder) {
 
-    override fun handleMethod(clazz: Class<out Any>, method: Method) {
+    override fun handleMethod(clazz: Class<out Any>, method: Method): Boolean {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
 
         val fileStorageFunctions = method.getAnnotationsByType(FileStorageServerlessFunction::class.java)
+        if (fileStorageFunctions.isEmpty()) return false
 
         val fileStorage = localResourceHolder.fileStorage
         val methods = localResourceHolder.methods
@@ -33,6 +34,7 @@ class LocalFileStorageFunctionHandler(
                 methods[functionIdentifier] = fileStorageMethod
             }
         }
+        return true
     }
 
 }

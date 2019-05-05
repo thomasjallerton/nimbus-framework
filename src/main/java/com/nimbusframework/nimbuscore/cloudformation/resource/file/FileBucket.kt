@@ -5,11 +5,14 @@ import com.nimbusframework.nimbuscore.cloudformation.resource.Resource
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionTrigger
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpMethod
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 
 class FileBucket(
         nimbusState: NimbusState,
-        private val name: String,
+        val annotationBucketName: String,
+        private val allowedCorsOrigins: Array<String>,
+        private val allowedCorsMethods: Array<HttpMethod>,
         stage: String
 ): Resource(nimbusState, stage), FunctionTrigger {
 
@@ -34,7 +37,7 @@ class FileBucket(
         return joinJson("", values)
     }
 
-    private val bucketName: String = "$name$stage".toLowerCase()
+    private val bucketName: String = "$annotationBucketName$stage".toLowerCase()
     private val notificationConfiguration: NotificationConfiguration = NotificationConfiguration()
     private var websiteConfiguration: WebsiteConfiguration = WebsiteConfiguration()
 
@@ -50,6 +53,13 @@ class FileBucket(
         if (hasWebsiteConfiguration && websiteConfiguration.enabled) {
             properties.addProperty("AccessControl", "PublicRead")
             properties.add("WebsiteConfiguration", websiteConfiguration.toJson())
+            if (allowedCorsMethods.isNotEmpty() && allowedCorsOrigins.isNotEmpty()) {
+                val corsConfiguration = CorsConfiguration(
+                        allowedCorsOrigins,
+                        allowedCorsMethods
+                )
+                properties.add("CorsConfiguration", corsConfiguration.toJson())
+            }
         }
 
         properties.addProperty("BucketName", bucketName)
@@ -61,7 +71,7 @@ class FileBucket(
     }
 
     override fun getName(): String {
-        return "${nimbusState.projectName}${name}FileBucket"
+        return "${nimbusState.projectName}${annotationBucketName}FileBucket"
     }
 
     fun addLambdaConfiguration(lambdaConfiguration: LambdaConfiguration) {

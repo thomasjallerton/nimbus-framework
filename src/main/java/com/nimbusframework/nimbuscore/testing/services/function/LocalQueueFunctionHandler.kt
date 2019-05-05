@@ -12,10 +12,11 @@ class LocalQueueFunctionHandler(
         private val stage: String
 ) : LocalFunctionHandler(localResourceHolder) {
 
-    override fun handleMethod(clazz: Class<out Any>, method: Method) {
+    override fun handleMethod(clazz: Class<out Any>, method: Method): Boolean {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
 
         val queueServerlessFunctions = method.getAnnotationsByType(QueueServerlessFunction::class.java)
+        if (queueServerlessFunctions.isEmpty()) return false
 
         for (queueFunction in queueServerlessFunctions) {
             if (queueFunction.stages.contains(stage)) {
@@ -27,6 +28,7 @@ class LocalQueueFunctionHandler(
                 localResourceHolder.methods[functionIdentifier] = queueMethod
             }
         }
+        return true
     }
 
 }

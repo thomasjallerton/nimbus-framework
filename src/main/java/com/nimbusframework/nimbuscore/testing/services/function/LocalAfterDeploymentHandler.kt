@@ -10,8 +10,9 @@ class LocalAfterDeploymentHandler(
         private val stage: String
 ) : LocalFunctionHandler(localResourceHolder) {
 
-    override fun handleMethod(clazz: Class<out Any>, method: Method) {
+    override fun handleMethod(clazz: Class<out Any>, method: Method): Boolean {
         val afterDeployments = method.getAnnotationsByType(AfterDeployment::class.java)
+        if (afterDeployments.isEmpty()) return false
 
         for (afterDeployment in afterDeployments) {
             if (afterDeployment.stages.contains(stage)) {
@@ -24,6 +25,7 @@ class LocalAfterDeploymentHandler(
                 }
             }
         }
+        return true
     }
 
 }

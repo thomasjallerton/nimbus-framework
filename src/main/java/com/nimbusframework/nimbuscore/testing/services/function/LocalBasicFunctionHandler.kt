@@ -10,11 +10,12 @@ class LocalBasicFunctionHandler(
         private val localResourceHolder: LocalResourceHolder,
         private val stage: String
 ) : LocalFunctionHandler(localResourceHolder) {
-    override fun handleMethod(clazz: Class<out Any>, method: Method) {
+    override fun handleMethod(clazz: Class<out Any>, method: Method): Boolean {
 
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
 
         val basicServerlessFunctions = method.getAnnotationsByType(BasicServerlessFunction::class.java)
+        if (basicServerlessFunctions.isEmpty()) return false
 
         for (basicFunction in basicServerlessFunctions) {
             if (basicFunction.stages.contains(stage)) {
@@ -25,6 +26,7 @@ class LocalBasicFunctionHandler(
                 localResourceHolder.basicMethods[functionIdentifier] = basicMethod
             }
         }
+        return true
     }
 
 }
