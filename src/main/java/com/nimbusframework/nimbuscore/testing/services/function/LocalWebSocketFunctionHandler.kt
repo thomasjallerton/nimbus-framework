@@ -13,10 +13,11 @@ class LocalWebSocketFunctionHandler(
         private val stage: String
 ) : LocalFunctionHandler(localResourceHolder) {
 
-    override fun handleMethod(clazz: Class<out Any>, method: Method) {
+    override fun handleMethod(clazz: Class<out Any>, method: Method): Boolean {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
 
         val webSocketServerlessFunctions = method.getAnnotationsByType(WebSocketServerlessFunction::class.java)
+        if (webSocketServerlessFunctions.isEmpty()) return false
 
         for (webSocketFunction in webSocketServerlessFunctions) {
             if (webSocketFunction.stages.contains(stage)) {
@@ -31,6 +32,7 @@ class LocalWebSocketFunctionHandler(
                 variableSubstitution["\${NIMBUS_WEBSOCKET_API_URL}"] = "ws://localhost:$webSocketPort"
             }
         }
+        return true
     }
 
 }

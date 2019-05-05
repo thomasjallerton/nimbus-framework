@@ -17,10 +17,11 @@ class LocalHttpFunctionHandler(
         private val stage: String
 ) : LocalFunctionHandler(localResourceHolder) {
 
-    override fun handleMethod(clazz: Class<out Any>, method: Method) {
+    override fun handleMethod(clazz: Class<out Any>, method: Method): Boolean {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
 
         val httpServerlessFunctions = method.getAnnotationsByType(HttpServerlessFunction::class.java)
+        if (httpServerlessFunctions.isEmpty()) return false
 
         for (httpFunction in httpServerlessFunctions) {
             if (httpFunction.stages.contains(stage)) {
@@ -47,5 +48,6 @@ class LocalHttpFunctionHandler(
                 lambdaWebserver.addWebResource(httpFunction.path, httpFunction.method, httpMethod)
             }
         }
+        return true
     }
 }

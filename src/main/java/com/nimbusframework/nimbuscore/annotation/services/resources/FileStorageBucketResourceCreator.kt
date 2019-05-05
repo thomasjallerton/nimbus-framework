@@ -7,6 +7,7 @@ import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.cloudformation.outputs.BucketWebsiteUrlOutput
 import com.nimbusframework.nimbuscore.cloudformation.resource.file.FileBucket
 import com.nimbusframework.nimbuscore.cloudformation.resource.file.FileStorageBucketPolicy
+import com.nimbusframework.nimbuscore.cloudformation.resource.http.RestApi
 import com.nimbusframework.nimbuscore.persisted.ExportInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.RoundEnvironment
@@ -32,7 +33,13 @@ class FileStorageBucketResourceCreator(
 
                 val updateResources = cloudFormationDocuments.updateResources
 
-                val fileBucket = FileBucket(nimbusState, storageBucket.bucketName, stage)
+                val fileBucket = FileBucket(
+                        nimbusState,
+                        storageBucket.bucketName,
+                        storageBucket.allowedCorsOrigins,
+                        storageBucket.allowedCorsMethods,
+                        stage
+                )
 
                 fileBucket.setWebsiteConfiguration(
                         WebsiteConfiguration(
@@ -43,9 +50,10 @@ class FileStorageBucketResourceCreator(
                 )
 
                 if (storageBucket.staticWebsite) {
+                    cloudFormationDocuments.fileBucketWebsites.add(fileBucket)
+
                     val fileBucketPolicy = FileStorageBucketPolicy(nimbusState, fileBucket, stage)
                     updateResources.addResource(fileBucketPolicy)
-
                     val updateOutputs = cloudFormationDocuments.updateOutputs
 
                     val websiteOutputUrl = BucketWebsiteUrlOutput(fileBucket, nimbusState)

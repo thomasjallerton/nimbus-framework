@@ -12,10 +12,11 @@ class LocalNotificationFunctionHandler(
         private val stage: String
 ) : LocalFunctionHandler(localResourceHolder) {
 
-    override fun handleMethod(clazz: Class<out Any>, method: Method) {
+    override fun handleMethod(clazz: Class<out Any>, method: Method): Boolean {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
 
         val notificationServerlessFunctions = method.getAnnotationsByType(NotificationServerlessFunction::class.java)
+        if (notificationServerlessFunctions.isEmpty()) return false
 
         for (notificationFunction in notificationServerlessFunctions) {
             if (notificationFunction.stages.contains(stage)) {
@@ -29,6 +30,7 @@ class LocalNotificationFunctionHandler(
                 localResourceHolder.methods[functionIdentifier] = notificationMethod
             }
         }
+        return true
     }
 
 }

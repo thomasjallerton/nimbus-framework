@@ -15,9 +15,7 @@ abstract class ApiGatewayOutput(
         return "${api.getName()}UrlOutput"
     }
 
-    override fun toCloudFormation(): JsonObject {
-        val restApiUrl = JsonObject()
-
+    fun getValue(): JsonObject {
         val joinValues = JsonArray()
         joinValues.add(protocol)
         joinValues.add(api.getRef())
@@ -26,7 +24,14 @@ abstract class ApiGatewayOutput(
         joinValues.add(".amazonaws.com/$stage")
 
 
-        val value = joinJson("", joinValues)
+        return joinJson("", joinValues)
+    }
+
+
+    override fun toCloudFormation(): JsonObject {
+        val restApiUrl = JsonObject()
+
+        val value = getValue()
 
         restApiUrl.add("Value", value)
 

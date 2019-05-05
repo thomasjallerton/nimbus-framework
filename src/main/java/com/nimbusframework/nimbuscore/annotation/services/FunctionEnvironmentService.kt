@@ -26,6 +26,7 @@ import com.nimbusframework.nimbuscore.cloudformation.resource.notification.SnsTo
 import com.nimbusframework.nimbuscore.cloudformation.resource.queue.QueueResource
 import com.nimbusframework.nimbuscore.cloudformation.resource.websocket.*
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpMethod
 import com.nimbusframework.nimbuscore.persisted.ExportInformation
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -120,6 +121,28 @@ class FunctionEnvironmentService(
         apiGatewayDeployment.addDependsOn(restMethod)
         updateResources.addResource(restMethod)
 
+        if (httpFunction.method != HttpMethod.OPTIONS && httpFunction.method != HttpMethod.ANY) {
+            if (httpFunction.allowedCorsOrigin.isNotEmpty()) {
+
+                val newCorsMethod = CorsRestMethod(
+                        resource,
+                        cfDocuments,
+                        nimbusState
+                )
+                val existingCorsMethod = updateResources.get(newCorsMethod.getName())
+                val corsMethod = if (existingCorsMethod == null) {
+                    apiGatewayDeployment.addDependsOn(newCorsMethod)
+                    updateResources.addResource(newCorsMethod)
+                    newCorsMethod
+                } else {
+                    existingCorsMethod as CorsRestMethod
+                }
+                corsMethod.addHeaders(httpFunction.allowedCorsHeaders)
+                corsMethod.addOrigin(httpFunction.allowedCorsOrigin)
+                corsMethod.addMethod(httpFunction.method)
+            }
+        }
+
         val permission = FunctionPermissionResource(function, restApi, nimbusState)
         updateResources.addResource(permission)
 
@@ -198,7 +221,7 @@ class FunctionEnvironmentService(
     }
 
     fun newFileTrigger(name: String, eventType: FileStorageEventType, function: FunctionResource) {
-        val newBucket = FileBucket(nimbusState, name, function.stage)
+        val newBucket = FileBucket(nimbusState, name, arrayOf(), arrayOf(), function.stage)
 
         val updateResources = cloudFormationDocumentsCollection[function.stage]!!.updateResources
         val oldBucket = updateResources.get(newBucket.getName()) as FileBucket?

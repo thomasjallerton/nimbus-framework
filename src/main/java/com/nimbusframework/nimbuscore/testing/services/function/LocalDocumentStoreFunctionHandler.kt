@@ -13,10 +13,11 @@ class LocalDocumentStoreFunctionHandler(
         private val stage: String
 ) : LocalFunctionHandler(localResourceHolder) {
 
-    override fun handleMethod(clazz: Class<out Any>, method: Method) {
+    override fun handleMethod(clazz: Class<out Any>, method: Method): Boolean {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
 
         val documentFunctions = method.getAnnotationsByType(DocumentStoreServerlessFunction::class.java)
+        if (documentFunctions.isEmpty()) return false
 
         for (documentFunction in documentFunctions) {
             if (documentFunction.stages.contains(stage)) {
@@ -29,5 +30,6 @@ class LocalDocumentStoreFunctionHandler(
                 documentStore?.addMethod(documentMethod)
             }
         }
+        return true
     }
 }

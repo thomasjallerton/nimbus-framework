@@ -18,7 +18,7 @@ class ApiGatewayDeployment(
         val properties = getProperties()
         properties.addProperty("Description", "Nimbus Deployment for project ${nimbusState.projectName}")
         properties.add("RestApiId", restApi.getRef())
-        properties.addProperty("StageName", "dev")
+        properties.addProperty("StageName", stage)
         deployment.add("Properties", properties)
         deployment.add("DependsOn", dependsOn)
         return deployment
