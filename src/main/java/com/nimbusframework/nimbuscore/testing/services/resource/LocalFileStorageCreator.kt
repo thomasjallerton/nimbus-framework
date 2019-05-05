@@ -23,14 +23,22 @@ class LocalFileStorageCreator(
         for (fileStorageBucket in fileStorageBuckets) {
             if (fileStorageBucket.stages.contains(stage)) {
                 if (fileStorageBucket.staticWebsite && !localWebservers.containsKey(fileStorageBucket.bucketName)) {
-                    val localWebserver = WebserverHandler(fileStorageBucket.indexFile, fileStorageBucket.errorFile)
+                    val localWebserver = WebserverHandler(fileStorageBucket.indexFile, fileStorageBucket.errorFile, "http://localhost:$httpPort/${fileStorageBucket.bucketName}/")
                     localWebservers[fileStorageBucket.bucketName] = localWebserver
                     variableSubstitution["\${${fileStorageBucket.bucketName.toUpperCase()}_URL}"] = "http://localhost:$httpPort/${fileStorageBucket.bucketName}"
                 }
 
                 val fileStorage = localResourceHolder.fileStorage
                 if (!fileStorage.containsKey(fileStorageBucket.bucketName)) {
-                    fileStorage[fileStorageBucket.bucketName] = LocalFileStorage(fileStorageBucket.bucketName)
+                    val allowedOrigins = fileStorageBucket.allowedCorsOrigins.map {
+                        if (it == "#{NIMBUS_REST_API_URL}") {
+                            "http://localhost:$httpPort/function/"
+                        } else {
+                            it
+                        }
+                    }
+
+                    fileStorage[fileStorageBucket.bucketName] = LocalFileStorage(fileStorageBucket.bucketName, allowedOrigins)
                 }
             }
         }
@@ -43,7 +51,7 @@ class LocalFileStorageCreator(
             for (usesFileStorage in usesFileStorages) {
                 if (usesFileStorage.stages.contains(stage)) {
                     if (!fileStorage.containsKey(usesFileStorage.bucketName)) {
-                        fileStorage[usesFileStorage.bucketName] = LocalFileStorage(usesFileStorage.bucketName)
+                        fileStorage[usesFileStorage.bucketName] = LocalFileStorage(usesFileStorage.bucketName, listOf())
                     }
                 }
             }

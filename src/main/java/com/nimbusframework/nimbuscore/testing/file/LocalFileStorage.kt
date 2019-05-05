@@ -10,7 +10,7 @@ import java.nio.file.Files
 import java.util.*
 
 
-class LocalFileStorage(bucketName: String) : FileStorageClient {
+class LocalFileStorage(bucketName: String, private val allowedOrigins: List<String>) : FileStorageClient {
 
     private val localNimbusClient = LocalNimbusDeployment.getInstance()
     private val handler: WebserverHandler? = localNimbusClient.getLocalHandler(bucketName)
@@ -105,7 +105,7 @@ class LocalFileStorage(bucketName: String) : FileStorageClient {
     }
 
     private fun addNewWebHandler(path: String, file: File, contentType: String = "text/html") {
-        handler?.addWebResource(path, file, contentType)
+        handler?.addWebResource(path, file, contentType, allowedOrigins)
     }
 
     private fun saveFileToFile(path: String, file: File): File {

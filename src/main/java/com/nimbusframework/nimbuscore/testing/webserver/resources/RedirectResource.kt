@@ -3,7 +3,7 @@ package com.nimbusframework.nimbuscore.testing.webserver.resources
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class RedirectResource(private val redirectTarget: String): WebResource {
+class RedirectResource(private val redirectTarget: String): WebResource(arrayOf(), listOf("*"), "") {
 
     override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
 

@@ -26,7 +26,7 @@ class LocalFileStorageFunctionHandler(
                 val invokeOn = clazz.getConstructor().newInstance()
 
                 if (!fileStorage.containsKey(fileStorageFunction.bucketName)) {
-                    fileStorage[fileStorageFunction.bucketName] = LocalFileStorage(fileStorageFunction.bucketName)
+                    fileStorage[fileStorageFunction.bucketName] = LocalFileStorage(fileStorageFunction.bucketName, listOf(""))
                 }
                 val localFileStorage = fileStorage[fileStorageFunction.bucketName]
                 val fileStorageMethod = FileStorageMethod(method, invokeOn, fileStorageFunction.eventType)

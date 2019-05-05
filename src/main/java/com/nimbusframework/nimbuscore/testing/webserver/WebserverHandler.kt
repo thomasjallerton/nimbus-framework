@@ -13,7 +13,8 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class WebserverHandler(private val indexFile: String,
-                       private val errorFile: String
+                       private val errorFile: String,
+                       private val basePath: String
 ): AbstractHandler() {
 
     private val resources: MutableMap<HttpMethodIdentifier, WebResource> = mutableMapOf()
@@ -27,6 +28,7 @@ class WebserverHandler(private val indexFile: String,
     ) {
         val httpMethod = HttpMethod.valueOf(request.method)
         var webResource: WebResource? = null
+
         for ((identifier, resource) in resources) {
             if (identifier.matches(target, httpMethod)) {
                 webResource = resource
@@ -35,7 +37,13 @@ class WebserverHandler(private val indexFile: String,
         }
 
         if (webResource != null) {
-            webResource.writeResponse(request, response, target)
+            if (passesCors(webResource, request)) {
+                webResource.writeResponse(request, response, target)
+            } else {
+                response.status = HttpServletResponse.SC_UNAUTHORIZED
+                response.writer.println("CORS prevented access to this resource ($target). Check logs for more details.")
+                response.writer.close()
+            }
         } else {
             if (errorResource != null) {
                 errorResource!!.writeResponse(request, response, target)
@@ -47,12 +55,12 @@ class WebserverHandler(private val indexFile: String,
         baseRequest.isHandled = true
     }
 
-    fun addWebResource(path: String, file: File, contentType: String) {
-        addNewResource(path, HttpMethod.GET, FileResource(file, contentType))
+    fun addWebResource(path: String, file: File, contentType: String, allowedOrigins: List<String>) {
+        addNewResource(path, HttpMethod.GET, FileResource(file, contentType, allowedOrigins, combinePaths(path)))
     }
 
-    fun addWebResource(path: String, httpMethod: HttpMethod, method: LocalHttpMethod) {
-        addNewResource(path, httpMethod, FunctionResource(path, httpMethod, method))
+    fun addWebResource(path: String, httpMethod: HttpMethod, method: LocalHttpMethod, allowedOrigin: String, allowedHeaders: Array<String>) {
+        addNewResource(path, httpMethod, FunctionResource(path, httpMethod, method, allowedHeaders, allowedOrigin, combinePaths(path)))
     }
 
     private fun addNewResource(path: String, httpMethod: HttpMethod, webResource: WebResource) {
@@ -70,5 +78,28 @@ class WebserverHandler(private val indexFile: String,
     fun addRedirectResource(path: String, httpMethod: HttpMethod, webResource: WebResource) {
         val fixedPath = if (path.isNotEmpty()) "/$path" else path
         resources[HttpMethodIdentifier(fixedPath, httpMethod)] = webResource
+    }
+
+    private fun passesCors(webResource: WebResource, request: HttpServletRequest): Boolean {
+        val headersToCheck = request.getHeader("Access-Control-Request-Headers")?.split(",")
+        //Check Access-Control-Request-Headers headers
+        if (headersToCheck != null) {
+            if (!webResource.checkCorsHeaders(headersToCheck)) return false
+        }
+
+        //Check origin
+        val referer = request.getHeader("Referer")
+        if (referer != null) {
+            return webResource.checkCorsOrigin(referer)
+        }
+        return true
+    }
+
+    private fun combinePaths(path: String): String {
+        return when {
+            basePath.endsWith("/") and !path.startsWith("/") -> basePath + path
+            !basePath.endsWith("/") and path.startsWith("/") -> basePath + path
+            else -> "$basePath/$path"
+        }
     }
 }

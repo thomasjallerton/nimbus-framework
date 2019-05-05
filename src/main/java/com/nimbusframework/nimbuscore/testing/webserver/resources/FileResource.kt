@@ -6,8 +6,14 @@ import javax.servlet.http.HttpServletResponse
 
 class FileResource(
         private val file: File,
-        private val contentType: String
-): WebResource {
+        private val contentType: String,
+        allowedOrigins: List<String>,
+        baseRequest: String
+): WebResource(
+        arrayOf(),
+        allowedOrigins,
+        baseRequest
+) {
 
     override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
         response.contentType = contentType

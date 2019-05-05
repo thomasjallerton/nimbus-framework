@@ -37,7 +37,6 @@ class FileStorageBucketResourceCreator(
                         nimbusState,
                         storageBucket.bucketName,
                         storageBucket.allowedCorsOrigins,
-                        storageBucket.allowedCorsMethods,
                         stage
                 )
 
