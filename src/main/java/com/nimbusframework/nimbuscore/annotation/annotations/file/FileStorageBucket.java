@@ -12,7 +12,6 @@ public @interface FileStorageBucket {
     String bucketName();
     boolean staticWebsite() default false;
     String[] allowedCorsOrigins() default {};
-    HttpMethod[] allowedCorsMethods() default {};
     String indexFile() default "index.html";
     String errorFile() default "error.html";
     String[] stages() default {NimbusConstants.stage};

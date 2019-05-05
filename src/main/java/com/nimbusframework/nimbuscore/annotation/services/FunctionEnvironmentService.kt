@@ -221,7 +221,7 @@ class FunctionEnvironmentService(
     }
 
     fun newFileTrigger(name: String, eventType: FileStorageEventType, function: FunctionResource) {
-        val newBucket = FileBucket(nimbusState, name, arrayOf(), arrayOf(), function.stage)
+        val newBucket = FileBucket(nimbusState, name, arrayOf(), function.stage)
 
         val updateResources = cloudFormationDocumentsCollection[function.stage]!!.updateResources
         val oldBucket = updateResources.get(newBucket.getName()) as FileBucket?

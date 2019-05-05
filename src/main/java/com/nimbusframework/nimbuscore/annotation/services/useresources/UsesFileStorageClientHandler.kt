@@ -22,7 +22,7 @@ class UsesFileStorageClientHandler(
             for (stage in fileStorage.stages) {
                 if (stage == functionResource.stage) {
 
-                    val newBucket = FileBucket(nimbusState, fileStorage.bucketName, arrayOf(), arrayOf(), stage)
+                    val newBucket = FileBucket(nimbusState, fileStorage.bucketName, arrayOf(), stage)
 
                     val updateResources = cfDocuments.getValue(stage).updateResources
                     val existingBucket = updateResources.get(newBucket.getName()) as FileBucket?

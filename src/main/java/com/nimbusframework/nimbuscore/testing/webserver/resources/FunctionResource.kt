@@ -17,8 +17,11 @@ import java.util.HashMap
 class FunctionResource(
         private val path: String,
         private val httpMethod: HttpMethod,
-        private val method: LocalHttpMethod
-): WebResource {
+        private val method: LocalHttpMethod,
+        allowedHeaders: Array<String>,
+        allowedOrigin: String,
+        baseRequest: String
+): WebResource(allowedHeaders, listOf(allowedOrigin), baseRequest) {
 
     private val objectMapper: ObjectMapper = ObjectMapper()
 

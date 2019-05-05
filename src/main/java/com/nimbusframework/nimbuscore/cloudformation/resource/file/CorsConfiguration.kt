@@ -5,8 +5,7 @@ import com.google.gson.JsonObject
 import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpMethod
 
 class CorsConfiguration(
-        private val allowedCorsOrigins: Array<String>,
-        private val allowedCorsMethods: Array<HttpMethod>
+        private val allowedCorsOrigins: Array<String>
 ) {
 
     fun toJson(): JsonObject {
@@ -23,7 +22,7 @@ class CorsConfiguration(
         corsRule.add("AllowedOrigins", allowedOrigins)
 
         val allowedMethods = JsonArray()
-        allowedCorsMethods.forEach { allowedMethods.add(it.toString()) }
+        HttpMethod.values().forEach { allowedMethods.add(it.name) }
         corsRule.add("AllowedMethods", allowedMethods)
 
         corsRules.add(corsRule)

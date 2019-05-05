@@ -42,10 +42,20 @@ class LocalHttpFunctionHandler(
 
                 val lambdaWebserver = localResourceHolder.httpServers.getOrPut(functionWebserverIdentifier) {
                     variableSubstitution["\${NIMBUS_REST_API_URL}"] = "http://localhost:$httpPort/$functionWebserverIdentifier"
-                    WebserverHandler("", "")
+                    WebserverHandler("", "", "http://localhost:$httpPort/$functionWebserverIdentifier/")
                 }
-
-                lambdaWebserver.addWebResource(httpFunction.path, httpFunction.method, httpMethod)
+                val allowedOrigin = if (variableSubstitution.containsKey(httpFunction.allowedCorsOrigin)) {
+                    variableSubstitution[httpFunction.allowedCorsOrigin]!!
+                } else {
+                    httpFunction.allowedCorsOrigin
+                }
+                lambdaWebserver.addWebResource(
+                        httpFunction.path,
+                        httpFunction.method,
+                        httpMethod,
+                        allowedOrigin,
+                        httpFunction.allowedCorsHeaders
+                )
             }
         }
         return true

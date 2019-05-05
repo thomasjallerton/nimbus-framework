@@ -12,7 +12,6 @@ class FileBucket(
         nimbusState: NimbusState,
         val annotationBucketName: String,
         private val allowedCorsOrigins: Array<String>,
-        private val allowedCorsMethods: Array<HttpMethod>,
         stage: String
 ): Resource(nimbusState, stage), FunctionTrigger {
 
@@ -53,10 +52,9 @@ class FileBucket(
         if (hasWebsiteConfiguration && websiteConfiguration.enabled) {
             properties.addProperty("AccessControl", "PublicRead")
             properties.add("WebsiteConfiguration", websiteConfiguration.toJson())
-            if (allowedCorsMethods.isNotEmpty() && allowedCorsOrigins.isNotEmpty()) {
+            if (allowedCorsOrigins.isNotEmpty()) {
                 val corsConfiguration = CorsConfiguration(
-                        allowedCorsOrigins,
-                        allowedCorsMethods
+                        allowedCorsOrigins
                 )
                 properties.add("CorsConfiguration", corsConfiguration.toJson())
             }
