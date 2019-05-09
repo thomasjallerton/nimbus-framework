@@ -46,7 +46,11 @@ class BasicFunctionResourceCreator(
                 val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
                 val updateResources = cloudFormationDocuments.updateResources
 
-                val handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
+                val handlerInformation = HandlerInformation(
+                        handlerClassPath = fileBuilder.classFilePath(),
+                        handlerFile = fileBuilder.handlerFile(),
+                        replacementVariable = "\${${fileBuilder.handlerFile()}}"
+                )
 
                 val config = FunctionConfig(basicFunction.timeout, basicFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(

@@ -39,7 +39,11 @@ class NotificationFunctionResourceCreator(
         for (notificationFunction in notificationFunctions) {
             for (stage in notificationFunction.stages) {
                 val config = FunctionConfig(notificationFunction.timeout, notificationFunction.memory, stage)
-                val handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
+                val handlerInformation = HandlerInformation(
+                        handlerClassPath = fileBuilder.classFilePath(),
+                        handlerFile = fileBuilder.handlerFile(),
+                        replacementVariable = "\${${fileBuilder.handlerFile()}}"
+                )
 
                 val functionResource = functionEnvironmentService.newFunction(
                         fileBuilder.getHandler(),

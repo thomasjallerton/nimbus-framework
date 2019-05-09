@@ -52,7 +52,11 @@ class KeyValueStoreFunctionResourceCreator(
                 handler = fileBuilder.getHandler()
                 fileBuilder.createClass()
                 fileWritten = true
-                handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
+                handlerInformation = HandlerInformation(
+                        handlerClassPath = fileBuilder.classFilePath(),
+                        handlerFile = fileBuilder.handlerFile(),
+                        replacementVariable = "\${${fileBuilder.handlerFile()}}"
+                )
 
             }
 

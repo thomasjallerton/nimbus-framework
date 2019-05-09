@@ -60,11 +60,8 @@ class FunctionResource(
         s3Bucket.addProperty("Ref", "NimbusDeploymentBucket")
 
         code.add("S3Bucket", s3Bucket)
-        if (!nimbusState.assemble) {
-            code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${nimbusState.compilationTimeStamp}/lambdacode")
-        } else {
-            code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${nimbusState.compilationTimeStamp}/${handlerInformation.handlerFile}")
-        }
+            code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${handlerInformation.replacementVariable}")
+
 
         properties.add("Code", code)
         properties.addProperty("FunctionName", functionName(nimbusState.projectName, methodInformation.className, methodInformation.methodName, functionConfig.stage))

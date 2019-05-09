@@ -43,7 +43,11 @@ class HttpFunctionResourceCreator(
             for (stage in httpFunction.stages) {
                 val handler = fileBuilder.getHandler()
 
-                val handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
+                val handlerInformation = HandlerInformation(
+                        handlerClassPath = fileBuilder.classFilePath(),
+                        handlerFile = fileBuilder.handlerFile(),
+                        replacementVariable = "\${${fileBuilder.handlerFile()}}"
+                )
 
                 val config = FunctionConfig(httpFunction.timeout, httpFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(

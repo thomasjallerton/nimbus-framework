@@ -27,7 +27,6 @@ data class CloudFormationDocuments(
         if (origin == "") return null
         for (website in fileBucketWebsites) {
             val websiteSubstitution = "\${${website.annotationBucketName.toUpperCase()}_URL}"
-            println(websiteSubstitution)
             if (origin == websiteSubstitution) {
                 return website
             }
