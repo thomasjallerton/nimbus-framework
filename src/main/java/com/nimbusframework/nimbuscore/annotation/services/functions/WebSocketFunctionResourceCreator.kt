@@ -44,7 +44,11 @@ class WebSocketFunctionResourceCreator(
                 val handler = fileBuilder.getHandler()
 
                 val config = FunctionConfig(webSocketFunction.timeout, webSocketFunction.memory, stage)
-                val handlerInformation = HandlerInformation(handlerClassPath = fileBuilder.classFilePath(), handlerFile = fileBuilder.handlerFile())
+                val handlerInformation = HandlerInformation(
+                        handlerClassPath = fileBuilder.classFilePath(),
+                        handlerFile = fileBuilder.handlerFile(),
+                        replacementVariable = "\${${fileBuilder.handlerFile()}}"
+                )
 
                 val functionResource = functionEnvironmentService.newFunction(
                         handler,

@@ -40,7 +40,11 @@ class FileStorageResourceCreator(
         for (fileStorageFunction in fileStorageFunctions) {
             for (stage in fileStorageFunction.stages) {
                 val config = FunctionConfig(fileStorageFunction.timeout, fileStorageFunction.memory, stage)
-                val handlerInformation = HandlerInformation(handlerClassPath = fileStorageFileBuilder.classFilePath(), handlerFile = fileStorageFileBuilder.handlerFile())
+                val handlerInformation = HandlerInformation(
+                        handlerClassPath = fileStorageFileBuilder.classFilePath(),
+                        handlerFile = fileStorageFileBuilder.handlerFile(),
+                        replacementVariable = "\${${fileStorageFileBuilder.handlerFile()}}"
+                )
 
                 val functionResource = functionEnvironmentService.newFunction(
                         fileStorageFileBuilder.getHandler(),
