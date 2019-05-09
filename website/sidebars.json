@@ -1,7 +1,8 @@
 {
   "docs": {
     "Documentation": [
-      "Introduction"
+      "Introduction",
+      "Deployment"
     ],
     "Deploying Resources": [
       "resources/FileStorageBucket",

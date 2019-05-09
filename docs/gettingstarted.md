@@ -13,7 +13,7 @@ First you need to add the nimbus-core dependency to your pom. This adds the anno
 <dependency>
     <groupId>com.nimbusframework</groupId>
     <artifactId>nimbus-core</artifactId>
-    <version>0.7</version>
+    <version>0.9</version>
 </dependency>
 ```
 
@@ -22,7 +22,7 @@ Next the deployment plugin needs to be added. Currently only AWS is supported, s
 <plugin>
     <groupId>com.nimbusframework</groupId>
     <artifactId>nimbus-deployment-maven-plugin</artifactId>
-    <version>0.3</version>
+    <version>0.6</version>
     <configuration>
         <region>eu-west-1</region>
         <compiledSourcePath>target/generated-sources/annotations/</compiledSourcePath>
@@ -50,6 +50,8 @@ You also need to use the maven shade plugin to package your project into a shade
 </plugin>
 ```
 Here the compiled jar will be placed at `target/lambda.jar`
+
+Alternatively [nimbus](deployment.md) can be used to assemble the project.
 
 Finally, an optional step is to create a `nimbus.yml` file in the top level of your project. This has only one parameter, `projectName`, that lets you customise the project name. For example:
 ```yaml
