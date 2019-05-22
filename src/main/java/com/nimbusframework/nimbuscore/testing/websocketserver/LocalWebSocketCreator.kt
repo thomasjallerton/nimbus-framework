@@ -9,6 +9,7 @@ import com.nimbusframework.nimbuscore.testing.websocket.LocalWebsocketMethod
 class LocalWebSocketCreator(
         private var connectMethod: LocalWebsocketMethod?,
         private var disconnectMethod: LocalWebsocketMethod?,
+        private var defaultMethod: LocalWebsocketMethod?,
         private val topics: Map<String, LocalWebsocketMethod>,
         private val sessions: MutableMap<String, Session>
 ): WebSocketCreator {
@@ -25,6 +26,7 @@ class LocalWebSocketCreator(
             return WebSocketAdapter(
                     connectMethod,
                     disconnectMethod,
+                    defaultMethod,
                     topics,
                     headers,
                     parameters,

@@ -7,7 +7,7 @@ sidebar_label: Document Store
 Document Stores allow you to store objects where the primary key is defined within them. It acts similar to a Java `Set<StoredObject>` where the comparison is done on the primary key field.
 
 ## Basic Usage
-The `@DocumentStore` annotation on a class is used to deploy a document store table.Fields that you want to be included in the table must be annotated. One field must be selected as the primary key and annotated with `@Key`. The others that are to be included are annotated with `@Attribute`. 
+The `@DocumentStore` annotation on a class is used to deploy a document store table. Fields that you want to be included in the table must be annotated. One field must be selected as the primary key and annotated with `@Key`. The others that are to be included are annotated with `@Attribute`. 
 
 This is an example of a class declared as a DocumentStore: 
 

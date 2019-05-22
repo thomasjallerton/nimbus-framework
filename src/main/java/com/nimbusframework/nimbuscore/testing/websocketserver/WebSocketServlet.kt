@@ -8,11 +8,12 @@ import com.nimbusframework.nimbuscore.testing.websocket.LocalWebsocketMethod
 class WebSocketServlet(
         private var connectMethod: LocalWebsocketMethod?,
         private var disconnectMethod: LocalWebsocketMethod?,
+        private var defaultMethod: LocalWebsocketMethod?,
         private val topics: Map<String, LocalWebsocketMethod>,
         private val sessions: MutableMap<String, Session>
 ) : WebSocketServlet() {
 
     override fun configure(factory: WebSocketServletFactory) {
-        factory.creator = LocalWebSocketCreator(connectMethod, disconnectMethod, topics, sessions)
+        factory.creator = LocalWebSocketCreator(connectMethod, disconnectMethod, defaultMethod, topics, sessions)
     }
 }

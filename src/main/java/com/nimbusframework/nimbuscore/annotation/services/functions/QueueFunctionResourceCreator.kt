@@ -53,17 +53,7 @@ class QueueFunctionResourceCreator(
                         config
                 )
 
-                val newQueue = functionEnvironmentService.newQueue(queueFunction, functionResource)
-
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
-                val savedResources = cloudFormationDocuments.savedResources
-
-                if (savedResources.containsKey(queueFunction.id)) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Can't have multiple consumers of the same queue ("
-                            + queueFunction.id + ")", type)
-                    return
-                }
-                savedResources[queueFunction.id] = newQueue
+                functionEnvironmentService.newQueue(queueFunction, functionResource)
 
                 fileBuilder.createClass()
 

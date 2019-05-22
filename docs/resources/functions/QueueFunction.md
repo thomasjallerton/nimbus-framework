@@ -4,7 +4,7 @@ title: Queue Function
 sidebar_label: Queue Function
 ---
 
-A queue function will be triggered when an item is added to a queue. Unlike a notification topic, consumers compete to with each other. This means that only one consumer will ingest the new item(s), unlike a notification where all consumers ar notified about a new object. 
+A queue function will be triggered when an item is added to a queue. Unlike a notification topic, consumers compete to with each other. This means that only one consumer will ingest the new item(s), unlike a notification where all consumers are notified about a new object. 
 
 ## Basic Usage
 A method is annotated with `@QueueServerlessFunction`, specifying a a queue id and a batch size. This batch size specifies the maximum amount of items an invocation of the serverless function will contain (not necessarily the annotated method). 

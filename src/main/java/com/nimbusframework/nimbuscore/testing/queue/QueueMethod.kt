@@ -29,7 +29,13 @@ class QueueMethod(private val method: Method, private val invokeOn: Any, interna
             } else {
                 obj
             }
-            invokeGeneral(parsedObject, QueueEvent())
+            if (parsedObject is List<*>) {
+                parsedObject.forEach {
+                    if (it != null) invokeGeneral(it, QueueEvent())
+                }
+            } else {
+                invokeGeneral(parsedObject, QueueEvent())
+            }
         }
     }
 

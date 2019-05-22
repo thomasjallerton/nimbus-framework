@@ -11,6 +11,7 @@ import java.util.*
 class WebSocketAdapter(
         private var connectMethod: LocalWebsocketMethod?,
         private var disconnectMethod: LocalWebsocketMethod?,
+        private var defaultMethod: LocalWebsocketMethod?,
         private val topics: Map<String, LocalWebsocketMethod>,
         private val headers: Map<String, String>,
         private val parameters: Map<String, String>,
@@ -53,7 +54,11 @@ class WebSocketAdapter(
                     RequestContext("MESSAGE", sessionId)
             )
             val topic = request.getTopic()
-            topics[topic]?.invoke(request)
+            if (topics.containsKey(topic)) {
+                topics[topic]!!.invoke(request)
+            } else {
+                defaultMethod!!.invoke(request)
+            }
         }
         super.onWebSocketText(message)
     }

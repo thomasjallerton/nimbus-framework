@@ -14,6 +14,8 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
 
     private val localNimbusClient = LocalNimbusDeployment.getInstance()
     private val handler: WebserverHandler? = localNimbusClient.getLocalHandler(bucketName)
+    private val tmpDir: String
+    private val methods: MutableList<FileStorageMethod> = mutableListOf()
 
     override fun saveFile(path: String, inputStream: InputStream) {
         val outputFile = saveInputStreamToFile(path, inputStream)
@@ -45,9 +47,6 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
         addNewWebHandler(path, outputFile, contentType)
     }
 
-    private val tmpDir: String
-    private val methods: MutableList<FileStorageMethod> = mutableListOf()
-
     init {
         val osTempDir = System.getProperty("java.io.tmpdir")
         tmpDir = if (osTempDir.endsWith(File.separator)) {
@@ -55,6 +54,8 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
         } else {
             System.getProperty("java.io.tmpdir") + File.separator + "nimbus" + File.separator + bucketName
         }
+        val tmpDirFile = File(tmpDir)
+        if (tmpDirFile.exists()) tmpDirFile.deleteRecursively()
     }
 
     internal fun addMethod(fileStorageMethod: FileStorageMethod) {

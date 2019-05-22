@@ -30,7 +30,7 @@ As with all serverless functions, a basic function must be inside of a class wit
 ### Parameters
 Can have at most one parameter, a custom user type. This is deserialized using the jackson library so for more customisation annotations can be placed in the target class. 
 
-If it is a cron function then no parameters should be included otherwise the function will fail (as no parameters are included in the request).
+If it is a cron function then the method should have no parameters otherwise the function will fail (as no parameters are included in the request).
 
 ### Return Type
 The return type is serialized, again using jackson, and sent back to the invoker. If it is a cron function then this return type will be unused in the cloud provider, but can still be used to verify in unit tests.

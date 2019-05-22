@@ -74,11 +74,6 @@ class QueueServerlessFunctionFileBuilder(
     }
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {
-        if (methodInformation.returnType.toString() != "void") {
-            messager.printMessage(Diagnostic.Kind.WARNING, "The function ${methodInformation.className}::" +
-                    "${methodInformation.methodName} has a return type which will be unused. It can be removed")
-        }
-
         val eventVariable = if (eventParam.type != null && !isAListType(eventParam.type)) {
             "event"
         } else {
