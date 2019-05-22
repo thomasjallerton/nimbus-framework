@@ -13,7 +13,7 @@ First you need to add the nimbus-core dependency to your pom. This adds the anno
 <dependency>
     <groupId>com.nimbusframework</groupId>
     <artifactId>nimbus-core</artifactId>
-    <version>0.9</version>
+    <version>0.10</version>
 </dependency>
 ```
 
