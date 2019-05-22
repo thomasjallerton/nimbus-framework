@@ -79,6 +79,7 @@ class LocalNimbusDeployment {
 
     private constructor(clazz: Class<out Any>, stageParam: String = "dev", httpPort: Int = 8080, webSocketPort: Int = 8081) {
         instance = this
+        stage = stageParam
         this.httpPort = httpPort
         this.webSocketPort = webSocketPort
 
@@ -89,8 +90,6 @@ class LocalNimbusDeployment {
         createResources(clazz)
         createHandlers(clazz)
         handleUseResources(clazz)
-
-        stage = stageParam
 
         localResourceHolder.afterDeployments.forEach { method -> method.invoke() }
 
@@ -354,10 +353,10 @@ class LocalNimbusDeployment {
         request.requestContext = RequestContext("MESSAGE", "testConnection")
         val localWebsocketMethods = localResourceHolder.websocketMethods
 
-        if (localWebsocketMethods.containsKey(topic)) {
-            localWebsocketMethods[topic]!!.invoke(request)
-        } else {
-            throw ResourceNotFoundException()
+        when {
+            localWebsocketMethods.containsKey(topic) -> localWebsocketMethods[topic]!!.invoke(request)
+            localWebsocketMethods.containsKey("\$default") -> localWebsocketMethods["\$default"]!!.invoke(request)
+            else -> throw ResourceNotFoundException()
         }
     }
 

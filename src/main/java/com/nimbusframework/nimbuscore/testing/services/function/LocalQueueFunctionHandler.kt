@@ -23,8 +23,14 @@ class LocalQueueFunctionHandler(
                 val invokeOn = clazz.getConstructor().newInstance()
 
                 val queueMethod = QueueMethod(method, invokeOn, queueFunction.batchSize)
-                val newQueue = LocalQueue(queueMethod)
-                localResourceHolder.queues[queueFunction.id] = newQueue
+                val queue = if (localResourceHolder.queues.containsKey(queueFunction.id)) {
+                    localResourceHolder.queues[queueFunction.id]!!
+                } else {
+                    val newQueue = LocalQueue()
+                    localResourceHolder.queues[queueFunction.id] = newQueue
+                    newQueue
+                }
+                queue.addConsumer(queueMethod)
                 localResourceHolder.methods[functionIdentifier] = queueMethod
             }
         }

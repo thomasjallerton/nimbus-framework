@@ -26,7 +26,7 @@ public class NotificationHandler {
 }
 ```
 
-The `NotificationEvent` parameter gives you more details about the notification, like the timestamp and any additional parameters. 
+The `NotificationEvent` parameter gives you more details about the notification, like the timestamp and message id. 
 
 As with all serverless functions, a notification function must be inside of a class with a default constructor available. 
 

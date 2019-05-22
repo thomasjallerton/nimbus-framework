@@ -38,9 +38,9 @@ class DeploymentFunctionFileBuilder(
         write()
     }
 
-    override fun writeInputs(param: ServerlessFunctionFileBuilder.Param){}
+    override fun writeInputs(param: Param){}
 
-    override fun writeFunction(inputParam: ServerlessFunctionFileBuilder.Param, eventParam: ServerlessFunctionFileBuilder.Param) {
+    override fun writeFunction(inputParam: Param, eventParam: Param) {
         val callPrefix = if (methodInformation.returnType.toString() == "void") {
             ""
         } else {
@@ -64,7 +64,7 @@ class DeploymentFunctionFileBuilder(
         write("e.printStackTrace();")
     }
 
-    override fun isValidFunction(functionParams: ServerlessFunctionFileBuilder.FunctionParams) {
+    override fun isValidFunction(functionParams: FunctionParams) {
         if (methodInformation.parameters.isNotEmpty()) {
             compilationError("Too many parameters for AfterDeployment, can have none")
         }

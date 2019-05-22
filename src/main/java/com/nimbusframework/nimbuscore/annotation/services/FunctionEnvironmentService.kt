@@ -159,7 +159,7 @@ class FunctionEnvironmentService(
         updateResources.addResource(permission)
     }
 
-    fun newQueue(queueFunction: QueueServerlessFunction, function: FunctionResource): QueueResource {
+    fun newQueue(queueFunction: QueueServerlessFunction, function: FunctionResource) {
         val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
         val updateResources = cfDocuments.updateResources
 
@@ -181,8 +181,6 @@ class FunctionEnvironmentService(
         iamRoleResource.addAllowStatement("sqs:ReceiveMessage", sqsQueue, "")
         iamRoleResource.addAllowStatement("sqs:DeleteMessage", sqsQueue, "")
         iamRoleResource.addAllowStatement("sqs:GetQueueAttributes", sqsQueue, "")
-
-        return sqsQueue
     }
 
     fun newStoreTrigger(store: Resource, function: FunctionResource) {

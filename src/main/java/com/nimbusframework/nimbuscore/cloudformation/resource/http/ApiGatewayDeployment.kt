@@ -25,7 +25,6 @@ class ApiGatewayDeployment(
     }
 
     override fun getName(): String {
-        val calendar = Calendar.getInstance()
         return "${nimbusState.projectName}ApiGatewayDeployment$creationTime"
     }
 }

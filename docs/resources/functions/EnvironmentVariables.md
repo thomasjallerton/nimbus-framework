@@ -7,7 +7,7 @@ sidebar_label: Environment Variables
 Environment variables can be used to provide your function with external values and variables that can change in different stages.
 
 ## Basic Usage
-A function annotated with any of the `@ServerlessFunction` annotations can be annotated with the `@EnvironmentVariable` annotation. This is given the key and the value of the desired environment variable. The variable can then be accessed using the [EnvironmentVariableClient](../../clients/EnvironmentVariableClient.md) For example:
+A function annotated with any of the `@ServerlessFunction` annotations can be annotated with the `@EnvironmentVariable` annotation. This is given the key and the value of the desired environment variable. The variable can then be accessed using the [EnvironmentVariableClient](../../clients/EnvironmentVariableClient.md). For example:
 
 ```java
 public class EnvironmentVariableExample {

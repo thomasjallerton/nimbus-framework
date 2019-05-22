@@ -14,7 +14,6 @@ data class CloudFormationDocuments(
         val updateResources: ResourceCollection = ResourceCollection(),
         val createOutputs: OutputCollection = OutputCollection(),
         val updateOutputs: OutputCollection = OutputCollection(),
-        val savedResources: MutableMap<String, Resource> = mutableMapOf(),
 
         val fileBucketWebsites: MutableList<FileBucket> = mutableListOf(),
         var rootRestApi: RestApi? = null,

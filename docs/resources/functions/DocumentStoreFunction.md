@@ -89,7 +89,7 @@ public class StoreHandlers {
             dataModel = UserDetail.class,
             method = StoreEventType.REMOVE
     )
-    public void newItem(UserDetail oldItem, StoreEvent event) {
+    public void removeItem(UserDetail oldItem, StoreEvent event) {
         System.out.println("User was deleted! " + oldItem);
     }
 }
@@ -105,7 +105,7 @@ public class StoreHandlers {
             dataModel = UserDetail.class,
             method = StoreEventType.MODIFY
     )
-    public void newItem(UserDetail oldItem, UserDetail newItem, StoreEvent event) {
+    public void modifyItem(UserDetail oldItem, UserDetail newItem, StoreEvent event) {
         System.out.println("User was changed from " + oldItem + " to " + newItem);
     }
 }

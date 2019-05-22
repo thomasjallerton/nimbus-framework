@@ -36,7 +36,6 @@ object ClientBuilder {
 
     var isLocalDeployment = false
 
-
     @JvmStatic
     fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>): KeyValueStoreClient<K, V> {
         return if (isLocalDeployment) {

@@ -69,11 +69,6 @@ class NotificationServerlessFunctionFileBuilder(
     }
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {
-        if (methodInformation.returnType.toString() != "void") {
-            messager.printMessage(Diagnostic.Kind.WARNING, "The function ${methodInformation.className}::" +
-                    "${methodInformation.methodName} has a return type which will be unused. It can be removed")
-        }
-
         val methodName = methodInformation.methodName
         when {
             inputParam.isEmpty() && eventParam.isEmpty() -> write("handler.$methodName();")

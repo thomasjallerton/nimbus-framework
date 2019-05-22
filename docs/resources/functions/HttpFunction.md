@@ -27,7 +27,7 @@ As with all serverless functions, a HTTP function must be inside of a class with
 ### Parameters
 A HTTP serverless function method can have at most two parameters. One of these is a `HttpEvent` type, which contains the header, path and query parameters. The second method parameter available is a custom user type which will be read and deserialized from the JSON body of the request. For example `String` can be used to read the body in as a string. This is done using the jackson library, so any customisation you want can be done using jackson annotations in the target class. 
 
-To specify desired path parameters to the HTTP function, in the `@HttpServerlessFunction` path parameter include any desired path parameters inside curly braces, for example `path = "event/{id}""`. 
+To specify desired path parameters to the HTTP function, in the `@HttpServerlessFunction` path parameter include any desired path parameters inside curly braces, for example `path = "event/{id}"`. 
 
 Here is an example using these parameters:
 ```java
@@ -120,6 +120,8 @@ Any logging lines or print statements will appear in the cloud providers log ser
 * `method` - The HTTP method which triggers the function, e.g. `POST`, `GET` or can be catch all with `ANY`.
 
 #### Optional Parameters
+* `allowedCorsOrigin` - An allowed origin for CORs requests. If want more than one use '*'. 
+* `allowedCorsHeaders` - List of allowed headers present in CORs requests. 'origin' and 'content-type' are provide by default. 
 * `timeout` - How long the function is allowed to run for before timing out, in seconds. Defaults to 10.
 * `memory` - The amount of memory the function runs with, in MB. Defaults to 1024.
 * `stages` - The stages that the function is deployed to.

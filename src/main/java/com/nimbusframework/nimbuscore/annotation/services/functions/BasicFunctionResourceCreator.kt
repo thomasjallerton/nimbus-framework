@@ -30,7 +30,11 @@ class BasicFunctionResourceCreator(
         val basicFunctions = type.getAnnotationsByType(BasicServerlessFunction::class.java)
         val methodInformation = extractMethodInformation(type)
 
+        //TODO: Need to generate separate class per stage if necessary
+        val cron = basicFunctions.map { it.cron.isNotEmpty() }.reduce { acc, b -> acc || b }
+
         val fileBuilder = BasicServerlessFunctionFileBuilder(
+                cron,
                 processingEnv,
                 methodInformation,
                 type,

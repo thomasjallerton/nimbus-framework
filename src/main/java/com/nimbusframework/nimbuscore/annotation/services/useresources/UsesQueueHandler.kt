@@ -5,13 +5,15 @@ import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.cloudformation.resource.queue.QueueResource
 import com.nimbusframework.nimbuscore.persisted.ClientType
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 class UsesQueueHandler(
         private val cfDocuments: Map<String, CloudFormationDocuments>,
-        processingEnv: ProcessingEnvironment
+        processingEnv: ProcessingEnvironment,
+        private val nimbusState: NimbusState
 ): UsesResourcesHandler  {
 
     private val messager = processingEnv.messager
@@ -27,14 +29,10 @@ class UsesQueueHandler(
 
                     val cloudFormationDocuments = cfDocuments[stage]
 
-                    if (cloudFormationDocuments == null || usesQueue.id == "" || cloudFormationDocuments.savedResources[usesQueue.id] == null) {
+                    val queue = QueueResource(nimbusState, usesQueue.id, 10, stage)
+                    val referencedQueue = cloudFormationDocuments?.updateResources?.get(queue.getName())
+                    if (cloudFormationDocuments == null || referencedQueue == null) {
                         messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find id of queue, have you set it in the @QueueServerlessFunction?", serverlessMethod)
-                        return
-                    }
-
-                    val referencedQueue = cloudFormationDocuments.savedResources[usesQueue.id]
-                    if (referencedQueue !is QueueResource) {
-                        messager.printMessage(Diagnostic.Kind.ERROR, "Resource with id " + usesQueue.id + " is not a Queue", serverlessMethod)
                         return
                     }
 

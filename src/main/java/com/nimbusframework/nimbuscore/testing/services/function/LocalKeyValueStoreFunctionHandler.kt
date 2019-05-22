@@ -19,7 +19,6 @@ class LocalKeyValueStoreFunctionHandler(
         val keyValueFunctions = method.getAnnotationsByType(KeyValueStoreServerlessFunction::class.java)
         if (keyValueFunctions.isEmpty()) return false
 
-
         for (keyValueFunction in keyValueFunctions) {
             if (keyValueFunction.stages.contains(stage)) {
                 val invokeOn = clazz.getConstructor().newInstance()

@@ -8,6 +8,7 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class BasicServerlessFunctionFileBuilder(
+        private val cron: Boolean,
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
         compilingElement: Element,
@@ -82,7 +83,9 @@ class BasicServerlessFunctionFileBuilder(
     }
 
     override fun isValidFunction(functionParams: FunctionParams) {
-        if (methodInformation.parameters.size > 1) {
+        if (cron && methodInformation.parameters.isNotEmpty()) {
+            compilationError("Too many parameters for cron BasicServerlessFunction, can have none")
+        } else if (methodInformation.parameters.size > 1) {
             compilationError("Too many parameters for BasicServerlessFunction, maximum 1 of type T")
         }
     }

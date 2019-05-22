@@ -14,6 +14,7 @@ class LocalWebSocketServer(
     private var server: Server? = null
     private var connectMethod: LocalWebsocketMethod? = null
     private var disconnectMethod: LocalWebsocketMethod? = null
+    private var defaultMethod: LocalWebsocketMethod? = null
     private val topics: MutableMap<String, LocalWebsocketMethod> = mutableMapOf()
 
     fun setup(port: Int) {
@@ -28,7 +29,7 @@ class LocalWebSocketServer(
         newServer.handler = handler
 
         val servletHolder = ServletHolder()
-        servletHolder.servlet = WebSocketServlet(connectMethod, disconnectMethod, topics, sessions)
+        servletHolder.servlet = WebSocketServlet(connectMethod, disconnectMethod, defaultMethod, topics, sessions)
 
         handler.addServlet(servletHolder, "")
 
@@ -53,6 +54,7 @@ class LocalWebSocketServer(
         when (topic) {
             "\$connect" -> connectMethod = method
             "\$disconnect" -> disconnectMethod = method
+            "\$default" -> defaultMethod = method
             else -> topics[topic] = method
         }
     }
