@@ -91,11 +91,11 @@ class LocalNimbusDeployment {
         createHandlers(clazz)
         handleUseResources(clazz)
 
-        localResourceHolder.afterDeployments.forEach { method -> method.invoke() }
-
         val fileService = FileService(variableSubstitution)
 
         fileService.handleUploadingFile(fileUploadDetails)
+
+        localResourceHolder.afterDeployments.forEach { method -> method.invoke() }
     }
 
     private constructor(packageName: String, stageParam: String = "dev", httpPort: Int = 8080, webSocketPort: Int = 8081) {
@@ -128,11 +128,11 @@ class LocalNimbusDeployment {
         //Handle use resources
         allClasses.forEach { clazz -> handleUseResources(clazz) }
 
-        localResourceHolder.afterDeployments.forEach { method -> method.invoke() }
-
         val fileService = FileService(variableSubstitution)
 
         fileService.handleUploadingFile(fileUploadDetails)
+
+        localResourceHolder.afterDeployments.forEach { method -> method.invoke() }
     }
 
 
