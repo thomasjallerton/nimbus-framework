@@ -5,7 +5,8 @@ import com.nimbusframework.nimbuscore.clients.PermissionException
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
 import com.nimbusframework.nimbuscore.testing.function.PermissionType
 
-internal class BasicServerlessFunctionClientLocal: BasicServerlessFunctionClient, LocalClient() {
+internal class
+BasicServerlessFunctionClientLocal: BasicServerlessFunctionClient, LocalClient() {
 
 
     override fun canUse(): Boolean {

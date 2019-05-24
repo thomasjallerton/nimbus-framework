@@ -27,7 +27,13 @@ class WebSocketAdapter(
                 headers,
                 RequestContext("CONNECT", sessionId)
         )
-        connectMethod?.invoke(request)
+        if (connectMethod != null) {
+            try {
+                connectMethod!!.invoke(request)
+            } catch (e: Exception) {
+                return
+            }
+        }
 
         super.onWebSocketConnect(session)
         sessions[sessionId] = session
@@ -64,7 +70,6 @@ class WebSocketAdapter(
     }
 
     override fun onWebSocketBinary(payload: ByteArray, offset: Int, len: Int) {
-        println("Binary message")
         val message = String(payload, offset, len)
         onWebSocketText(message)
     }
