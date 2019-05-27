@@ -44,7 +44,7 @@ class FunctionEnvironmentService(
         val logGroup = LogGroupResource(methodInformation.className, methodInformation.methodName, function, nimbusState, functionConfig.stage)
         val bucket = NimbusBucketResource(nimbusState, functionConfig.stage)
 
-        val iamRoleResource = IamRoleResource(function.getName(), nimbusState, functionConfig.stage)
+        val iamRoleResource = IamRoleResource(function.getShortName(), nimbusState, functionConfig.stage)
         iamRoleResource.addAllowStatement("logs:CreateLogStream", logGroup, ":*")
         iamRoleResource.addAllowStatement("logs:PutLogEvents", logGroup, ":*:*")
 

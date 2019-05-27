@@ -47,8 +47,11 @@ import java.util.*;
         "com.nimbusframework.nimbuscore.annotation.annotations.deployment.FileUploads",
         "com.nimbusframework.nimbuscore.annotation.annotations.deployment.AfterDeployment",
         "com.nimbusframework.nimbuscore.annotation.annotations.deployment.AfterDeployments",
+        "com.nimbusframework.nimbuscore.annotation.annotations.deployment.ForceDependency",
+        "com.nimbusframework.nimbuscore.annotation.annotations.deployment.ForceDependencies",
         "com.nimbusframework.nimbuscore.annotation.annotations.file.FileStorageBucket",
         "com.nimbusframework.nimbuscore.annotation.annotations.file.FileStorageBuckets"
+
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
@@ -131,6 +134,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         usesResourcesHandlers.add(new UsesRelationalDatabaseHandler(cfDocuments, processingEnv, nimbusState));
         usesResourcesHandlers.add(new UsesServerlessFunctionWebSocketClientHandler(cfDocuments));
         usesResourcesHandlers.add(new EnvironmentVariablesHandler(messager));
+        usesResourcesHandlers.add(new ForceDependencyHandler());
 
         for (FunctionInformation functionInformation : allInformation) {
             for (UsesResourcesHandler handler : usesResourcesHandlers) {
