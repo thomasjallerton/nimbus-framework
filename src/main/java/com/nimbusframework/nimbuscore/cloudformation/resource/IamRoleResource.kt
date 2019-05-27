@@ -26,7 +26,13 @@ class IamRoleResource(
 
         properties.addProperty("Path", "/")
 
-        properties.addProperty("RoleName", "${nimbusState.projectName}-$stage-$functionName")
+        val projectName = if (nimbusState.projectName.length  < 15) {
+            nimbusState.projectName
+        } else {
+            nimbusState.projectName.substring(0..15)
+        }
+
+        properties.addProperty("RoleName", "$projectName-$stage-$functionName")
 
         iamRoleResource.add("Properties", properties)
 
