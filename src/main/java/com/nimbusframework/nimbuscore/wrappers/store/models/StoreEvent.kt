@@ -6,7 +6,8 @@ import com.nimbusframework.nimbuscore.wrappers.ServerlessEvent
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class StoreEvent(
-        @JsonProperty(value = "storeUpdateDetails")
+        @JsonProperty(value = "dynamodb")
         val storeUpdateDetails: StoreUpdateDetails? = null,
+        @JsonProperty(value = "eventName")
         val eventName: String = ""
 ): ServerlessEvent

@@ -55,14 +55,18 @@ class NotificationServerlessFunctionFileBuilder(
 
         if (param.type != null) {
             write("NotificationEvent event = records.getRecords().get(0).getSns();")
-            write("SnsMessageFormat snsFormat = objectMapper.readValue(event.getMessage(), SnsMessageFormat.class);")
             write("${param.type} parsedType;")
+            write("try {")
+            write("SnsMessageFormat snsFormat = objectMapper.readValue(event.getMessage(), SnsMessageFormat.class);")
             write("if (snsFormat.getLambda() != null) {")
             write("parsedType = objectMapper.readValue(snsFormat.getLambda(), ${param.type}.class);")
             write("} else if (snsFormat.getDefault() != null) {")
             write("parsedType = objectMapper.readValue(snsFormat.getDefault(), ${param.type}.class);")
             write("} else {")
             write("return;")
+            write("}")
+            write("} catch (Exception e) {")
+            write("parsedType = objectMapper.readValue(event.getMessage(), ${param.type}.class);")
             write("}")
         }
 
