@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbuscore.clients.dynamo
 
+import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.nimbusframework.nimbuscore.annotation.annotations.persistent.Attribute
 import com.nimbusframework.nimbuscore.annotation.annotations.persistent.Key
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -24,25 +25,25 @@ class DynamoStreamParser<T>(private val clazz: Class<T>) {
         }
     }
 
-    private fun <K> fromAttributeValue(value: Map<String, String>, expectedType: Class<K>, fieldName: String): Any? {
+    private fun <K> fromAttributeValue(value: AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
         return when {
-            value.containsKey("Bool") && expectedType == Boolean::class.java -> value.getValue("Bool").toBoolean()
-            value.containsKey("N") -> {
+            value.bool != null && expectedType == Boolean::class.java -> value.bool
+            value.n != null -> {
                 when (expectedType) {
-                    Integer::class.java -> value.getValue("N").toInt()
-                    Double::class.java -> value.getValue("N").toDouble()
-                    Long::class.java -> value.getValue("N").toLong()
-                    Float::class.java -> value.getValue("N").toFloat()
-                    else -> value.getValue("N").toInt()
+                    Integer::class.java -> value.n.toInt()
+                    Double::class.java -> value.n.toDouble()
+                    Long::class.java -> value.n.toLong()
+                    Float::class.java -> value.n.toFloat()
+                    else -> value.n.toInt()
                 }
             }
-            value.containsKey("S") && expectedType == String::class.java -> value.getValue("S")
-            value.containsKey("S") -> objectMapper.readValue(value.getValue("S"), expectedType)
+            value.s != null && expectedType == String::class.java -> value.s
+            value.s != null -> objectMapper.readValue(value.s, expectedType)
             else -> throw MismatchedTypeException(expectedType.simpleName, fieldName)
         }
     }
 
-    fun toObject(obj: Map<String, Map<String, String>>?): T? {
+    fun toObject(obj: Map<String, AttributeValue>?): T? {
         if (obj == null) return null
 
         val resultMap: MutableMap<String, Any?> = mutableMapOf()

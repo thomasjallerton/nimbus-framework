@@ -1,17 +1,17 @@
 package com.nimbusframework.nimbuscore.wrappers.store
 
+import com.amazonaws.services.dynamodbv2.model.StreamRecord
+import com.amazonaws.services.lambda.runtime.events.DynamodbEvent
 import com.nimbusframework.nimbuscore.annotation.annotations.persistent.StoreEventType
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.clients.dynamo.DynamoStreamParser
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.wrappers.store.models.DynamoRecords
-import com.nimbusframework.nimbuscore.wrappers.store.models.StoreUpdateDetails
 import com.nimbusframework.nimbuscore.wrappers.store.models.StoreEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
-import javax.tools.Diagnostic
 
 abstract class StoreServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
@@ -25,8 +25,10 @@ abstract class StoreServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         functionName,
-        StoreEvent(),
+        StoreEvent::class.java,
         compilingElement,
+        DynamodbEvent::class.java,
+        Void::class.java,
         nimbusState
 ) {
     override fun getGeneratedClassName(): String {
@@ -45,9 +47,9 @@ abstract class StoreServerlessFunctionFileBuilder(
             if (methodInformation.parameters.size > 2) {
                 compilationError("$errorPrefix Too many arguments, can have at most two: T input, $eventSimpleName event.")
             } else if (methodInformation.parameters.size == 2) {
-                if (functionParams.eventParam.isEmpty()) {
+                if (functionParams.eventParam.doesNotExist()) {
                     compilationError("$errorPrefix Can't have two data input types. Function can have at most two parameters: T input, $eventSimpleName event.")
-                } else if (functionParams.inputParam.isEmpty()) {
+                } else if (functionParams.inputParam.doesNotExist()) {
                     compilationError("$errorPrefix Can't have two event input types. Function can have at most two parameters: T input, $eventSimpleName event.")
                 }
             }
@@ -55,16 +57,16 @@ abstract class StoreServerlessFunctionFileBuilder(
             if (methodInformation.parameters.size > 3) {
                 compilationError("$errorPrefix Too many arguments, can have at most three: T oldEvent, T newEvent, $eventSimpleName event.")
             } else if (methodInformation.parameters.size == 2) {
-                if (functionParams.eventParam.isEmpty() && methodInformation.parameters[0] != methodInformation.parameters[1]) {
+                if (functionParams.eventParam.doesNotExist() && methodInformation.parameters[0] != methodInformation.parameters[1]) {
                     compilationError("$errorPrefix Wrong input arguments, cannot have two different types of data inputs. " +
                             "Can have at most three arguments: T oldEvent, T newEvent, $eventSimpleName event. (Your T's were not the same type)")
-                } else if (functionParams.inputParam.isEmpty()) {
+                } else if (functionParams.inputParam.doesNotExist()) {
                     compilationError("$errorPrefix Can't have two event input types. Function can have at most three parameters: T oldEvent, T newEvent, $eventSimpleName event.")
                 }
             } else if (methodInformation.parameters.size == 3) {
-                if (functionParams.eventParam.isEmpty()) {
+                if (functionParams.eventParam.doesNotExist()) {
                     compilationError("$errorPrefix Can't have three data input types. Function can have at most three parameters: T oldEvent, T newEvent, $eventSimpleName event.")
-                } else if (functionParams.inputParam.isEmpty()) {
+                } else if (functionParams.inputParam.doesNotExist()) {
                     compilationError("$errorPrefix Can't have three event input types. Function can have at most three parameters: T oldEvent, T newEvent, $eventSimpleName event.")
                 } else if (functionParams.eventParam.index != 2) {
                     compilationError("$errorPrefix If three parameters then event input needs to be the final one. Need exact order: T oldEvent, T newEvent, $eventSimpleName event.")
@@ -80,49 +82,34 @@ abstract class StoreServerlessFunctionFileBuilder(
         }
     }
 
-    override fun writeOutput() {}
-
     override fun writeImports() {
-        write()
 
-        write("import com.fasterxml.jackson.databind.ObjectMapper;")
-        write("import com.amazonaws.services.lambda.runtime.Context;")
-        write("import java.io.*;")
-        write("import java.util.stream.Collectors;")
-        if (methodInformation.packageName.isNotBlank()) {
-            write("import ${methodInformation.packageName}.${methodInformation.className};")
-        }
-        write("import ${DynamoRecords::class.qualifiedName};")
-        write("import ${StoreUpdateDetails::class.qualifiedName};")
         write("import ${DynamoStreamParser::class.qualifiedName};")
         write("import ${StoreEvent::class.qualifiedName};")
 
         write()
     }
 
-    override fun writeInputs(param: Param) {
-        write("DynamoRecords records = objectMapper.readValue(jsonString, DynamoRecords.class);")
+    override fun writeFunction(inputParam: Param, eventParam: Param) {
+        if (inputParam.type != null) {
+            write("DynamodbEvent.DynamodbStreamRecord record = input.getRecords().get(0);")
+            write("$eventSimpleName event = new $eventSimpleName(record, requestId);")
+            write("if (!\"${method.name}\".equals(event.getEventName())) return null;")
 
-        if (param.type != null) {
-            write("StoreEvent event = records.getRecord().get(0);")
-            write("if (!\"${method.name}\".equals(event.getEventName())) return;")
-            write("StoreUpdateDetails update = event.getStoreUpdateDetails();")
-            write("DynamoStreamParser<${param.type}> parser = new DynamoStreamParser(${param.type}.class);")
-            write("${param.type} parsedNewItem = parser.toObject(update.getNewImage());")
-            write("${param.type} parsedOldItem = parser.toObject(update.getOldImage());")
+            write("DynamoStreamParser<${inputParam.type}> parser = new DynamoStreamParser(${inputParam.type}.class);")
+            write("${inputParam.type} parsedNewItem = parser.toObject(record.getDynamodb().getNewImage());")
+            write("${inputParam.type} parsedOldItem = parser.toObject(record.getDynamodb().getOldImage());")
         }
 
-    }
-
-    override fun writeFunction(inputParam: Param, eventParam: Param) {
         val methodName = methodInformation.methodName
         when {
-            inputParam.isEmpty() && eventParam.isEmpty() -> write("handler.$methodName();")
+            inputParam.doesNotExist() && eventParam.doesNotExist() -> write("handler.$methodName();")
             inputParam.type == null -> write("handler.$methodName(event);")
             methodInformation.parameters.size == 1 -> handleOneParam(methodName)
             methodInformation.parameters.size == 2 -> handleTwoParams(methodName, eventParam)
             methodInformation.parameters.size == 3 -> write("handler.$methodName(parsedOldItem, parsedNewItem, event);")
         }
+        write("return null;")
     }
 
     private fun handleOneParam(methodName: String) {
@@ -151,7 +138,7 @@ abstract class StoreServerlessFunctionFileBuilder(
             }
             StoreEventType.MODIFY -> {
                 when {
-                    eventParam.isEmpty() -> write("handler.$methodName(parsedOldItem, parsedNewItem);")
+                    eventParam.doesNotExist() -> write("handler.$methodName(parsedOldItem, parsedNewItem);")
                     eventParam.index == 0 -> write("handler.$methodName(event, parsedNewItem);")
                     else -> write("handler.$methodName(parsedNewItem, event);")
                 }
@@ -161,5 +148,6 @@ abstract class StoreServerlessFunctionFileBuilder(
 
     override fun writeHandleError() {
         write("e.printStackTrace();")
+        write("return null;")
     }
 }

@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbuscore.wrappers.websocket.models
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.nimbusframework.nimbuscore.wrappers.ServerlessEvent
 
@@ -11,5 +12,7 @@ data class WebSocketEvent(
         val multiValueQueryStringParameters: Map<String, List<String>> = mapOf(),
         val body: String? = null,
         val requestContext: RequestContext = RequestContext(),
-        val isBase64Encoded: Boolean? = null
+        val isBase64Encoded: Boolean? = null,
+        @JsonIgnore
+        var requestId: String = ""
 ): ServerlessEvent

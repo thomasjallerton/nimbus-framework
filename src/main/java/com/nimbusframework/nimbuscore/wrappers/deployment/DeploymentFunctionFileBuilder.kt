@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotation.annotations.deployment.AfterDep
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.ServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.wrappers.basic.models.BasicEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
@@ -16,57 +17,48 @@ class DeploymentFunctionFileBuilder(
         processingEnv,
         methodInformation,
         AfterDeployment::class.java.simpleName,
-        null,
+        BasicEvent::class.java,
         compilingElement,
+        Void::class.java,
+        null,
         nimbusState
 ) {
     override fun getGeneratedClassName(): String {
         return "AfterDeployment${methodInformation.className}${methodInformation.methodName}"
     }
 
-    override fun writeImports() {
-        write()
-
-        write("import com.fasterxml.jackson.databind.ObjectMapper;")
-        write("import com.amazonaws.services.lambda.runtime.Context;")
-        write("import java.io.*;")
-        write("import java.util.stream.Collectors;")
-        if (methodInformation.packageName.isNotBlank()) {
-            write("import ${methodInformation.packageName}.${methodInformation.className};")
-        }
-
-        write()
-    }
-
-    override fun writeInputs(param: Param){}
+    override fun writeImports() {}
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {
-        val callPrefix = if (methodInformation.returnType.toString() == "void") {
+        val callPrefix = if (voidMethodReturn) {
             ""
         } else {
             "${methodInformation.returnType} result = "
         }
 
-        write("${callPrefix}handler.${methodInformation.methodName}();")
-    }
-
-    override fun writeOutput() {
-        if (methodInformation.returnType.toString() != "void") {
-            write("String resultString = objectMapper.writeValueAsString(result);")
-            write("PrintWriter writer = new PrintWriter(output);")
-            write("writer.print(resultString);")
-            write("writer.close();")
+        if (eventParam.exists()) {
+            write("$eventSimpleName event = new $eventSimpleName(requestId);")
         }
-        write("output.close();")
+
+        val methodName = methodInformation.methodName
+        when {
+            eventParam.doesNotExist() -> write("${callPrefix}handler.$methodName();")
+            else -> write("${callPrefix}handler.$methodName(event);")
+        }
+
+        if (voidMethodReturn) {
+            write("return result;")
+        }
     }
 
     override fun writeHandleError() {
         write("e.printStackTrace();")
+        write("return null;")
     }
 
     override fun isValidFunction(functionParams: FunctionParams) {
-        if (methodInformation.parameters.isNotEmpty()) {
-            compilationError("Too many parameters for AfterDeployment, can have none")
+        if (!functionParams.inputParam.doesNotExist()) {
+            compilationError("Cannot have a custom user type in an AfterDeployment function")
         }
     }
 }

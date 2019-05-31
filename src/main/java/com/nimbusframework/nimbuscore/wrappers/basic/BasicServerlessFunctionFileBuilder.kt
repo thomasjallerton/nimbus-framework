@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotation.annotations.function.BasicServe
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.ServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.wrappers.basic.models.BasicEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
@@ -17,45 +18,25 @@ class BasicServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         BasicServerlessFunction::class.java.simpleName,
-        null,
+        BasicEvent::class.java,
         compilingElement,
+        null,
+        null,
         nimbusState
 ) {
     override fun getGeneratedClassName(): String {
         return "BasicServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 
-    override fun writeImports() {
-        write()
-
-        write("import com.fasterxml.jackson.databind.ObjectMapper;")
-        write("import com.amazonaws.services.lambda.runtime.Context;")
-        write("import java.io.*;")
-        write("import java.util.stream.Collectors;")
-        if (methodInformation.packageName.isNotBlank()) {
-            write("import ${methodInformation.packageName}.${methodInformation.className};")
-        }
-
-        write()
-    }
-
-    override fun writeInputs(param: Param) {
-
-        if (param.type != null) {
-            write("${param.type} parsedType;")
-            write("try {")
-            write("parsedType = objectMapper.readValue(jsonString, ${param.type}.class);")
-            write("} catch (Exception e) {")
-            write("e.printStackTrace();")
-            write("output.close();")
-            write("return;")
-            write("}")
-        }
-
-    }
+    override fun writeImports() {}
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {
-        val callPrefix = if (methodInformation.returnType.toString() == "void") {
+
+        if (eventParam.exists()) {
+            write("$eventSimpleName event = new $eventSimpleName(requestId);")
+        }
+
+        val callPrefix = if (voidMethodReturn) {
             ""
         } else {
             "${methodInformation.returnType} result = "
@@ -63,30 +44,29 @@ class BasicServerlessFunctionFileBuilder(
 
         val methodName = methodInformation.methodName
         when {
-            inputParam.isEmpty() && eventParam.isEmpty() -> write("${callPrefix}handler.$methodName();")
-            else -> write("${callPrefix}handler.$methodName(parsedType);")
+            inputParam.doesNotExist() && eventParam.doesNotExist() -> write("${callPrefix}handler.$methodName();")
+            inputParam.doesNotExist() -> write("${callPrefix}handler.$methodName(event);")
+            eventParam.doesNotExist() -> write("${callPrefix}handler.$methodName(input);")
+            inputParam.index == 0 -> write("${callPrefix}handler.$methodName(input, event);")
+            else -> write("${callPrefix}handler.$methodName(event, input);")
         }
-    }
 
-    override fun writeOutput() {
-        if (methodInformation.returnType.toString() != "void") {
-            write("String resultString = objectMapper.writeValueAsString(result);")
-            write("PrintWriter writer = new PrintWriter(output);")
-            write("writer.print(resultString);")
-            write("writer.close();")
+
+        if (!voidReturnType) {
+            write("return(result);")
         }
-        write("output.close();")
     }
 
     override fun writeHandleError() {
         write("e.printStackTrace();")
+        write("return null;")
     }
 
     override fun isValidFunction(functionParams: FunctionParams) {
-        if (cron && methodInformation.parameters.isNotEmpty()) {
-            compilationError("Too many parameters for cron BasicServerlessFunction, can have none")
-        } else if (methodInformation.parameters.size > 1) {
-            compilationError("Too many parameters for BasicServerlessFunction, maximum 1 of type T")
+        if (cron && !functionParams.inputParam.doesNotExist()) {
+            compilationError("Cannot have a custom user type parameter in a BasicServerlessFunction")
+        } else if (methodInformation.parameters.size > 2) {
+            compilationError("Too many parameters for BasicServerlessFunction, maximum 2 of type T, and BasicEvent")
         }
     }
 }
