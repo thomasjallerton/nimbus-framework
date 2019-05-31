@@ -1,11 +1,14 @@
 package com.nimbusframework.nimbuscore.wrappers.http
 
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.wrappers.http.models.HttpEvent
 import com.nimbusframework.nimbuscore.wrappers.http.models.HttpResponse
+import java.util.HashMap
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
@@ -18,8 +21,10 @@ class HttpServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
         HttpServerlessFunction::class.java.simpleName,
-        HttpEvent(),
+        HttpEvent::class.java,
         compilingElement,
+        APIGatewayProxyRequestEvent::class.java,
+        APIGatewayProxyResponseEvent::class.java,
         nimbusState
 ) {
 
@@ -31,44 +36,21 @@ class HttpServerlessFunctionFileBuilder(
         write()
 
         write("import com.fasterxml.jackson.databind.ObjectMapper;")
-        write("import com.amazonaws.services.lambda.runtime.Context;")
-        write("import java.io.*;")
-        write("import java.util.stream.Collectors;")
-        if (methodInformation.packageName.isNotBlank()) {
-            write("import ${methodInformation.packageName}.${methodInformation.className};")
-        }
-        write("import ${HttpEvent::class.qualifiedName};")
+        write("import ${HashMap::class.qualifiedName};")
         write("import ${HttpResponse::class.qualifiedName};")
 
         write()
     }
 
-    override fun writeInputs(param: Param) {
-
-        write("HttpEvent event = objectMapper.readValue(jsonString, HttpEvent.class);")
-
-        if (param.type != null) {
-            write("String body = event.getBody();")
-            write("${param.type} parsedType;")
-            write("try {")
-            write("parsedType = objectMapper.readValue(body, ${param.type}.class);")
-            write("} catch (Exception e) {")
-            write("e.printStackTrace();")
-            write("HttpResponse response = new HttpResponse().withStatusCode(500).withBody(\"{\\\"message\\\":\\\"JSON parsing error\\\"}\");")
-            addCorsHeader("response")
-            write("String responseString = objectMapper.writeValueAsString(response);")
-            write("PrintWriter writer = new PrintWriter(output);")
-            write("writer.print(responseString);")
-            write("writer.close();")
-            write("output.close();")
-            write("return;")
-            write("}")
-        }
-
-    }
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {
-        val callPrefix = if (methodInformation.returnType.toString() == "void") {
+        write("ObjectMapper objectMapper = new ObjectMapper();")
+        write("${HttpEvent::class.simpleName} event = new ${HttpEvent::class.simpleName}(input, requestId);")
+        if (inputParam.exists()) {
+            write("${inputParam.simpleName()} parsedType = objectMapper.readValue(input.getBody(), ${inputParam.simpleName()}.class);")
+        }
+
+        val callPrefix = if (voidMethodReturn) {
             ""
         } else {
             "${methodInformation.returnType} result = "
@@ -76,54 +58,40 @@ class HttpServerlessFunctionFileBuilder(
 
         val methodName = methodInformation.methodName
         when {
-            inputParam.isEmpty() && eventParam.isEmpty() -> write("${callPrefix}handler.$methodName();")
-            inputParam.type == null -> write("${callPrefix}handler.$methodName(event);")
-            eventParam.type == null -> write("${callPrefix}handler.$methodName(parsedType);")
+            inputParam.doesNotExist() && eventParam.doesNotExist() -> write("${callPrefix}handler.$methodName();")
+            inputParam.doesNotExist() -> write("${callPrefix}handler.$methodName(event);")
+            eventParam.doesNotExist() -> write("${callPrefix}handler.$methodName(parsedType);")
             inputParam.index == 0 -> write("${callPrefix}handler.$methodName(parsedType, event);")
             else -> write("${callPrefix}handler.$methodName(event, parsedType);")
         }
-    }
 
-    override fun writeOutput() {
-        if (methodInformation.returnType.toString() != HttpResponse::class.qualifiedName) {
-            write("HttpResponse response = new HttpResponse();")
-            addCorsHeader("response")
-            if (methodInformation.returnType.toString() != "void") {
-                write("String resultString = objectMapper.writeValueAsString(result);")
-                write("response.setBody(resultString);")
-            }
-        } else {
-            write("HttpResponse response = result;")
-            addCorsHeader("response")
+        write("APIGatewayProxyResponseEvent responseEvent = new APIGatewayProxyResponseEvent().withStatusCode(200);")
+
+        if (methodInformation.returnType.toString() == HttpResponse::class.qualifiedName) {
+            write("responseEvent.setBody(result.getBody());")
+            write("responseEvent.setHeaders(result.getHeaders());")
+            write("responseEvent.setStatusCode(result.getStatusCode());")
+            write("responseEvent.setIsBase64Encoded(result.getIsBase64Encoded())")
+        } else if (!voidMethodReturn) {
+            write("String responseBody = objectMapper.writeValueAsString(result);")
+            write("responseEvent.setBody(responseBody);")
         }
-
-        write("String responseString = objectMapper.writeValueAsString(response);")
-        write("PrintWriter writer = new PrintWriter(output);")
-        write("writer.print(responseString);")
-        write("writer.close();")
-        write("output.close();")
+        addCorsHeader("responseEvent")
+        write("return responseEvent;")
     }
 
     override fun writeHandleError() {
         write("e.printStackTrace();")
-
-        write("try {")
-        write("HttpResponse errorResponse = HttpResponse.Companion.serverErrorResponse();")
+        write("APIGatewayProxyResponseEvent errorResponse = new APIGatewayProxyResponseEvent().withStatusCode(500);")
         addCorsHeader("errorResponse")
-        write("String responseString = objectMapper.writeValueAsString(errorResponse);")
-
-        write("PrintWriter writer = new PrintWriter(output);")
-        write("writer.print(responseString);")
-        write("writer.close();")
-        write("output.close();")
-
-        write("} catch (IOException e2) {")
-        write("e2.printStackTrace();")
-        write("}")
+        write("return errorResponse;")
     }
 
     private fun addCorsHeader(variableName: String) {
-        write("if (!$variableName.getHeaders().containsKey(\"Access-Control-Allow-Origin\")) {")
+        write("if ($variableName.getHeaders() == null) {")
+        write("$variableName.setHeaders(new HashMap<>());")
+        write("}")
+        write("if (!$variableName.getHeaders() .containsKey(\"Access-Control-Allow-Origin\")) {")
         write("String allowedCorsOrigin = System.getenv(\"NIMBUS_ALLOWED_CORS_ORIGIN\");")
         write("if (allowedCorsOrigin != null && !allowedCorsOrigin.equals(\"\")) {")
         write("$variableName.getHeaders().put(\"Access-Control-Allow-Origin\", allowedCorsOrigin);")

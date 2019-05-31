@@ -2,7 +2,6 @@ package com.nimbusframework.nimbuscore.testing.document
 
 import com.nimbusframework.nimbuscore.annotation.annotations.persistent.StoreEventType
 import com.nimbusframework.nimbuscore.testing.ServerlessMethod
-import com.nimbusframework.nimbuscore.wrappers.store.models.StoreUpdateDetails
 import com.nimbusframework.nimbuscore.wrappers.store.models.StoreEvent
 import java.lang.reflect.Method
 
@@ -14,7 +13,7 @@ class DocumentMethod(private val method: Method, private val invokeOn: Any, priv
 
         if (type != StoreEventType.INSERT) return
 
-        val event = StoreEvent(StoreUpdateDetails(), type.name)
+        val event = StoreEvent(type.name)
 
         val params = method.parameters
         val eventIndex = eventIndex()
@@ -39,7 +38,7 @@ class DocumentMethod(private val method: Method, private val invokeOn: Any, priv
 
         if (type != StoreEventType.MODIFY) return
 
-        val event = StoreEvent(StoreUpdateDetails(), type.name)
+        val event = StoreEvent(type.name)
 
         val params = method.parameters
         val eventIndex = eventIndex()
@@ -68,7 +67,7 @@ class DocumentMethod(private val method: Method, private val invokeOn: Any, priv
 
         if (type != StoreEventType.REMOVE) return
 
-        val event = StoreEvent(StoreUpdateDetails(), type.name)
+        val event = StoreEvent(type.name)
 
         val params = method.parameters
         val eventIndex = eventIndex()

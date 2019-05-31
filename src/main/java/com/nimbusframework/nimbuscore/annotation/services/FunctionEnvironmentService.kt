@@ -41,6 +41,10 @@ class FunctionEnvironmentService(
         nimbusState.handlerFiles.add(handlerInformation)
 
         val function = FunctionResource(handler, methodInformation, functionConfig, handlerInformation, nimbusState)
+
+        //AWS Functions require org.joda.time.DateTime internally https://github.com/aws/aws-lambda-java-libs/issues/72
+        function.addExtraDependency("org.joda.time.DateTime")
+
         val logGroup = LogGroupResource(methodInformation.className, methodInformation.methodName, function, nimbusState, functionConfig.stage)
         val bucket = NimbusBucketResource(nimbusState, functionConfig.stage)
 

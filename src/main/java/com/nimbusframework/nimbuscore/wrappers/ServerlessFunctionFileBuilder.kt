@@ -1,13 +1,13 @@
 package com.nimbusframework.nimbuscore.wrappers
 
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
-import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import java.io.File
 import java.io.PrintWriter
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
+import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror
 import javax.tools.Diagnostic
 
@@ -15,29 +15,55 @@ abstract class ServerlessFunctionFileBuilder(
         protected val processingEnv: ProcessingEnvironment,
         protected val methodInformation: MethodInformation,
         private val functionType: String,
-        eventType: ServerlessEvent?,
+        eventType: Class<out ServerlessEvent>?,
         private val compilingElement: Element,
+        inputType: Class<out Any>?,
+        returnType: Class<out Any>?,
         private val nimbusState: NimbusState
 ) {
 
     private var tabLevel: Int = 0
 
-    private val eventCanonicalName = if (eventType != null) eventType::class.java.canonicalName else ""
-    private val eventSimpleName = if (eventType != null) eventType::class.java.simpleName else ""
+    protected val eventCanonicalName: String = if (eventType != null) eventType.canonicalName else ""
+    protected val eventSimpleName: String = if (eventType != null) eventType.simpleName else ""
 
-    private var out: PrintWriter? = null
+    protected var out: PrintWriter? = null
 
-    protected val messager: Messager = processingEnv.messager
+    protected val params = findParamIndexes()
+
+    private val messager: Messager = processingEnv.messager
+
+    protected val voidReturnType = returnType == Nothing::class.java
+
+    protected val voidMethodReturn = methodInformation.returnType.kind == TypeKind.NULL || methodInformation.returnType.kind == TypeKind.VOID
+
+    protected val returnTypeCanonicalName: String
+    protected val returnTypeSimpleName: String
+    protected val inputTypeSimpleName: String
+    protected val inputTypeCanonicalName: String
+
+    init {
+        if (inputType == null) {
+            inputTypeCanonicalName = params.inputParam.canonicalName()
+            inputTypeSimpleName = params.inputParam.simpleName()
+        } else {
+            inputTypeCanonicalName = inputType.canonicalName
+            inputTypeSimpleName = inputType.simpleName
+        }
+        if (returnType == null) {
+            returnTypeCanonicalName = methodInformation.returnType.toString()
+            returnTypeSimpleName = methodInformation.returnType.toString().substringAfterLast('.')
+        } else {
+            returnTypeCanonicalName = returnType.canonicalName
+            returnTypeSimpleName = returnType.simpleName
+        }
+    }
 
     protected abstract fun getGeneratedClassName(): String
 
     protected abstract fun writeImports()
 
-    protected abstract fun writeInputs(param: Param)
-
     protected abstract fun writeFunction(inputParam: Param, eventParam: Param)
-
-    protected abstract fun writeOutput()
 
     protected abstract fun writeHandleError()
 
@@ -61,11 +87,10 @@ abstract class ServerlessFunctionFileBuilder(
         return getGeneratedClassName() + ".jar"
     }
 
-    fun createClass() {
+    open fun createClass() {
         if (!customFunction()) {
             try {
 
-                val params = findParamIndexes()
 
                 isValidFunction(params)
 
@@ -80,32 +105,42 @@ abstract class ServerlessFunctionFileBuilder(
 
                 writeImports()
 
-                write("public class ${getGeneratedClassName()} {")
+                write("import com.amazonaws.services.lambda.runtime.RequestHandler;")
+                write("import com.amazonaws.services.lambda.runtime.Context;")
+                write("import $inputTypeCanonicalName;")
+                write("import $returnTypeCanonicalName;")
+                if (params.inputParam.type != null && isAListType(params.inputParam.type!!)) {
+                    write("import ${findListType(params.inputParam.type!!)};")
+                } else {
+                    write("import ${params.inputParam.canonicalName()};")
+                }
+
+                if (eventCanonicalName != "") {
+                    write("import $eventCanonicalName;")
+                }
+                if (methodInformation.packageName.isNotBlank()) {
+                    write("import ${methodInformation.packageName}.${methodInformation.className};")
+                }
+
+                write("public class ${getGeneratedClassName()} implements RequestHandler<$inputTypeSimpleName, $returnTypeSimpleName>{")
 
                 write()
 
-                write("public void nimbusHandle(InputStream input, OutputStream output, Context context) {")
+                write("public $returnTypeSimpleName handleRequest($inputTypeSimpleName input, Context context) {")
 
-                write("ObjectMapper objectMapper = new ObjectMapper();")
                 write("try {")
 
-                write("String jsonString = new BufferedReader(new InputStreamReader(input)).lines().collect(Collectors.joining(\"\\n\"));")
-
-                writeInputs(params.inputParam)
+                write("String requestId = context.getAwsRequestId();")
 
                 write("${methodInformation.className} handler = new ${methodInformation.className}();")
 
                 writeFunction(params.inputParam, params.eventParam)
-
-                writeOutput()
 
                 write("} catch (Exception e) {")
 
                 writeHandleError()
 
                 write("}")
-                write("return;")
-
 
                 write("}")
 
@@ -123,13 +158,20 @@ abstract class ServerlessFunctionFileBuilder(
         if (methodInformation.parameters.size > 2) {
             compilationError("$errorPrefix Too many arguments, can have at most two: T input, $eventSimpleName event.")
         } else if (methodInformation.parameters.size == 2) {
-            if (functionParams.eventParam.isEmpty()) {
+            if (functionParams.eventParam.doesNotExist()) {
                 compilationError("$errorPrefix Can't have two data input types. Function can have at most two parameters: T input, $eventSimpleName event.")
-            } else if (functionParams.inputParam.isEmpty()) {
+            } else if (functionParams.inputParam.doesNotExist()) {
                 compilationError("$errorPrefix Can't have two event input types. Function can have at most two parameters: T input, $eventSimpleName event.")
             }
             if (eventCannotBeList() && functionParams.eventParam.type != null && isAListType(functionParams.eventParam.type!!)) {
                 compilationError("$errorPrefix Cannot have a list of $eventSimpleName for a $functionType")
+            }
+            if (!eventCannotBeList() &&
+                    functionParams.eventParam.type != null &&
+                    functionParams.inputParam.type != null &&
+                    isAListType(functionParams.eventParam.type!!) &&
+                    !isAListType(functionParams.inputParam.type!!)) {
+                compilationError("Cannot have an event list argument without the custom user type also being a list for a $functionType.")
             }
         }
     }
@@ -143,9 +185,9 @@ abstract class ServerlessFunctionFileBuilder(
             }
         } else {
             if (methodInformation.packageName.contains(".")) {
-                methodInformation.packageName.substringBeforeLast(".") + ".${getGeneratedClassName()}::nimbusHandle"
+                methodInformation.packageName.substringBeforeLast(".") + ".${getGeneratedClassName()}::handleRequest"
             } else {
-                "${getGeneratedClassName()}::nimbusHandle"
+                "${getGeneratedClassName()}::handleRequest"
             }
         }
     }
@@ -162,7 +204,7 @@ abstract class ServerlessFunctionFileBuilder(
         if (toWrite.endsWith("{")) tabLevel++
     }
 
-    private fun customFunction(): Boolean {
+    protected fun customFunction(): Boolean {
         val params = methodInformation.parameters
         if (params.size == 3) {
             return (params[0].toString().contains("InputStream") &&
@@ -187,7 +229,7 @@ abstract class ServerlessFunctionFileBuilder(
     }
 
 
-    private fun findPackageName(qualifiedName: String): String {
+    protected fun findPackageName(qualifiedName: String): String {
         val lastDot = qualifiedName.lastIndexOf('.')
         return if (lastDot > 0) {
             qualifiedName.substring(0, lastDot)
@@ -205,8 +247,20 @@ abstract class ServerlessFunctionFileBuilder(
     }
 
     protected data class Param(val type: TypeMirror?, val index: Int) {
-        fun isEmpty(): Boolean {
+        fun doesNotExist(): Boolean {
             return type == null
+        }
+
+        fun exists(): Boolean {
+            return type != null
+        }
+
+        fun canonicalName(): String {
+            return type?.toString() ?: "java.lang.Void"
+        }
+
+        fun simpleName(): String {
+            return type?.toString()?.substringAfterLast('.') ?: "Void"
         }
     }
 
