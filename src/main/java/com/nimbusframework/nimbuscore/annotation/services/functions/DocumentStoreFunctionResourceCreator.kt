@@ -54,8 +54,11 @@ class DocumentStoreFunctionResourceCreator(
                 handlerInformation = HandlerInformation(
                         handlerClassPath = fileBuilder.classFilePath(),
                         handlerFile = fileBuilder.handlerFile(),
-                        replacementVariable = "\${${fileBuilder.handlerFile()}}"
+                        replacementVariable = "\${${fileBuilder.handlerFile()}}",
+                        stages = documentStoreFunction.stages.toSet()
                 )
+                nimbusState.handlerFiles.add(handlerInformation)
+
 
             }
 

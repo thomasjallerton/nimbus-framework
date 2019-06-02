@@ -5,7 +5,7 @@ import com.google.gson.JsonObject
 class ResourceCollection {
 
     private val resourceMap: MutableMap<String, Resource> = mutableMapOf()
-    private val invokableFunctions: MutableList<Resource> = mutableListOf()
+    private val invokableFunctions: MutableMap<FunctionIdentifier,Resource> = mutableMapOf()
 
     fun addResource(resource: Resource) {
         if (!resourceMap.containsKey(resource.getName())) {
@@ -39,13 +39,15 @@ class ResourceCollection {
         return resourceMap.containsKey(resource.getName())
     }
 
-    fun getInvokableFunctions(): List<Resource> {
-        return invokableFunctions
+    fun getInvokableFunction(className: String, methodName: String): Resource? {
+        return invokableFunctions[FunctionIdentifier(className, methodName)]
     }
 
-    fun addInvokableFunction(resource: Resource) {
-        invokableFunctions.add(resource)
+    fun addInvokableFunction(className: String, methodName: String, resource: Resource) {
+        invokableFunctions[FunctionIdentifier(className, methodName)] = resource
     }
+
+    private data class FunctionIdentifier(val className: String, val methodName: String)
 
 
 

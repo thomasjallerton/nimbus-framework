@@ -40,15 +40,19 @@ class AfterDeploymentResourceCreator(
         val handler = fileBuilder.getHandler()
 
         for (afterDeployment in afterDeployments) {
+            val handlerInformation = HandlerInformation(
+                    handlerClassPath = fileBuilder.classFilePath(),
+                    handlerFile = fileBuilder.handlerFile(),
+                    replacementVariable = "\${${fileBuilder.handlerFile()}}",
+                    stages = afterDeployment.stages.toSet()
+            )
+            nimbusState.handlerFiles.add(handlerInformation)
+
             for (stage in afterDeployment.stages) {
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments(nimbusState, stage) }
                 val updateResources = cloudFormationDocuments.updateResources
 
-                val handlerInformation = HandlerInformation(
-                        handlerClassPath = fileBuilder.classFilePath(),
-                        handlerFile = fileBuilder.handlerFile(),
-                        replacementVariable = "\${${fileBuilder.handlerFile()}}"
-                )
+
 
                 val config = FunctionConfig(300, 1024, stage)
 

@@ -28,7 +28,7 @@ class RelationalDatabaseResourceCreator(
 
         for (relationalDatabase in relationalDatabases) {
             for (stage in relationalDatabase.stages) {
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments(nimbusState, stage) }
                 val updateResources = cloudFormationDocuments.updateResources
 
                 val databaseConfiguration = DatabaseConfiguration.fromRelationDatabase(relationalDatabase)

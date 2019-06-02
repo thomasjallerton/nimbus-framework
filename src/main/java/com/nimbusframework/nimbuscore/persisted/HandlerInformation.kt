@@ -5,5 +5,6 @@ data class HandlerInformation(
         val handlerFile: String = "",
         val usesClients: MutableSet<ClientType> = mutableSetOf(),
         val extraDependencies: MutableSet<String> = mutableSetOf(),
-        val replacementVariable: String = ""
+        val replacementVariable: String = "",
+        val stages: Set<String> = setOf()
 )

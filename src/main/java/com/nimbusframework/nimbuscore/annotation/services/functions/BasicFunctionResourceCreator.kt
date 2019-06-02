@@ -46,15 +46,19 @@ class BasicFunctionResourceCreator(
         val handler = fileBuilder.getHandler()
 
         for (basicFunction in basicFunctions) {
+            val handlerInformation = HandlerInformation(
+                    handlerClassPath = fileBuilder.classFilePath(),
+                    handlerFile = fileBuilder.handlerFile(),
+                    replacementVariable = "\${${fileBuilder.handlerFile()}}",
+                    stages = basicFunction.stages.toSet()
+            )
+            nimbusState.handlerFiles.add(handlerInformation)
+
+
             for (stage in basicFunction.stages) {
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments(nimbusState, stage) }
                 val updateResources = cloudFormationDocuments.updateResources
 
-                val handlerInformation = HandlerInformation(
-                        handlerClassPath = fileBuilder.classFilePath(),
-                        handlerFile = fileBuilder.handlerFile(),
-                        replacementVariable = "\${${fileBuilder.handlerFile()}}"
-                )
 
                 val config = FunctionConfig(basicFunction.timeout, basicFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(
@@ -68,8 +72,7 @@ class BasicFunctionResourceCreator(
                 if (basicFunction.cron != "") {
                     functionEnvironmentService.newCronTrigger(basicFunction.cron, functionResource)
                 }
-                updateResources.addInvokableFunction(functionResource)
-
+                updateResources.addInvokableFunction(methodInformation.className, methodInformation.methodName, functionResource)
 
                 results.add(FunctionInformation(type, functionResource))
             }

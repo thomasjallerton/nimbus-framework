@@ -53,7 +53,9 @@ class BasicServerlessFunctionFileBuilder(
 
 
         if (!voidReturnType) {
-            write("return(result);")
+            write("return result;")
+        } else {
+            write("return null;")
         }
     }
 

@@ -40,14 +40,16 @@ class HttpFunctionResourceCreator(
         fileBuilder.createClass()
 
         for (httpFunction in httpFunctions) {
+            val handlerInformation = HandlerInformation(
+                    handlerClassPath = fileBuilder.classFilePath(),
+                    handlerFile = fileBuilder.handlerFile(),
+                    replacementVariable = "\${${fileBuilder.handlerFile()}}",
+                    stages = httpFunction.stages.toSet()
+            )
+            nimbusState.handlerFiles.add(handlerInformation)
+
             for (stage in httpFunction.stages) {
                 val handler = fileBuilder.getHandler()
-
-                val handlerInformation = HandlerInformation(
-                        handlerClassPath = fileBuilder.classFilePath(),
-                        handlerFile = fileBuilder.handlerFile(),
-                        replacementVariable = "\${${fileBuilder.handlerFile()}}"
-                )
 
                 val config = FunctionConfig(httpFunction.timeout, httpFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(

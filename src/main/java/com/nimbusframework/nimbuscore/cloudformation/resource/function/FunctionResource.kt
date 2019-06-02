@@ -39,15 +39,31 @@ class FunctionResource(
     }
 
     override fun getName(): String {
-        return "${methodInformation.className}${methodInformation.methodName}Function"
+        val className = if (methodInformation.className.length > 28) {
+            methodInformation.className.takeLast(28)
+        } else {
+            methodInformation.className
+        }
+        val methodName = if (methodInformation.className.length > 28) {
+            methodInformation.methodName.takeLast(28)
+        } else {
+            methodInformation.methodName
+        }
+        return "$className${methodName}Function"
     }
 
     fun getShortName(): String {
-        return if (methodInformation.className.length > 5) {
-            "${methodInformation.className.substring(0, 5)}${methodInformation.methodName}"
+        val className = if (methodInformation.className.length > 16) {
+            methodInformation.className.takeLast(16)
         } else {
-            "${methodInformation.className}${methodInformation.methodName}"
+            methodInformation.className
         }
+        val methodName = if (methodInformation.className.length > 16) {
+            methodInformation.methodName.takeLast(16)
+        } else {
+            methodInformation.methodName
+        }
+        return "$className$methodName"
     }
 
     override fun toCloudFormation(): JsonObject {
@@ -136,7 +152,12 @@ class FunctionResource(
 
     companion object {
         fun functionName(projectName: String, className: String, methodName: String, stage: String): String {
-            return "$projectName-$stage-$className-$methodName"
+            val desiredName = "$projectName-$stage-$className-$methodName"
+            return if (desiredName.length > 64) {
+                "${projectName.take(15)}-${stage.take(15)}-${className.take(15)}-${methodName.take(15)}"
+            } else {
+                desiredName
+            }
         }
     }
 
