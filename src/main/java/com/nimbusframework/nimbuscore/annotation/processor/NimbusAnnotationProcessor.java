@@ -125,7 +125,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
 
         List<UsesResourcesHandler> usesResourcesHandlers = new LinkedList<>();
-        usesResourcesHandlers.add(new UsesBasicServerlessFunctionClientHandler(cfDocuments, nimbusState));
+        usesResourcesHandlers.add(new UsesBasicServerlessFunctionClientHandler(cfDocuments, processingEnv, nimbusState));
         usesResourcesHandlers.add(new UsesDocumentStoreHandler(cfDocuments, processingEnv, nimbusState));
         usesResourcesHandlers.add(new UsesFileStorageClientHandler(cfDocuments, nimbusState));
         usesResourcesHandlers.add(new UsesKeyValueStoreHandler(cfDocuments, processingEnv, nimbusState));

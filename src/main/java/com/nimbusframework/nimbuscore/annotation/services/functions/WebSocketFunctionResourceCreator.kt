@@ -40,15 +40,18 @@ class WebSocketFunctionResourceCreator(
         fileBuilder.createClass()
 
         for (webSocketFunction in webSocketFunctions) {
+            val handlerInformation = HandlerInformation(
+                    handlerClassPath = fileBuilder.classFilePath(),
+                    handlerFile = fileBuilder.handlerFile(),
+                    replacementVariable = "\${${fileBuilder.handlerFile()}}",
+                    stages = webSocketFunction.stages.toSet()
+            )
+            nimbusState.handlerFiles.add(handlerInformation)
+
             for (stage in webSocketFunction.stages) {
                 val handler = fileBuilder.getHandler()
 
                 val config = FunctionConfig(webSocketFunction.timeout, webSocketFunction.memory, stage)
-                val handlerInformation = HandlerInformation(
-                        handlerClassPath = fileBuilder.classFilePath(),
-                        handlerFile = fileBuilder.handlerFile(),
-                        replacementVariable = "\${${fileBuilder.handlerFile()}}"
-                )
 
                 val functionResource = functionEnvironmentService.newFunction(
                         handler,

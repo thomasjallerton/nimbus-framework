@@ -33,8 +33,6 @@ abstract class ServerlessFunctionFileBuilder(
 
     private val messager: Messager = processingEnv.messager
 
-    protected val voidReturnType = returnType == Nothing::class.java
-
     protected val voidMethodReturn = methodInformation.returnType.kind == TypeKind.NULL || methodInformation.returnType.kind == TypeKind.VOID
 
     protected val returnTypeCanonicalName: String
@@ -51,13 +49,20 @@ abstract class ServerlessFunctionFileBuilder(
             inputTypeSimpleName = inputType.simpleName
         }
         if (returnType == null) {
-            returnTypeCanonicalName = methodInformation.returnType.toString()
-            returnTypeSimpleName = methodInformation.returnType.toString().substringAfterLast('.')
+            if (voidMethodReturn) {
+                returnTypeCanonicalName = "java.lang.Void"
+                returnTypeSimpleName = "Void"
+            } else {
+                returnTypeCanonicalName = methodInformation.returnType.toString()
+                returnTypeSimpleName = methodInformation.returnType.toString().substringAfterLast('.')
+            }
         } else {
             returnTypeCanonicalName = returnType.canonicalName
             returnTypeSimpleName = returnType.simpleName
         }
     }
+
+    protected val voidReturnType = returnTypeSimpleName == "Void"
 
     protected abstract fun getGeneratedClassName(): String
 
@@ -108,7 +113,7 @@ abstract class ServerlessFunctionFileBuilder(
                 write("import com.amazonaws.services.lambda.runtime.RequestHandler;")
                 write("import com.amazonaws.services.lambda.runtime.Context;")
                 write("import $inputTypeCanonicalName;")
-                write("import $returnTypeCanonicalName;")
+                write("import $returnTypeCanonicalName; //return type")
                 if (params.inputParam.type != null && isAListType(params.inputParam.type!!)) {
                     write("import ${findListType(params.inputParam.type!!)};")
                 } else {
@@ -256,10 +261,12 @@ abstract class ServerlessFunctionFileBuilder(
         }
 
         fun canonicalName(): String {
+            if (type?.kind == TypeKind.VOID) return "java.lang.Void"
             return type?.toString() ?: "java.lang.Void"
         }
 
         fun simpleName(): String {
+            if (type?.kind == TypeKind.VOID) return "Void"
             return type?.toString()?.substringAfterLast('.') ?: "Void"
         }
     }

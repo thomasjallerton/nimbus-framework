@@ -38,8 +38,6 @@ class FunctionEnvironmentService(
 
 
     fun newFunction(handler: String, methodInformation: MethodInformation, handlerInformation: HandlerInformation, functionConfig: FunctionConfig): FunctionResource {
-        nimbusState.handlerFiles.add(handlerInformation)
-
         val function = FunctionResource(handler, methodInformation, functionConfig, handlerInformation, nimbusState)
 
         //AWS Functions require org.joda.time.DateTime internally https://github.com/aws/aws-lambda-java-libs/issues/72
@@ -55,11 +53,12 @@ class FunctionEnvironmentService(
         function.setIamRoleResource(iamRoleResource)
         function.addEnvVariable("NIMBUS_STAGE", functionConfig.stage)
 
-        val cloudFormationDocuments = cloudFormationDocumentsCollection.getOrPut(functionConfig.stage) { CloudFormationDocuments() }
+        val cloudFormationDocuments = cloudFormationDocumentsCollection.getOrPut(functionConfig.stage) { CloudFormationDocuments(
+                nimbusState,
+                functionConfig.stage
+        ) }
         val updateResources = cloudFormationDocuments.updateResources
         val createResources = cloudFormationDocuments.createResources
-        val createOutputs = cloudFormationDocuments.createOutputs
-        val updateOutputs = cloudFormationDocuments.updateOutputs
 
         updateResources.addResource(iamRoleResource)
         updateResources.addResource(function)
@@ -67,10 +66,6 @@ class FunctionEnvironmentService(
         updateResources.addResource(bucket)
 
         createResources.addResource(bucket)
-
-        val bucketName = BucketNameOutput(bucket, nimbusState)
-        createOutputs.addOutput(bucketName)
-        updateOutputs.addOutput(bucketName)
 
         return function
     }

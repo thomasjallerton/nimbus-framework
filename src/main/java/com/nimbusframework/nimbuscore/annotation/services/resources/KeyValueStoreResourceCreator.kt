@@ -28,7 +28,7 @@ class KeyValueStoreResourceCreator(
 
         for (keyValueStore in keyValueStores) {
             for (stage in keyValueStore.stages) {
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments(nimbusState, stage) }
                 val updateResources = cloudFormationDocuments.updateResources
 
                 if (keyValueStore.existingArn == "") {

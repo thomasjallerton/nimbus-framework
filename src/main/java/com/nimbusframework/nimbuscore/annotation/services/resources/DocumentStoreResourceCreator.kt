@@ -37,7 +37,7 @@ class DocumentStoreResourceCreator(
 
                 val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
 
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments(nimbusState, stage) }
                 val updateResources = cloudFormationDocuments.updateResources
 
                 if (documentStore.existingArn == "") {

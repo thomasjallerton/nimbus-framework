@@ -29,7 +29,7 @@ class FileStorageBucketResourceCreator(
 
         for (storageBucket in storageBuckets) {
             for (stage in storageBucket.stages) {
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments() }
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments(nimbusState, stage) }
 
                 val updateResources = cloudFormationDocuments.updateResources
 

@@ -55,8 +55,10 @@ class KeyValueStoreFunctionResourceCreator(
                 handlerInformation = HandlerInformation(
                         handlerClassPath = fileBuilder.classFilePath(),
                         handlerFile = fileBuilder.handlerFile(),
-                        replacementVariable = "\${${fileBuilder.handlerFile()}}"
+                        replacementVariable = "\${${fileBuilder.handlerFile()}}",
+                        stages = keyValueStoreFunction.stages.toSet()
                 )
+                nimbusState.handlerFiles.add(handlerInformation)
 
             }
 
