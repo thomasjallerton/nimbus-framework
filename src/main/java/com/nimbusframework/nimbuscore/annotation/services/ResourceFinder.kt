@@ -61,7 +61,7 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
             val relationalDatabase = typeElement.getAnnotation(RelationalDatabase::class.java)
             return resourceCollections.getValue(dataModelStage).updateResources.get("${relationalDatabase.name}RdsInstance") as RdsResource?
         } catch (e: NullPointerException) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with KeyValueStore but isn't", serverlessMethod)
+            messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with RelationalDatabase but isn't", serverlessMethod)
             null
         }
     }
