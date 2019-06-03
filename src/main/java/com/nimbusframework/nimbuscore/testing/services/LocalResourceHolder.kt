@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbuscore.testing.services
 
 import com.nimbusframework.nimbuscore.testing.ServerlessMethod
-import com.nimbusframework.nimbuscore.testing.basic.BasicMethod
+import com.nimbusframework.nimbuscore.testing.basic.BasicFunction
 import com.nimbusframework.nimbuscore.testing.deployment.AfterDeploymentMethod
 import com.nimbusframework.nimbuscore.testing.document.LocalDocumentStore
 import com.nimbusframework.nimbuscore.testing.file.LocalFileStorage
@@ -17,7 +17,6 @@ import com.nimbusframework.nimbuscore.testing.webserver.WebserverHandler
 import com.nimbusframework.nimbuscore.testing.websocket.LocalWebsocketMethod
 import com.nimbusframework.nimbuscore.testing.websocketserver.LocalWebSocketServer
 import org.eclipse.jetty.websocket.api.Session
-import java.lang.reflect.Method
 import java.util.*
 
 class LocalResourceHolder {
@@ -26,7 +25,7 @@ class LocalResourceHolder {
     val queues: MutableMap<String, LocalQueue> = mutableMapOf()
     val httpMethods: MutableMap<HttpMethodIdentifier, LocalHttpMethod> = mutableMapOf()
     val websocketMethods: MutableMap<String, LocalWebsocketMethod> = mutableMapOf()
-    val basicMethods: MutableMap<FunctionIdentifier, BasicMethod> = mutableMapOf()
+    val basicMethods: MutableMap<FunctionIdentifier, BasicFunction> = mutableMapOf()
     val keyValueStores: MutableMap<String, LocalKeyValueStore<out Any, out Any>> = mutableMapOf()
     val documentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
     val fileStorage: MutableMap<String, LocalFileStorage> = mutableMapOf()

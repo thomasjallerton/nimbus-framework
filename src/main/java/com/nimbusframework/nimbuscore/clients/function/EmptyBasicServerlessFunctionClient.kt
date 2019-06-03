@@ -5,27 +5,27 @@ import com.nimbusframework.nimbuscore.clients.PermissionException
 class EmptyBasicServerlessFunctionClient: BasicServerlessFunctionClient {
     private val clientName = "BasicServerlessFunctionClient"
 
-    override fun invoke(handlerClass: Class<out Any>, functionName: String) {
+    override fun invoke() {
         throw PermissionException(clientName)
     }
 
-    override fun invoke(handlerClass: Class<out Any>, functionName: String, param: Any) {
+    override fun invoke(param: Any) {
         throw PermissionException(clientName)
     }
 
-    override fun <T> invoke(handlerClass: Class<out Any>, functionName: String, responseType: Class<T>): T? {
+    override fun <T> invoke(responseType: Class<T>): T? {
         throw PermissionException(clientName)
     }
 
-    override fun <T> invoke(handlerClass: Class<out Any>, functionName: String, param: Any, responseType: Class<T>): T? {
+    override fun <T> invoke(param: Any, responseType: Class<T>): T? {
         throw PermissionException(clientName)
     }
 
-    override fun invokeAsync(handlerClass: Class<out Any>, functionName: String) {
+    override fun invokeAsync() {
         throw PermissionException(clientName)
     }
 
-    override fun invokeAsync(handlerClass: Class<out Any>, functionName: String, param: Any) {
+    override fun invokeAsync(param: Any) {
         throw PermissionException(clientName)
     }
 }

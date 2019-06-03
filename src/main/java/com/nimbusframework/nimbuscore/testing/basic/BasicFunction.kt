@@ -4,10 +4,33 @@ import com.nimbusframework.nimbuscore.testing.ServerlessMethod
 import com.nimbusframework.nimbuscore.wrappers.basic.models.BasicEvent
 import java.lang.reflect.Method
 
-class BasicMethod(private val method: Method, private val invokeOn: Any) : ServerlessMethod(method, BasicEvent::class.java) {
+class BasicFunction(private val method: Method, private val invokeOn: Any) : ServerlessMethod(method, BasicEvent::class.java) {
 
+    fun invoke() {
+        invokeMethod(null, Unit.javaClass)
+    }
 
-    fun <T> invoke(param: Any?, responseType: Class<T>): T? {
+    fun invoke(param: Any) {
+        invokeMethod(param, Unit.javaClass)
+    }
+
+    fun <T> invoke(responseType: Class<T>): T? {
+        return invokeMethod(null, responseType)
+    }
+
+    fun <T> invoke(param: Any, responseType: Class<T>): T? {
+        return invokeMethod(param, responseType)
+    }
+
+    fun invokeAsync() {
+        invokeMethod(null, Unit.javaClass)
+    }
+
+    fun invokeAsync(param: Any) {
+        invokeMethod(param, Unit.javaClass)
+    }
+
+    private fun <T> invokeMethod(param: Any?, responseType: Class<T>): T? {
         timesInvoked++
         mostRecentInvokeArgument = param
 

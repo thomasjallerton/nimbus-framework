@@ -5,15 +5,16 @@ import kotlin.random.Random
 class LocalQueue {
 
     private val consumers: MutableList<QueueMethod> = mutableListOf()
-    private var itemsAdded: Int = 0
+    private var itemsAdded: MutableSet<in Any> = mutableSetOf()
+
 
     fun add(obj: Any) {
         getRandomConsumer().invoke(obj)
-        itemsAdded++
+        itemsAdded.add(obj)
     }
 
     fun addBatch(toAdd: List<Any>) {
-        itemsAdded += toAdd.size
+        itemsAdded.addAll(toAdd)
         consumeBatch(toAdd)
     }
 
@@ -21,7 +22,11 @@ class LocalQueue {
         if (queue.isEmpty()) return
 
         val target = getRandomConsumer()
-        if (target.isListParams) {
+        if (target.batchSize == 1) {
+            target.invoke(queue[0])
+            if (queue.size == 1) return
+            consumeBatch(queue.subList(1, queue.size))
+        } else {
             val invokeList: MutableList<Any> = mutableListOf()
             val remaining: MutableList<Any> = mutableListOf()
             for ((index, queueItem) in queue.withIndex()) {
@@ -33,15 +38,15 @@ class LocalQueue {
             }
             target.invoke(invokeList)
             consumeBatch(remaining)
-        } else {
-            target.invoke(queue[0])
-            if (queue.size == 1) return
-            consumeBatch(queue.subList(1, queue.size))
         }
     }
 
     fun getNumberOfItemsAdded(): Int {
-        return itemsAdded
+        return itemsAdded.size
+    }
+
+    fun itemsAddedContains(item: Any): Boolean {
+        return itemsAdded.contains(item)
     }
 
     fun addConsumer(queueMethod: QueueMethod) {

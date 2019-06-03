@@ -3,40 +3,57 @@ package com.nimbusframework.nimbuscore.testing.queue
 import com.nimbusframework.nimbuscore.testing.ServerlessMethod
 import com.nimbusframework.nimbuscore.wrappers.queue.models.QueueEvent
 import java.lang.reflect.Method
+import java.lang.reflect.ParameterizedType
+import java.util.*
 
 class QueueMethod(private val method: Method, private val invokeOn: Any, internal val batchSize: Int) : ServerlessMethod(method, QueueEvent::class.java) {
 
-    internal val isListParams = method.parameterTypes.any { clazz -> isListType(clazz.canonicalName) }
-    private val paramType: Class<*>?
-
-    init {
-        val nonEventClass = method.parameterTypes.find { clazz -> clazz.canonicalName != QueueEvent::class.java.canonicalName }
-        paramType = if (isListParams) {
-            null
-        } else {
-            nonEventClass
+    private val isListParams = method.parameterTypes.any { clazz -> isListType(clazz.canonicalName) }
+    private val paramType: Class<*>? = if (isListParams) {
+        val type = method.genericParameterTypes.find {
+            if (it is ParameterizedType) {
+                val clazz = it.actualTypeArguments[0] as Class<out Any>
+                clazz != QueueEvent::class.java
+            } else {
+                false
+            }
         }
+        (type as ParameterizedType).actualTypeArguments[0] as Class<out Any>
+    } else {
+        method.parameterTypes.find { clazz -> clazz.canonicalName != QueueEvent::class.java.canonicalName }
     }
 
-    fun invoke(obj: Any) {
+
+    internal fun invoke(obj: Any) {
         timesInvoked++
 
-        if (isListParams) {
-            invokeList(obj)
-        } else {
-            val parsedObject = if (paramType != null) {
-                objectMapper.readValue(objectMapper.writeValueAsString(obj), paramType)
-            } else {
-                obj
-            }
-            if (parsedObject is List<*>) {
-                parsedObject.forEach {
-                    if (it != null) invokeGeneral(it, QueueEvent())
+        if (obj is List<*>) {
+            val parsedList = obj.map {
+                if (paramType != null) {
+                    objectMapper.readValue(objectMapper.writeValueAsString(it), paramType)
+                } else {
+                    obj
                 }
+            }
+            if (isListParams) {
+                invokeList(parsedList)
+            } else {
+                val event = QueueEvent()
+                parsedList.forEach {
+                    invokeGeneral(it, event)
+                }
+            }
+        } else {
+
+            val parsedObject = objectMapper.readValue(objectMapper.writeValueAsString(obj), paramType)
+
+            if (isListParams) {
+                invokeList(parsedObject)
             } else {
                 invokeGeneral(parsedObject, QueueEvent())
             }
         }
+
     }
 
     private fun invokeList(obj: Any) {
@@ -45,9 +62,12 @@ class QueueMethod(private val method: Method, private val invokeOn: Any, interna
         } else {
             listOf(obj)
         }
-
+        val requestId = UUID.randomUUID().toString()
         val eventList: MutableList<QueueEvent> = mutableListOf()
-        list.forEach { _ -> eventList.add(QueueEvent()) }
+        list.forEach { _ ->
+            eventList.add(QueueEvent(requestId = requestId
+            ))
+        }
 
         invokeGeneral(list, eventList)
     }

@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbuscore.testing.services.function
 
 import com.nimbusframework.nimbuscore.annotation.annotations.function.BasicServerlessFunction
-import com.nimbusframework.nimbuscore.testing.basic.BasicMethod
+import com.nimbusframework.nimbuscore.testing.basic.BasicFunction
 import com.nimbusframework.nimbuscore.testing.function.FunctionIdentifier
 import com.nimbusframework.nimbuscore.testing.services.LocalResourceHolder
 import java.lang.reflect.Method
@@ -21,7 +21,7 @@ class LocalBasicFunctionHandler(
             if (basicFunction.stages.contains(stage)) {
                 val invokeOn = clazz.getConstructor().newInstance()
 
-                val basicMethod = BasicMethod(method, invokeOn)
+                val basicMethod = BasicFunction(method, invokeOn)
                 localResourceHolder.methods[functionIdentifier] = basicMethod
                 localResourceHolder.basicMethods[functionIdentifier] = basicMethod
             }

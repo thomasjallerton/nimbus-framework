@@ -43,9 +43,9 @@ class QueueHandlerLocalTest {
     @Test
     fun addingOneItemToQueueTriggersFunctionOnceLargerBatchsize() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java)
-        val queue = localDeployment.getQueue("BatchSize2")
+        val queue = localDeployment.getQueue("BatchSize2Batch")
 
-        val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2")
+        val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Batched")
         assertEquals(0, queueFunction.timesInvoked)
 
         queue.add(houseOne)
@@ -56,9 +56,35 @@ class QueueHandlerLocalTest {
     @Test
     fun addingTwoItemsToQueueTriggersFunctionOnceLargerBatchsize() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java)
-        val queue = localDeployment.getQueue("BatchSize2")
+        val queue = localDeployment.getQueue("BatchSize2Batch")
 
-        val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2")
+        val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Batched")
+        assertEquals(0, queueFunction.timesInvoked)
+
+        queue.addBatch(listOf(houseOne, houseOne))
+
+        assertEquals(1, queueFunction.timesInvoked)
+    }
+
+    @Test
+    fun addingOneItemToQueueTriggersIndividualFunctionOnceLargerBatchsize() {
+        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java)
+        val queue = localDeployment.getQueue("BatchSize2Individual")
+
+        val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Individual")
+        assertEquals(0, queueFunction.timesInvoked)
+
+        queue.add(houseOne)
+
+        assertEquals(1, queueFunction.timesInvoked)
+    }
+
+    @Test
+    fun addingTwoItemsToQueueTriggersIndividualFunctionOnceLargerBatchsize() {
+        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java)
+        val queue = localDeployment.getQueue("BatchSize2Individual")
+
+        val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Individual")
         assertEquals(0, queueFunction.timesInvoked)
 
         queue.addBatch(listOf(houseOne, houseOne))
