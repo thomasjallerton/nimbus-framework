@@ -11,8 +11,19 @@ class ExampleQueueHandler {
         return true
     }
 
-    @QueueServerlessFunction(batchSize = 2, id = "BatchSize2")
-    fun handleBatchSize2(house: List<KeyValue>, queueEvent: List<QueueEvent>): Boolean {
+    @QueueServerlessFunction(batchSize = 2, id = "BatchSize2Batch")
+    fun handleBatchSize2Batched(house: List<KeyValue>, queueEvent: List<QueueEvent>): Boolean {
+        if (queueEvent.isNotEmpty()) {
+            val firstId = queueEvent.first().requestId
+            queueEvent.forEach {
+                assert(it.requestId == firstId)
+            }
+        }
+        return true
+    }
+
+    @QueueServerlessFunction(batchSize = 2, id = "BatchSize2Individual")
+    fun handleBatchSize2Individual(house: KeyValue, queueEvent: QueueEvent): Boolean {
         return true
     }
 }

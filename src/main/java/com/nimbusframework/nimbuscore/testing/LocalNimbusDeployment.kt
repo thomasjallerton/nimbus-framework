@@ -4,7 +4,7 @@ import com.nimbusframework.nimbuscore.clients.ClientBuilder
 import com.nimbusframework.nimbuscore.clients.document.AbstractDocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
 import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
-import com.nimbusframework.nimbuscore.testing.basic.BasicMethod
+import com.nimbusframework.nimbuscore.testing.basic.BasicFunction
 import com.nimbusframework.nimbuscore.testing.document.LocalDocumentStore
 import com.nimbusframework.nimbuscore.testing.file.LocalFileStorage
 import com.nimbusframework.nimbuscore.testing.function.FunctionEnvironment
@@ -77,7 +77,7 @@ class LocalNimbusDeployment {
         localUseResourceHandlers.add(LocalUsesWebSocketHandler(localResourceHolder, stage))
     }
 
-    private constructor(clazz: Class<out Any>, stageParam: String = "dev", httpPort: Int = 8080, webSocketPort: Int = 8081) {
+    private constructor(stageParam: String = "dev", httpPort: Int = 8080, webSocketPort: Int = 8081, classes: Array<out Class<out Any>>) {
         instance = this
         stage = stageParam
         this.httpPort = httpPort
@@ -87,9 +87,11 @@ class LocalNimbusDeployment {
         initialiseResourceCreators()
         initialiseUseResourceHandlers()
 
-        createResources(clazz)
-        createHandlers(clazz)
-        handleUseResources(clazz)
+        for (clazz in classes) {
+            createResources(clazz)
+            createHandlers(clazz)
+            handleUseResources(clazz)
+        }
 
         val fileService = FileService(variableSubstitution)
 
@@ -268,7 +270,7 @@ class LocalNimbusDeployment {
         }
     }
 
-    internal fun <T> getBasicMethod(clazz:Class<T>, methodName: String): BasicMethod {
+    fun <T> getBasicFunction(clazz:Class<T>, methodName: String): BasicFunction {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, methodName)
         val localBasicMethods = localResourceHolder.basicMethods
 
@@ -384,16 +386,18 @@ class LocalNimbusDeployment {
         }
 
         @JvmStatic
-        fun getNewInstance(clazz: Class<out Any>): LocalNimbusDeployment {
+        @SafeVarargs
+        fun getNewInstance(vararg clazz: Class<out Any>): LocalNimbusDeployment {
             ClientBuilder.isLocalDeployment = true
-            LocalNimbusDeployment(clazz)
+            LocalNimbusDeployment(classes = clazz)
             return instance
         }
 
         @JvmStatic
-        fun getNewInstance(clazz: Class<out Any>, stage: String, port: Int, webSocketPort: Int): LocalNimbusDeployment {
+        @SafeVarargs
+        fun getNewInstance(stage: String, port: Int, webSocketPort: Int, vararg clazz: Class<out Any>): LocalNimbusDeployment {
             ClientBuilder.isLocalDeployment = true
-            LocalNimbusDeployment(clazz, stage, port, webSocketPort)
+            LocalNimbusDeployment(stage, port, webSocketPort, clazz)
             return instance
         }
 

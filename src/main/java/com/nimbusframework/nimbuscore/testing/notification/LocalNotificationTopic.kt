@@ -42,5 +42,9 @@ class LocalNotificationTopic {
         }
     }
 
+    fun getNumberOfSubscribers(): Int {
+        return generalSubscribers.size + methodSubscribers.size
+    }
+
     private data class SubscriberInformation(val protocol: Protocol, val endpoint: String)
 }

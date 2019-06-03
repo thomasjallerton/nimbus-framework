@@ -153,10 +153,7 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
         f.parentFile?.mkdirs()
         f.createNewFile()
 
-        val outputStream = FileOutputStream(f)
-        val dataOutStream = DataOutputStream(BufferedOutputStream(outputStream))
-        dataOutStream.writeUTF(content)
-        dataOutStream.close()
+        f.writeText(content)
 
         methods.forEach { method -> method.invoke(path, f.length(), FileStorageEventType.OBJECT_CREATED) }
 

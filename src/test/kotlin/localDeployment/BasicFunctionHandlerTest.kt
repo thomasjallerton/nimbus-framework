@@ -12,7 +12,7 @@ class BasicFunctionHandlerTest {
     fun triggerMethodActuallyTriggersMethod() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleBasicFunctionHandler::class.java)
 
-        val method = localDeployment.getBasicMethod(ExampleBasicFunctionHandler::class.java, "handle")
+        val method = localDeployment.getBasicFunction(ExampleBasicFunctionHandler::class.java, "handle")
 
         val result = method.invoke("HELLO", Boolean::class.java)
 
@@ -27,7 +27,7 @@ class BasicFunctionHandlerTest {
     fun testClientActuallyTriggersMethod() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleBasicFunctionHandler::class.java)
 
-        val method = localDeployment.getBasicMethod(ExampleBasicFunctionHandler::class.java, "handle")
+        val method = localDeployment.getBasicFunction(ExampleBasicFunctionHandler::class.java, "handle")
 
         val client = ClientBuilder.getBasicServerlessFunctionClient()
 

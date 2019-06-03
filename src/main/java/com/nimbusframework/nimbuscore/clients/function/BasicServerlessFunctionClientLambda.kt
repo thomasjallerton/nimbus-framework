@@ -8,7 +8,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import java.nio.charset.Charset
 
 
-internal class BasicServerlessFunctionClientLambda : BasicServerlessFunctionClient {
+internal class BasicServerlessFunctionClientLambda(
+        private val handlerClass: Class<out Any>,
+        private val functionName: String
+): BasicServerlessFunctionClient {
 
     private val lambdaClient = AWSLambdaClientBuilder.defaultClient()
     private val objectMapper = ObjectMapper()
@@ -25,19 +28,19 @@ internal class BasicServerlessFunctionClientLambda : BasicServerlessFunctionClie
         "dev"
     }
 
-    override fun invoke(handlerClass: Class<out Any>, functionName: String) {
-        invoke(handlerClass, functionName, "", Unit.javaClass)
+    override fun invoke() {
+        invoke("", Unit.javaClass)
     }
 
-    override fun invoke(handlerClass: Class<out Any>, functionName: String, param: Any) {
-        invoke(handlerClass, functionName, param, Unit.javaClass)
+    override fun invoke(param: Any) {
+        invoke(param, Unit.javaClass)
     }
 
-    override fun <T> invoke(handlerClass: Class<out Any>, functionName: String, responseType: Class<T>): T? {
-        return invoke(handlerClass, functionName, "", responseType)
+    override fun <T> invoke(responseType: Class<T>): T? {
+        return invoke("", responseType)
     }
 
-    override fun <T> invoke(handlerClass: Class<out Any>, functionName: String, param: Any, responseType: Class<T>): T? {
+    override fun <T> invoke(param: Any, responseType: Class<T>): T? {
         val invokeRequest = InvokeRequest()
                 .withFunctionName(FunctionResource.functionName(projectName, handlerClass.simpleName, functionName, stage))
                 .withPayload(objectMapper.writeValueAsString(param))
@@ -51,11 +54,11 @@ internal class BasicServerlessFunctionClientLambda : BasicServerlessFunctionClie
         }
     }
 
-    override fun invokeAsync(handlerClass: Class<out Any>, functionName: String) {
-        invokeAsync(handlerClass, functionName, "")
+    override fun invokeAsync() {
+        invokeAsync("")
     }
 
-    override fun invokeAsync(handlerClass: Class<out Any>, functionName: String, param: Any) {
+    override fun invokeAsync(param: Any) {
         val invokeRequest = InvokeRequest()
                 .withFunctionName(FunctionResource.functionName(projectName, handlerClass.simpleName, functionName, stage))
                 .withPayload(objectMapper.writeValueAsString(param))

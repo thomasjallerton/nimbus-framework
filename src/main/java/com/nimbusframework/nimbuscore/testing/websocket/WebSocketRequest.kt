@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbuscore.testing.websocket
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.nimbusframework.nimbuscore.wrappers.websocket.models.RequestContext
 
 
@@ -18,6 +19,14 @@ data class WebSocketRequest(
         if (topic.isTextual) return topic.asText()
 
         throw MissingTopicException(body)
+    }
+
+    fun setBodyWithTopic(obj: Any, topic: String) {
+        val objectMapper = ObjectMapper()
+        val node: ObjectNode = objectMapper.valueToTree(obj)
+        node.put("topic", topic)
+
+        body = objectMapper.writeValueAsString(node)
     }
 
     constructor(body: String,

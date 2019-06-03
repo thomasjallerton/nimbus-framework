@@ -128,12 +128,12 @@ object ClientBuilder {
     }
 
     @JvmStatic
-    fun getBasicServerlessFunctionClient(): BasicServerlessFunctionClient {
+    fun getBasicServerlessFunctionClient(handlerClass: Class<out Any>, functionName: String): BasicServerlessFunctionClient {
         return if (isLocalDeployment) {
-            BasicServerlessFunctionClientLocal()
+            BasicServerlessFunctionClientLocal(handlerClass, functionName)
         } else {
             try {
-                BasicServerlessFunctionClientLambda()
+                BasicServerlessFunctionClientLambda(handlerClass, functionName)
             } catch (e: ClassNotFoundException) {
                 EmptyBasicServerlessFunctionClient()
             } catch (e: NoClassDefFoundError) {
