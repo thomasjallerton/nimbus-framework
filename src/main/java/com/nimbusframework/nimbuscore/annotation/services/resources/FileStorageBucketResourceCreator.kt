@@ -3,11 +3,11 @@ package com.nimbusframework.nimbuscore.annotation.services.resources
 import com.nimbusframework.nimbuscore.annotation.annotations.file.FileStorageBucket
 import com.nimbusframework.nimbuscore.annotation.annotations.file.FileStorageBuckets
 import com.nimbusframework.nimbuscore.annotation.wrappers.WebsiteConfiguration
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbuscore.cloudformation.outputs.BucketWebsiteUrlOutput
 import com.nimbusframework.nimbuscore.cloudformation.resource.file.FileBucket
 import com.nimbusframework.nimbuscore.cloudformation.resource.file.FileStorageBucketPolicy
-import com.nimbusframework.nimbuscore.cloudformation.resource.http.RestApi
 import com.nimbusframework.nimbuscore.persisted.ExportInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.RoundEnvironment
@@ -15,7 +15,7 @@ import javax.lang.model.element.Element
 
 class FileStorageBucketResourceCreator(
         roundEnvironment: RoundEnvironment,
-        cfDocuments: MutableMap<String, CloudFormationDocuments>,
+        cfDocuments: MutableMap<String, CloudFormationFiles>,
         private val nimbusState: NimbusState
 ): CloudResourceResourceCreator(
         roundEnvironment,
@@ -29,9 +29,9 @@ class FileStorageBucketResourceCreator(
 
         for (storageBucket in storageBuckets) {
             for (stage in storageBucket.stages) {
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments(nimbusState, stage) }
-
-                val updateResources = cloudFormationDocuments.updateResources
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
+                val updateTemplate = cloudFormationDocuments.updateTemplate
+                val updateResources = updateTemplate.resources
 
                 val fileBucket = FileBucket(
                         nimbusState,
@@ -49,11 +49,11 @@ class FileStorageBucketResourceCreator(
                 )
 
                 if (storageBucket.staticWebsite) {
-                    cloudFormationDocuments.fileBucketWebsites.add(fileBucket)
+                    updateTemplate.fileBucketWebsites.add(fileBucket)
 
                     val fileBucketPolicy = FileStorageBucketPolicy(nimbusState, fileBucket, stage)
                     updateResources.addResource(fileBucketPolicy)
-                    val updateOutputs = cloudFormationDocuments.updateOutputs
+                    val updateOutputs = updateTemplate.outputs
 
                     val websiteOutputUrl = BucketWebsiteUrlOutput(fileBucket, nimbusState)
                     updateOutputs.addOutput(websiteOutputUrl)

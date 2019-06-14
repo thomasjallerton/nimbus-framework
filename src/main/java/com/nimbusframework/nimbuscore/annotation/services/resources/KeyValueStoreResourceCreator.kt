@@ -4,7 +4,8 @@ import com.nimbusframework.nimbuscore.annotation.annotations.keyvalue.KeyValueSt
 import com.nimbusframework.nimbuscore.annotation.annotations.keyvalue.KeyValueStores
 import com.nimbusframework.nimbuscore.annotation.wrappers.DynamoConfiguration
 import com.nimbusframework.nimbuscore.annotation.wrappers.annotations.datamodel.KeyValueStoreAnnotation
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbuscore.cloudformation.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.ProcessingEnvironment
@@ -13,7 +14,7 @@ import javax.lang.model.element.Element
 
 class KeyValueStoreResourceCreator(
         roundEnvironment: RoundEnvironment,
-        cfDocuments: MutableMap<String, CloudFormationDocuments>,
+        cfDocuments: MutableMap<String, CloudFormationFiles>,
         private val nimbusState: NimbusState,
         private val processingEnvironment: ProcessingEnvironment
 ): CloudResourceResourceCreator(
@@ -28,8 +29,8 @@ class KeyValueStoreResourceCreator(
 
         for (keyValueStore in keyValueStores) {
             for (stage in keyValueStore.stages) {
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments(nimbusState, stage) }
-                val updateResources = cloudFormationDocuments.updateResources
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
+                val updateResources = cloudFormationDocuments.updateTemplate.resources
 
                 if (keyValueStore.existingArn == "") {
                     val tableName = determineTableName(keyValueStore.tableName, type.simpleName.toString(), stage)

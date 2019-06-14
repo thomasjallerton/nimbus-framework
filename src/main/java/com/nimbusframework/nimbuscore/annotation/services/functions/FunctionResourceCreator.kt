@@ -3,7 +3,8 @@ package com.nimbusframework.nimbuscore.annotation.services.functions
 import com.nimbusframework.nimbuscore.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbuscore.annotation.services.ResourceFinder
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import java.util.*
@@ -14,7 +15,7 @@ import javax.lang.model.element.PackageElement
 import javax.lang.model.type.ExecutableType
 
 abstract class FunctionResourceCreator(
-        protected val cfDocuments: MutableMap<String, CloudFormationDocuments>,
+        protected val cfDocuments: MutableMap<String, CloudFormationFiles>,
         protected val nimbusState: NimbusState,
         protected val processingEnv: ProcessingEnvironment,
         private val singleClass: Class<out Annotation>,

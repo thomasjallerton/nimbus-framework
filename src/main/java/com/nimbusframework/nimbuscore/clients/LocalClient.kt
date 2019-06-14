@@ -19,8 +19,7 @@ abstract class LocalClient {
     protected fun getCallingServerlessMethod(): FunctionEnvironment? {
         val functionEnvironments = localNimbusDeployment.getFunctionEnvironments()
         val stElements = Thread.currentThread().stackTrace
-        for (i in 1 until stElements.size) {
-            val ste = stElements[i]
+        for (ste in stElements) {
             val identifier = FunctionIdentifier(ste.className, ste.methodName)
             if (functionEnvironments.containsKey(identifier)) {
                 return functionEnvironments[identifier]

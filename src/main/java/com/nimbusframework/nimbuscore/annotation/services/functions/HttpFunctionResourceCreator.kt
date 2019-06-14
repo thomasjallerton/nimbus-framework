@@ -4,8 +4,8 @@ import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpServer
 import com.nimbusframework.nimbuscore.annotation.annotations.function.repeatable.HttpServerlessFunctions
 import com.nimbusframework.nimbuscore.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
-import com.nimbusframework.nimbuscore.cloudformation.resource.file.FileBucket
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -14,7 +14,7 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class HttpFunctionResourceCreator(
-        cfDocuments: MutableMap<String, CloudFormationDocuments>,
+        cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
 ) : FunctionResourceCreator(
@@ -60,7 +60,7 @@ class HttpFunctionResourceCreator(
                 )
 
                 val annotationCorsOrigin = httpFunction.allowedCorsOrigin
-                val referencedWebsite = cfDocuments[stage]!!.referencedFileStorageBucket(annotationCorsOrigin)
+                val referencedWebsite = cfDocuments[stage]!!.updateTemplate.referencedFileStorageBucket(annotationCorsOrigin)
 
                 if (referencedWebsite != null) {
                     functionResource.addEnvVariable("NIMBUS_ALLOWED_CORS_ORIGIN", referencedWebsite.getAttr("WebsiteURL"))

@@ -8,7 +8,7 @@ import javax.tools.StandardLocation
 class CloudformationWriter(private val filer: Filer) {
     fun saveTemplate(name: String, template: CloudFormationTemplate) {
         if (template.valid()) {
-            saveJsonFile(name, template.getJsonTemplate())
+            saveJsonFile(name, template.toJson())
         }
     }
 

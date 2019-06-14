@@ -4,8 +4,6 @@ import com.nimbusframework.nimbuscore.annotation.annotations.file.FileStorageEve
 import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbuscore.annotation.annotations.function.NotificationServerlessFunction
 import com.nimbusframework.nimbuscore.annotation.annotations.function.QueueServerlessFunction
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
-import com.nimbusframework.nimbuscore.cloudformation.outputs.BucketNameOutput
 import com.nimbusframework.nimbuscore.cloudformation.outputs.RestApiOutput
 import com.nimbusframework.nimbuscore.cloudformation.outputs.WebSocketApiOutput
 import com.nimbusframework.nimbuscore.cloudformation.processing.MethodInformation
@@ -27,12 +25,13 @@ import com.nimbusframework.nimbuscore.cloudformation.resource.queue.QueueResourc
 import com.nimbusframework.nimbuscore.cloudformation.resource.websocket.*
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbuscore.persisted.ExportInformation
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 
 class FunctionEnvironmentService(
-        private val cloudFormationDocumentsCollection: MutableMap<String, CloudFormationDocuments>,
+        private val cloudFormationFiles: MutableMap<String, CloudFormationFiles>,
         private val nimbusState: NimbusState
 ) {
 
@@ -53,12 +52,12 @@ class FunctionEnvironmentService(
         function.setIamRoleResource(iamRoleResource)
         function.addEnvVariable("NIMBUS_STAGE", functionConfig.stage)
 
-        val cloudFormationDocuments = cloudFormationDocumentsCollection.getOrPut(functionConfig.stage) { CloudFormationDocuments(
+        val cloudFormationDocuments = cloudFormationFiles.getOrPut(functionConfig.stage) { CloudFormationFiles(
                 nimbusState,
                 functionConfig.stage
         ) }
-        val updateResources = cloudFormationDocuments.updateResources
-        val createResources = cloudFormationDocuments.createResources
+        val updateResources = cloudFormationDocuments.updateTemplate.resources
+        val createResources = cloudFormationDocuments.createTemplate.resources
 
         updateResources.addResource(iamRoleResource)
         updateResources.addResource(function)
@@ -73,13 +72,13 @@ class FunctionEnvironmentService(
     fun newHttpMethod(httpFunction: HttpServerlessFunction, function: FunctionResource) {
         val pathParts = httpFunction.path.split("/")
 
-        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
-        val updateResources = cfDocuments.updateResources
-        val updateOutputs = cfDocuments.updateOutputs
+        val updateTemplate = cloudFormationFiles[function.stage]!!.updateTemplate
+        val updateResources = updateTemplate.resources
+        val updateOutputs = updateTemplate.outputs
 
-        val restApi = if (cfDocuments.rootRestApi == null) {
+        val restApi = if (updateTemplate.rootRestApi == null) {
             val restApi = RestApi(nimbusState, function.stage)
-            cfDocuments.rootRestApi = restApi
+            updateTemplate.rootRestApi = restApi
             updateResources.addResource(restApi)
             val httpApiOutput = RestApiOutput(restApi, nimbusState)
             updateOutputs.addOutput(httpApiOutput)
@@ -94,16 +93,16 @@ class FunctionEnvironmentService(
 
             restApi
         } else {
-            cfDocuments.rootRestApi!!
+            updateTemplate.rootRestApi!!
         }
 
-        val apiGatewayDeployment = if (cfDocuments.apiGatewayDeployment == null) {
+        val apiGatewayDeployment = if (updateTemplate.apiGatewayDeployment == null) {
             val apiGatewayDeployment = ApiGatewayDeployment(restApi, nimbusState)
-            cfDocuments.apiGatewayDeployment = apiGatewayDeployment
+            updateTemplate.apiGatewayDeployment = apiGatewayDeployment
             updateResources.addResource(apiGatewayDeployment)
             apiGatewayDeployment
         } else {
-            cfDocuments.apiGatewayDeployment!!
+            updateTemplate.apiGatewayDeployment!!
         }
 
         var resource: AbstractRestResource = restApi
@@ -125,7 +124,7 @@ class FunctionEnvironmentService(
 
                 val newCorsMethod = CorsRestMethod(
                         resource,
-                        cfDocuments,
+                        updateTemplate,
                         nimbusState
                 )
                 val existingCorsMethod = updateResources.get(newCorsMethod.getName())
@@ -148,8 +147,8 @@ class FunctionEnvironmentService(
     }
 
     fun newNotification(notificationFunction: NotificationServerlessFunction, function: FunctionResource) {
-        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
-        val updateResources = cfDocuments.updateResources
+        val cfDocuments = cloudFormationFiles[function.stage]!!
+        val updateResources = cfDocuments.updateTemplate.resources
 
         val snsTopic = SnsTopicResource(notificationFunction.topic, function, nimbusState, function.stage)
         updateResources.addResource(snsTopic)
@@ -159,8 +158,8 @@ class FunctionEnvironmentService(
     }
 
     fun newQueue(queueFunction: QueueServerlessFunction, function: FunctionResource) {
-        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
-        val updateResources = cfDocuments.updateResources
+        val cfDocuments = cloudFormationFiles[function.stage]!!
+        val updateResources = cfDocuments.updateTemplate.resources
 
         val sqsQueue = QueueResource(nimbusState, queueFunction.id, queueFunction.timeout * 6, function.stage)
         updateResources.addResource(sqsQueue)
@@ -183,8 +182,8 @@ class FunctionEnvironmentService(
     }
 
     fun newStoreTrigger(store: Resource, function: FunctionResource) {
-        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
-        val updateResources = cfDocuments.updateResources
+        val cfDocuments = cloudFormationFiles[function.stage]!!
+        val updateResources = cfDocuments.updateTemplate.resources
 
         val eventMapping = FunctionEventMappingResource(
                 store.getAttribute("StreamArn"),
@@ -207,8 +206,8 @@ class FunctionEnvironmentService(
     }
 
     fun newCronTrigger(cron: String, function: FunctionResource) {
-        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
-        val updateResources = cfDocuments.updateResources
+        val cfDocuments = cloudFormationFiles[function.stage]!!
+        val updateResources = cfDocuments.updateTemplate.resources
 
         val cronRule = CronRule(cron, function, nimbusState)
         val lambdaPermissionResource = FunctionPermissionResource(function, cronRule, nimbusState)
@@ -220,7 +219,7 @@ class FunctionEnvironmentService(
     fun newFileTrigger(name: String, eventType: FileStorageEventType, function: FunctionResource) {
         val newBucket = FileBucket(nimbusState, name, arrayOf(), function.stage)
 
-        val updateResources = cloudFormationDocumentsCollection[function.stage]!!.updateResources
+        val updateResources = cloudFormationFiles[function.stage]!!.updateTemplate.resources
         val oldBucket = updateResources.get(newBucket.getName()) as FileBucket?
 
         val lambdaConfiguration = LambdaConfiguration(eventType, function)
@@ -242,13 +241,13 @@ class FunctionEnvironmentService(
     }
 
     fun newWebSocketRoute(routeKey: String, function: FunctionResource) {
-        val cfDocuments = cloudFormationDocumentsCollection[function.stage]!!
-        val updateResources = cfDocuments.updateResources
-        val updateOutputs = cfDocuments.updateOutputs
+        val updateTemplate = cloudFormationFiles[function.stage]!!.updateTemplate
+        val updateResources = updateTemplate.resources
+        val updateOutputs = updateTemplate.outputs
 
-        val webSocketApi = if (cfDocuments.rootWebSocketApi == null) {
+        val webSocketApi = if (updateTemplate.rootWebSocketApi == null) {
             val webSocketApi = WebSocketApi(nimbusState, function.stage)
-            cfDocuments.rootWebSocketApi = webSocketApi
+            updateTemplate.rootWebSocketApi = webSocketApi
             updateResources.addResource(webSocketApi)
             val webSocketApiOutput = WebSocketApiOutput(webSocketApi, nimbusState)
             updateOutputs.addOutput(webSocketApiOutput)
@@ -263,18 +262,18 @@ class FunctionEnvironmentService(
 
             webSocketApi
         } else {
-            cfDocuments.rootWebSocketApi!!
+            updateTemplate.rootWebSocketApi!!
         }
 
-        val webSocketDeployment = if (cfDocuments.webSocketDeployment == null) {
+        val webSocketDeployment = if (updateTemplate.webSocketDeployment == null) {
             val webSocketDeployment = WebSocketDeployment(webSocketApi, nimbusState)
-            cfDocuments.webSocketDeployment = webSocketDeployment
+            updateTemplate.webSocketDeployment = webSocketDeployment
             val stage = WebSocketStage(webSocketApi, webSocketDeployment, nimbusState)
             updateResources.addResource(webSocketDeployment)
             updateResources.addResource(stage)
             webSocketDeployment
         } else {
-            cfDocuments.webSocketDeployment!!
+            updateTemplate.webSocketDeployment!!
         }
 
         val integration = WebSocketIntegration(webSocketApi, function, routeKey, nimbusState)

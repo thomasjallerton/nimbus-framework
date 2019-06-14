@@ -1,12 +1,12 @@
 package com.nimbusframework.nimbuscore.annotation.services.resources
 
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 
 abstract class CloudResourceResourceCreator(
         private val roundEnvironment: RoundEnvironment,
-        protected val cfDocuments: MutableMap<String, CloudFormationDocuments>,
+        protected val cfDocuments: MutableMap<String, CloudFormationFiles>,
         private val singleClass: Class<out Annotation>,
         private val repeatableClass: Class<out Annotation>
 ) {
