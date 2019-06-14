@@ -1,7 +1,8 @@
 package com.nimbusframework.nimbuscore.annotation.services.useresources
 
 import com.nimbusframework.nimbuscore.annotation.annotations.queue.UsesQueue
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.cloudformation.resource.queue.QueueResource
 import com.nimbusframework.nimbuscore.persisted.ClientType
@@ -11,7 +12,7 @@ import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 class UsesQueueHandler(
-        private val cfDocuments: Map<String, CloudFormationDocuments>,
+        private val cfDocuments: Map<String, CloudFormationFiles>,
         processingEnv: ProcessingEnvironment,
         private val nimbusState: NimbusState
 ): UsesResourcesHandler  {
@@ -30,7 +31,7 @@ class UsesQueueHandler(
                     val cloudFormationDocuments = cfDocuments[stage]
 
                     val queue = QueueResource(nimbusState, usesQueue.id, 10, stage)
-                    val referencedQueue = cloudFormationDocuments?.updateResources?.get(queue.getName())
+                    val referencedQueue = cloudFormationDocuments?.updateTemplate?.resources?.get(queue.getName())
                     if (cloudFormationDocuments == null || referencedQueue == null) {
                         messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find id of queue, have you set it in the @QueueServerlessFunction?", serverlessMethod)
                         return

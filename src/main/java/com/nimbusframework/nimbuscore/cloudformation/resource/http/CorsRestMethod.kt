@@ -3,13 +3,13 @@ package com.nimbusframework.nimbuscore.cloudformation.resource.http
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpMethod
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbuscore.cloudformation.resource.Resource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 
 class CorsRestMethod (
         private val parent: AbstractRestResource,
-        private val cloudFormationDocuments: CloudFormationDocuments,
+        private val cloudFormationDocuments: CloudFormationTemplate,
         nimbusState: NimbusState
 ): Resource(nimbusState, parent.stage){
 

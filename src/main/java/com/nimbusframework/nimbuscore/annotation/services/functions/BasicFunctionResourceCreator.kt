@@ -4,7 +4,8 @@ import com.nimbusframework.nimbuscore.annotation.annotations.function.BasicServe
 import com.nimbusframework.nimbuscore.annotation.annotations.function.repeatable.BasicServerlessFunctions
 import com.nimbusframework.nimbuscore.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
@@ -13,7 +14,7 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class BasicFunctionResourceCreator(
-        cfDocuments: MutableMap<String, CloudFormationDocuments>,
+        cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
 ) : FunctionResourceCreator(
@@ -56,8 +57,8 @@ class BasicFunctionResourceCreator(
 
 
             for (stage in basicFunction.stages) {
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments(nimbusState, stage) }
-                val updateResources = cloudFormationDocuments.updateResources
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
+                val updateResources = cloudFormationDocuments.updateTemplate.resources
 
 
                 val config = FunctionConfig(basicFunction.timeout, basicFunction.memory, stage)

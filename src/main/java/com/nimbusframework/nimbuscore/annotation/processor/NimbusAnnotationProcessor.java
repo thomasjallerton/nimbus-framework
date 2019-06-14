@@ -6,8 +6,7 @@ import com.nimbusframework.nimbuscore.annotation.services.ReadUserConfigService;
 import com.nimbusframework.nimbuscore.annotation.services.functions.*;
 import com.nimbusframework.nimbuscore.annotation.services.resources.*;
 import com.nimbusframework.nimbuscore.annotation.services.useresources.*;
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments;
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate;
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
@@ -63,7 +62,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
     private UserConfig userConfig;
 
-    private Map<String, CloudFormationDocuments> cfDocuments = new HashMap<>();
+    private Map<String, CloudFormationFiles> cloudFormationFiles = new HashMap<>();
 
     private Messager messager;
 
@@ -90,33 +89,33 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         }
 
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(
-                cfDocuments,
+                cloudFormationFiles,
                 nimbusState
         );
 
 
         List<CloudResourceResourceCreator> resourceCreators = new LinkedList<>();
-        resourceCreators.add(new DocumentStoreResourceCreator(roundEnv, cfDocuments, nimbusState));
-        resourceCreators.add(new KeyValueStoreResourceCreator(roundEnv, cfDocuments, nimbusState, processingEnv));
-        resourceCreators.add(new RelationalDatabaseResourceCreator(roundEnv, cfDocuments, nimbusState));
-        resourceCreators.add(new FileStorageBucketResourceCreator(roundEnv, cfDocuments, nimbusState));
+        resourceCreators.add(new DocumentStoreResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
+        resourceCreators.add(new KeyValueStoreResourceCreator(roundEnv, cloudFormationFiles, nimbusState, processingEnv));
+        resourceCreators.add(new RelationalDatabaseResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
+        resourceCreators.add(new FileStorageBucketResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
 
         for (CloudResourceResourceCreator creator : resourceCreators) {
             creator.create();
         }
 
         List<FunctionResourceCreator> functionResourceCreators = new LinkedList<>();
-        functionResourceCreators.add(new DocumentStoreFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
-        functionResourceCreators.add(new KeyValueStoreFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
-        functionResourceCreators.add(new HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
-        functionResourceCreators.add(new NotificationFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
-        functionResourceCreators.add(new QueueFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
-        functionResourceCreators.add(new BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
-        functionResourceCreators.add(new FileStorageResourceCreator(cfDocuments, nimbusState, processingEnv));
-        functionResourceCreators.add(new WebSocketFunctionResourceCreator(cfDocuments, nimbusState, processingEnv));
+        functionResourceCreators.add(new DocumentStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new KeyValueStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new HttpFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new NotificationFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new QueueFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new BasicFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new FileStorageResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new WebSocketFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
 
-        functionResourceCreators.add(new FileUploadResourceCreator(cfDocuments, nimbusState, processingEnv));
-        functionResourceCreators.add(new AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv));
+        functionResourceCreators.add(new FileUploadResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new AfterDeploymentResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
 
         List<FunctionInformation> allInformation = new LinkedList<>();
         for (FunctionResourceCreator creator : functionResourceCreators) {
@@ -125,14 +124,14 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
 
         List<UsesResourcesHandler> usesResourcesHandlers = new LinkedList<>();
-        usesResourcesHandlers.add(new UsesBasicServerlessFunctionClientHandler(cfDocuments, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesDocumentStoreHandler(cfDocuments, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesFileStorageClientHandler(cfDocuments, nimbusState));
-        usesResourcesHandlers.add(new UsesKeyValueStoreHandler(cfDocuments, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesNotificationTopicHandler(cfDocuments, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesQueueHandler(cfDocuments, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesRelationalDatabaseHandler(cfDocuments, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesServerlessFunctionWebSocketClientHandler(cfDocuments));
+        usesResourcesHandlers.add(new UsesBasicServerlessFunctionClientHandler(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesHandlers.add(new UsesDocumentStoreHandler(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesHandlers.add(new UsesFileStorageClientHandler(cloudFormationFiles, nimbusState));
+        usesResourcesHandlers.add(new UsesKeyValueStoreHandler(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesHandlers.add(new UsesNotificationTopicHandler(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesHandlers.add(new UsesQueueHandler(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesHandlers.add(new UsesRelationalDatabaseHandler(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesHandlers.add(new UsesServerlessFunctionWebSocketClientHandler(cloudFormationFiles));
         usesResourcesHandlers.add(new EnvironmentVariablesHandler(messager));
         usesResourcesHandlers.add(new ForceDependencyHandler());
 
@@ -144,15 +143,12 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
         if (roundEnv.processingOver()) {
 
-            for (Map.Entry<String, CloudFormationDocuments> entry : cfDocuments.entrySet()) {
+            for (Map.Entry<String, CloudFormationFiles> entry : cloudFormationFiles.entrySet()) {
                 String stage = entry.getKey();
-                CloudFormationDocuments cloudFormationDocuments = entry.getValue();
+                CloudFormationFiles cloudFormationFiles= entry.getValue();
 
-                CloudFormationTemplate update = new CloudFormationTemplate(cloudFormationDocuments.getUpdateResources(), cloudFormationDocuments.getUpdateOutputs());
-                CloudFormationTemplate create = new CloudFormationTemplate(cloudFormationDocuments.getCreateResources(), cloudFormationDocuments.getCreateOutputs());
-
-                cloudformationWriter.saveTemplate("cloudformation-stack-update-" + stage, update);
-                cloudformationWriter.saveTemplate("cloudformation-stack-create-" + stage, create);
+                cloudformationWriter.saveTemplate("cloudformation-stack-update-" + stage, cloudFormationFiles.getUpdateTemplate());
+                cloudformationWriter.saveTemplate("cloudformation-stack-create-" + stage, cloudFormationFiles.getCreateTemplate());
             }
 
             ObjectMapper mapper = new ObjectMapper();

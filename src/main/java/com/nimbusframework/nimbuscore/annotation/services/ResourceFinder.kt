@@ -4,7 +4,8 @@ import com.nimbusframework.nimbuscore.annotation.annotations.database.Relational
 import com.nimbusframework.nimbuscore.annotation.annotations.document.DocumentStore
 import com.nimbusframework.nimbuscore.annotation.annotations.keyvalue.KeyValueStore
 import com.nimbusframework.nimbuscore.annotation.wrappers.annotations.datamodel.DataModelAnnotation
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbuscore.cloudformation.resource.ExistingResource
 import com.nimbusframework.nimbuscore.cloudformation.resource.Resource
 import com.nimbusframework.nimbuscore.cloudformation.resource.database.RdsResource
@@ -13,7 +14,7 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
-class ResourceFinder(private val resourceCollections: Map<String, CloudFormationDocuments>, private val processingEnv: ProcessingEnvironment, private val nimbusState: NimbusState) {
+class ResourceFinder(private val resourceCollections: Map<String, CloudFormationFiles>, private val processingEnv: ProcessingEnvironment, private val nimbusState: NimbusState) {
 
     private val messager = processingEnv.messager
 
@@ -59,7 +60,7 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
         return try {
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val relationalDatabase = typeElement.getAnnotation(RelationalDatabase::class.java)
-            return resourceCollections.getValue(dataModelStage).updateResources.get("${relationalDatabase.name}RdsInstance") as RdsResource?
+            return resourceCollections.getValue(dataModelStage).updateTemplate.resources.get("${relationalDatabase.name}RdsInstance") as RdsResource?
         } catch (e: NullPointerException) {
             messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with RelationalDatabase but isn't", serverlessMethod)
             null
@@ -68,7 +69,7 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
 
     private fun getStoreResource(existingArn: String, tableName: String, elementName: String, stage: String): Resource? {
         return if (existingArn == "") {
-            return resourceCollections.getValue(stage).updateResources.get(determineTableName(tableName, elementName, stage))
+            return resourceCollections.getValue(stage).updateTemplate.resources.get(determineTableName(tableName, elementName, stage))
         } else {
             ExistingResource(existingArn, nimbusState, stage)
         }

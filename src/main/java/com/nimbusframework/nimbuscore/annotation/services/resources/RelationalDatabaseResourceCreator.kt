@@ -2,7 +2,8 @@ package com.nimbusframework.nimbuscore.annotation.services.resources
 
 import com.nimbusframework.nimbuscore.annotation.annotations.database.RelationalDatabase
 import com.nimbusframework.nimbuscore.annotation.annotations.database.RelationalDatabases
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbuscore.cloudformation.resource.database.DatabaseConfiguration
 import com.nimbusframework.nimbuscore.cloudformation.resource.database.RdsResource
 import com.nimbusframework.nimbuscore.cloudformation.resource.database.SubnetGroup
@@ -14,7 +15,7 @@ import javax.lang.model.element.Element
 
 class RelationalDatabaseResourceCreator(
         roundEnvironment: RoundEnvironment,
-        cfDocuments: MutableMap<String, CloudFormationDocuments>,
+        cfDocuments: MutableMap<String, CloudFormationFiles>,
         private val nimbusState: NimbusState
 ): CloudResourceResourceCreator(
         roundEnvironment,
@@ -28,8 +29,8 @@ class RelationalDatabaseResourceCreator(
 
         for (relationalDatabase in relationalDatabases) {
             for (stage in relationalDatabase.stages) {
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments(nimbusState, stage) }
-                val updateResources = cloudFormationDocuments.updateResources
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
+                val updateResources = cloudFormationDocuments.updateTemplate.resources
 
                 val databaseConfiguration = DatabaseConfiguration.fromRelationDatabase(relationalDatabase)
 

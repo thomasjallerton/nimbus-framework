@@ -2,7 +2,7 @@ package com.nimbusframework.nimbuscore.testing.services.resource
 
 import com.nimbusframework.nimbuscore.annotation.annotations.deployment.FileUpload
 import com.nimbusframework.nimbuscore.annotation.annotations.file.FileStorageBucket
-import com.nimbusframework.nimbuscore.annotation.annotations.file.UsesFileStorageClient
+import com.nimbusframework.nimbuscore.annotation.annotations.file.UsesFileStorage
 import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
 import com.nimbusframework.nimbuscore.testing.file.LocalFileStorage
 import com.nimbusframework.nimbuscore.testing.services.LocalResourceHolder
@@ -44,7 +44,7 @@ class LocalFileStorageCreator(
         }
 
         for (method in clazz.methods) {
-            val usesFileStorages = method.getAnnotationsByType(UsesFileStorageClient::class.java)
+            val usesFileStorages = method.getAnnotationsByType(UsesFileStorage::class.java)
 
             val fileStorage = localResourceHolder.fileStorage
 

@@ -5,7 +5,8 @@ import com.nimbusframework.nimbuscore.annotation.annotations.function.repeatable
 import com.nimbusframework.nimbuscore.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbuscore.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbuscore.annotation.wrappers.annotations.datamodel.DocumentStoreServerlessFunctionAnnotation
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbuscore.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -14,7 +15,7 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class DocumentStoreFunctionResourceCreator(
-        cfDocuments: MutableMap<String, CloudFormationDocuments>,
+        cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment
 ) : FunctionResourceCreator(

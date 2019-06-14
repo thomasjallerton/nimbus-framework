@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbuscore.annotation.wrappers.annotations.datamodel
 
-import com.nimbusframework.nimbuscore.annotation.annotations.function.UsesBasicServerlessFunctionClient
+import com.nimbusframework.nimbuscore.annotation.annotations.function.UsesBasicServerlessFunction
 
-class UsesBasicServerlessFunctionAnnotation(private val usesBasicServerlessFunctionAnnotation: UsesBasicServerlessFunctionClient): DataModelAnnotation() {
+class UsesBasicServerlessFunctionAnnotation(private val usesBasicServerlessFunctionAnnotation: UsesBasicServerlessFunction): DataModelAnnotation() {
 
     override val stages: Array<String> = usesBasicServerlessFunctionAnnotation.stages
 

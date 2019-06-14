@@ -4,7 +4,8 @@ import com.nimbusframework.nimbuscore.annotation.annotations.document.DocumentSt
 import com.nimbusframework.nimbuscore.annotation.annotations.document.DocumentStores
 import com.nimbusframework.nimbuscore.annotation.annotations.persistent.Key
 import com.nimbusframework.nimbuscore.annotation.wrappers.DynamoConfiguration
-import com.nimbusframework.nimbuscore.cloudformation.CloudFormationDocuments
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbuscore.cloudformation.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.RoundEnvironment
@@ -13,7 +14,7 @@ import javax.lang.model.element.ElementKind
 
 class DocumentStoreResourceCreator(
         roundEnvironment: RoundEnvironment,
-        cfDocuments: MutableMap<String, CloudFormationDocuments>,
+        cfDocuments: MutableMap<String, CloudFormationFiles>,
         private val nimbusState: NimbusState
 ) : CloudResourceResourceCreator(
         roundEnvironment,
@@ -37,8 +38,8 @@ class DocumentStoreResourceCreator(
 
                 val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
 
-                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationDocuments(nimbusState, stage) }
-                val updateResources = cloudFormationDocuments.updateResources
+                val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
+                val updateResources = cloudFormationDocuments.updateTemplate.resources
 
                 if (documentStore.existingArn == "") {
                     for (enclosedElement in type.enclosedElements) {

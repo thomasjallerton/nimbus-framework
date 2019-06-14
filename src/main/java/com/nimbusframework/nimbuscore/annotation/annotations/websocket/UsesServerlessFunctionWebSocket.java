@@ -6,7 +6,7 @@ import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(UsesServerlessFunctionWebSocketClients.class)
-public @interface UsesServerlessFunctionWebSocketClient {
+@Repeatable(UsesServerlessFunctionWebSockets.class)
+public @interface UsesServerlessFunctionWebSocket {
     String[] stages() default {NimbusConstants.stage};
 }

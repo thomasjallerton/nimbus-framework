@@ -6,8 +6,8 @@ import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(UsesFileStorageClients.class)
-public @interface UsesFileStorageClient {
+@Repeatable(UsesFileStorages.class)
+public @interface UsesFileStorage {
     String bucketName();
     String[] stages() default {NimbusConstants.stage};
 }
