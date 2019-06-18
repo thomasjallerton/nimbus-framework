@@ -30,13 +30,13 @@ class WebSocketAdapter(
         if (connectMethod != null) {
             try {
                 connectMethod!!.invoke(request)
+                super.onWebSocketConnect(session)
+                sessions[sessionId] = session
             } catch (e: Exception) {
+                session.disconnect()
                 return
             }
         }
-
-        super.onWebSocketConnect(session)
-        sessions[sessionId] = session
     }
 
     override fun onWebSocketClose(statusCode: Int, reason: String?) {
