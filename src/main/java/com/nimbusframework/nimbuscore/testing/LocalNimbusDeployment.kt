@@ -176,20 +176,23 @@ class LocalNimbusDeployment {
     //------------------------------------------------------------------------------------------------------------------
 
     fun startWebSocketServer() {
+        println("WebSocket Server at: wss://localhost:$webSocketPort")
         localResourceHolder.webSocketServer.setup(webSocketPort)
         localResourceHolder.webSocketServer.start()
     }
 
     fun startAllServers() {
+        println("WebSocket Server at: wss://localhost:$webSocketPort")
+        startAllHttpServersAsync()
         localResourceHolder.webSocketServer.setup(webSocketPort)
-        localResourceHolder.webSocketServer.startWithoutJoin()
-        startAllHttpServers()
+        localResourceHolder.webSocketServer.start()
     }
 
     fun startAllServersAsync() {
+        println("WebSocket Server at: wss://localhost:$webSocketPort")
+        startAllHttpServersAsync()
         localResourceHolder.webSocketServer.setup(webSocketPort)
         localResourceHolder.webSocketServer.startWithoutJoin()
-        startAllHttpServersAsync()
     }
 
     fun stopAllServers() {
@@ -200,6 +203,7 @@ class LocalNimbusDeployment {
     fun startFileBucketHttpServer(bucketName: String) {
         val localHttpServers = localResourceHolder.httpServers
         if (localHttpServers.containsKey(bucketName)) {
+            println("HTTP Server at: http://localhost:$httpPort/$bucketName")
             val handler = localHttpServers[bucketName]!!
             val httpServer = localResourceHolder.httpServer
             httpServer.handler.addResource(bucketName, handler)
@@ -212,6 +216,7 @@ class LocalNimbusDeployment {
     fun startServerlessFunctionWebserver() {
         val localHttpServers = localResourceHolder.httpServers
         if (localHttpServers.containsKey(functionWebserverIdentifier)) {
+            println("HTTP Server at: http://localhost:$httpPort/$functionWebserverIdentifier")
             val handler = localHttpServers[functionWebserverIdentifier]!!
             val httpServer = localResourceHolder.httpServer
             httpServer.handler.addResource(functionWebserverIdentifier, handler)
@@ -224,6 +229,7 @@ class LocalNimbusDeployment {
     fun startAllHttpServers() {
         val allResourcesHttpServer = localResourceHolder.httpServer
         for ((identifier, handler) in localResourceHolder.httpServers) {
+            println("HTTP Server at: http://localhost:$httpPort/$identifier")
             allResourcesHttpServer.handler.addResource(identifier, handler)
         }
         allResourcesHttpServer.startServer(httpPort)
@@ -232,6 +238,7 @@ class LocalNimbusDeployment {
     private fun startAllHttpServersAsync() {
         val allResourcesHttpServer = localResourceHolder.httpServer
         for ((identifier, handler) in localResourceHolder.httpServers) {
+            println("HTTP Server at: http://localhost:$httpPort/$identifier")
             allResourcesHttpServer.handler.addResource(identifier, handler)
         }
         allResourcesHttpServer.startServerWithoutJoin(httpPort)
