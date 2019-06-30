@@ -58,4 +58,9 @@ class LocalWebSocketServer(
             else -> topics[topic] = method
         }
     }
+
+    fun canRun(): Boolean {
+        println(topics.isNotEmpty())
+        return topics.isNotEmpty()
+    }
 }
