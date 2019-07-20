@@ -19,7 +19,7 @@ import com.nimbusframework.nimbuscore.testing.websocketserver.LocalWebSocketServ
 import org.eclipse.jetty.websocket.api.Session
 import java.util.*
 
-class LocalResourceHolder {
+class LocalResourceHolder(stage: String) {
     val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
 
     val queues: MutableMap<String, LocalQueue> = mutableMapOf()
@@ -37,6 +37,6 @@ class LocalResourceHolder {
     val httpServers: MutableMap<String, WebserverHandler> = mutableMapOf()
     val webSocketSessions: MutableMap<String, Session> = mutableMapOf()
     val webSocketServer = LocalWebSocketServer(webSocketSessions)
-    val httpServer = LocalHttpServer()
+    val httpServer = LocalHttpServer(stage)
 
 }

@@ -1,9 +1,9 @@
-package localDeployment
+package localDeployment.unitTests
 
 import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
-import localDeployment.exampleHandlers.ExampleKeyValueHandler
 import localDeployment.exampleModels.KeyValue
 import localDeployment.exampleModels.Person
+import localDeployment.exampleHandlers.ExampleKeyValueHandler
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

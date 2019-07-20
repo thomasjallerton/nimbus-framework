@@ -1,4 +1,4 @@
-package localDeployment
+package localDeployment.unitTests
 
 import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 import localDeployment.exampleModels.Document

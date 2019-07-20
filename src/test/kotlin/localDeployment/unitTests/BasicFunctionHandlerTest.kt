@@ -1,4 +1,4 @@
-package localDeployment
+package localDeployment.unitTests
 
 import com.nimbusframework.nimbuscore.clients.ClientBuilder
 import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
@@ -29,9 +29,9 @@ class BasicFunctionHandlerTest {
 
         val method = localDeployment.getBasicFunction(ExampleBasicFunctionHandler::class.java, "handle")
 
-        val client = ClientBuilder.getBasicServerlessFunctionClient()
+        val client = ClientBuilder.getBasicServerlessFunctionClient(ExampleBasicFunctionHandler::class.java, "handle")
 
-        val result = client.invoke(ExampleBasicFunctionHandler::class.java, "handle", "HELLO", Boolean::class.java)
+        val result = client.invoke("HELLO", Boolean::class.java)
 
         assertEquals(true, result)
         assertEquals(true, method.mostRecentValueReturned)
