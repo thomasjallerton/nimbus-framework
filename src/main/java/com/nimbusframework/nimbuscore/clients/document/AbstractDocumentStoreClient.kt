@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotation.annotations.document.DocumentSt
 import com.nimbusframework.nimbuscore.annotation.annotations.persistent.Attribute
 import com.nimbusframework.nimbuscore.annotation.annotations.persistent.Key
 import com.nimbusframework.nimbuscore.clients.InvalidStageException
+import com.nimbusframework.nimbuscore.testing.webserver.webconsole.models.ItemDescription
 import java.lang.reflect.Field
 
 abstract class AbstractDocumentStoreClient<T>(clazz: Class<T>, stage: String): DocumentStoreClient<T> {
@@ -11,6 +12,7 @@ abstract class AbstractDocumentStoreClient<T>(clazz: Class<T>, stage: String): D
     protected val keys: MutableMap<String, Field> = mutableMapOf()
     protected val allAttributes: MutableMap<String, Field> = mutableMapOf()
     protected val tableName: String = getTableName(clazz, stage)
+    protected val userTableName: String = tableName.removeSuffix(stage)
 
     init {
         for (field in clazz.declaredFields) {
@@ -43,12 +45,18 @@ abstract class AbstractDocumentStoreClient<T>(clazz: Class<T>, stage: String): D
             for (documentStoreAnnotation in documentStoreAnnotations) {
                 for (annotationStage in documentStoreAnnotation.stages) {
                     if (annotationStage == stage) {
-                        val name = if (documentStoreAnnotation.tableName != "") documentStoreAnnotation.tableName else clazz.simpleName
+                        val name =  if (documentStoreAnnotation.tableName != "") documentStoreAnnotation.tableName else clazz.simpleName
                         return "$name$stage"
                     }
                 }
             }
             throw InvalidStageException()
         }
+    }
+
+    internal fun getItemDescription(): ItemDescription {
+        val key = keys.keys.first()
+        val attributes = allAttributes.keys.filter { attribute -> attribute != key }.toSet()
+        return ItemDescription(key, attributes)
     }
 }

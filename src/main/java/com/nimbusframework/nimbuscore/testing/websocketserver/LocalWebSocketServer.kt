@@ -60,7 +60,6 @@ class LocalWebSocketServer(
     }
 
     fun canRun(): Boolean {
-        println(topics.isNotEmpty())
         return topics.isNotEmpty()
     }
 }

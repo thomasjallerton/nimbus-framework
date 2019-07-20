@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotation.annotations.keyvalue.KeyValueSt
 import com.nimbusframework.nimbuscore.annotation.annotations.persistent.Attribute
 import com.nimbusframework.nimbuscore.clients.InvalidStageException
 import com.nimbusframework.nimbuscore.clients.dynamo.MismatchedKeyTypeException
+import com.nimbusframework.nimbuscore.testing.webserver.webconsole.models.ItemDescription
 import java.lang.reflect.Field
 
 abstract class AbstractKeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass: Class<V>, stage: String): KeyValueStoreClient<K, V> {
@@ -12,6 +13,8 @@ abstract class AbstractKeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass:
     protected var keyName: String = ""
     protected val attributes: MutableMap<String, Field> = mutableMapOf()
     protected var tableName: String = getTableName(valueClass, stage)
+    protected val userTableName: String = tableName.removeSuffix(stage)
+
 
     init {
         val keyValueStoreAnnotations = valueClass.getAnnotationsByType(KeyValueStore::class.java)
@@ -60,5 +63,10 @@ abstract class AbstractKeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass:
             }
             throw InvalidStageException()
         }
+    }
+
+    internal fun getItemDescription(): ItemDescription {
+        val attributes = attributes.keys.filter { attribute -> attribute != keyName }.toSet()
+        return ItemDescription(keyName, attributes)
     }
 }

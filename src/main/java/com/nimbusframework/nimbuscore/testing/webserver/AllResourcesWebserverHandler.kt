@@ -4,12 +4,19 @@ import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpMethod
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
 import com.nimbusframework.nimbuscore.testing.webserver.resources.RedirectResource
+import com.nimbusframework.nimbuscore.testing.webserver.webconsole.WebConsole
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class AllResourcesWebserverHandler : AbstractHandler() {
+class AllResourcesWebserverHandler(stage: String) : AbstractHandler() {
 
     private val handlerMap: MutableMap<String, WebserverHandler> = mutableMapOf()
+
+    init {
+        val webConsole = WebConsole(stage)
+        handlerMap[""] = webConsole
+        handlerMap["NimbusWebConsole"] = webConsole
+    }
 
     override fun handle(
             target: String,
@@ -17,6 +24,7 @@ class AllResourcesWebserverHandler : AbstractHandler() {
             request: HttpServletRequest,
             response: HttpServletResponse
     ) {
+
         val pathPrefix = extractPathPrefix(target)
 
         val handler = handlerMap[pathPrefix]

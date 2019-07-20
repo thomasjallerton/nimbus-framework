@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbuscore.testing.webserver.resources
 
+import com.nimbusframework.nimbuscore.testing.webserver.webconsole.WebConsole
 import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -25,5 +26,33 @@ class FileResource(
 
         response.outputStream.write(buffer)
         response.outputStream.close()
+    }
+
+    companion object {
+        private const val webConsolePath = "com/nimbusframework/nimbuscore/testing/webserver/webconsole"
+        fun fromWebConsoleHTML(path: String): FileResource {
+            return FileResource(
+                    getResourceFile("$webConsolePath$path"),
+                    "text/html",
+                    listOf(),
+                    "")
+        }
+        fun fromWebConsoleJS(path: String): FileResource {
+            return FileResource(
+                    getResourceFile("$webConsolePath$path"),
+                    "text/babel",
+                    listOf(),
+                    "")
+        }
+        fun fromWebConsoleCSS(path: String): FileResource {
+            return FileResource(
+                    getResourceFile("$webConsolePath$path"),
+                    "text/css",
+                    listOf(),
+                    "")
+        }
+        private fun getResourceFile(path: String): File {
+            return File(FileResource::class.java.classLoader.getResource(path).file)
+        }
     }
 }

@@ -12,7 +12,7 @@ import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class WebserverHandler(private val indexFile: String,
+open class WebserverHandler(private val indexFile: String,
                        private val errorFile: String,
                        private val basePath: String
 ): AbstractHandler() {

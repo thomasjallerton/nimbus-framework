@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbuscore.testing.file
 
+import com.google.common.io.ByteStreams
 import com.nimbusframework.nimbuscore.annotation.annotations.file.FileStorageEventType
 import com.nimbusframework.nimbuscore.clients.file.FileInformation
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
@@ -7,6 +8,8 @@ import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 import com.nimbusframework.nimbuscore.testing.webserver.WebserverHandler
 import java.io.*
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.util.*
 
 
@@ -16,6 +19,8 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
     private val handler: WebserverHandler? = localNimbusClient.getLocalHandler(bucketName)
     private val tmpDir: String
     private val methods: MutableList<FileStorageMethod> = mutableListOf()
+
+    val configuredAsStaticWebsite = handler != null
 
     override fun saveFile(path: String, inputStream: InputStream) {
         val outputFile = saveInputStreamToFile(path, inputStream)
@@ -87,9 +92,11 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
                 if (file.isFile) {
                     val fileName = file.absolutePath
                     val path = fileName.removePrefix(tmpDir)
+                            .removePrefix(File.separator)
+                            .replace(File.separatorChar, '/')
                     val lastModified = Date(file.lastModified())
 
-                    results.add(FileInformation(lastModified, file.length(), path))
+                    results.add(FileInformation(lastModified, file.length() / 1024, path)) //Convert to KB
                 } else if (file.isDirectory) {
                     listFiles(file.absolutePath, results)
                 }
@@ -134,13 +141,10 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
         f.parentFile?.mkdirs()
         f.createNewFile()
 
-        val buffer = ByteArray(inputStream.available())
-        inputStream.read(buffer)
-
         val outStream = FileOutputStream(f)
-        outStream.write(buffer)
-
+        inputStream.copyTo(outStream)
         outStream.close()
+        inputStream.close()
 
         methods.forEach { method -> method.invoke(actualPath, f.length(), FileStorageEventType.OBJECT_CREATED) }
 

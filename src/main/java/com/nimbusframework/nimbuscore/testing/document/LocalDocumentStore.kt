@@ -9,6 +9,8 @@ class LocalDocumentStore<T>(private val clazz: Class<T>, stage: String): Abstrac
     private val objectMapper = ObjectMapper()
     private val methods: MutableList<DocumentMethod> = mutableListOf()
 
+    internal val internalTableName = userTableName
+
     internal fun addMethod(method: DocumentMethod) {
         methods.add(method)
     }
@@ -28,6 +30,15 @@ class LocalDocumentStore<T>(private val clazz: Class<T>, stage: String): Abstrac
             documentStore[key] = value
             methods.forEach {method -> method.invokeInsert(obj)}
         }
+    }
+
+
+    internal fun putJson(obj: String) {
+        put(objectMapper.readValue(obj, clazz))
+    }
+
+    internal fun deleteJson(obj: String) {
+        delete(objectMapper.readValue(obj, clazz))
     }
 
     override fun delete(obj: T) {

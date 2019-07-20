@@ -37,7 +37,7 @@ class LocalNimbusDeployment {
     private val httpPort: Int
     private val webSocketPort: Int
 
-    private val localResourceHolder = LocalResourceHolder()
+    internal val localResourceHolder: LocalResourceHolder
 
     private val localFunctionHandlers: MutableList<LocalFunctionHandler> = mutableListOf()
     private val localCreateResourcesHandlers: MutableList<LocalCreateResourcesHandler> = mutableListOf()
@@ -80,6 +80,7 @@ class LocalNimbusDeployment {
     private constructor(stageParam: String = "dev", httpPort: Int = 8080, webSocketPort: Int = 8081, classes: Array<out Class<out Any>>) {
         instance = this
         stage = stageParam
+        localResourceHolder = LocalResourceHolder(stage)
         this.httpPort = httpPort
         this.webSocketPort = webSocketPort
 
@@ -103,6 +104,8 @@ class LocalNimbusDeployment {
     private constructor(packageName: String, stageParam: String = "dev", httpPort: Int = 8080, webSocketPort: Int = 8081) {
         instance = this
         stage = stageParam
+        localResourceHolder = LocalResourceHolder(stage)
+
         this.httpPort = httpPort
         this.webSocketPort = webSocketPort
 
@@ -117,6 +120,7 @@ class LocalNimbusDeployment {
         val reflections = Reflections(ConfigurationBuilder()
                 .setScanners(SubTypesScanner(false), ResourcesScanner())
                 .setUrls(ClasspathHelper.forClassLoader(*classLoadersList.toTypedArray()))
+                .addUrls(ClasspathHelper.forJavaClassPath())
                 .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix(packageName))))
 
         val allClasses = reflections.getSubTypesOf(Any::class.java)

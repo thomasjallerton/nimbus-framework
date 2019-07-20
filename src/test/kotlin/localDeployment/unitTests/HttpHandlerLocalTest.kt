@@ -1,4 +1,4 @@
-package localDeployment
+package localDeployment.unitTests
 
 import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpMethod
 import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment

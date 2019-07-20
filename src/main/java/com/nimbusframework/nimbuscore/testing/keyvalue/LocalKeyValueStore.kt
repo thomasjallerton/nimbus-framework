@@ -1,14 +1,17 @@
 package com.nimbusframework.nimbuscore.testing.keyvalue
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbuscore.testing.document.KeyValueMethod
 
-class LocalKeyValueStore<K, V>(keyClass: Class<K>, private val valueClass: Class<V>, stage: String): AbstractKeyValueStoreClient<K, V>(keyClass, valueClass, stage) {
+class LocalKeyValueStore<K, V>(private val keyClass: Class<K>, private val valueClass: Class<V>, stage: String): AbstractKeyValueStoreClient<K, V>(keyClass, valueClass, stage) {
 
     private val keyValueStore: MutableMap<K, String> = mutableMapOf()
     private val objectMapper = ObjectMapper()
     private val methods: MutableList<KeyValueMethod> = mutableListOf()
+
+    internal val internalTableName = userTableName
 
     override fun put(key: K, value: V) {
         val valueStr = allAttributesToJson(value)
@@ -30,6 +33,22 @@ class LocalKeyValueStore<K, V>(keyClass: Class<K>, private val valueClass: Class
             val oldItem = objectMapper.readValue(removedItemStr, valueClass)
             methods.forEach {method -> method.invokeRemove(oldItem)}
         }
+    }
+
+    internal fun putJson(obj: String) {
+        val objMapper = ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        val root = objMapper.readTree(obj)
+        val key = objMapper.readValue(root[keyName].toString(), keyClass)
+        val objVal = objMapper.readValue(obj, valueClass)
+
+        put(key, objVal)
+    }
+
+    internal fun deleteJson(obj: String) {
+        val root = objectMapper.readTree(obj)
+        val key = objectMapper.readValue(root[keyName].toString(), keyClass)
+
+        delete(key)
     }
 
     override fun get(keyObj: K): V? {

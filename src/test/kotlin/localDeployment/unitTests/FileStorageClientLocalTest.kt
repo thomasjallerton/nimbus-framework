@@ -1,4 +1,4 @@
-package localDeployment
+package localDeployment.unitTests
 
 import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 import com.nimbusframework.nimbuscore.wrappers.file.models.FileStorageEvent
@@ -25,7 +25,7 @@ class FileStorageClientLocalTest {
 
         val event = method.mostRecentInvokeArgument as FileStorageEvent
         assertEquals(path, event.key)
-        assertEquals(13, event.size)
+        assertEquals(11, event.size)
     }
 
     @Test

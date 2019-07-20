@@ -2,9 +2,9 @@ package com.nimbusframework.nimbuscore.testing.webserver
 
 import org.eclipse.jetty.server.Server
 
-class LocalHttpServer {
+class LocalHttpServer(stage: String) {
 
-    val handler = AllResourcesWebserverHandler()
+    val handler = AllResourcesWebserverHandler(stage)
     var server: Server? = null
 
     fun startServer(port: Int) {
