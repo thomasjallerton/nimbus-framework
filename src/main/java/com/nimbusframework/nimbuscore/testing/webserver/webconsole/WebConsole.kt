@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpServletResponse.SC_NOT_FOUND
 import javax.servlet.http.HttpServletResponse.SC_OK
 
-class WebConsole(private val stage: String) : WebserverHandler("", "", "") {
+class WebConsole(stage: String) : WebserverHandler("", "", "") {
 
     private val apis: MutableMap<HttpMethodIdentifier, WebResource> = mutableMapOf()
 
@@ -27,6 +27,9 @@ class WebConsole(private val stage: String) : WebserverHandler("", "", "") {
         apis[HttpMethodIdentifier("/KeyValueStoreAPI", HttpMethod.POST)] = KeyValueStoreApiResource(HttpMethod.POST, stage)
         apis[HttpMethodIdentifier("/KeyValueStoreAPI", HttpMethod.GET)] = KeyValueStoreApiResource(HttpMethod.GET, stage)
         apis[HttpMethodIdentifier("/KeyValueStoreAPI", HttpMethod.OPTIONS)] = KeyValueStoreApiResource(HttpMethod.OPTIONS, stage)
+        apis[HttpMethodIdentifier("/QueueAPI", HttpMethod.POST)] = QueueApiResource(HttpMethod.POST)
+        apis[HttpMethodIdentifier("/QueueAPI", HttpMethod.GET)] = QueueApiResource(HttpMethod.GET)
+        apis[HttpMethodIdentifier("/QueueAPI", HttpMethod.OPTIONS)] = QueueApiResource(HttpMethod.OPTIONS)
     }
 
     override fun handle(

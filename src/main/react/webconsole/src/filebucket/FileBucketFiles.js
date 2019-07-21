@@ -10,7 +10,6 @@ export class FileBucketFiles extends React.Component {
             let lastModified = new Date(fileInformation.lastModified);
             this.props.addFile(fileInformation.path);
             let fileName = /[^/]*$/.exec(fileInformation.path)[0];
-            console.log(fileName);
             return <div className="row" key={fileInformation.path}>
                 <div className="small-column cell">
                     <input type="checkbox"

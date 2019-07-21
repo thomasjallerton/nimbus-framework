@@ -23,8 +23,13 @@ class QueueMethod(private val method: Method, private val invokeOn: Any, interna
         method.parameterTypes.find { clazz -> clazz.canonicalName != QueueEvent::class.java.canonicalName }
     }
 
+    internal fun invokeJson(json: String, messageId: Int): Any {
+        val obj = objectMapper.readValue(json, paramType)
+        invoke(obj, messageId)
+        return obj
+    }
 
-    internal fun invoke(obj: Any) {
+    internal fun invoke(obj: Any, messageId: Int) {
         timesInvoked++
 
         if (obj is List<*>) {
@@ -36,9 +41,10 @@ class QueueMethod(private val method: Method, private val invokeOn: Any, interna
                 }
             }
             if (isListParams) {
-                invokeList(parsedList)
+                invokeList(parsedList, messageId)
             } else {
-                val event = QueueEvent()
+                val requestId = UUID.randomUUID().toString()
+                val event = QueueEvent(messageId = messageId.toString(), requestId = requestId)
                 parsedList.forEach {
                     invokeGeneral(it, event)
                 }
@@ -46,17 +52,19 @@ class QueueMethod(private val method: Method, private val invokeOn: Any, interna
         } else {
 
             val parsedObject = objectMapper.readValue(objectMapper.writeValueAsString(obj), paramType)
+            val requestId = UUID.randomUUID().toString()
+            val event = QueueEvent(messageId = messageId.toString(), requestId = requestId)
 
             if (isListParams) {
-                invokeList(parsedObject)
+                invokeList(parsedObject, messageId)
             } else {
-                invokeGeneral(parsedObject, QueueEvent())
+                invokeGeneral(parsedObject, event)
             }
         }
 
     }
 
-    private fun invokeList(obj: Any) {
+    private fun invokeList(obj: Any, messageId: Int) {
         val list = if (obj is List<*>) {
             obj
         } else {
@@ -64,9 +72,10 @@ class QueueMethod(private val method: Method, private val invokeOn: Any, interna
         }
         val requestId = UUID.randomUUID().toString()
         val eventList: MutableList<QueueEvent> = mutableListOf()
-        list.forEach { _ ->
-            eventList.add(QueueEvent(requestId = requestId
-            ))
+        list.forEachIndexed { index, _ ->
+            eventList.add(
+                    QueueEvent(requestId = requestId, messageId = (messageId + index).toString())
+            )
         }
 
         invokeGeneral(list, eventList)

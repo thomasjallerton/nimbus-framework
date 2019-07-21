@@ -15,6 +15,7 @@ export function NavBar() {
                         <Link className="navlink" to="/FileBuckets">File Buckets</Link>
                         <Link className="navlink" to="/DocumentStores">Document Stores</Link>
                         <Link className="navlink" to="/KeyValueStores">Key-Value Stores</Link>
+                        <Link className="navlink" to="/Queues">Queues</Link>
                     </div>
                 </li>
             </ul>
