@@ -8,6 +8,7 @@ import DocumentStoresPage from "./document/DocumentStoresPage"
 import {DocumentStorePage} from "./document/DocumentStorePage"
 import KeyValueStoresPage from "./keyvalue/KeyValueStoresPage"
 import {KeyValueStorePage} from "./keyvalue/KeyValueStorePage";
+import {QueuesPage} from "./queue/QueuesPage"
 
 function AppRoutes() {
     return (
@@ -26,6 +27,7 @@ function AppRoutes() {
                 <Route exact path="/KeyValueStores" component={KeyValueStoresPage} />
                 <Route exact path="/KeyValueStores/:tableName" component={KeyValueStorePage} />
 
+                <Route exact path="/Queues" component={QueuesPage} />
             </div>
         </Router>
     );

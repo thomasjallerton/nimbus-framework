@@ -9,8 +9,13 @@ class LocalQueue {
 
 
     fun add(obj: Any) {
-        getRandomConsumer().invoke(obj)
+        getRandomConsumer().invoke(obj, itemsAdded.size)
         itemsAdded.add(obj)
+    }
+
+    fun addJson(json: String) {
+        val addedObj = getRandomConsumer().invokeJson(json, itemsAdded.size)
+        itemsAdded.add(addedObj)
     }
 
     fun addBatch(toAdd: List<Any>) {
@@ -23,7 +28,7 @@ class LocalQueue {
 
         val target = getRandomConsumer()
         if (target.batchSize == 1) {
-            target.invoke(queue[0])
+            target.invoke(queue[0], itemsAdded.size)
             if (queue.size == 1) return
             consumeBatch(queue.subList(1, queue.size))
         } else {
@@ -36,7 +41,7 @@ class LocalQueue {
                     remaining.add(queueItem)
                 }
             }
-            target.invoke(invokeList)
+            target.invoke(invokeList, itemsAdded.size)
             consumeBatch(remaining)
         }
     }
