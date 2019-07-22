@@ -2,11 +2,18 @@ package com.nimbusframework.nimbuscore.testing.notification
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbuscore.testing.ServerlessMethod
+import com.nimbusframework.nimbuscore.testing.webserver.webconsole.models.FunctionSubscriberInformation
 import com.nimbusframework.nimbuscore.wrappers.notification.models.NotificationEvent
 import java.lang.reflect.Method
 
 class NotificationMethod(private val method: Method, private val invokeOn: Any): ServerlessMethod(method, NotificationEvent::class.java) {
 
+    fun getFunctionSubscriber(): FunctionSubscriberInformation {
+        return FunctionSubscriberInformation(
+                method.declaringClass.simpleName,
+                method.name
+        )
+    }
 
     fun invoke(strParam: String) {
 

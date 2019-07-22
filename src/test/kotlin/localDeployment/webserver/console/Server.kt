@@ -1,6 +1,7 @@
 package localDeployment.webserver.console
 
 import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
+import localDeployment.exampleHandlers.ExampleNotificationHandler
 import localDeployment.exampleHandlers.ExampleQueueHandler
 import localDeployment.exampleModels.Bucket
 import localDeployment.exampleModels.BucketTwo
@@ -17,7 +18,8 @@ class Server {
                 BucketTwo::class.java,
                 Document::class.java,
                 KeyValue::class.java,
-                ExampleQueueHandler::class.java)
+                ExampleQueueHandler::class.java,
+                ExampleNotificationHandler::class.java)
         localDeployment.startAllServers()
     }
 }
