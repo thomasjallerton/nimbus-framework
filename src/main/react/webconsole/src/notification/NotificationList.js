@@ -6,7 +6,6 @@ export class NotificationList extends React.Component {
 
     constructor(props) {
         super(props);
-        console.log("Called!");
         let notificationTopics = props.notificationTopics.map(topicNotification => {
             return <div className="row" key={topicNotification.topicName}>
                 <div className="small-column cell">

@@ -71,9 +71,13 @@ export class QueuesPage extends React.Component {
     }
 
     showModal = () => {
-        this.setState({
-            show: true
-        })
+        if (this.state.selectedQueue !== "") {
+            this.setState({
+                show: true
+            })
+        } else {
+            alert("Please select a queue")
+        }
     };
 
     hideModal = () => {
