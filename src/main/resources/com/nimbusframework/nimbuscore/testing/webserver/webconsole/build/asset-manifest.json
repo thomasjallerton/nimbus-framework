@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/NimbusWebConsole/static/css/main.7bbe7136.chunk.css",
+    "main.js": "/NimbusWebConsole/static/js/main.c3a15a55.chunk.js",
+    "main.js.map": "/NimbusWebConsole/static/js/main.c3a15a55.chunk.js.map",
+    "runtime~main.js": "/NimbusWebConsole/static/js/runtime~main.ddc36405.js",
+    "runtime~main.js.map": "/NimbusWebConsole/static/js/runtime~main.ddc36405.js.map",
+    "static/js/2.c0115a1a.chunk.js": "/NimbusWebConsole/static/js/2.c0115a1a.chunk.js",
+    "static/js/2.c0115a1a.chunk.js.map": "/NimbusWebConsole/static/js/2.c0115a1a.chunk.js.map",
+    "index.html": "/NimbusWebConsole/index.html",
+    "precache-manifest.532f70139b76f3faa512efb25d63449d.js": "/NimbusWebConsole/precache-manifest.532f70139b76f3faa512efb25d63449d.js",
+    "service-worker.js": "/NimbusWebConsole/service-worker.js",
+    "static/css/main.7bbe7136.chunk.css.map": "/NimbusWebConsole/static/css/main.7bbe7136.chunk.css.map",
+    "static/media/baseline-check_circle_outline-24px.svg": "/NimbusWebConsole/static/media/baseline-check_circle_outline-24px.e0d99bb4.svg",
+    "static/media/baseline-cloud_upload-24px.svg": "/NimbusWebConsole/static/media/baseline-cloud_upload-24px.3f7e59cc.svg"
+  }
+}

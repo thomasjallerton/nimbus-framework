@@ -4,14 +4,19 @@ import com.nimbusframework.nimbuscore.annotation.annotations.function.HttpMethod
 import com.nimbusframework.nimbuscore.testing.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuscore.testing.webserver.WebserverHandler
 import com.nimbusframework.nimbuscore.testing.webserver.resources.FileResource
+import com.nimbusframework.nimbuscore.testing.webserver.resources.RedirectResource
 import com.nimbusframework.nimbuscore.testing.webserver.resources.WebResource
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
 import java.io.File
+import java.net.URLConnection
+import java.nio.file.Files
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpServletResponse.SC_NOT_FOUND
 import javax.servlet.http.HttpServletResponse.SC_OK
+import java.net.FileNameMap
+
 
 class WebConsole(stage: String) : WebserverHandler("", "", "") {
 
@@ -36,6 +41,10 @@ class WebConsole(stage: String) : WebserverHandler("", "", "") {
         apis[HttpMethodIdentifier("/FunctionAPI", HttpMethod.POST)] = FunctionApiResource(HttpMethod.POST)
         apis[HttpMethodIdentifier("/FunctionAPI", HttpMethod.GET)] = FunctionApiResource(HttpMethod.GET)
         apis[HttpMethodIdentifier("/FunctionAPI", HttpMethod.OPTIONS)] = FunctionApiResource(HttpMethod.OPTIONS)
+
+        handleWebConsoleFiles()
+        apis[HttpMethodIdentifier("/", HttpMethod.GET)] = RedirectResource("/NimbusWebConsole/index.html")
+        apis[HttpMethodIdentifier("", HttpMethod.GET)] = RedirectResource("/NimbusWebConsole/index.html")
     }
 
     override fun handle(
@@ -56,4 +65,39 @@ class WebConsole(stage: String) : WebserverHandler("", "", "") {
         }
 
     }
+
+    private fun handleWebConsoleFiles() {
+        val buildUrl = javaClass.getResource("/com/nimbusframework/nimbuscore/testing/webserver/webconsole/build")
+        val buildFile = File(buildUrl.toURI())
+        handleDirectory("", buildFile)
+    }
+
+    private fun handleDirectory(path: String, directory: File) {
+        for (file in directory.listFiles()) {
+            if (file.isDirectory) {
+                handleDirectory("$path/${file.name}", file)
+            } else {
+
+                val contentType =
+                        when {
+                            file.name.endsWith(".json") -> "application/json"
+                            file.name.endsWith(".js") -> "text/javascript"
+                            file.name.endsWith(".svg") -> "image/svg+xml"
+                            file.name.endsWith(".ico") -> "image/vnd.microsoft.icon"
+                            file.name.endsWith(".css") -> "text/css"
+                            else -> "WRONG"
+                        }
+
+                apis[HttpMethodIdentifier("$path/${file.name}", HttpMethod.GET)] =
+                        FileResource(
+                                file,
+                                contentType,
+                                listOf(),
+                                ""
+                        )
+            }
+        }
+    }
+
+
 }
