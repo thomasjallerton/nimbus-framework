@@ -10,6 +10,7 @@ import KeyValueStoresPage from "./keyvalue/KeyValueStoresPage"
 import {KeyValueStorePage} from "./keyvalue/KeyValueStorePage";
 import {QueuesPage} from "./queue/QueuesPage"
 import {NotificationsPage} from "./notification/NotificationsPage";
+import {FunctionsPage} from "./function/FunctionsPage";
 
 function AppRoutes() {
     return (
@@ -18,6 +19,8 @@ function AppRoutes() {
                 <NavBar/>
 
                 <Route exact path="/" component={HomePage}/>
+
+                <Route exact path="/Functions" component={FunctionsPage} />
 
                 <Route exact path="/FileBuckets" component={FileBucketsPage} />
                 <Route exact path="/FileBuckets/:bucketName" component={FileBucketPage}/>

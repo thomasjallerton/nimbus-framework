@@ -6,7 +6,6 @@ export class QueuesList extends React.Component {
 
     constructor(props) {
         super(props);
-        console.log("Called!");
         let queues = props.queues.map((queueInformation) => {
             return <div className="row" key={queueInformation.queueName}>
                 <div className="small-column cell">

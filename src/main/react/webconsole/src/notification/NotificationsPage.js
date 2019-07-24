@@ -84,9 +84,13 @@ export class NotificationsPage extends React.Component {
     }
 
     showNotifyModal = () => {
-        this.setState({
-            showNotify: true
-        })
+        if (this.state.selectedTopic !== "") {
+            this.setState({
+                showNotify: true
+            })
+        } else {
+            alert("Please select a topic")
+        }
     };
 
     hideNotifyModal = () => {
@@ -96,9 +100,13 @@ export class NotificationsPage extends React.Component {
     };
 
     showSubscriberModal = () => {
-        this.setState({
-            showSubscribers: true
-        })
+        if (this.state.selectedTopic !== "") {
+            this.setState({
+                showSubscribers: true
+            })
+        } else {
+            alert("Please select a topic")
+        }
     };
 
     hideSubscriberModal = () => {

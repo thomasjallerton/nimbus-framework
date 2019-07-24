@@ -33,6 +33,9 @@ class WebConsole(stage: String) : WebserverHandler("", "", "") {
         apis[HttpMethodIdentifier("/NotificationAPI", HttpMethod.POST)] = NotificationApiResource(HttpMethod.POST)
         apis[HttpMethodIdentifier("/NotificationAPI", HttpMethod.GET)] = NotificationApiResource(HttpMethod.GET)
         apis[HttpMethodIdentifier("/NotificationAPI", HttpMethod.OPTIONS)] = NotificationApiResource(HttpMethod.OPTIONS)
+        apis[HttpMethodIdentifier("/FunctionAPI", HttpMethod.POST)] = FunctionApiResource(HttpMethod.POST)
+        apis[HttpMethodIdentifier("/FunctionAPI", HttpMethod.GET)] = FunctionApiResource(HttpMethod.GET)
+        apis[HttpMethodIdentifier("/FunctionAPI", HttpMethod.OPTIONS)] = FunctionApiResource(HttpMethod.OPTIONS)
     }
 
     override fun handle(

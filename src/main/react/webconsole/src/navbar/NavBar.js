@@ -12,6 +12,7 @@ export function NavBar() {
                 <li className="dropdown">
                     <Link className="navlink" to="/">Resources</Link>
                     <div className="dropdown-content">
+                        <Link className="navlink" to="/Functions">Functions</Link>
                         <Link className="navlink" to="/FileBuckets">File Buckets</Link>
                         <Link className="navlink" to="/DocumentStores">Document Stores</Link>
                         <Link className="navlink" to="/KeyValueStores">Key-Value Stores</Link>
