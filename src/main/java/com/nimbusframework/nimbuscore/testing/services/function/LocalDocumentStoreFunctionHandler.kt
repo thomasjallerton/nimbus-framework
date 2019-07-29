@@ -5,6 +5,8 @@ import com.nimbusframework.nimbuscore.clients.document.AbstractDocumentStoreClie
 import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 import com.nimbusframework.nimbuscore.testing.document.DocumentMethod
 import com.nimbusframework.nimbuscore.testing.function.FunctionIdentifier
+import com.nimbusframework.nimbuscore.testing.function.ServerlessFunction
+import com.nimbusframework.nimbuscore.testing.function.information.DocumentStoreFunctionInformation
 import com.nimbusframework.nimbuscore.testing.services.LocalResourceHolder
 import java.lang.reflect.Method
 
@@ -24,7 +26,11 @@ class LocalDocumentStoreFunctionHandler(
                 val invokeOn = clazz.getConstructor().newInstance()
 
                 val documentMethod = DocumentMethod(method, invokeOn, documentFunction.method)
-                localResourceHolder.methods[functionIdentifier] = documentMethod
+                val functionInformation = DocumentStoreFunctionInformation(
+                        documentFunction.dataModel.simpleName ?: "",
+                        documentFunction.method
+                )
+                localResourceHolder.functions[functionIdentifier] = ServerlessFunction(documentMethod, functionInformation)
                 val tableName = AbstractDocumentStoreClient.getTableName(documentFunction.dataModel.java, LocalNimbusDeployment.stage)
                 val documentStore = localResourceHolder.documentStores[tableName]
                 documentStore?.addMethod(documentMethod)

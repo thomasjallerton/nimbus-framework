@@ -5,6 +5,8 @@ import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClie
 import com.nimbusframework.nimbuscore.testing.LocalNimbusDeployment
 import com.nimbusframework.nimbuscore.testing.document.KeyValueMethod
 import com.nimbusframework.nimbuscore.testing.function.FunctionIdentifier
+import com.nimbusframework.nimbuscore.testing.function.ServerlessFunction
+import com.nimbusframework.nimbuscore.testing.function.information.KeyValueStoreFunctionInformation
 import com.nimbusframework.nimbuscore.testing.services.LocalResourceHolder
 import java.lang.reflect.Method
 
@@ -23,11 +25,15 @@ class LocalKeyValueStoreFunctionHandler(
             if (keyValueFunction.stages.contains(stage)) {
                 val invokeOn = clazz.getConstructor().newInstance()
 
-                val documentMethod = KeyValueMethod(method, invokeOn, keyValueFunction.method)
-                localResourceHolder.methods[functionIdentifier] = documentMethod
+                val keyValueMethod = KeyValueMethod(method, invokeOn, keyValueFunction.method)
+                val functionInformation = KeyValueStoreFunctionInformation(
+                        keyValueFunction.dataModel.simpleName ?: "",
+                        keyValueFunction.method
+                )
+                localResourceHolder.functions[functionIdentifier] = ServerlessFunction(keyValueMethod, functionInformation)
                 val tableName = AbstractKeyValueStoreClient.getTableName(keyValueFunction.dataModel.java, LocalNimbusDeployment.stage)
                 val keyValueStore = localResourceHolder.keyValueStores[tableName]
-                keyValueStore?.addMethod(documentMethod)
+                keyValueStore?.addMethod(keyValueMethod)
             }
         }
         return true

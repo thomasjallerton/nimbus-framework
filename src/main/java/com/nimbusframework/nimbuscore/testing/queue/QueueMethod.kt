@@ -1,12 +1,17 @@
 package com.nimbusframework.nimbuscore.testing.queue
 
 import com.nimbusframework.nimbuscore.testing.ServerlessMethod
+import com.nimbusframework.nimbuscore.testing.function.FunctionType
 import com.nimbusframework.nimbuscore.wrappers.queue.models.QueueEvent
 import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
 import java.util.*
 
-class QueueMethod(private val method: Method, private val invokeOn: Any, internal val batchSize: Int) : ServerlessMethod(method, QueueEvent::class.java) {
+class QueueMethod(
+        private val method: Method,
+        private val invokeOn: Any,
+        internal val batchSize: Int
+) : ServerlessMethod(method, QueueEvent::class.java, FunctionType.QUEUE) {
 
     private val isListParams = method.parameterTypes.any { clazz -> isListType(clazz.canonicalName) }
     private val paramType: Class<*>? = if (isListParams) {

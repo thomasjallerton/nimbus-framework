@@ -1,0 +1,3 @@
+package com.nimbusframework.nimbuscore.testing.function.information
+
+open class FunctionInformation

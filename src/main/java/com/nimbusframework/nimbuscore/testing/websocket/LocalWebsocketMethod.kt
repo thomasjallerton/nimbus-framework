@@ -2,10 +2,14 @@ package com.nimbusframework.nimbuscore.testing.websocket
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.nimbusframework.nimbuscore.testing.ServerlessMethod
+import com.nimbusframework.nimbuscore.testing.function.FunctionType
 import com.nimbusframework.nimbuscore.wrappers.websocket.models.WebSocketEvent
 import java.lang.reflect.Method
 
-class LocalWebsocketMethod(private val method: Method, private val invokeOn: Any) : ServerlessMethod(method, WebSocketEvent::class.java) {
+class LocalWebsocketMethod(
+        private val method: Method,
+        private val invokeOn: Any
+) : ServerlessMethod(method, WebSocketEvent::class.java, FunctionType.WEBSOCKET) {
 
     init {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
