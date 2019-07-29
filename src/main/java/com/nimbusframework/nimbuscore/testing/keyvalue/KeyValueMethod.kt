@@ -2,18 +2,23 @@ package com.nimbusframework.nimbuscore.testing.document
 
 import com.nimbusframework.nimbuscore.annotation.annotations.persistent.StoreEventType
 import com.nimbusframework.nimbuscore.testing.ServerlessMethod
+import com.nimbusframework.nimbuscore.testing.function.FunctionType
 import com.nimbusframework.nimbuscore.wrappers.store.models.StoreEvent
 import java.lang.reflect.Method
 
-class KeyValueMethod(private val method: Method, private val invokeOn: Any, private val type: StoreEventType) : ServerlessMethod(method, StoreEvent::class.java) {
+class KeyValueMethod(
+        private val method: Method,
+        private val invokeOn: Any,
+        private val storeEventType: StoreEventType
+) : ServerlessMethod(method, StoreEvent::class.java, FunctionType.KEY_VALUE_STORE) {
 
 
     fun invokeInsert(newItem: Any?) {
         timesInvoked++
 
-        if (type != StoreEventType.INSERT) return
+        if (storeEventType != StoreEventType.INSERT) return
 
-        val event = StoreEvent(type.name)
+        val event = StoreEvent(storeEventType.name)
 
         val params = method.parameters
         val eventIndex = eventIndex()
@@ -36,9 +41,9 @@ class KeyValueMethod(private val method: Method, private val invokeOn: Any, priv
     fun invokeModify(oldItem: Any?, newItem: Any?) {
         timesInvoked++
 
-        if (type != StoreEventType.MODIFY) return
+        if (storeEventType != StoreEventType.MODIFY) return
 
-        val event = StoreEvent(type.name)
+        val event = StoreEvent(storeEventType.name)
 
         val params = method.parameters
         val eventIndex = eventIndex()
@@ -65,9 +70,9 @@ class KeyValueMethod(private val method: Method, private val invokeOn: Any, priv
     fun invokeRemove(oldItem: Any?) {
         timesInvoked++
 
-        if (type != StoreEventType.REMOVE) return
+        if (storeEventType != StoreEventType.REMOVE) return
 
-        val event = StoreEvent(type.name)
+        val event = StoreEvent(storeEventType.name)
 
         val params = method.parameters
         val eventIndex = eventIndex()

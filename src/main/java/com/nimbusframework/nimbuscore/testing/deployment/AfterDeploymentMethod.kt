@@ -1,13 +1,14 @@
 package com.nimbusframework.nimbuscore.testing.deployment
 
 import com.nimbusframework.nimbuscore.testing.ServerlessMethod
+import com.nimbusframework.nimbuscore.testing.function.FunctionType
 import com.nimbusframework.nimbuscore.wrappers.basic.models.BasicEvent
 import java.lang.reflect.Method
 
 class AfterDeploymentMethod(
         private val method: Method,
         private val invokeOn: Any
-): ServerlessMethod(method, BasicEvent::class.java) {
+): ServerlessMethod(method, BasicEvent::class.java, FunctionType.BASIC) {
 
 
     fun invoke() {

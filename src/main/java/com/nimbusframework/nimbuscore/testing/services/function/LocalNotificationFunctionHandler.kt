@@ -2,6 +2,8 @@ package com.nimbusframework.nimbuscore.testing.services.function
 
 import com.nimbusframework.nimbuscore.annotation.annotations.function.NotificationServerlessFunction
 import com.nimbusframework.nimbuscore.testing.function.FunctionIdentifier
+import com.nimbusframework.nimbuscore.testing.function.ServerlessFunction
+import com.nimbusframework.nimbuscore.testing.function.information.NotificationFunctionInformation
 import com.nimbusframework.nimbuscore.testing.notification.LocalNotificationTopic
 import com.nimbusframework.nimbuscore.testing.notification.NotificationMethod
 import com.nimbusframework.nimbuscore.testing.services.LocalResourceHolder
@@ -23,11 +25,11 @@ class LocalNotificationFunctionHandler(
                 val invokeOn = clazz.getConstructor().newInstance()
 
                 val notificationMethod = NotificationMethod(method, invokeOn)
-
+                val functionInformation = NotificationFunctionInformation(notificationFunction.topic)
                 val notificationTopic = localResourceHolder.notificationTopics.getOrPut(notificationFunction.topic) { LocalNotificationTopic() }
 
                 notificationTopic.addSubscriber(notificationMethod)
-                localResourceHolder.methods[functionIdentifier] = notificationMethod
+                localResourceHolder.functions[functionIdentifier] = ServerlessFunction(notificationMethod, functionInformation)
             }
         }
         return true

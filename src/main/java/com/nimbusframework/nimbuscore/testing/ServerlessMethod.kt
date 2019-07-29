@@ -1,9 +1,14 @@
 package com.nimbusframework.nimbuscore.testing
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.testing.function.FunctionType
 import java.lang.reflect.Method
 
-abstract class ServerlessMethod(private val method: Method, private val eventType: Class<out Any>?) {
+abstract class ServerlessMethod(
+        private val method: Method,
+        private val eventType: Class<out Any>?,
+        val type: FunctionType
+) {
     var timesInvoked: Int = 0
         protected set
     var mostRecentInvokeArgument: Any? = null

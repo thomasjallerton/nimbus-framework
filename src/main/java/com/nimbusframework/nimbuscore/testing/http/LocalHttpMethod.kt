@@ -1,15 +1,20 @@
 package com.nimbusframework.nimbuscore.testing.http
 
 import com.nimbusframework.nimbuscore.testing.ServerlessMethod
+import com.nimbusframework.nimbuscore.testing.function.FunctionType
 import com.nimbusframework.nimbuscore.wrappers.http.models.HttpEvent
 import java.lang.reflect.Method
-import java.net.URL
 import java.net.URLDecoder
-import java.util.LinkedList
-import java.util.LinkedHashMap
 
 
-class LocalHttpMethod(private val method: Method, private val invokeOn: Any) : ServerlessMethod(method, HttpEvent::class.java) {
+class LocalHttpMethod(
+        private val method: Method,
+        private val invokeOn: Any
+) : ServerlessMethod(
+        method,
+        HttpEvent::class.java,
+        FunctionType.HTTP
+) {
 
     fun invoke(request: HttpRequest, methodIdentifier: HttpMethodIdentifier): Any? {
         timesInvoked++

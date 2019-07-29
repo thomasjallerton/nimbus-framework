@@ -1,12 +1,12 @@
 package com.nimbusframework.nimbuscore.testing.services
 
-import com.nimbusframework.nimbuscore.testing.ServerlessMethod
 import com.nimbusframework.nimbuscore.testing.basic.BasicFunction
 import com.nimbusframework.nimbuscore.testing.deployment.AfterDeploymentMethod
 import com.nimbusframework.nimbuscore.testing.document.LocalDocumentStore
 import com.nimbusframework.nimbuscore.testing.file.LocalFileStorage
 import com.nimbusframework.nimbuscore.testing.function.FunctionEnvironment
 import com.nimbusframework.nimbuscore.testing.function.FunctionIdentifier
+import com.nimbusframework.nimbuscore.testing.function.ServerlessFunction
 import com.nimbusframework.nimbuscore.testing.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuscore.testing.http.LocalHttpMethod
 import com.nimbusframework.nimbuscore.testing.keyvalue.LocalKeyValueStore
@@ -20,7 +20,7 @@ import org.eclipse.jetty.websocket.api.Session
 import java.util.*
 
 class LocalResourceHolder(stage: String) {
-    val methods: MutableMap<FunctionIdentifier, ServerlessMethod> = mutableMapOf()
+    val functions: MutableMap<FunctionIdentifier, ServerlessFunction> = mutableMapOf()
 
     val queues: MutableMap<String, LocalQueue> = mutableMapOf()
     val httpMethods: MutableMap<HttpMethodIdentifier, LocalHttpMethod> = mutableMapOf()

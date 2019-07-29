@@ -2,6 +2,8 @@ package com.nimbusframework.nimbuscore.testing.services.function
 
 import com.nimbusframework.nimbuscore.annotation.annotations.function.QueueServerlessFunction
 import com.nimbusframework.nimbuscore.testing.function.FunctionIdentifier
+import com.nimbusframework.nimbuscore.testing.function.ServerlessFunction
+import com.nimbusframework.nimbuscore.testing.function.information.QueueFunctionInformation
 import com.nimbusframework.nimbuscore.testing.queue.LocalQueue
 import com.nimbusframework.nimbuscore.testing.queue.QueueMethod
 import com.nimbusframework.nimbuscore.testing.services.LocalResourceHolder
@@ -23,6 +25,7 @@ class LocalQueueFunctionHandler(
                 val invokeOn = clazz.getConstructor().newInstance()
 
                 val queueMethod = QueueMethod(method, invokeOn, queueFunction.batchSize)
+                val functionInformation = QueueFunctionInformation(queueFunction.id, queueFunction.batchSize)
                 val queue = if (localResourceHolder.queues.containsKey(queueFunction.id)) {
                     localResourceHolder.queues[queueFunction.id]!!
                 } else {
@@ -31,7 +34,7 @@ class LocalQueueFunctionHandler(
                     newQueue
                 }
                 queue.addConsumer(queueMethod)
-                localResourceHolder.methods[functionIdentifier] = queueMethod
+                localResourceHolder.functions[functionIdentifier] = ServerlessFunction(queueMethod, functionInformation)
             }
         }
         return true

@@ -4,6 +4,8 @@ import com.nimbusframework.nimbuscore.annotation.annotations.function.FileStorag
 import com.nimbusframework.nimbuscore.testing.file.FileStorageMethod
 import com.nimbusframework.nimbuscore.testing.file.LocalFileStorage
 import com.nimbusframework.nimbuscore.testing.function.FunctionIdentifier
+import com.nimbusframework.nimbuscore.testing.function.ServerlessFunction
+import com.nimbusframework.nimbuscore.testing.function.information.FileStorageFunctionInformation
 import com.nimbusframework.nimbuscore.testing.services.LocalResourceHolder
 import java.lang.reflect.Method
 
@@ -19,7 +21,7 @@ class LocalFileStorageFunctionHandler(
         if (fileStorageFunctions.isEmpty()) return false
 
         val fileStorage = localResourceHolder.fileStorage
-        val methods = localResourceHolder.methods
+        val methods = localResourceHolder.functions
 
         for (fileStorageFunction in fileStorageFunctions) {
             if (fileStorageFunction.stages.contains(stage)) {
@@ -30,8 +32,12 @@ class LocalFileStorageFunctionHandler(
                 }
                 val localFileStorage = fileStorage[fileStorageFunction.bucketName]
                 val fileStorageMethod = FileStorageMethod(method, invokeOn, fileStorageFunction.eventType)
+                val functionInformation = FileStorageFunctionInformation(
+                        fileStorageFunction.bucketName,
+                        fileStorageFunction.eventType
+                )
                 localFileStorage!!.addMethod(fileStorageMethod)
-                methods[functionIdentifier] = fileStorageMethod
+                methods[functionIdentifier] = ServerlessFunction(fileStorageMethod, functionInformation)
             }
         }
         return true

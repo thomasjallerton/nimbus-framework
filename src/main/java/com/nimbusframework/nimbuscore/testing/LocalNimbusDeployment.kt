@@ -320,10 +320,10 @@ class LocalNimbusDeployment {
 
     fun <T> getMethod(clazz: Class<T>, methodName: String): ServerlessMethod {
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, methodName)
-        val methods = localResourceHolder.methods
+        val methods = localResourceHolder.functions
 
         if (methods.containsKey(functionIdentifier)) {
-            return methods[functionIdentifier]!!
+            return methods[functionIdentifier]!!.serverlessMethod
         } else {
             throw ResourceNotFoundException()
         }
