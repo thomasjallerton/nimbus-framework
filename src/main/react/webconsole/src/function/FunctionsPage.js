@@ -40,6 +40,7 @@ export class FunctionsPage extends React.Component {
                 <FunctionsList
                     functions={this.state.functions}
                     key={this.state.version}
+                    match={this.props.match}
                 />
             </div>
         );
