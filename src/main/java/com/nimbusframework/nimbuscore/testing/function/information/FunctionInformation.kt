@@ -1,3 +1,5 @@
 package com.nimbusframework.nimbuscore.testing.function.information
 
-open class FunctionInformation
+import com.nimbusframework.nimbuscore.testing.function.FunctionType
+
+open class FunctionInformation(val type: FunctionType)

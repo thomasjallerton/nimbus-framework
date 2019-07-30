@@ -31,6 +31,7 @@ class FunctionApiResource(private val httpMethod: HttpMethod) : WebResource(arra
                         val listOfFunctionInformation = functions.map { (functionIdentifier, function) ->
                             FunctionInformation(
                                     functionIdentifier.className.substringAfterLast('.'),
+                                    functionIdentifier.className,
                                     functionIdentifier.methodName,
                                     function.serverlessMethod.timesInvoked,
                                     function.serverlessMethod.type

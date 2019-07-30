@@ -14,12 +14,8 @@ class Server {
     @Test
     fun startServer() {
         val localDeployment = LocalNimbusDeployment.getNewInstance(
-                Bucket::class.java,
-                BucketTwo::class.java,
-                Document::class.java,
-                KeyValue::class.java,
-                ExampleQueueHandler::class.java,
-                ExampleNotificationHandler::class.java)
+                "localDeployment"
+        )
         localDeployment.startAllServers()
     }
 }

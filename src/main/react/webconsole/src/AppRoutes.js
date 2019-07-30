@@ -11,6 +11,7 @@ import {KeyValueStorePage} from "./keyvalue/KeyValueStorePage";
 import {QueuesPage} from "./queue/QueuesPage"
 import {NotificationsPage} from "./notification/NotificationsPage";
 import {FunctionsPage} from "./function/FunctionsPage";
+import {FunctionPage} from "./function/FunctionPage";
 
 function AppRoutes() {
     return (
@@ -22,6 +23,7 @@ function AppRoutes() {
                 <Route exact path="/NimbusWebConsole/index.html" component={HomePage}/>
 
                 <Route exact path="/NimbusWebConsole/Functions" component={FunctionsPage} />
+                <Route exact path="/NimbusWebConsole/Functions/:className/:methodName" component={FunctionPage} />
 
                 <Route exact path="/NimbusWebConsole/FileBuckets" component={FileBucketsPage} />
                 <Route exact path="/NimbusWebConsole/FileBuckets/:bucketName" component={FileBucketPage}/>
