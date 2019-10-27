@@ -1,0 +1,3 @@
+package com.nimbusframework.nimbuscore.eventabstractions
+
+interface ServerlessEvent
