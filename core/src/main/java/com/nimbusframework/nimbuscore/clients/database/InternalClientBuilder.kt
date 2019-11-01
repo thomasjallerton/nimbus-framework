@@ -7,6 +7,7 @@ import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
 import com.nimbusframework.nimbuscore.clients.queue.QueueClient
+import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
 
 interface InternalClientBuilder {
@@ -28,5 +29,7 @@ interface InternalClientBuilder {
     fun getFileStorageClient(bucketName: String, stage: String): FileStorageClient
 
     fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient
+
+    fun getTransactionalClient(): TransactionalClient
 
 }

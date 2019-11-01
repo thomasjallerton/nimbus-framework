@@ -9,4 +9,9 @@ public class AfterDeploymentHandlers {
     return "This could do something";
   }
 
+  @AfterDeployment
+  public void addSubscriber() {
+    System.out.println("LOG SOMETHING");
+  }
+
 }

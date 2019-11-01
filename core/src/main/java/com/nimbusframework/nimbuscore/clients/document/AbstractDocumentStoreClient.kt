@@ -4,6 +4,8 @@ import com.nimbusframework.nimbuscore.annotations.document.DocumentStore
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute
 import com.nimbusframework.nimbuscore.annotations.persistent.Key
 import com.nimbusframework.nimbuscore.clients.store.ItemDescription
+import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
+import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
 import java.lang.reflect.Field
 
@@ -38,6 +40,10 @@ abstract class AbstractDocumentStoreClient<T>(clazz: Class<T>, stage: String): D
     abstract override fun getAll(): List<T>
 
     abstract override fun get(keyObj: Any): T?
+
+    abstract override fun getReadItem(keyObj: Any): ReadItemRequest<T>
+
+    abstract override fun getWriteItem(obj: T): WriteItemRequest
 
     companion object {
         fun <T> getTableName(clazz: Class<T>, stage: String): String {
