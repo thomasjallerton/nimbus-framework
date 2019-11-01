@@ -57,14 +57,14 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
     }
 
     fun getReadItem(keyMap: Map<String, AttributeValue>, objectDef: Map<String, Field>): ReadItemRequest<T> {
-        val transactGetItem = TransactGetItem().withGet(Get().withKey(keyMap))
+        val transactGetItem = TransactGetItem().withGet(Get().withKey(keyMap).withTableName(tableName))
         return DynamoReadItemRequest(transactGetItem) { item -> toObject(item.item, objectDef)}
     }
 
     fun getWriteItem(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf()): WriteItemRequest {
         val attributeMap = getItem(obj, allAttributes, additionalEntries)
 
-        val transactWriteItem = TransactWriteItem().withPut(Put().withItem(attributeMap))
+        val transactWriteItem = TransactWriteItem().withPut(Put().withItem(attributeMap).withTableName(tableName))
         return DynamoWriteTransactItemRequest(transactWriteItem)
     }
 
