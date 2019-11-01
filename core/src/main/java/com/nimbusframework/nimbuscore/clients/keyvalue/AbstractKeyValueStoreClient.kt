@@ -3,6 +3,8 @@ package com.nimbusframework.nimbuscore.clients.keyvalue
 import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStore
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute
 import com.nimbusframework.nimbuscore.clients.store.ItemDescription
+import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
+import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.exceptions.AttributeNameException
 import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
 import com.nimbusframework.nimbuscore.exceptions.MismatchedKeyTypeException
@@ -50,6 +52,10 @@ abstract class AbstractKeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass:
     abstract override fun getAll(): Map<K, V>
 
     abstract override fun get(keyObj: K): V?
+
+    abstract override fun getReadItem(keyObj: K): ReadItemRequest<V>
+
+    abstract override fun getWriteItem(key: K, value: V): WriteItemRequest
 
     companion object {
         fun <T> getTableName(clazz: Class<T>, stage: String): String {

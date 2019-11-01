@@ -11,6 +11,7 @@ import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
 import com.nimbusframework.nimbuscore.clients.queue.QueueClient
+import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
 
 object ClientBuilder {
@@ -103,6 +104,17 @@ object ClientBuilder {
             EmptyFileStorageClient()
         } catch (e: NoClassDefFoundError) {
             EmptyFileStorageClient()
+        }
+    }
+
+    @JvmStatic
+    fun getTransactionalClient(): TransactionalClient {
+        return try {
+            internalClientBuilder.getTransactionalClient()
+        } catch (e: ClassNotFoundException) {
+            EmptyTransactionalClient()
+        } catch (e: NoClassDefFoundError) {
+            EmptyTransactionalClient()
         }
     }
 

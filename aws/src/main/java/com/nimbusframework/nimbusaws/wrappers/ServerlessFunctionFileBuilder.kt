@@ -22,8 +22,8 @@ abstract class ServerlessFunctionFileBuilder(
         private val functionType: String,
         eventType: Class<out ServerlessEvent>?,
         private val compilingElement: Element,
-        inputType: Class<out Any>?,
-        returnType: Class<out Any>?,
+        inputType: Class<*>?,
+        returnType: Class<*>?,
         private val nimbusState: NimbusState
 ) {
 

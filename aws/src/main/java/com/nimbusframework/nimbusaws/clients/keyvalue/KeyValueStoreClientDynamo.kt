@@ -1,8 +1,12 @@
 package com.nimbusframework.nimbusaws.clients.keyvalue
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.amazonaws.services.dynamodbv2.model.TransactWriteItem
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
+import com.nimbusframework.nimbusaws.clients.dynamo.DynamoWriteTransactItemRequest
 import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
+import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
+import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 
 internal class KeyValueStoreClientDynamo<K, V>(
         private val keyClass: Class<K>,
@@ -35,6 +39,14 @@ internal class KeyValueStoreClientDynamo<K, V>(
         return dynamoClient.get(keyToKeyMap(keyObj), attributes)
     }
 
+    override fun getReadItem(keyObj: K): ReadItemRequest<V> {
+        return dynamoClient.getReadItem(keyToKeyMap(keyObj), attributes)
+    }
+
+    override fun getWriteItem(key: K, value: V): WriteItemRequest {
+        return dynamoClient.getWriteItem(value, attributes, mapOf(Pair(keyName, dynamoClient.toAttributeValue(key))))
+    }
+
     private fun keyToKeyMap(keyObj: K): Map<String, AttributeValue> {
         val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
@@ -42,4 +54,5 @@ internal class KeyValueStoreClientDynamo<K, V>(
 
         return keyMap
     }
+
 }

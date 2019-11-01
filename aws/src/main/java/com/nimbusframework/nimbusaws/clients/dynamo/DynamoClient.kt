@@ -3,6 +3,8 @@ package com.nimbusframework.nimbusaws.clients.dynamo
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.*
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
+import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import java.lang.reflect.Field
 
 class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>) {
@@ -11,15 +13,8 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
     private val objectMapper = ObjectMapper()
 
     fun put(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf()) {
-        val attributeMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
-        for ((columnName, field) in allAttributes) {
-            field.isAccessible = true
-            attributeMap[columnName] = toAttributeValue(field.get(obj))
-        }
-
-        attributeMap.putAll(additionalEntries)
-
+        val attributeMap = getItem(obj, allAttributes, additionalEntries)
         val putItemRequest = PutItemRequest().withItem(attributeMap).withTableName(tableName)
 
         client.putItem(putItemRequest)
@@ -61,6 +56,18 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
         }
     }
 
+    fun getReadItem(keyMap: Map<String, AttributeValue>, objectDef: Map<String, Field>): ReadItemRequest<T> {
+        val transactGetItem = TransactGetItem().withGet(Get().withKey(keyMap))
+        return DynamoReadItemRequest(transactGetItem) { item -> toObject(item.item, objectDef)}
+    }
+
+    fun getWriteItem(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf()): WriteItemRequest {
+        val attributeMap = getItem(obj, allAttributes, additionalEntries)
+
+        val transactWriteItem = TransactWriteItem().withPut(Put().withItem(attributeMap))
+        return DynamoWriteTransactItemRequest(transactWriteItem)
+    }
+
     fun toAttributeValue(value: Any?): AttributeValue {
         return when (value) {
             is String -> AttributeValue(value)
@@ -100,5 +107,17 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
         }
 
         return objectMapper.convertValue(resultMap, clazz)
+    }
+
+    private fun getItem(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf()): Map<String, AttributeValue> {
+        val attributeMap: MutableMap<String, AttributeValue> = mutableMapOf()
+
+        for ((columnName, field) in allAttributes) {
+            field.isAccessible = true
+            attributeMap[columnName] = toAttributeValue(field.get(obj))
+        }
+
+        attributeMap.putAll(additionalEntries)
+        return attributeMap;
     }
 }

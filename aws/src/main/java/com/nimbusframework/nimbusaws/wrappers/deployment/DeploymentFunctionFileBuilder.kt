@@ -47,9 +47,9 @@ class DeploymentFunctionFileBuilder(
         }
 
         if (voidMethodReturn) {
-            write("return result;")
-        } else {
             write("return null;")
+        } else {
+            write("return result;")
         }
     }
 

@@ -18,4 +18,8 @@ public class HttpHandlers {
     return "Success";
   }
 
+  @HttpServerlessFunction(method = HttpMethod.POST, path = "testing")
+  public void voidReturn() {
+    System.out.println("LOGGED");
+  }
 }

@@ -3,6 +3,8 @@ package com.nimbusframework.nimbusaws.clients.document
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
 import com.nimbusframework.nimbuscore.clients.document.AbstractDocumentStoreClient
+import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
+import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 
 internal class DocumentStoreClientDynamo<T>(clazz: Class<T>, stage: String): AbstractDocumentStoreClient<T>(clazz, stage) {
 
@@ -26,6 +28,14 @@ internal class DocumentStoreClientDynamo<T>(clazz: Class<T>, stage: String): Abs
 
     override fun get(keyObj: Any): T? {
         return dynamoClient.get(keyToKeyMap(keyObj), allAttributes)
+    }
+
+    override fun getReadItem(keyObj: Any): ReadItemRequest<T> {
+        return dynamoClient.getReadItem(keyToKeyMap(keyObj), allAttributes)
+    }
+
+    override fun getWriteItem(obj: T): WriteItemRequest {
+        return dynamoClient.getWriteItem(obj, allAttributes)
     }
 
     private fun objectToKeyMap(obj: T): Map<String, AttributeValue> {

@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.clients
 
 import com.nimbusframework.nimbusaws.clients.document.DocumentStoreClientDynamo
+import com.nimbusframework.nimbusaws.clients.dynamo.DynamoTransactionClient
 import com.nimbusframework.nimbusaws.clients.file.FileStorageClientS3
 import com.nimbusframework.nimbusaws.clients.function.BasicServerlessFunctionClientLambda
 import com.nimbusframework.nimbusaws.clients.function.EnvironmentVariableClientLambda
@@ -18,9 +19,14 @@ import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
 import com.nimbusframework.nimbuscore.clients.queue.QueueClient
+import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
 
-object AwsInternalClientBuilder: InternalClientBuilder{
+object AwsInternalClientBuilder: InternalClientBuilder {
+
+    override fun getTransactionalClient(): TransactionalClient {
+        return DynamoTransactionClient()
+    }
 
     override fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>, stage: String): KeyValueStoreClient<K, V> {
         return KeyValueStoreClientDynamo(key, value, stage)
