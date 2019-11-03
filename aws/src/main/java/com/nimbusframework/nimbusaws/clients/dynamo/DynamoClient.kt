@@ -3,11 +3,14 @@ package com.nimbusframework.nimbusaws.clients.dynamo
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.*
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.clients.store.ConditionOperator.*
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
+import com.nimbusframework.nimbuscore.clients.store.UpdateCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
+import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
 import java.lang.reflect.Field
 
-class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>) {
+class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>, private val columnNameMap: Map<String, String>) {
 
     private val client = AmazonDynamoDBClientBuilder.defaultClient()
     private val objectMapper = ObjectMapper()
@@ -68,6 +71,32 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
         return DynamoWriteTransactItemRequest(transactWriteItem)
     }
 
+    fun getUpdateValueRequest(keyMap: Map<String, AttributeValue>, columnName: String, amount: Number, operator: String, updateCondition: UpdateCondition? = null): WriteItemRequest {
+        val attributeValues = mutableMapOf(Pair(":amount", toAttributeValue(amount)))
+        val update = Update()
+                .withKey(keyMap)
+                .withUpdateExpression("set $columnName = $columnName $operator :amount")
+                .withTableName(tableName)
+
+        if (updateCondition != null) {
+            val (conditionString, conditionVariable) = generateConditionExpression(updateCondition)
+            update.withConditionExpression(conditionString)
+            attributeValues[conditionVariable] = toAttributeValue(updateCondition.amount)
+        }
+
+        update.withExpressionAttributeValues(attributeValues)
+
+        return DynamoWriteTransactItemRequest(TransactWriteItem().withUpdate(update))
+    }
+
+    fun getDeleteRequest(keyMap: Map<String, AttributeValue>): WriteItemRequest {
+        val delete = Delete()
+                .withKey(keyMap)
+                .withTableName(tableName)
+
+        return DynamoWriteTransactItemRequest(TransactWriteItem().withDelete(delete))
+    }
+
     fun toAttributeValue(value: Any?): AttributeValue {
         return when (value) {
             is String -> AttributeValue(value)
@@ -119,5 +148,18 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
 
         attributeMap.putAll(additionalEntries)
         return attributeMap;
+    }
+
+    private fun generateConditionExpression(updateCondition: UpdateCondition): Pair<String, String> {
+        val operator = when(updateCondition.updateCondition) {
+            EQUAL -> "="
+            NOT_EQUAL -> "<>"
+            GREATER_THAN -> ">"
+            GREATER_THAN_OR_EQUAL -> ">="
+            LESS_THAN_OR_EQUAL -> "<="
+            LESS_THAN -> "<"
+        }
+        return Pair("${columnNameMap[updateCondition.numericFieldName]} $operator :comparisonValue", ":comparisonValue")
+
     }
 }
