@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStore
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute
 import com.nimbusframework.nimbuscore.clients.store.ItemDescription
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
+import com.nimbusframework.nimbuscore.clients.store.UpdateCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.exceptions.AttributeNameException
 import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
@@ -17,6 +18,7 @@ abstract class AbstractKeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass:
     protected val attributes: MutableMap<String, Field> = mutableMapOf()
     protected var tableName: String = getTableName(valueClass, stage)
     protected val userTableName: String = tableName.removeSuffix(stage)
+    protected val columnNames: MutableMap<String, String> = mutableMapOf()
 
 
     init {
@@ -40,6 +42,7 @@ abstract class AbstractKeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass:
                 val attributeAnnotation = field.getDeclaredAnnotation(Attribute::class.java)
                 val columnName = if (attributeAnnotation.columnName != "") attributeAnnotation.columnName else field.name
                 attributes[columnName] = field
+                columnNames[field.name] = columnName
                 if (field.name == keyName) throw AttributeNameException(field.name)
             }
         }
@@ -56,6 +59,16 @@ abstract class AbstractKeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass:
     abstract override fun getReadItem(keyObj: K): ReadItemRequest<V>
 
     abstract override fun getWriteItem(key: K, value: V): WriteItemRequest
+
+    abstract override fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number): WriteItemRequest
+
+    abstract override fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number, updateCondition: UpdateCondition): WriteItemRequest
+
+    abstract override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number): WriteItemRequest
+
+    abstract override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number, updateCondition: UpdateCondition): WriteItemRequest
+
+    abstract override fun getDeleteItemRequest(key: K): WriteItemRequest
 
     companion object {
         fun <T> getTableName(clazz: Class<T>, stage: String): String {
