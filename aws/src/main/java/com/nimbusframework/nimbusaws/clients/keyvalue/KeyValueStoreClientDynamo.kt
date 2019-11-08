@@ -4,10 +4,10 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
-import com.nimbusframework.nimbuscore.clients.store.UpdateCondition
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
+import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import javax.naming.InvalidNameException
-import kotlin.reflect.full.declaredMembers
 
 internal class KeyValueStoreClientDynamo<K, V>(
         private val keyClass: Class<K>,
@@ -55,21 +55,15 @@ internal class KeyValueStoreClientDynamo<K, V>(
     }
 
     override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number): WriteItemRequest {
-        val columnName = columnNames[numericFieldName]
-        if (columnName.isNullOrEmpty()) throw InvalidNameException("$numericFieldName is not a field of ${valueClass.canonicalName}")
-        return dynamoClient.getUpdateValueRequest(keyToKeyMap(key), columnName, amount, "-")
+        return dynamoClient.getUpdateValueRequest(keyToKeyMap(key), numericFieldName, amount, "-")
     }
 
-    override fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number, updateCondition: UpdateCondition): WriteItemRequest {
-        val columnName = columnNames[numericFieldName]
-        if (columnName.isNullOrEmpty()) throw InvalidNameException("$numericFieldName is not a field of ${valueClass.canonicalName}")
-        return dynamoClient.getUpdateValueRequest(keyToKeyMap(key), columnName, amount, "+", updateCondition)
+    override fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest {
+        return dynamoClient.getUpdateValueRequest(keyToKeyMap(key), numericFieldName, amount, "+", condition)
     }
 
-    override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number, updateCondition: UpdateCondition): WriteItemRequest {
-        val columnName = columnNames[numericFieldName]
-        if (columnName.isNullOrEmpty()) throw InvalidNameException("$numericFieldName is not a field of ${valueClass.canonicalName}")
-        return dynamoClient.getUpdateValueRequest(keyToKeyMap(key), columnName, amount, "-", updateCondition)
+    override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest {
+        return dynamoClient.getUpdateValueRequest(keyToKeyMap(key), numericFieldName, amount, "-", condition)
     }
 
     override fun getDeleteItemRequest(key: K): WriteItemRequest {

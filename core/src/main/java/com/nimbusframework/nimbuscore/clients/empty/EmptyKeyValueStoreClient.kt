@@ -3,7 +3,7 @@ package com.nimbusframework.nimbuscore.clients.empty
 import com.nimbusframework.nimbuscore.exceptions.PermissionException
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
-import com.nimbusframework.nimbuscore.clients.store.UpdateCondition
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 
 class EmptyKeyValueStoreClient<K, V>: KeyValueStoreClient<K, V> {
@@ -46,11 +46,11 @@ class EmptyKeyValueStoreClient<K, V>: KeyValueStoreClient<K, V> {
         throw PermissionException(clientName)
     }
 
-    override fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number, updateCondition: UpdateCondition): WriteItemRequest {
+    override fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number, comparisionCondition: ComparisionCondition): WriteItemRequest {
         throw PermissionException(clientName)
     }
 
-    override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number, updateCondition: UpdateCondition): WriteItemRequest {
+    override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number, comparisionCondition: ComparisionCondition): WriteItemRequest {
         throw PermissionException(clientName)
     }
 }
