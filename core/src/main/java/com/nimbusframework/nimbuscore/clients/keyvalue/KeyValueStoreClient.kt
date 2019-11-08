@@ -1,9 +1,9 @@
 package com.nimbusframework.nimbuscore.clients.keyvalue
 
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
-import com.nimbusframework.nimbuscore.clients.store.UpdateCondition
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
-import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
+import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 
 interface KeyValueStoreClient<K, V> {
     fun put(key: K, value: V)
@@ -20,11 +20,11 @@ interface KeyValueStoreClient<K, V> {
 
     fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number): WriteItemRequest
 
-    fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number, updateCondition: UpdateCondition): WriteItemRequest
+    fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest
 
     fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number): WriteItemRequest
 
-    fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number, updateCondition: UpdateCondition): WriteItemRequest
+    fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest
 
     fun getDeleteItemRequest(key: K): WriteItemRequest
 }

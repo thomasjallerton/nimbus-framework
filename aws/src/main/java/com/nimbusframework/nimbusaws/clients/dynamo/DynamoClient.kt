@@ -3,31 +3,43 @@ package com.nimbusframework.nimbusaws.clients.dynamo
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.*
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.nimbusframework.nimbuscore.clients.store.ConditionOperator.*
+import com.nimbusframework.nimbusaws.clients.dynamo.condition.DynamoConditionProcessor
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
-import com.nimbusframework.nimbuscore.clients.store.UpdateCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
-import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
+import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import java.lang.reflect.Field
+import javax.naming.InvalidNameException
 
 class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>, private val columnNameMap: Map<String, String>) {
 
     private val client = AmazonDynamoDBClientBuilder.defaultClient()
+    private val conditionProcessor = DynamoConditionProcessor(this)
     private val objectMapper = ObjectMapper()
 
-    fun put(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf()) {
-
+    fun put(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf(), condition: Condition? = null) {
         val attributeMap = getItem(obj, allAttributes, additionalEntries)
         val putItemRequest = PutItemRequest().withItem(attributeMap).withTableName(tableName)
+
+        if (condition != null) {
+            val valueMap: MutableMap<String, AttributeValue> = mutableMapOf()
+            putItemRequest.withConditionExpression(conditionProcessor.processCondition(condition, valueMap))
+                    .withExpressionAttributeValues(valueMap)
+        }
 
         client.putItem(putItemRequest)
     }
 
-    fun deleteKey(keyMap: Map<String, AttributeValue>) {
+    fun deleteKey(keyMap: Map<String, AttributeValue>, condition: Condition? = null) {
 
         val deleteItemRequest = DeleteItemRequest()
                 .withKey(keyMap)
                 .withTableName(tableName)
+
+        if (condition != null) {
+            val valueMap: MutableMap<String, AttributeValue> = mutableMapOf()
+            deleteItemRequest.withConditionExpression(conditionProcessor.processCondition(condition, valueMap))
+                    .withExpressionAttributeValues(valueMap)
+        }
 
         client.deleteItem(deleteItemRequest)
     }
@@ -64,24 +76,31 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
         return DynamoReadItemRequest(transactGetItem) { item -> toObject(item.item, objectDef)}
     }
 
-    fun getWriteItem(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf()): WriteItemRequest {
+    fun getWriteItem(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf(), condition: Condition? = null): WriteItemRequest {
         val attributeMap = getItem(obj, allAttributes, additionalEntries)
+        val put = Put().withItem(attributeMap).withTableName(tableName)
 
-        val transactWriteItem = TransactWriteItem().withPut(Put().withItem(attributeMap).withTableName(tableName))
+        if (condition != null) {
+            val valueMap: MutableMap<String, AttributeValue> = mutableMapOf()
+            put.withConditionExpression(conditionProcessor.processCondition(condition, valueMap))
+                    .withExpressionAttributeValues(valueMap)
+        }
+
+        val transactWriteItem = TransactWriteItem().withPut(put)
         return DynamoWriteTransactItemRequest(transactWriteItem)
     }
 
-    fun getUpdateValueRequest(keyMap: Map<String, AttributeValue>, columnName: String, amount: Number, operator: String, updateCondition: UpdateCondition? = null): WriteItemRequest {
+    fun getUpdateValueRequest(keyMap: Map<String, AttributeValue>, fieldName: String, amount: Number, operator: String, condition: Condition? = null): WriteItemRequest {
+        val columnName = getColumnName(fieldName)
         val attributeValues = mutableMapOf(Pair(":amount", toAttributeValue(amount)))
         val update = Update()
                 .withKey(keyMap)
                 .withUpdateExpression("set $columnName = $columnName $operator :amount")
                 .withTableName(tableName)
 
-        if (updateCondition != null) {
-            val (conditionString, conditionVariable) = generateConditionExpression(updateCondition)
+        if (condition != null) {
+            val conditionString = conditionProcessor.processCondition(condition, attributeValues)
             update.withConditionExpression(conditionString)
-            attributeValues[conditionVariable] = toAttributeValue(updateCondition.amount)
         }
 
         update.withExpressionAttributeValues(attributeValues)
@@ -89,10 +108,17 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
         return DynamoWriteTransactItemRequest(TransactWriteItem().withUpdate(update))
     }
 
-    fun getDeleteRequest(keyMap: Map<String, AttributeValue>): WriteItemRequest {
+    fun getDeleteRequest(keyMap: Map<String, AttributeValue>, condition: Condition? = null): WriteItemRequest {
         val delete = Delete()
                 .withKey(keyMap)
                 .withTableName(tableName)
+
+        if (condition != null) {
+            val valueMap: MutableMap<String, AttributeValue> = mutableMapOf()
+            val conditionString = conditionProcessor.processCondition(condition, valueMap)
+            delete.withConditionExpression(conditionString)
+                    .withExpressionAttributeValues(valueMap)
+        }
 
         return DynamoWriteTransactItemRequest(TransactWriteItem().withDelete(delete))
     }
@@ -138,6 +164,10 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
         return objectMapper.convertValue(resultMap, clazz)
     }
 
+    fun getColumnName(fieldName: String): String {
+        return columnNameMap[fieldName] ?: throw InvalidNameException("$fieldName is not a field of ${clazz.canonicalName}")
+    }
+
     private fun getItem(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf()): Map<String, AttributeValue> {
         val attributeMap: MutableMap<String, AttributeValue> = mutableMapOf()
 
@@ -150,16 +180,4 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
         return attributeMap;
     }
 
-    private fun generateConditionExpression(updateCondition: UpdateCondition): Pair<String, String> {
-        val operator = when(updateCondition.updateCondition) {
-            EQUAL -> "="
-            NOT_EQUAL -> "<>"
-            GREATER_THAN -> ">"
-            GREATER_THAN_OR_EQUAL -> ">="
-            LESS_THAN_OR_EQUAL -> "<="
-            LESS_THAN -> "<"
-        }
-        return Pair("${columnNameMap[updateCondition.numericFieldName]} $operator :comparisonValue", ":comparisonValue")
-
-    }
 }

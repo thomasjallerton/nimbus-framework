@@ -1,6 +1,6 @@
-package com.nimbusframework.nimbuscore.clients.store
+package com.nimbusframework.nimbuscore.clients.store.conditions
 
-enum class ConditionOperator {
+enum class ComparisonOperator {
     EQUAL,
     NOT_EQUAL,
     GREATER_THAN,

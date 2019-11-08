@@ -5,8 +5,9 @@ import com.nimbusframework.nimbuscore.annotations.persistent.Attribute
 import com.nimbusframework.nimbuscore.annotations.persistent.Key
 import com.nimbusframework.nimbuscore.clients.store.ItemDescription
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
-import com.nimbusframework.nimbuscore.clients.store.UpdateCondition
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
+import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
 import java.lang.reflect.Field
 
@@ -51,11 +52,11 @@ abstract class AbstractDocumentStoreClient<T>(clazz: Class<T>, stage: String): D
 
     abstract override fun getIncrementValueRequest(keyObj: Any, numericFieldName: String, amount: Number): WriteItemRequest
 
-    abstract override fun getIncrementValueRequest(keyObj: Any, numericFieldName: String, amount: Number, updateCondition: UpdateCondition): WriteItemRequest
+    abstract override fun getIncrementValueRequest(keyObj: Any, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest
 
     abstract override fun getDecrementValueRequest(keyObj: Any, numericFieldName: String, amount: Number): WriteItemRequest
 
-    abstract override fun getDecrementValueRequest(keyObj: Any, numericFieldName: String, amount: Number, updateCondition: UpdateCondition): WriteItemRequest
+    abstract override fun getDecrementValueRequest(keyObj: Any, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest
 
     abstract override fun getDeleteItemRequest(keyObj: Any): WriteItemRequest
 
