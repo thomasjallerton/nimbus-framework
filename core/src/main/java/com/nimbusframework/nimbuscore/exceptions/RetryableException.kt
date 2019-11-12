@@ -1,3 +1,3 @@
 package com.nimbusframework.nimbuscore.exceptions
 
-class RetryableException: Exception("The transaction can be retried")
+class RetryableException(message: String): Exception("The transaction can be retried, exception was $message")

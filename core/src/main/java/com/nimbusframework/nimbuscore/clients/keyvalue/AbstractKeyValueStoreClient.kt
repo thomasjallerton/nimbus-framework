@@ -49,28 +49,6 @@ abstract class AbstractKeyValueStoreClient<K, V>(keyClass: Class<K>, valueClass:
         }
     }
 
-    abstract override fun put(key: K, value: V)
-
-    abstract override fun delete(keyObj: K)
-
-    abstract override fun getAll(): Map<K, V>
-
-    abstract override fun get(keyObj: K): V?
-
-    abstract override fun getReadItem(keyObj: K): ReadItemRequest<V>
-
-    abstract override fun getWriteItem(key: K, value: V): WriteItemRequest
-
-    abstract override fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number): WriteItemRequest
-
-    abstract override fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest
-
-    abstract override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number): WriteItemRequest
-
-    abstract override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest
-
-    abstract override fun getDeleteItemRequest(key: K): WriteItemRequest
-
     companion object {
         fun <T> getTableName(clazz: Class<T>, stage: String): String {
             val keyValueStoreAnnotations = clazz.getAnnotationsByType(KeyValueStore::class.java)

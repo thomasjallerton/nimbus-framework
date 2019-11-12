@@ -15,14 +15,22 @@ internal class KeyValueStoreClientDynamo<K, V>(
         stage: String
 ): AbstractKeyValueStoreClient<K, V>(keyClass, valueClass, stage){
 
-    private val dynamoClient: DynamoClient<V> = DynamoClient(tableName, valueClass, columnNames)
+    private val dynamoClient: DynamoClient<V> = DynamoClient(tableName, valueClass, columnNames, attributes)
 
     override fun put(key: K, value: V) {
         dynamoClient.put(value, attributes, mapOf(Pair(keyName, dynamoClient.toAttributeValue(key))))
     }
 
+    override fun put(key: K, value: V, condition: Condition) {
+        dynamoClient.put(value, attributes, mapOf(Pair(keyName, dynamoClient.toAttributeValue(key))), condition)
+    }
+
     override fun delete(keyObj: K) {
         dynamoClient.deleteKey(keyToKeyMap(keyObj))
+    }
+
+    override fun delete(keyObj: K, condition: Condition) {
+        dynamoClient.deleteKey(keyToKeyMap(keyObj), condition)
     }
 
     override fun getAll(): Map<K, V> {
@@ -31,27 +39,29 @@ internal class KeyValueStoreClientDynamo<K, V>(
         val resultMap: MutableMap<K, V> = mutableMapOf()
         for (item in listAll) {
             val key: K = dynamoClient.fromAttributeValue(item[keyName]!!, keyClass, keyName) as K
-            resultMap[key] = dynamoClient.toObject(item, attributes)
+            resultMap[key] = dynamoClient.toObject(item)
         }
         return resultMap
     }
 
     override fun get(keyObj: K): V? {
-        return dynamoClient.get(keyToKeyMap(keyObj), attributes)
+        return dynamoClient.get(keyToKeyMap(keyObj))
     }
 
     override fun getReadItem(keyObj: K): ReadItemRequest<V> {
-        return dynamoClient.getReadItem(keyToKeyMap(keyObj), attributes)
+        return dynamoClient.getReadItem(keyToKeyMap(keyObj))
     }
 
     override fun getWriteItem(key: K, value: V): WriteItemRequest {
         return dynamoClient.getWriteItem(value, attributes, mapOf(Pair(keyName, dynamoClient.toAttributeValue(key))))
     }
 
+    override fun getWriteItem(key: K, value: V, condition: Condition): WriteItemRequest {
+        return dynamoClient.getWriteItem(value, attributes, mapOf(Pair(keyName, dynamoClient.toAttributeValue(key))), condition)
+    }
+
     override fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number): WriteItemRequest {
-        val columnName = columnNames[numericFieldName]
-        if (columnName.isNullOrEmpty()) throw InvalidNameException("$numericFieldName is not a field of ${valueClass.canonicalName}")
-        return dynamoClient.getUpdateValueRequest(keyToKeyMap(key), columnName, amount, "+")
+        return dynamoClient.getUpdateValueRequest(keyToKeyMap(key), numericFieldName, amount, "+")
     }
 
     override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number): WriteItemRequest {
@@ -68,6 +78,10 @@ internal class KeyValueStoreClientDynamo<K, V>(
 
     override fun getDeleteItemRequest(key: K): WriteItemRequest {
         return dynamoClient.getDeleteRequest(keyToKeyMap(key))
+    }
+
+    override fun getDeleteItemRequest(key: K, condition: Condition): WriteItemRequest {
+        return dynamoClient.getDeleteRequest(keyToKeyMap(key), condition)
     }
 
     private fun keyToKeyMap(keyObj: K): Map<String, AttributeValue> {

@@ -7,8 +7,9 @@ import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
 interface TransactionalClient {
 
     @Throws(StoreConditionException::class, RetryableException::class, NonRetryableException::class)
-    fun executeWriteTransaction(request: List<WriteItemRequest>)
+    fun executeWriteTransaction(requests: List<WriteItemRequest>)
 
-    fun executeReadTransaction(request: List<ReadItemRequest<out Any>>): List<Any>
+    @Throws(RetryableException::class, NonRetryableException::class)
+    fun executeReadTransaction(requests: List<ReadItemRequest<out Any>>): List<Any?>
 
 }

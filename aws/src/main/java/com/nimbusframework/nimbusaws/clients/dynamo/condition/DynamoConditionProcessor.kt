@@ -4,7 +4,10 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
 import com.nimbusframework.nimbuscore.clients.store.conditions.BracketsCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonOperator
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
+import com.nimbusframework.nimbuscore.clients.store.conditions.bool.BooleanComparisonCondition
+import com.nimbusframework.nimbuscore.clients.store.conditions.bool.BooleanOperator
 import com.nimbusframework.nimbuscore.clients.store.conditions.bool.NotCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeNotExists
@@ -18,6 +21,7 @@ class DynamoConditionProcessor<T>(private val dynamoClient: DynamoClient<T>) {
         return when (condition) {
             is NotCondition -> "Not ${processCondition(condition.condition, valueMap)}"
             is ComparisionCondition -> processComparisonCondition(condition, valueMap)
+            is BooleanComparisonCondition -> processBooleanComparisonCondition(condition, valueMap)
             is BracketsCondition -> "( ${processCondition(condition.condition, valueMap)} )"
             is FunctionCondition -> processFunctionCondition(condition)
             else -> throw UnsupportedOperationException("${condition.javaClass.simpleName} is not supported")
@@ -25,13 +29,21 @@ class DynamoConditionProcessor<T>(private val dynamoClient: DynamoClient<T>) {
     }
 
     private fun processComparisonCondition(condition: ComparisionCondition, valueMap: MutableMap<String, AttributeValue>): String {
-        return processConditionVariable(condition.value1, valueMap) + " " + condition.operator.name + " " + processConditionVariable(condition.value2, valueMap)
+        val operator = when (condition.operator) {
+            ComparisonOperator.GREATER_THAN -> ">"
+            ComparisonOperator.EQUAL -> "="
+            ComparisonOperator.NOT_EQUAL -> "<>"
+            ComparisonOperator.GREATER_THAN_OR_EQUAL -> ">="
+            ComparisonOperator.LESS_THAN -> "<"
+            ComparisonOperator.LESS_THAN_OR_EQUAL -> "<="
+        }
+        return processConditionVariable(condition.value1, valueMap) + " " + operator + " " + processConditionVariable(condition.value2, valueMap)
     }
 
     private fun processConditionVariable(conditionVariable: ConditionVariable, valueMap: MutableMap<String, AttributeValue>): String {
         return when (conditionVariable) {
             is ColumnVariable -> {
-                dynamoClient.getColumnName(conditionVariable.columnName)
+                dynamoClient.getColumnName(conditionVariable.fieldName)
             }
             else -> {
                 val variable = ":variable${valueMap.size}"
@@ -39,6 +51,14 @@ class DynamoConditionProcessor<T>(private val dynamoClient: DynamoClient<T>) {
                 variable
             }
         }
+    }
+
+    private fun processBooleanComparisonCondition(condition: BooleanComparisonCondition, valueMap: MutableMap<String, AttributeValue>): String {
+        val operator = when (condition.operator) {
+            BooleanOperator.AND -> "AND"
+            BooleanOperator.OR -> "OR"
+        }
+        return processCondition(condition.value1, valueMap) + " " + operator + " " + processCondition(condition.value2, valueMap)
     }
 
     private fun processFunctionCondition(functionCondition: FunctionCondition): String {

@@ -6,5 +6,5 @@ import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 
 class DynamoReadItemRequest<T>(
         val transactReadItem: TransactGetItem,
-        val getItem: (ItemResponse) -> T
+        val getItem: (ItemResponse) -> T?
 ): ReadItemRequest<T>()

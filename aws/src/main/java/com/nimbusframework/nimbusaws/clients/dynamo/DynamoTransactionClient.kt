@@ -13,16 +13,34 @@ class DynamoTransactionClient: TransactionalClient {
 
     private val client = AmazonDynamoDBClientBuilder.defaultClient()
 
-    override fun executeWriteTransaction(request: List<WriteItemRequest>) {
-        val dynamoRequests = request.map { item ->
+    override fun executeWriteTransaction(requests: List<WriteItemRequest>) {
+        val dynamoRequests = requests.map { item ->
             if (item is DynamoWriteTransactItemRequest) {
                 item.transactWriteItem
             } else {
                 throw IllegalStateException("Did not expect non-AWS write request")
             }
         }
+
+        executeTransaction { client.transactWriteItems(TransactWriteItemsRequest().withTransactItems(dynamoRequests)) }
+    }
+
+    override fun executeReadTransaction(requests: List<ReadItemRequest<out Any>>): List<Any?> {
+
+        val dynamoRequests = requests.map { item ->
+            if (item is DynamoReadItemRequest) {
+                item.transactReadItem
+            } else {
+                throw IllegalStateException("Did not expect non-AWS read request")
+            }
+        }
+        val result = executeTransaction { client.transactGetItems(TransactGetItemsRequest().withTransactItems(dynamoRequests)) }
+        return result.responses.mapIndexed { index, item -> (requests[index] as DynamoReadItemRequest).getItem(item) }
+    }
+
+    private fun <T> executeTransaction(toExecute: () -> T): T {
         try {
-            client.transactWriteItems(TransactWriteItemsRequest().withTransactItems(dynamoRequests))
+            return toExecute()
         } catch (e: TransactionCanceledException) {
             for (reason in e.cancellationReasons) {
                 if (reason.code == "ConditionalCheckFailed") {
@@ -30,23 +48,10 @@ class DynamoTransactionClient: TransactionalClient {
                 }
             }
             if (e.isRetryable) {
-                throw RetryableException()
+                throw RetryableException(e.localizedMessage)
             } else {
-                throw NonRetryableException()
+                throw NonRetryableException(e.localizedMessage)
             }
         }
     }
-
-    override fun executeReadTransaction(request: List<ReadItemRequest<out Any>>): List<Any> {
-        val dynamoRequests = request.map { item ->
-            if (item is DynamoReadItemRequest) {
-                item.transactReadItem
-            } else {
-                throw IllegalStateException("Did not expect non-AWS read request")
-            }
-        }
-        val result = client.transactGetItems(TransactGetItemsRequest().withTransactItems(dynamoRequests))
-        return result.responses.mapIndexed { index, item -> (request[index] as DynamoReadItemRequest).getItem(item) }
-    }
-
 }
