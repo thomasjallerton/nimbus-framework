@@ -4,17 +4,25 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbusaws.clients.dynamo.condition.DynamoConditionProcessor
+import com.nimbusframework.nimbusaws.wrappers.store.keyvalue.exceptions.ConditionFailedException
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
+import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
+import com.nimbusframework.nimbuscore.exceptions.RetryableException
 import java.lang.reflect.Field
 import javax.naming.InvalidNameException
 
-class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>, private val columnNameMap: Map<String, String>) {
+class DynamoClient<T>(
+        private val tableName: String,
+        private val clazz: Class<T>,
+        private val columnNameMap: Map<String, String>,
+        private val objectDef: Map<String, Field>) {
 
     private val client = AmazonDynamoDBClientBuilder.defaultClient()
     private val conditionProcessor = DynamoConditionProcessor(this)
     private val objectMapper = ObjectMapper()
+    private val dynamoStreamProcessor = DynamoStreamParser(clazz, objectDef)
 
     fun put(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf(), condition: Condition? = null) {
         val attributeMap = getItem(obj, allAttributes, additionalEntries)
@@ -26,7 +34,7 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
                     .withExpressionAttributeValues(valueMap)
         }
 
-        client.putItem(putItemRequest)
+        executeDynamoRequest { client.putItem(putItemRequest) }
     }
 
     fun deleteKey(keyMap: Map<String, AttributeValue>, condition: Condition? = null) {
@@ -41,18 +49,16 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
                     .withExpressionAttributeValues(valueMap)
         }
 
-        client.deleteItem(deleteItemRequest)
+        executeDynamoRequest { client.deleteItem(deleteItemRequest) }
     }
 
     fun getAll(): List<MutableMap<String, AttributeValue>> {
         val scanRequest = ScanRequest()
                 .withTableName(tableName)
-        val scanResult = client.scan(scanRequest)
-
-        return scanResult.items
+        return executeDynamoRequest { client.scan(scanRequest) }.items
     }
 
-    fun get(keyMap: Map<String, AttributeValue>, objectDef: Map<String, Field>): T? {
+    fun get(keyMap: Map<String, AttributeValue>): T? {
 
         val convertedMap = keyMap.mapValues { entry ->
             Condition().withComparisonOperator("EQ").withAttributeValueList(listOf(entry.value))
@@ -62,18 +68,18 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
                 .withKeyConditions(convertedMap)
                 .withTableName(tableName)
 
-        val queryResult = client.query(queryRequest)
+        val queryResult = executeDynamoRequest { client.query(queryRequest) }
 
         return if (queryResult.count == 1) {
-            toObject(queryResult.items[0], objectDef)
+            dynamoStreamProcessor.toObject(queryResult.items[0])
         } else {
             null
         }
     }
 
-    fun getReadItem(keyMap: Map<String, AttributeValue>, objectDef: Map<String, Field>): ReadItemRequest<T> {
+    fun getReadItem(keyMap: Map<String, AttributeValue>): ReadItemRequest<T> {
         val transactGetItem = TransactGetItem().withGet(Get().withKey(keyMap).withTableName(tableName))
-        return DynamoReadItemRequest(transactGetItem) { item -> toObject(item.item, objectDef)}
+        return DynamoReadItemRequest(transactGetItem) { item -> dynamoStreamProcessor.toObject(item.item) }
     }
 
     fun getWriteItem(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf(), condition: Condition? = null): WriteItemRequest {
@@ -132,40 +138,16 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
         }
     }
 
-    fun <K> fromAttributeValue(value: AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
-        return when {
-            value.bool != null && expectedType == Boolean::class.java -> value.bool
-            value.n != null -> {
-                when (expectedType) {
-                    Integer::class.java -> value.n.toInt()
-                    Double::class.java -> value.n.toDouble()
-                    Long::class.java -> value.n.toLong()
-                    Float::class.java -> value.n.toFloat()
-                    else -> value.n.toInt()
-                }
-            }
-            value.s != null && expectedType == String::class.java -> value.s
-            value.s != null -> objectMapper.readValue(value.s, expectedType)
-            else -> throw MismatchedTypeException(expectedType.simpleName, fieldName)
-        }
-    }
-
-    fun toObject(obj: Map<String, AttributeValue>, objectDef: Map<String, Field>): T {
-
-        val resultMap: MutableMap<String, Any?> = mutableMapOf()
-
-        for ((columnName, field) in objectDef) {
-            val attributeVal = obj[columnName]
-            if (attributeVal != null) {
-                resultMap[field.name] = fromAttributeValue(attributeVal, field.type, field.name)
-            }
-        }
-
-        return objectMapper.convertValue(resultMap, clazz)
-    }
-
     fun getColumnName(fieldName: String): String {
         return columnNameMap[fieldName] ?: throw InvalidNameException("$fieldName is not a field of ${clazz.canonicalName}")
+    }
+
+    fun <K> fromAttributeValue(value: AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
+        return dynamoStreamProcessor.fromAttributeValue(value, expectedType, fieldName)
+    }
+
+    fun toObject(obj: Map<String, AttributeValue>): T {
+        return dynamoStreamProcessor.toObject(obj)!!
     }
 
     private fun getItem(obj: T, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf()): Map<String, AttributeValue> {
@@ -178,6 +160,21 @@ class DynamoClient<T>(private val tableName: String, private val clazz: Class<T>
 
         attributeMap.putAll(additionalEntries)
         return attributeMap;
+    }
+
+    private fun <R> executeDynamoRequest(toExecute: () -> R): R {
+        try {
+            return toExecute()
+        } catch (e: ConditionalCheckFailedException) {
+            throw ConditionFailedException()
+        } catch (e: AmazonDynamoDBException) {
+            if (e.isRetryable) {
+                throw RetryableException(e.localizedMessage)
+            } else {
+                e.printStackTrace()
+                throw NonRetryableException(e.localizedMessage)
+            }
+        }
     }
 
 }

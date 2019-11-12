@@ -36,30 +36,6 @@ abstract class AbstractDocumentStoreClient<T>(clazz: Class<T>, stage: String): D
         }
     }
 
-    abstract override fun put(obj: T)
-
-    abstract override fun delete(obj: T)
-
-    abstract override fun deleteKey(keyObj: Any)
-
-    abstract override fun getAll(): List<T>
-
-    abstract override fun get(keyObj: Any): T?
-
-    abstract override fun getReadItem(keyObj: Any): ReadItemRequest<T>
-
-    abstract override fun getWriteItem(obj: T): WriteItemRequest
-
-    abstract override fun getIncrementValueRequest(keyObj: Any, numericFieldName: String, amount: Number): WriteItemRequest
-
-    abstract override fun getIncrementValueRequest(keyObj: Any, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest
-
-    abstract override fun getDecrementValueRequest(keyObj: Any, numericFieldName: String, amount: Number): WriteItemRequest
-
-    abstract override fun getDecrementValueRequest(keyObj: Any, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest
-
-    abstract override fun getDeleteItemRequest(keyObj: Any): WriteItemRequest
-
     companion object {
         fun <T> getTableName(clazz: Class<T>, stage: String): String {
             val documentStoreAnnotations = clazz.getDeclaredAnnotationsByType(DocumentStore::class.java)

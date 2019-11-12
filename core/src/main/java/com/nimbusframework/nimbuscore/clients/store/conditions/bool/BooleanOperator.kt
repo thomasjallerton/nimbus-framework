@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbuscore.clients.store.conditions.bool
 
-enum class BooleanOperation {
+enum class BooleanOperator {
     AND,
     OR
 }

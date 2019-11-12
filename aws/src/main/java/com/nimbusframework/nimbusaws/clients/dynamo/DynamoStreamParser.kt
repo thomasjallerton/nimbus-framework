@@ -6,26 +6,11 @@ import com.nimbusframework.nimbuscore.annotations.persistent.Key
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.lang.reflect.Field
 
-class DynamoStreamParser<T>(private val clazz: Class<T>) {
+class DynamoStreamParser<T>(private val clazz: Class<T>, private val allAttributes: Map<String, Field>) {
 
-    private val allAttributes: MutableMap<String, Field> = mutableMapOf()
     private val objectMapper = ObjectMapper()
 
-    init {
-        for (field in clazz.declaredFields) {
-            if (field.isAnnotationPresent(Key::class.java)) {
-                val keyAnnotation = field.getDeclaredAnnotation(Key::class.java)
-                val columnName = if (keyAnnotation.columnName != "") keyAnnotation.columnName else field.name
-                allAttributes[columnName] = field
-            } else if (field.isAnnotationPresent(Attribute::class.java)) {
-                val attributeAnnotation = field.getDeclaredAnnotation(Attribute::class.java)
-                val columnName = if (attributeAnnotation.columnName != "") attributeAnnotation.columnName else field.name
-                allAttributes[columnName] = field
-            }
-        }
-    }
-
-    private fun <K> fromAttributeValue(value: AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
+    fun <K> fromAttributeValue(value: AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
         return when {
             value.bool != null && expectedType == Boolean::class.java -> value.bool
             value.n != null -> {
@@ -56,6 +41,26 @@ class DynamoStreamParser<T>(private val clazz: Class<T>) {
         }
 
         return objectMapper.convertValue(resultMap, clazz)
+    }
+
+    companion object {
+
+        @JvmStatic
+        fun <T> of(clazz: Class<T>): DynamoStreamParser<T> {
+            val allAttributes: MutableMap<String, Field> = mutableMapOf()
+            for (field in clazz.declaredFields) {
+                if (field.isAnnotationPresent(Key::class.java)) {
+                    val keyAnnotation = field.getDeclaredAnnotation(Key::class.java)
+                    val columnName = if (keyAnnotation.columnName != "") keyAnnotation.columnName else field.name
+                    allAttributes[columnName] = field
+                } else if (field.isAnnotationPresent(Attribute::class.java)) {
+                    val attributeAnnotation = field.getDeclaredAnnotation(Attribute::class.java)
+                    val columnName = if (attributeAnnotation.columnName != "") attributeAnnotation.columnName else field.name
+                    allAttributes[columnName] = field
+                }
+            }
+            return DynamoStreamParser(clazz, allAttributes)
+        }
     }
 
 }

@@ -5,10 +5,34 @@ import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
+import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 
 class EmptyKeyValueStoreClient<K, V>: KeyValueStoreClient<K, V> {
-
     private val clientName = "KeyValueStoreClient"
+
+    override fun put(key: K, value: V, condition: Condition) {
+        throw PermissionException(clientName)
+    }
+
+    override fun delete(keyObj: K, condition: Condition) {
+        throw PermissionException(clientName)
+    }
+
+    override fun getWriteItem(key: K, value: V, condition: Condition): WriteItemRequest {
+        throw PermissionException(clientName)
+    }
+
+    override fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest {
+        throw PermissionException(clientName)
+    }
+
+    override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number, condition: Condition): WriteItemRequest {
+        throw PermissionException(clientName)
+    }
+
+    override fun getDeleteItemRequest(key: K, condition: Condition): WriteItemRequest {
+        throw PermissionException(clientName)
+    }
 
     override fun put(key: K, value: V) {
         throw PermissionException(clientName)
@@ -43,14 +67,6 @@ class EmptyKeyValueStoreClient<K, V>: KeyValueStoreClient<K, V> {
     }
 
     override fun getDeleteItemRequest(key: K): WriteItemRequest {
-        throw PermissionException(clientName)
-    }
-
-    override fun getIncrementValueRequest(key: K, numericFieldName: String, amount: Number, comparisionCondition: ComparisionCondition): WriteItemRequest {
-        throw PermissionException(clientName)
-    }
-
-    override fun getDecrementValueRequest(key: K, numericFieldName: String, amount: Number, comparisionCondition: ComparisionCondition): WriteItemRequest {
         throw PermissionException(clientName)
     }
 }

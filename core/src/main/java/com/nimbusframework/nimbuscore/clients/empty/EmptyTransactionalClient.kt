@@ -9,11 +9,11 @@ class EmptyTransactionalClient: TransactionalClient {
 
     private val clientName = "TransactionalClient"
 
-    override fun executeWriteTransaction(request: List<WriteItemRequest>) {
+    override fun executeWriteTransaction(requests: List<WriteItemRequest>) {
         throw PermissionException(clientName)
     }
 
-    override fun executeReadTransaction(request: List<ReadItemRequest<out Any>>): List<Any> {
+    override fun executeReadTransaction(requests: List<ReadItemRequest<out Any>>): List<Any> {
         throw PermissionException(clientName)
     }
 
