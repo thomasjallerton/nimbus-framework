@@ -71,7 +71,7 @@ class DynamoResource(
         attributes.add(Attribute(name, getDynamoType(type)))
     }
 
-    fun <T> addHashKeyClass(name: String, type: TypeElement) {
+    fun addHashKeyClass(name: String, type: TypeElement) {
         keys.add(Attribute(name, "HASH"))
         attributes.add(Attribute(name, getClassDynamoType(type)))
     }
