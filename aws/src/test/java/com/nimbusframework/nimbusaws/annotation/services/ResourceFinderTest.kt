@@ -46,7 +46,8 @@ class ResourceFinderTest : AnnotationSpec() {
                 "models/DynamoDbDocument.java",
                 "models/RelationalDatabaseModel.java",
                 "models/RdsDatabaseModel.java",
-                "models/KeyValue.java"
+                "models/KeyValue.java",
+                "models/DynamoDbKeyValue.java"
         )
         this.elements = compileState.elements
         methodElement = elements.getTypeElement("models.Document")
