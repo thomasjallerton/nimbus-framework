@@ -7,19 +7,32 @@ import javax.lang.model.element.Element
 abstract class CloudResourceResourceCreator(
         private val roundEnvironment: RoundEnvironment,
         protected val cfDocuments: MutableMap<String, CloudFormationFiles>,
-        private val singleClass: Class<out Annotation>,
-        private val repeatableClass: Class<out Annotation>
+        private val singleAgnosticClass: Class<out Annotation>,
+        private val repeatableAgnosticClass: Class<out Annotation>,
+        private val singleSpecificClass: Class<out Annotation>? = null,
+        private val repeatableSpecificClass: Class<out Annotation>? = null
 ) {
 
     fun create() {
-        val annotatedElements = roundEnvironment.getElementsAnnotatedWith(singleClass)
-        val annotatedElementsRepeatable = roundEnvironment.getElementsAnnotatedWith(repeatableClass)
+        val annotatedElements = roundEnvironment.getElementsAnnotatedWith(singleAgnosticClass)
+        val annotatedElementsRepeatable = roundEnvironment.getElementsAnnotatedWith(repeatableAgnosticClass)
 
-        annotatedElements.forEach { type -> handleType(type) }
-        annotatedElementsRepeatable.forEach { type -> handleType(type) }
+        annotatedElements.forEach { type -> handleAgnosticType(type) }
+        annotatedElementsRepeatable.forEach { type -> handleAgnosticType(type) }
+
+        if (singleSpecificClass != null) {
+            val specificAnnotatedElements = roundEnvironment.getElementsAnnotatedWith(singleSpecificClass)
+            specificAnnotatedElements.forEach { type -> handleSpecificType(type) }
+        }
+        if (repeatableSpecificClass != null) {
+            val repeatableAnnotatedElements = roundEnvironment.getElementsAnnotatedWith(repeatableSpecificClass)
+            repeatableAnnotatedElements.forEach { type -> handleSpecificType(type) }
+        }
     }
 
-    abstract fun handleType(type: Element)
+    abstract fun handleAgnosticType(type: Element)
+
+    open fun handleSpecificType(type: Element) {}
 
     protected fun determineTableName(givenName: String, className: String, stage: String): String {
         return if (givenName == "") {

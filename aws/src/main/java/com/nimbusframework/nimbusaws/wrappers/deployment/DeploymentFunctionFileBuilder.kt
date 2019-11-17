@@ -1,10 +1,10 @@
 package com.nimbusframework.nimbusaws.wrappers.deployment
 
-import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployment
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
-import com.nimbusframework.nimbuscore.persisted.NimbusState
+import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployment
 import com.nimbusframework.nimbuscore.eventabstractions.BasicEvent
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 

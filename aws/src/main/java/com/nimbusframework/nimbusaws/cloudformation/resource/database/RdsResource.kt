@@ -5,13 +5,15 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.Resource
 import com.nimbusframework.nimbusaws.cloudformation.resource.ec2.SecurityGroupResource
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage
+import com.nimbusframework.nimbuscore.annotations.database.DatabaseSize
 
 class RdsResource(
-        val databaseConfiguration: DatabaseConfiguration,
+        val rdsConfiguration: RdsConfiguration,
         private val securityGroup: SecurityGroupResource,
         private val subnetGroup: SubnetGroup,
         nimbusState: NimbusState
-): Resource(nimbusState, securityGroup.stage) {
+) : Resource(nimbusState, securityGroup.stage) {
 
     init {
         addDependsOn(securityGroup)
@@ -22,22 +24,16 @@ class RdsResource(
         val dbInstance = JsonObject()
         dbInstance.addProperty("Type", "AWS::RDS::DBInstance")
 
-        val databaseClass = if (databaseConfiguration.awsDatabaseClass.isNotBlank()) {
-            databaseConfiguration.awsDatabaseClass
-        } else {
-            databaseConfiguration.databaseClass.toInstanceClass()
-        }
-
         val properties = getProperties()
-        properties.addProperty("AllocatedStorage", databaseConfiguration.size)
-        properties.addProperty("DBInstanceIdentifier", "${databaseConfiguration.name}$stage")
-        properties.addProperty("DBInstanceClass", databaseClass)
-        properties.addProperty("Engine", databaseConfiguration.databaseLanguage.toEngine(databaseConfiguration.databaseClass))
+        properties.addProperty("AllocatedStorage", rdsConfiguration.size)
+        properties.addProperty("DBInstanceIdentifier", "${rdsConfiguration.name}$stage")
+        properties.addProperty("DBInstanceClass", rdsConfiguration.awsDatabaseInstance)
+        properties.addProperty("Engine", toEngine(rdsConfiguration.databaseLanguage, rdsConfiguration.awsDatabaseInstance))
         properties.addProperty("PubliclyAccessible", true)
-        properties.addProperty("MasterUsername", databaseConfiguration.username)
-        properties.addProperty("MasterUserPassword", databaseConfiguration.password)
+        properties.addProperty("MasterUsername", rdsConfiguration.username)
+        properties.addProperty("MasterUserPassword", rdsConfiguration.password)
         properties.addProperty("StorageType", "gp2")
-        properties.addProperty("AllocatedStorage", databaseConfiguration.size)
+        properties.addProperty("AllocatedStorage", rdsConfiguration.size)
 
         val securityGroups = JsonArray()
         securityGroups.add(securityGroup.getRef())
@@ -54,6 +50,34 @@ class RdsResource(
     }
 
     override fun getName(): String {
-        return "${databaseConfiguration.name}RdsInstance"
+        return "${rdsConfiguration.name}RdsInstance"
+    }
+
+    private fun toEngine(language: DatabaseLanguage, instanceClass: String): String {
+        return if (instanceClass == RdsConfiguration.toInstanceType(DatabaseSize.FREE)) {
+            toFreeEngine(language)
+        } else {
+            toPaidEngine(language)
+        }
+    }
+
+    private fun toFreeEngine(language: DatabaseLanguage): String {
+        return when (language) {
+            DatabaseLanguage.MYSQL -> "mysql"
+            DatabaseLanguage.ORACLE -> "oracle-ee"
+            DatabaseLanguage.MARIADB -> "mariadb"
+            DatabaseLanguage.SQLSERVER -> "sqlserver-ex"
+            DatabaseLanguage.POSTGRESQL -> "postgres"
+        }
+    }
+
+    private fun toPaidEngine(language: DatabaseLanguage): String {
+        return when (language) {
+            DatabaseLanguage.MYSQL -> "aurora-mysql"
+            DatabaseLanguage.ORACLE -> "oracle-ee"
+            DatabaseLanguage.MARIADB -> "mariadb"
+            DatabaseLanguage.SQLSERVER -> "sqlserver-ee"
+            DatabaseLanguage.POSTGRESQL -> "aurora-postgresql"
+        }
     }
 }

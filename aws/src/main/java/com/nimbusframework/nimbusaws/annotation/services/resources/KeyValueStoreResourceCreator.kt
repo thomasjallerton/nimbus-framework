@@ -23,7 +23,7 @@ class KeyValueStoreResourceCreator(
         KeyValueStores::class.java
 ) {
 
-    override fun handleType(type: Element) {
+    override fun handleAgnosticType(type: Element) {
         val keyValueStores = type.getAnnotationsByType(KeyValueStore::class.java)
 
         for (keyValueStore in keyValueStores) {
