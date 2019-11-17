@@ -23,7 +23,7 @@ class FileStorageBucketResourceCreator(
         FileStorageBuckets::class.java
 ) {
 
-    override fun handleType(type: Element) {
+    override fun handleAgnosticType(type: Element) {
         val storageBuckets = type.getAnnotationsByType(FileStorageBucket::class.java)
 
         for (storageBucket in storageBuckets) {

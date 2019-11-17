@@ -28,8 +28,8 @@ class DynamoResource(
         properties.add("KeySchema", keyDefsCloudFormation())
 
         val provisionedThroughput = JsonObject()
-        provisionedThroughput.addProperty("ReadCapacityUnits", dynamoConfiguration.readCapacity)
-        provisionedThroughput.addProperty("WriteCapacityUnits", dynamoConfiguration.writeCapacity)
+        provisionedThroughput.addProperty("ReadCapacityUnits", dynamoConfiguration.readCapacityUnits)
+        provisionedThroughput.addProperty("WriteCapacityUnits", dynamoConfiguration.writeCapacityUnits)
         properties.add("ProvisionedThroughput", provisionedThroughput)
 
         dynamoTable.add("Properties", properties)

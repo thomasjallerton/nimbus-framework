@@ -1,5 +1,7 @@
 package com.nimbusframework.nimbusaws.annotation.services
 
+import com.nimbusframework.nimbusaws.annotation.annotations.database.RdsDatabase
+import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore
 import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabase
 import com.nimbusframework.nimbuscore.annotations.document.DocumentStore
 import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStore
@@ -24,7 +26,15 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
             for (documentStore in documentStores) {
                 for (stage in documentStore.stages) {
                     if (stage == dataModelStage) {
-                        return getStoreResource(documentStore.existingArn, documentStore.tableName, typeElement.simpleName.toString(), dataModelStage)
+                        return getStoreResource("", documentStore.tableName, typeElement.simpleName.toString(), dataModelStage)
+                    }
+                }
+            }
+            val dynamoStores = typeElement.getAnnotationsByType(DynamoDbDocumentStore::class.java)
+            for (dynamoStore in dynamoStores) {
+                for (stage in dynamoStore.stages) {
+                    if (stage == dataModelStage) {
+                        return getStoreResource(dynamoStore.existingArn, dynamoStore.tableName, typeElement.simpleName.toString(), dataModelStage)
                     }
                 }
             }
@@ -56,13 +66,18 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
     }
 
     fun getRelationalDatabaseResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element, dataModelStage: String): RdsResource? {
+        val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
         return try {
-            val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val relationalDatabase = typeElement.getAnnotation(RelationalDatabase::class.java)
-            return resourceCollections.getValue(dataModelStage).updateTemplate.resources.get("${relationalDatabase.name}RdsInstance") as RdsResource?
+            resourceCollections.getValue(dataModelStage).updateTemplate.resources.get("${relationalDatabase.name}RdsInstance") as RdsResource?
         } catch (e: NullPointerException) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with RelationalDatabase but isn't", serverlessMethod)
-            null
+            try {
+                val rdsDatabase = typeElement.getAnnotation(RdsDatabase::class.java)
+                resourceCollections.getValue(dataModelStage).updateTemplate.resources.get("${rdsDatabase.name}RdsInstance") as RdsResource?
+            } catch (e: NullPointerException) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with RelationalDatabase but isn't", serverlessMethod)
+                null
+            }
         }
     }
 

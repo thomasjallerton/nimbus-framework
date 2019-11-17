@@ -10,7 +10,7 @@ abstract class DataModelAnnotation {
     abstract val stages: Array<String>
     protected abstract fun internalDataModel(): Class<out Any>
 
-    fun getTypeElement(processingEnv: ProcessingEnvironment): TypeElement {
+    open fun getTypeElement(processingEnv: ProcessingEnvironment): TypeElement {
         try {
             val dataModel = internalDataModel()
         } catch (mte: MirroredTypeException) {

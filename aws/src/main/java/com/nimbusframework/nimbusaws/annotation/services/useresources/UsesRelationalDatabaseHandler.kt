@@ -32,11 +32,11 @@ class UsesRelationalDatabaseHandler(
 
                     if (resource != null) {
                         functionResource.addEnvVariable(resource.getName() + "_CONNECTION_URL", resource.getAttribute("Endpoint.Address"))
-                        functionResource.addEnvVariable(resource.getName() + "_PASSWORD", resource.databaseConfiguration.password)
-                        functionResource.addEnvVariable(resource.getName() + "_USERNAME", resource.databaseConfiguration.username)
+                        functionResource.addEnvVariable(resource.getName() + "_PASSWORD", resource.rdsConfiguration.password)
+                        functionResource.addEnvVariable(resource.getName() + "_USERNAME", resource.rdsConfiguration.username)
                         functionResource.addDependsOn(resource)
 
-                        val dependency = when(resource.databaseConfiguration.databaseLanguage) {
+                        val dependency = when(resource.rdsConfiguration.databaseLanguage) {
                             DatabaseLanguage.MYSQL -> com.mysql.cj.jdbc.Driver::class.java.canonicalName
                             DatabaseLanguage.ORACLE -> "oracle.jdbc.driver.OracleDriver"
                             DatabaseLanguage.MARIADB -> org.mariadb.jdbc.Driver::class.java.canonicalName
