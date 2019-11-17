@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.annotation.services
 
 import com.nimbusframework.nimbusaws.annotation.annotations.database.RdsDatabase
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore
+import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore
 import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabase
 import com.nimbusframework.nimbuscore.annotations.document.DocumentStore
 import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStore
@@ -51,6 +52,14 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val keyValueStores = typeElement.getAnnotationsByType(KeyValueStore::class.java)
             for (keyValueStore in keyValueStores) {
+                for (stage in keyValueStore.stages) {
+                    if (stage == dataModelStage) {
+                        return getStoreResource("", keyValueStore.tableName, typeElement.simpleName.toString(), dataModelStage)
+                    }
+                }
+            }
+            val dynamoDbKeyValueStores = typeElement.getAnnotationsByType(DynamoDbKeyValueStore::class.java)
+            for (keyValueStore in dynamoDbKeyValueStores) {
                 for (stage in keyValueStore.stages) {
                     if (stage == dataModelStage) {
                         return getStoreResource(keyValueStore.existingArn, keyValueStore.tableName, typeElement.simpleName.toString(), dataModelStage)

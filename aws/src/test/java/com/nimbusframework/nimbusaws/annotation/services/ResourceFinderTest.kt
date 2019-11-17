@@ -100,6 +100,21 @@ class ResourceFinderTest : AnnotationSpec() {
     }
 
     @Test
+    fun canFetchDynamoDbKeyValueStore() {
+        val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
+        val dynamoConfiguration = DynamoConfiguration("DynamoDbKeyValue$stage")
+        val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
+        cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
+        cfDocuments[stage] = cloudFormationFiles
+
+        val dataModelAnnotation = TestDataModelAnnotation(elements.getTypeElement("models.DynamoDbKeyValue"), arrayOf(stage))
+
+        val foundResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
+
+        foundResource shouldBe dynamoResource
+    }
+
+    @Test
     fun canFetchRelationalDatabase() {
         val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
         val rdsConfiguration = RdsConfiguration("testRelationalDatabase", "username", "password", DatabaseLanguage.MYSQL, RdsConfiguration.toInstanceType(DatabaseSize.FREE), 30)
