@@ -13,7 +13,7 @@ public class HttpHandlers {
     return new HttpResponse().withBody("HELLOWORLD").withStatusCode(200);
   }
 
-  @HttpServerlessFunction(method = HttpMethod.POST, path = "person")
+  @HttpServerlessFunction(method = HttpMethod.POST, path = "person/path")
   public String postPath(HttpEvent event, Person person) {
     return "Success";
   }

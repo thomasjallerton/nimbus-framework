@@ -24,7 +24,7 @@ class KeyValueStoreResourceCreatorTest : AnnotationSpec() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        val compileState = CompileStateService("models/KeyValue.java", "models/DynamoDbKeyValue.java")
+        val compileState = CompileStateService("models/KeyValue.java", "models/DynamoDbKeyValue.java", "models/KeyValueExistingArn.java")
         elements = compileState.elements
         keyValueStoreResourceCreator = KeyValueStoreResourceCreator(roundEnvironment, cfDocuments, nimbusState, compileState.processingEnvironment)
     }
@@ -53,5 +53,16 @@ class KeyValueStoreResourceCreatorTest : AnnotationSpec() {
         val dynamoResource = resources.get("DynamoDbKeyValuedev") as DynamoResource
 
         dynamoResource shouldNotBe null
+    }
+
+    @Test
+    fun doesNotCreateResourceIfExistingArnSet() {
+        keyValueStoreResourceCreator.handleSpecificType(elements.getTypeElement("models.KeyValueExistingArn"))
+        cfDocuments["dev"] shouldNotBe null
+
+        val resources = cfDocuments["dev"]!!.updateTemplate.resources
+        resources.size() shouldBe 1
+
+        resources.get("KeyValueExistingArndev") shouldBe null
     }
 }

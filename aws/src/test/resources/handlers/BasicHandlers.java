@@ -7,7 +7,7 @@ import models.Person;
 
 public class BasicHandlers {
 
-  @BasicServerlessFunction
+  @BasicServerlessFunction(cron = "* * * 10")
   public long getCurrentTime() {
     Calendar cal = Calendar.getInstance();
     return cal.getTimeInMillis();

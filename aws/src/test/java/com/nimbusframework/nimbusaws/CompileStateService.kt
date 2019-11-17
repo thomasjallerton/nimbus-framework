@@ -34,7 +34,7 @@ class CompileStateService(
 
     internal inner class EvaluatingProcessor() : AbstractProcessor() {
 
-        override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
+        override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment): Boolean {
             return true
         }
 
