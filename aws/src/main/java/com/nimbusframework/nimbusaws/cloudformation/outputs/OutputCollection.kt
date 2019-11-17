@@ -29,4 +29,8 @@ class OutputCollection {
         return outputMap.containsKey(output.getName())
     }
 
+    fun get(name: String): Output? {
+        return outputMap[name]
+    }
+
 }

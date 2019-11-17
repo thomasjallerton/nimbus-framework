@@ -49,7 +49,7 @@ class KeyValueStoreResourceCreator(
             for (stage in keyValueStore.stages) {
                 val tableName = determineTableName(keyValueStore.tableName, type.simpleName.toString(), stage)
                 val dataModelAnnotation = DynamoDbKeyValueStoreAnnotation(keyValueStore)
-                val dynamoConfiguration = DynamoConfiguration(tableName)
+                val dynamoConfiguration = DynamoConfiguration(tableName, keyValueStore.readCapacityUnits, keyValueStore.writeCapacityUnits, keyValueStore.existingArn)
                 handleDynamoDbConfiguration(keyValueStore.keyName, stage, dataModelAnnotation, dynamoConfiguration)
             }
         }

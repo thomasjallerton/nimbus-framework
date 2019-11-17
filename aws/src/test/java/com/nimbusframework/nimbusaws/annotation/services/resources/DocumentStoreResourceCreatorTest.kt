@@ -28,7 +28,7 @@ class DocumentStoreResourceCreatorTest : AnnotationSpec() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        elements = CompileStateService("models/Document.java", "models/DynamoDbDocument.java").elements
+        elements = CompileStateService("models/Document.java", "models/DynamoDbDocument.java", "models/DocumentExistingArn.java").elements
         documentStoreResourceCreator = DocumentStoreResourceCreator(roundEnvironment, cfDocuments, nimbusState)
     }
 
@@ -56,5 +56,16 @@ class DocumentStoreResourceCreatorTest : AnnotationSpec() {
         val dynamoResource = resources.get("DynamoDbDocumentdev") as DynamoResource
 
         dynamoResource shouldNotBe null
+    }
+
+    @Test
+    fun doesNotCreateResourceIfExistingArnSet() {
+        documentStoreResourceCreator.handleSpecificType(elements.getTypeElement("models.DocumentExistingArn"))
+        cfDocuments["dev"] shouldNotBe null
+
+        val resources = cfDocuments["dev"]!!.updateTemplate.resources
+        resources.size() shouldBe 1
+
+        resources.get("DocumentExistingArndev") shouldBe null
     }
 }

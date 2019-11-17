@@ -24,8 +24,6 @@ class BasicFunctionResourceCreator(
         BasicServerlessFunctions::class.java
 ) {
 
-
-
     override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
         val basicFunctions = type.getAnnotationsByType(BasicServerlessFunction::class.java)
         val methodInformation = extractMethodInformation(type)
@@ -58,7 +56,6 @@ class BasicFunctionResourceCreator(
             for (stage in basicFunction.stages) {
                 val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
                 val updateResources = cloudFormationDocuments.updateTemplate.resources
-
 
                 val config = FunctionConfig(basicFunction.timeout, basicFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(
