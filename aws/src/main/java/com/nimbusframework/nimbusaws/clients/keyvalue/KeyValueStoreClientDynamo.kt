@@ -11,9 +11,12 @@ import javax.naming.InvalidNameException
 
 internal class KeyValueStoreClientDynamo<K, V>(
         private val keyClass: Class<K>,
-        private val valueClass: Class<V>,
-        stage: String
-): AbstractKeyValueStoreClient<K, V>(keyClass, valueClass, stage){
+        valueClass: Class<V>,
+        stage: String,
+        keyName: String,
+        tableName: String,
+        keyType: Class<*>
+): AbstractKeyValueStoreClient<K, V>(keyClass, valueClass, keyType, keyName, tableName, stage){
 
     private val dynamoClient: DynamoClient<V> = DynamoClient(tableName, valueClass, columnNames, attributes)
 
