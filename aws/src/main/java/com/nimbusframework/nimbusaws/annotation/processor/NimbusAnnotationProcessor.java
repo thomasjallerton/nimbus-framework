@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.processor;
 
-import com.nimbusframework.nimbusaws.annotation.services.CloudformationWriter;
+import com.nimbusframework.nimbusaws.annotation.services.CloudFormationWriter;
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService;
 import com.nimbusframework.nimbusaws.annotation.services.ReadUserConfigService;
 import com.nimbusframework.nimbusaws.annotation.services.functions.AfterDeploymentResourceCreator;
@@ -82,7 +82,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
     private NimbusState nimbusState = null;
 
-    private CloudformationWriter cloudformationWriter;
+    private CloudFormationWriter cloudformationWriter;
 
     private UserConfig userConfig;
 
@@ -96,7 +96,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
         messager = processingEnv.getMessager();
 
-        cloudformationWriter = new CloudformationWriter(processingEnv.getFiler());
+        cloudformationWriter = new CloudFormationWriter(processingEnv.getFiler());
         userConfig = new ReadUserConfigService().readUserConfig();
     }
 

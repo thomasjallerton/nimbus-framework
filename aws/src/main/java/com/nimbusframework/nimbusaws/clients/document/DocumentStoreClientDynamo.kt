@@ -9,7 +9,7 @@ import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import javax.naming.InvalidNameException
 
-internal class DocumentStoreClientDynamo<T>(clazz: Class<T>, stage: String): AbstractDocumentStoreClient<T>(clazz, stage) {
+internal class DocumentStoreClientDynamo<T>(clazz: Class<T>, tableName: String, stage: String): AbstractDocumentStoreClient<T>(clazz, tableName, stage) {
     private val dynamoClient: DynamoClient<T> = DynamoClient(tableName, clazz, columnNames, allAttributes)
 
     override fun put(obj: T) {

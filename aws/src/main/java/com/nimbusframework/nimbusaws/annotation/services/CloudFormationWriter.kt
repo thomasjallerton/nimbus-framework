@@ -5,7 +5,7 @@ import java.io.IOException
 import javax.annotation.processing.Filer
 import javax.tools.StandardLocation
 
-class CloudformationWriter(private val filer: Filer) {
+class CloudFormationWriter(private val filer: Filer) {
     fun saveTemplate(name: String, template: CloudFormationTemplate) {
         if (template.valid()) {
             saveJsonFile(name, template.toJson())
@@ -21,6 +21,5 @@ class CloudformationWriter(private val filer: Filer) {
         } catch (e: IOException) {
             e.printStackTrace()
         }
-
     }
 }
