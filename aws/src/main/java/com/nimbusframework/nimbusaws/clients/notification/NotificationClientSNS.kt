@@ -1,13 +1,16 @@
 package com.nimbusframework.nimbusaws.clients.notification
 
-import com.amazonaws.services.sns.AmazonSNSClientBuilder
+import com.amazonaws.services.sns.AmazonSNS
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.inject.Inject
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
 import com.nimbusframework.nimbuscore.clients.notification.Protocol
 
 internal class NotificationClientSNS(topicName: String): NotificationClient {
 
-    private val snsClient = AmazonSNSClientBuilder.defaultClient()
+    @Inject
+    private lateinit var snsClient: AmazonSNS
+
     private val topicArn: String = if (System.getenv().containsKey("SNS_TOPIC_ARN_${topicName.toUpperCase()}")) {
         System.getenv("SNS_TOPIC_ARN_${topicName.toUpperCase()}")
     } else {

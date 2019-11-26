@@ -1,10 +1,12 @@
 package com.nimbusframework.nimbusaws.clients.function
 
+import com.amazonaws.services.lambda.AWSLambda
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder
 import com.amazonaws.services.lambda.model.InvocationType
 import com.amazonaws.services.lambda.model.InvokeRequest
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.inject.Inject
 import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient
 import java.nio.charset.Charset
 
@@ -14,7 +16,9 @@ internal class BasicServerlessFunctionClientLambda(
         private val functionName: String
 ): BasicServerlessFunctionClient {
 
-    private val lambdaClient = AWSLambdaClientBuilder.defaultClient()
+    @Inject
+    private lateinit var lambdaClient: AWSLambda
+
     private val objectMapper = ObjectMapper()
 
     private val projectName = if (System.getenv().containsKey("NIMBUS_PROJECT_NAME")) {

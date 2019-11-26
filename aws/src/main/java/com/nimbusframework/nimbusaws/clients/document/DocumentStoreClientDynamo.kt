@@ -1,16 +1,26 @@
 package com.nimbusframework.nimbusaws.clients.document
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.google.inject.Inject
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
+import com.nimbusframework.nimbusaws.clients.dynamo.DynamoStreamParser
 import com.nimbusframework.nimbuscore.clients.document.AbstractDocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
-import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
-import javax.naming.InvalidNameException
 
-internal class DocumentStoreClientDynamo<T>(clazz: Class<T>, tableName: String, stage: String): AbstractDocumentStoreClient<T>(clazz, tableName, stage) {
-    private val dynamoClient: DynamoClient<T> = DynamoClient(tableName, clazz, columnNames, allAttributes)
+internal class DocumentStoreClientDynamo<T>(
+        clazz: Class<T>,
+        private val tableName: String,
+        stage: String
+): AbstractDocumentStoreClient<T>(clazz, tableName, stage) {
+
+    private val dynamoStreamProcessor = DynamoStreamParser(clazz, allAttributes)
+
+    @Inject
+    private lateinit var dynamoClientFactory: DynamoClient.DynamoClientFactory
+
+    private val dynamoClient: DynamoClient by lazy { dynamoClientFactory.create(tableName, clazz.canonicalName, columnNames) }
 
     override fun put(obj: T) {
         dynamoClient.put(obj, allAttributes)
@@ -37,15 +47,15 @@ internal class DocumentStoreClientDynamo<T>(clazz: Class<T>, tableName: String, 
     }
 
     override fun getAll(): List<T> {
-        return dynamoClient.getAll().map { valueMap -> dynamoClient.toObject(valueMap) }
+        return dynamoClient.getAll().map { valueMap -> toObject(valueMap) }
     }
 
     override fun get(keyObj: Any): T? {
-        return dynamoClient.get(keyToKeyMap(keyObj))
+        return dynamoStreamProcessor.toObject(dynamoClient.get(keyToKeyMap(keyObj)))
     }
 
     override fun getReadItem(keyObj: Any): ReadItemRequest<T> {
-        return dynamoClient.getReadItem(keyToKeyMap(keyObj))
+        return dynamoClient.getReadItem(keyToKeyMap(keyObj)) { dynamoStreamProcessor.toObject(it)!! }
     }
 
     override fun getWriteItem(obj: T): WriteItemRequest {
@@ -113,4 +123,11 @@ internal class DocumentStoreClientDynamo<T>(clazz: Class<T>, tableName: String, 
         return keyMap
     }
 
+    private fun <K> fromAttributeValue(value: AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
+        return dynamoStreamProcessor.fromAttributeValue(value, expectedType, fieldName)
+    }
+
+    private fun toObject(obj: Map<String, AttributeValue>): T {
+        return dynamoStreamProcessor.toObject(obj)!!
+    }
 }
