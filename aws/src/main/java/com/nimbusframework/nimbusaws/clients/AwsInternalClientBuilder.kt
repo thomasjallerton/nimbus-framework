@@ -1,5 +1,7 @@
 package com.nimbusframework.nimbusaws.clients
 
+import com.google.inject.Guice
+import com.nimbusframework.nimbusaws.AwsClientModule
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore
 import com.nimbusframework.nimbusaws.clients.document.DocumentStoreClientDynamo
@@ -32,36 +34,52 @@ import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSoc
 
 object AwsInternalClientBuilder: InternalClientBuilder {
 
+    private val injector = Guice.createInjector(AwsClientModule())
+
     override fun getTransactionalClient(): TransactionalClient {
-        return DynamoTransactionClient()
+        val transactionalClient = DynamoTransactionClient()
+        injector.injectMembers(transactionalClient)
+        return transactionalClient
     }
 
     override fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>, stage: String): KeyValueStoreClient<K, V> {
-        if (value.isAnnotationPresent(KeyValueStore::class.java)) {
-            val tableName = KeyValueStoreAnnotationService.getTableName(value, stage)
-            val keyNameAndType = KeyValueStoreAnnotationService.getKeyNameAndType(value, stage)
-            return KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second)
-        } else if (value.isAnnotationPresent(DynamoDbKeyValueStore::class.java)) {
-            val tableName = DynamoDbKeyValueStoreAnnotationService.getTableName(value, stage)
-            val keyNameAndType = DynamoDbKeyValueStoreAnnotationService.getKeyNameAndType(value, stage)
-            return KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second)
+        val keyValueStoreClient = when {
+            value.isAnnotationPresent(KeyValueStore::class.java) -> {
+                val tableName = KeyValueStoreAnnotationService.getTableName(value, stage)
+                val keyNameAndType = KeyValueStoreAnnotationService.getKeyNameAndType(value, stage)
+                KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second)
+            }
+            value.isAnnotationPresent(DynamoDbKeyValueStore::class.java) -> {
+                val tableName = DynamoDbKeyValueStoreAnnotationService.getTableName(value, stage)
+                val keyNameAndType = DynamoDbKeyValueStoreAnnotationService.getKeyNameAndType(value, stage)
+                KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second)
+            }
+            else -> throw IllegalStateException("${value.simpleName} is not a known type of Key Value Store (KeyValueStore, DynamoDbKeyValueStore)")
         }
-        throw IllegalStateException("${value.simpleName} is not a known type of Key Value Store (KeyValueStore, DynamoDbKeyValueStore)")
+        injector.injectMembers(keyValueStoreClient)
+        return keyValueStoreClient
     }
 
     override fun <T> getDocumentStoreClient(document: Class<T>, stage: String): DocumentStoreClient<T> {
-        if (document.isAnnotationPresent(DocumentStore::class.java)) {
-            val tableName = DocumentStoreAnnotationService.getTableName(document, stage)
-            return DocumentStoreClientDynamo(document, tableName, stage)
-        } else if (document.isAnnotationPresent(DynamoDbDocumentStore::class.java)) {
-            val tableName = DynamoDbDocumentStoreAnnotationService.getTableName(document, stage)
-            return DocumentStoreClientDynamo(document, tableName, stage)
+        val documentStoreClient = when {
+            document.isAnnotationPresent(DocumentStore::class.java) -> {
+                val tableName = DocumentStoreAnnotationService.getTableName(document, stage)
+                DocumentStoreClientDynamo(document, tableName, stage)
+            }
+            document.isAnnotationPresent(DynamoDbDocumentStore::class.java) -> {
+                val tableName = DynamoDbDocumentStoreAnnotationService.getTableName(document, stage)
+                DocumentStoreClientDynamo(document, tableName, stage)
+            }
+            else -> throw IllegalStateException("${document.simpleName} is not a known type of Document Store (DocumentStore, DynamoDbDocumentStore)")
         }
-        throw IllegalStateException("${document.simpleName} is not a known type of Document Store (DocumentStore, DynamoDbDocumentStore)")
+        injector.injectMembers(documentStoreClient)
+        return documentStoreClient
     }
 
     override fun getQueueClient(id: String): QueueClient {
-        return QueueClientSQS(id)
+        val queueClient = QueueClientSQS(id)
+        injector.injectMembers(queueClient)
+        return queueClient
     }
 
     override fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient {
@@ -73,19 +91,27 @@ object AwsInternalClientBuilder: InternalClientBuilder {
     }
 
     override fun getNotificationClient(topic: String): NotificationClient {
-        return NotificationClientSNS(topic)
+        val notificationClient = NotificationClientSNS(topic)
+        injector.injectMembers(notificationClient)
+        return notificationClient
     }
 
     override fun getBasicServerlessFunctionClient(handlerClass: Class<*>, functionName: String): BasicServerlessFunctionClient {
-        return BasicServerlessFunctionClientLambda(handlerClass, functionName)
+        val basicClient = BasicServerlessFunctionClientLambda(handlerClass, functionName)
+        injector.injectMembers(basicClient)
+        return basicClient
     }
 
     override fun getFileStorageClient(bucketName: String, stage: String): FileStorageClient {
-        return FileStorageClientS3(bucketName, stage)
+        val fileStorageClient = FileStorageClientS3(bucketName, stage)
+        injector.injectMembers(fileStorageClient)
+        return fileStorageClient
     }
 
     override fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient {
-        return ServerlessFunctionWebSocketClientApiGateway()
+        val webSocketClientApi = ServerlessFunctionWebSocketClientApiGateway()
+        injector.injectMembers(webSocketClientApi)
+        return webSocketClientApi
     }
 
 

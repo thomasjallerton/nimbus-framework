@@ -1,7 +1,9 @@
 package com.nimbusframework.nimbusaws.clients.keyvalue
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.google.inject.Inject
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
+import com.nimbusframework.nimbusaws.clients.dynamo.DynamoStreamParser
 import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
@@ -18,7 +20,12 @@ internal class KeyValueStoreClientDynamo<K, V>(
         keyType: Class<*>
 ): AbstractKeyValueStoreClient<K, V>(keyClass, valueClass, keyType, keyName, tableName, stage){
 
-    private val dynamoClient: DynamoClient<V> = DynamoClient(tableName, valueClass, columnNames, attributes)
+    private val dynamoStreamProcessor = DynamoStreamParser(valueClass, attributes)
+
+    @Inject
+    private lateinit var dynamoClientFactory: DynamoClient.DynamoClientFactory
+
+    private val dynamoClient: DynamoClient by lazy { dynamoClientFactory.create(tableName, valueClass.canonicalName, columnNames) }
 
     override fun put(key: K, value: V) {
         dynamoClient.put(value, attributes, mapOf(Pair(keyName, dynamoClient.toAttributeValue(key))))
@@ -41,18 +48,18 @@ internal class KeyValueStoreClientDynamo<K, V>(
 
         val resultMap: MutableMap<K, V> = mutableMapOf()
         for (item in listAll) {
-            val key: K = dynamoClient.fromAttributeValue(item[keyName]!!, keyClass, keyName) as K
-            resultMap[key] = dynamoClient.toObject(item)
+            val key: K = fromAttributeValue(item[keyName]!!, keyClass, keyName) as K
+            resultMap[key] = toObject(item)
         }
         return resultMap
     }
 
     override fun get(keyObj: K): V? {
-        return dynamoClient.get(keyToKeyMap(keyObj))
+        return dynamoStreamProcessor.toObject(dynamoClient.get(keyToKeyMap(keyObj)))
     }
 
     override fun getReadItem(keyObj: K): ReadItemRequest<V> {
-        return dynamoClient.getReadItem(keyToKeyMap(keyObj))
+        return dynamoClient.getReadItem(keyToKeyMap(keyObj)) { dynamoStreamProcessor.toObject(it)!! }
     }
 
     override fun getWriteItem(key: K, value: V): WriteItemRequest {
@@ -93,6 +100,14 @@ internal class KeyValueStoreClientDynamo<K, V>(
         keyMap[keyName] = dynamoClient.toAttributeValue(keyObj)
 
         return keyMap
+    }
+
+    private fun <K> fromAttributeValue(value: AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
+        return dynamoStreamProcessor.fromAttributeValue(value, expectedType, fieldName)
+    }
+
+    private fun toObject(obj: Map<String, AttributeValue>): V {
+        return dynamoStreamProcessor.toObject(obj)!!
     }
 
 }

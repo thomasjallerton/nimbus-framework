@@ -1,7 +1,9 @@
 package com.nimbusframework.nimbusaws.clients.dynamo
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 import com.amazonaws.services.dynamodbv2.model.*
+import com.google.inject.Inject
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
@@ -11,7 +13,8 @@ import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
 
 class DynamoTransactionClient: TransactionalClient {
 
-    private val client = AmazonDynamoDBClientBuilder.defaultClient()
+    @Inject
+    private lateinit var client: AmazonDynamoDB
 
     override fun executeWriteTransaction(requests: List<WriteItemRequest>) {
         val dynamoRequests = requests.map { item ->

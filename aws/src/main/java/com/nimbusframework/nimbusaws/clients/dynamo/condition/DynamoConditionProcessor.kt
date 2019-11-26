@@ -15,7 +15,7 @@ import com.nimbusframework.nimbuscore.clients.store.conditions.function.Function
 import com.nimbusframework.nimbuscore.clients.store.conditions.variable.ColumnVariable
 import com.nimbusframework.nimbuscore.clients.store.conditions.variable.ConditionVariable
 
-class DynamoConditionProcessor<T>(private val dynamoClient: DynamoClient<T>) {
+class DynamoConditionProcessor(private val dynamoClient: DynamoClient) {
 
     fun processCondition(condition: Condition, valueMap: MutableMap<String, AttributeValue>): String {
         return when (condition) {

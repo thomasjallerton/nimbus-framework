@@ -1,8 +1,10 @@
 package com.nimbusframework.nimbusaws.clients.file
 
+import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.PutObjectRequest
+import com.google.inject.Inject
 import com.nimbusframework.nimbuscore.clients.file.FileInformation
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
 import java.io.File
@@ -11,7 +13,9 @@ import java.io.InputStream
 internal class FileStorageClientS3(annotationBucketName: String, stage: String): FileStorageClient {
 
     private val bucketName = (annotationBucketName + stage).toLowerCase()
-    private val s3Client = AmazonS3ClientBuilder.defaultClient()
+
+    @Inject
+    private lateinit var s3Client: AmazonS3
 
     override fun saveFile(path: String, inputStream: InputStream) {
         s3Client.putObject(bucketName, path, inputStream, ObjectMetadata())

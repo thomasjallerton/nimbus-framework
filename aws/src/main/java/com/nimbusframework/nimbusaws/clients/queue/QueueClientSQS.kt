@@ -1,12 +1,16 @@
 package com.nimbusframework.nimbusaws.clients.queue
 
+import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.inject.Inject
 import com.nimbusframework.nimbuscore.clients.queue.QueueClient
 
 internal class QueueClientSQS(id: String): QueueClient {
 
-    private val sqsClient = AmazonSQSClientBuilder.defaultClient()
+    @Inject
+    private lateinit var sqsClient: AmazonSQS
+
     private val objectMapper = ObjectMapper()
     private val queueUrl: String = System.getenv("NIMBUS_QUEUE_URL_ID_${id.toUpperCase()}") ?: ""
 
