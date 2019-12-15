@@ -8,6 +8,7 @@ import com.amazonaws.services.lambda.model.InvokeRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Inject
 import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient
+import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import java.nio.charset.Charset
 
 
@@ -19,19 +20,14 @@ internal class BasicServerlessFunctionClientLambda(
     @Inject
     private lateinit var lambdaClient: AWSLambda
 
+    @Inject
+    private lateinit var environmentVariableClient: EnvironmentVariableClient
+
     private val objectMapper = ObjectMapper()
 
-    private val projectName = if (System.getenv().containsKey("NIMBUS_PROJECT_NAME")) {
-        System.getenv("NIMBUS_PROJECT_NAME")
-    } else {
-        ""
-    }
+    private val projectName by lazy {  environmentVariableClient.get("NIMBUS_PROJECT_NAME") ?: "" }
 
-    private val stage = if (System.getenv().containsKey("FUNCTION_STAGE")) {
-        System.getenv("FUNCTION_STAGE")
-    } else {
-        "dev"
-    }
+    private val stage by lazy { environmentVariableClient.get("FUNCTION_STAGE") ?: "dev" }
 
     override fun invoke() {
         invoke("", Unit.javaClass)
@@ -51,6 +47,7 @@ internal class BasicServerlessFunctionClientLambda(
                 .withPayload(objectMapper.writeValueAsString(param))
                 .withInvocationType(InvocationType.RequestResponse)
         val result = lambdaClient.invoke(invokeRequest)
+
         return if (responseType != Unit.javaClass) {
             val converted = String(result.payload.array(), Charset.forName("UTF-8"))
             objectMapper.readValue(converted, responseType)
