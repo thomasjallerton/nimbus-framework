@@ -14,6 +14,8 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import com.google.inject.AbstractModule
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
+import com.nimbusframework.nimbusaws.clients.function.EnvironmentVariableClientLambda
+import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 
 class AwsClientModule: AbstractModule() {
 
@@ -24,6 +26,7 @@ class AwsClientModule: AbstractModule() {
         bind(AWSLambda::class.java).toInstance(AWSLambdaClientBuilder.defaultClient())
         bind(AmazonS3::class.java).toInstance(AmazonS3ClientBuilder.defaultClient())
         bind(AmazonApiGatewayManagementApiClientBuilder::class.java).toInstance(AmazonApiGatewayManagementApiClientBuilder.standard())
+        bind(EnvironmentVariableClient::class.java).to(EnvironmentVariableClientLambda::class.java)
         install(FactoryModuleBuilder().build(DynamoClient.DynamoClientFactory::class.java))
     }
 

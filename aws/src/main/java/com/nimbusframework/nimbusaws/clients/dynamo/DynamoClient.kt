@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.clients.dynamo
 
+import com.amazonaws.AmazonClientException
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model.*
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -168,7 +169,7 @@ class DynamoClient @Inject constructor(
             return toExecute()
         } catch (e: ConditionalCheckFailedException) {
             throw ConditionFailedException()
-        } catch (e: AmazonDynamoDBException) {
+        } catch (e: AmazonClientException) {
             if (e.isRetryable) {
                 throw RetryableException(e.localizedMessage)
             } else {
