@@ -83,7 +83,9 @@ object AwsInternalClientBuilder: InternalClientBuilder {
     }
 
     override fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient {
-        return DatabaseClientRds(databaseObject)
+        val databaseClient = DatabaseClientRds(databaseObject)
+        injector.injectMembers(databaseClient)
+        return databaseClient
     }
 
     override fun getEnvironmentVariableClient(): EnvironmentVariableClient {
