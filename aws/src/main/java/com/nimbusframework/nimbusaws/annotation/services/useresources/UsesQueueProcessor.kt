@@ -10,11 +10,11 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
-class UsesQueueHandler(
+class UsesQueueProcessor(
         private val cfDocuments: Map<String, CloudFormationFiles>,
         processingEnv: ProcessingEnvironment,
         private val nimbusState: NimbusState
-): UsesResourcesHandler  {
+): UsesResourcesProcessor  {
 
     private val messager = processingEnv.messager
 

@@ -6,9 +6,9 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionRe
 import com.nimbusframework.nimbuscore.persisted.ClientType
 import javax.lang.model.element.Element
 
-class UsesServerlessFunctionWebSocketClientHandler(
+class UsesServerlessFunctionWebSocketClientProcessor(
         private val cfDocuments: Map<String, CloudFormationFiles>
-): UsesResourcesHandler  {
+): UsesResourcesProcessor  {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
         val iamRoleResource = functionResource.getIamRoleResource()

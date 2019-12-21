@@ -12,11 +12,11 @@ import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.UsesRelatio
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
-class UsesRelationalDatabaseHandler(
+class UsesRelationalDatabaseProcessor(
         private val cfDocuments: Map<String, CloudFormationFiles>,
         private val processingEnv: ProcessingEnvironment,
         private val nimbusState: NimbusState
-): UsesResourcesHandler {
+): UsesResourcesProcessor {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
         val resourceFinder = ResourceFinder(cfDocuments, processingEnv, nimbusState)

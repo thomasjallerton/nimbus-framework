@@ -19,17 +19,17 @@ import com.nimbusframework.nimbusaws.annotation.services.resources.DocumentStore
 import com.nimbusframework.nimbusaws.annotation.services.resources.FileStorageBucketResourceCreator;
 import com.nimbusframework.nimbusaws.annotation.services.resources.KeyValueStoreResourceCreator;
 import com.nimbusframework.nimbusaws.annotation.services.resources.RelationalDatabaseResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.EnvironmentVariablesHandler;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.ForceDependencyHandler;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesBasicServerlessFunctionClientHandler;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesDocumentStoreHandler;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesFileStorageClientHandler;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesKeyValueStoreHandler;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesNotificationTopicHandler;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesQueueHandler;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesRelationalDatabaseHandler;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesResourcesHandler;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesServerlessFunctionWebSocketClientHandler;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.EnvironmentVariablesProcessor;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.ForceDependencyProcessor;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesBasicServerlessFunctionClientProcessor;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesDocumentStoreProcessor;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesFileStorageClientProcessor;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesKeyValueStoreProcessor;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesNotificationTopicProcessor;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesQueueProcessor;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesRelationalDatabaseProcessor;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesResourcesProcessor;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesServerlessFunctionWebSocketClientProcessor;
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -147,20 +147,20 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         }
 
 
-        List<UsesResourcesHandler> usesResourcesHandlers = new LinkedList<>();
-        usesResourcesHandlers.add(new UsesBasicServerlessFunctionClientHandler(cloudFormationFiles, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesDocumentStoreHandler(cloudFormationFiles, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesFileStorageClientHandler(cloudFormationFiles, nimbusState));
-        usesResourcesHandlers.add(new UsesKeyValueStoreHandler(cloudFormationFiles, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesNotificationTopicHandler(cloudFormationFiles, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesQueueHandler(cloudFormationFiles, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesRelationalDatabaseHandler(cloudFormationFiles, processingEnv, nimbusState));
-        usesResourcesHandlers.add(new UsesServerlessFunctionWebSocketClientHandler(cloudFormationFiles));
-        usesResourcesHandlers.add(new EnvironmentVariablesHandler(messager));
-        usesResourcesHandlers.add(new ForceDependencyHandler());
+        List<UsesResourcesProcessor> usesResourcesProcessors = new LinkedList<>();
+        usesResourcesProcessors.add(new UsesBasicServerlessFunctionClientProcessor(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesProcessors.add(new UsesDocumentStoreProcessor(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesProcessors.add(new UsesFileStorageClientProcessor(cloudFormationFiles, nimbusState));
+        usesResourcesProcessors.add(new UsesKeyValueStoreProcessor(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesProcessors.add(new UsesNotificationTopicProcessor(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesProcessors.add(new UsesQueueProcessor(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesProcessors.add(new UsesRelationalDatabaseProcessor(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesProcessors.add(new UsesServerlessFunctionWebSocketClientProcessor(cloudFormationFiles));
+        usesResourcesProcessors.add(new EnvironmentVariablesProcessor(messager));
+        usesResourcesProcessors.add(new ForceDependencyProcessor());
 
         for (FunctionInformation functionInformation : allInformation) {
-            for (UsesResourcesHandler handler : usesResourcesHandlers) {
+            for (UsesResourcesProcessor handler : usesResourcesProcessors) {
                 handler.handleUseResources(functionInformation.getElement(), functionInformation.getResource());
             }
         }
