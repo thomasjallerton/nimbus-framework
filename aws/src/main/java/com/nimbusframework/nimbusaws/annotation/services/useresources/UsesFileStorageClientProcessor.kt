@@ -8,10 +8,10 @@ import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.lang.model.element.Element
 
-class UsesFileStorageClientHandler(
+class UsesFileStorageClientProcessor(
         private val cfDocuments: Map<String, CloudFormationFiles>,
         private val nimbusState: NimbusState
-): UsesResourcesHandler  {
+): UsesResourcesProcessor  {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
         val iamRoleResource = functionResource.getIamRoleResource()

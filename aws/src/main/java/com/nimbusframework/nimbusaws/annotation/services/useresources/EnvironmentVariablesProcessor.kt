@@ -7,9 +7,9 @@ import javax.annotation.processing.Messager
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
-class EnvironmentVariablesHandler(
+class EnvironmentVariablesProcessor(
         private val messager: Messager
-) : UsesResourcesHandler {
+) : UsesResourcesProcessor {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
         for (environmentVariable in serverlessMethod.getAnnotationsByType(EnvironmentVariable::class.java)) {

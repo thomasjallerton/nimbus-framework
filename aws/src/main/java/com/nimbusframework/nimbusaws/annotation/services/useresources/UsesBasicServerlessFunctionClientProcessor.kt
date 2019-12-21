@@ -10,11 +10,11 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
-class UsesBasicServerlessFunctionClientHandler(
+class UsesBasicServerlessFunctionClientProcessor(
         private val cfDocuments: Map<String, CloudFormationFiles>,
         private val processingEnv: ProcessingEnvironment,
         private val nimbusState: NimbusState
-): UsesResourcesHandler {
+): UsesResourcesProcessor {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
 

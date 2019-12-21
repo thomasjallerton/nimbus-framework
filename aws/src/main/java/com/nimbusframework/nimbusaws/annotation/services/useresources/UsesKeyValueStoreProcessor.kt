@@ -10,11 +10,11 @@ import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.UsesKeyValu
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
-class UsesKeyValueStoreHandler(
+class UsesKeyValueStoreProcessor(
         private val cfDocuments: Map<String, CloudFormationFiles>,
         private val processingEnv: ProcessingEnvironment,
         private val nimbusState: NimbusState
-): UsesResourcesHandler {
+): UsesResourcesProcessor {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
         val iamRoleResource = functionResource.getIamRoleResource()
