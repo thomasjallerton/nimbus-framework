@@ -123,10 +123,6 @@ internal class DocumentStoreClientDynamo<T>(
         return keyMap
     }
 
-    private fun <K> fromAttributeValue(value: AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
-        return dynamoStreamProcessor.fromAttributeValue(value, expectedType, fieldName)
-    }
-
     private fun toObject(obj: Map<String, AttributeValue>): T {
         return dynamoStreamProcessor.toObject(obj)!!
     }

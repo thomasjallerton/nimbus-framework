@@ -47,6 +47,10 @@ class IamRoleResource(
         policy.addAllowStatement(action, resource, suffix)
     }
 
+    fun allows(action: String, resource: Resource, suffix: String = ""): Boolean {
+        return policy.allows(action, resource, suffix)
+    }
+
     private fun rolePolicyDocument(): JsonObject {
         val rolePolicyDocument = JsonObject()
         rolePolicyDocument.addProperty("Version", "2012-10-17")

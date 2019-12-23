@@ -1,6 +1,5 @@
 package com.nimbusframework.nimbusaws.cloudformation.resource.function
 
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
@@ -8,6 +7,7 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.Resource
 import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 
 class FunctionResource(
         private val handler: String,
@@ -34,8 +34,16 @@ class FunctionResource(
         handlerInformation.usesClients.add(client)
     }
 
+    fun usesClient(client: ClientType): Boolean {
+        return handlerInformation.usesClients.contains(client)
+    }
+
     fun addExtraDependency(classPath: String) {
         handlerInformation.extraDependencies.add(classPath)
+    }
+
+    fun containsDependency(classPath: String): Boolean {
+        return handlerInformation.extraDependencies.contains(classPath)
     }
 
     override fun getName(): String {
@@ -114,6 +122,14 @@ class FunctionResource(
 
     fun addEnvVariable(key: String, value: JsonObject) {
         jsonEnvVariables[key] = value
+    }
+
+    fun getStrEnvValue(key: String): String? {
+        return envVariables[key]
+    }
+
+    fun getJsonEnvValue(key: String): JsonObject? {
+        return jsonEnvVariables[key]
     }
 
     fun getFunctionName(): String {

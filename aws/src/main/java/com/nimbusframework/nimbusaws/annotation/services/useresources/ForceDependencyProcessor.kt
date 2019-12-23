@@ -7,8 +7,8 @@ import javax.lang.model.element.Element
 class ForceDependencyProcessor: UsesResourcesProcessor {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
-        for (environmentVariable in serverlessMethod.getAnnotationsByType(ForceDependency::class.java)) {
-            environmentVariable.classPaths.forEach {
+        for (forceDependency in serverlessMethod.getAnnotationsByType(ForceDependency::class.java)) {
+            forceDependency.classPaths.forEach {
                 functionResource.addExtraDependency(it)
             }
         }

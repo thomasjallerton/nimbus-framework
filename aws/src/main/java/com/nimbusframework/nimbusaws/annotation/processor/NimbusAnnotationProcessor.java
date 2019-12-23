@@ -148,12 +148,12 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
 
         List<UsesResourcesProcessor> usesResourcesProcessors = new LinkedList<>();
-        usesResourcesProcessors.add(new UsesBasicServerlessFunctionClientProcessor(cloudFormationFiles, processingEnv, nimbusState));
-        usesResourcesProcessors.add(new UsesDocumentStoreProcessor(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesProcessors.add(new UsesBasicServerlessFunctionClientProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
+        usesResourcesProcessors.add(new UsesDocumentStoreProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
         usesResourcesProcessors.add(new UsesFileStorageClientProcessor(cloudFormationFiles, nimbusState));
-        usesResourcesProcessors.add(new UsesKeyValueStoreProcessor(cloudFormationFiles, processingEnv, nimbusState));
-        usesResourcesProcessors.add(new UsesNotificationTopicProcessor(cloudFormationFiles, processingEnv, nimbusState));
-        usesResourcesProcessors.add(new UsesQueueProcessor(cloudFormationFiles, processingEnv, nimbusState));
+        usesResourcesProcessors.add(new UsesKeyValueStoreProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
+        usesResourcesProcessors.add(new UsesNotificationTopicProcessor(cloudFormationFiles, nimbusState, messager));
+        usesResourcesProcessors.add(new UsesQueueProcessor(cloudFormationFiles, nimbusState, messager));
         usesResourcesProcessors.add(new UsesRelationalDatabaseProcessor(cloudFormationFiles, processingEnv, nimbusState));
         usesResourcesProcessors.add(new UsesServerlessFunctionWebSocketClientProcessor(cloudFormationFiles));
         usesResourcesProcessors.add(new EnvironmentVariablesProcessor(messager));
