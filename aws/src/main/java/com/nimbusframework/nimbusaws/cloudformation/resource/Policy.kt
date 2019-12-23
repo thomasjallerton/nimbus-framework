@@ -39,6 +39,13 @@ class Policy(
         }
     }
 
+    fun allows(action: String, resource: Resource, suffix: String = ""): Boolean {
+        if (statements.containsKey(action)) {
+            return statements[action]!!.containsResource(resource, suffix)
+        }
+        return false
+    }
+
     private inner class Statement(
             private val effect: String,
             private val action: String
@@ -47,6 +54,10 @@ class Policy(
 
         fun addResource(resource: Resource, suffix: String) {
             resources.add(Pair(resource, suffix))
+        }
+
+        fun containsResource(resource: Resource, suffix: String): Boolean {
+            return resources.contains(Pair(resource, suffix))
         }
 
         fun toJson(): JsonObject {

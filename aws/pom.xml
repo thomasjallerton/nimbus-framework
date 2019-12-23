@@ -50,7 +50,7 @@
 
   <properties>
     <auto-service.version>1.0-rc2</auto-service.version>
-    <kotlin.version>1.3.20</kotlin.version>
+    <kotlin.version>1.3.61</kotlin.version>
     <aws.version>1.11.477</aws.version>
     <jetty.version>9.4.17.v20190418</jetty.version>
     <jackson.version>2.10.0.pr1</jackson.version>
@@ -221,6 +221,11 @@
       <version>1.9.3</version>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>org.jetbrains.kotlin</groupId>
+          <artifactId>kotlin-stdlib-jdk8</artifactId>
+          <version>${kotlin.version}</version>
+      </dependency>
 
 
   </dependencies>

@@ -6,17 +6,17 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionRe
 import com.nimbusframework.nimbusaws.cloudformation.resource.notification.SnsTopicResource
 import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
+import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 class UsesNotificationTopicProcessor(
         private val cfDocuments: Map<String, CloudFormationFiles>,
-        processingEnv: ProcessingEnvironment,
-        private val nimbusState: NimbusState
+        private val nimbusState: NimbusState,
+        private val messager: Messager
 ): UsesResourcesProcessor  {
 
-    private val messager = processingEnv.messager
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
         val iamRoleResource = functionResource.getIamRoleResource()
@@ -41,5 +41,6 @@ class UsesNotificationTopicProcessor(
                     iamRoleResource.addAllowStatement("sns:Publish", snsTopicResource, "")
                 }
             }
-        }    }
+        }
+    }
 }
