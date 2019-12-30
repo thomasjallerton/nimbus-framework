@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotations.function.KeyValueStoreServerle
 import com.nimbusframework.nimbuscore.annotations.persistent.StoreEventType;
 import com.nimbusframework.nimbuscore.eventabstractions.StoreEvent;
 import models.KeyValue;
+import models.DynamoDbKeyValue;
 
 public class KeyValueStoreHandlers {
 
@@ -25,6 +26,11 @@ public class KeyValueStoreHandlers {
     @KeyValueStoreServerlessFunction(dataModel = KeyValue.class, method = StoreEventType.INSERT)
     public void handleInsert3(StoreEvent storeEvent, KeyValue newEvent) {
         System.out.println("This item was added! " + newEvent);
+    }
+
+    @KeyValueStoreServerlessFunction(dataModel = DynamoDbKeyValue.class, method = StoreEventType.INSERT)
+    public void handleInsert4() {
+        System.out.println("item was added!");
     }
 
     @KeyValueStoreServerlessFunction(dataModel = KeyValue.class, method = StoreEventType.MODIFY)

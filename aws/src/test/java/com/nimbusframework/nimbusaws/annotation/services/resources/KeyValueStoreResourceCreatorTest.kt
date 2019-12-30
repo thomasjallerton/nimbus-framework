@@ -50,7 +50,7 @@ class KeyValueStoreResourceCreatorTest : AnnotationSpec() {
         val resources = cfDocuments["dev"]!!.updateTemplate.resources
         resources.size() shouldBe 2
 
-        val dynamoResource = resources.get("DynamoDbKeyValuedev") as DynamoResource
+        val dynamoResource = resources.get("keytabledev") as DynamoResource
 
         dynamoResource shouldNotBe null
     }

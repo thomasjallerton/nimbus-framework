@@ -32,7 +32,22 @@ class WebSocketServerlessFunctionFileBuilder(
         return "WebSocketServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 
-    override fun writeImports() {}
+    override fun writeImports() {
+        write("import com.amazonaws.services.lambda.runtime.Context;")
+        write("import com.fasterxml.jackson.databind.DeserializationFeature;")
+        write("import com.fasterxml.jackson.databind.ObjectMapper;")
+        write("import java.io.*;")
+        write("import java.util.stream.Collectors;")
+
+        write("import ${ClientBinder::class.qualifiedName};")
+        write("import ${AwsInternalClientBuilder::class.qualifiedName};")
+        write("import ${WebSocketEvent::class.qualifiedName};")
+        write("import ${WebSocketResponse::class.qualifiedName};")
+
+        if (methodInformation.packageName.isNotBlank()) {
+            write("import ${methodInformation.packageName}.${methodInformation.className};")
+        }
+    }
 
     private fun writeInputs(param: Param) {
         write("ClientBinder.INSTANCE.setInternalBuilder(AwsInternalClientBuilder.INSTANCE);")
@@ -105,20 +120,7 @@ class WebSocketServerlessFunctionFileBuilder(
 
                 if (packageName != "") write("package $packageName;")
 
-                write("import com.amazonaws.services.lambda.runtime.Context;")
-                write("import com.fasterxml.jackson.databind.DeserializationFeature;")
-                write("import com.fasterxml.jackson.databind.ObjectMapper;")
-                write("import java.io.*;")
-                write("import java.util.stream.Collectors;")
-
-                write("import ${ClientBinder::class.qualifiedName};")
-                write("import ${AwsInternalClientBuilder::class.qualifiedName};")
-                write("import ${WebSocketEvent::class.qualifiedName};")
-                write("import ${WebSocketResponse::class.qualifiedName};")
-
-                if (methodInformation.packageName.isNotBlank()) {
-                    write("import ${methodInformation.packageName}.${methodInformation.className};")
-                }
+                writeImports()
 
                 write("public class ${getGeneratedClassName()} {")
                 write("public void handleRequest(InputStream input, OutputStream output, Context context) {")

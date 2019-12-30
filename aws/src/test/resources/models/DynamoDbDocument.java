@@ -6,7 +6,7 @@ import com.nimbusframework.nimbuscore.annotations.persistent.Attribute;
 import com.nimbusframework.nimbuscore.annotations.persistent.Key;
 import java.util.Objects;
 
-@DynamoDbDocumentStore
+@DynamoDbDocumentStore(tableName = "doctable")
 public class DynamoDbDocument {
 
   @Override

@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotations.function.DocumentStoreServerle
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.DocumentStoreServerlessFunctions
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.store.document.DocumentStoreServerlessFunctionFileBuilder
@@ -12,11 +13,13 @@ import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.DocumentStoreServerlessFunctionAnnotation
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
+import javax.tools.Diagnostic
 
 class DocumentStoreFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment
+        processingEnv: ProcessingEnvironment,
+        private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
         cfDocuments,
         nimbusState,
@@ -73,10 +76,13 @@ class DocumentStoreFunctionResourceCreator(
 
                 val dynamoResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, type, stage)
 
-                if (dynamoResource != null) {
-                    functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
+                if (dynamoResource == null) {
+                    val dataModelClass = dataModelAnnotation.getTypeElement(processingEnv)
+                    messager.printMessage(Diagnostic.Kind.ERROR, "${dataModelClass.simpleName} is not annotated with a DocumentStore annotation", type)
+                    return
                 }
 
+                functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
 
                 results.add(FunctionInformation(type, functionResource))
             }

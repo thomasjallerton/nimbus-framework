@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.annotation.processor;
 import com.nimbusframework.nimbusaws.annotation.services.CloudFormationWriter;
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService;
 import com.nimbusframework.nimbusaws.annotation.services.ReadUserConfigService;
+import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder;
 import com.nimbusframework.nimbusaws.annotation.services.functions.AfterDeploymentResourceCreator;
 import com.nimbusframework.nimbusaws.annotation.services.functions.BasicFunctionResourceCreator;
 import com.nimbusframework.nimbusaws.annotation.services.functions.DocumentStoreFunctionResourceCreator;
@@ -128,9 +129,11 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             creator.create();
         }
 
+        ResourceFinder resourceFinder = new ResourceFinder(cloudFormationFiles, processingEnv, nimbusState);
+
         List<FunctionResourceCreator> functionResourceCreators = new LinkedList<>();
-        functionResourceCreators.add(new DocumentStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
-        functionResourceCreators.add(new KeyValueStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new DocumentStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, resourceFinder));
+        functionResourceCreators.add(new KeyValueStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, resourceFinder));
         functionResourceCreators.add(new HttpFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
         functionResourceCreators.add(new NotificationFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
         functionResourceCreators.add(new QueueFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));

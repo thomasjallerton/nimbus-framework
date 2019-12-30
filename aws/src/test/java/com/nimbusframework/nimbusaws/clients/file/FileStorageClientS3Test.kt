@@ -5,7 +5,9 @@ import com.amazonaws.services.s3.model.*
 import com.amazonaws.services.sns.AmazonSNS
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
+import com.nimbusframework.nimbuscore.clients.file.FileInformation
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
+import io.kotlintest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.AnnotationSpec
 import io.mockk.every
@@ -15,6 +17,7 @@ import io.mockk.verify
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
+import java.util.*
 
 class FileStorageClientS3Test : AnnotationSpec() {
 
@@ -93,6 +96,37 @@ class FileStorageClientS3Test : AnnotationSpec() {
         every { mockObj.objectContent } returns inputStream
 
         underTest.getFile("file") shouldBe inputStream
+    }
+
+    @Test
+    fun canListFiles() {
+        val firstObjectList: ObjectListing = mockk()
+        val secondObjectList: ObjectListing = mockk()
+
+        val firstObject: S3ObjectSummary = mockk()
+        val secondObject: S3ObjectSummary = mockk()
+
+        val time = Date()
+        every { firstObjectList.objectSummaries } returns mutableListOf(firstObject)
+        every { firstObjectList.isTruncated } returns true
+
+        every { secondObjectList.objectSummaries } returns mutableListOf(secondObject)
+        every { secondObjectList.isTruncated } returns false
+
+        every { firstObject.lastModified } returns time
+        every { firstObject.size } returns 100
+        every { firstObject.key } returns "file1"
+
+        every { secondObject.lastModified } returns time
+        every { secondObject.size } returns 101
+        every { secondObject.key } returns "file2"
+
+        every { s3Client.listObjects(bucketName) } returns firstObjectList
+        every { s3Client.listNextBatchOfObjects(firstObjectList) } returns secondObjectList
+
+        underTest.listFiles() shouldContainExactlyInAnyOrder listOf(
+                FileInformation(time, 100, "file1"),
+                FileInformation(time, 101, "file2"))
     }
 
     @Test
