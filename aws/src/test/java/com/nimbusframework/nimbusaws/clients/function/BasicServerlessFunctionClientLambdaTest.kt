@@ -84,4 +84,14 @@ class BasicServerlessFunctionClientLambdaTest : AnnotationSpec() {
         invokeResult.captured.invocationType shouldBe InvocationType.Event.toString()
         UTF_8.decode(invokeResult.captured.payload).toString() shouldBe "\"TEST\""
     }
+
+    @Test
+    fun canInvokeAsyncWithNoParams() {
+        val invokeResult = slot<InvokeRequest>()
+        every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResult()
+
+        underTest.invokeAsync()
+
+        invokeResult.captured.invocationType shouldBe InvocationType.Event.toString()
+    }
 }

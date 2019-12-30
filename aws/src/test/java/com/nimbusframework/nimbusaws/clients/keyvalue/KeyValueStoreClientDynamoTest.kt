@@ -11,6 +11,7 @@ import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
 import io.kotlintest.matchers.collections.shouldContain
+import io.kotlintest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotlintest.specs.AnnotationSpec
 import io.kotlintest.shouldBe
 import io.mockk.every
@@ -160,6 +161,12 @@ class KeyValueStoreClientDynamoTest : AnnotationSpec() {
         val writeItemRequest = WriteItemRequest()
         every { dynamoClient.getDeleteRequest(exampleKey, AttributeExists("string")) } returns writeItemRequest
         underTest.getDeleteItemRequest("key", AttributeExists("string")) shouldBe writeItemRequest
+    }
+
+    @Test
+    fun canGetItemDescription() {
+        underTest.getItemDescription().key shouldBe "PrimaryKey"
+        underTest.getItemDescription().attributes shouldContainExactlyInAnyOrder setOf("value")
     }
 
 }

@@ -53,7 +53,7 @@ class DocumentStoreResourceCreatorTest : AnnotationSpec() {
         val resources = cfDocuments["dev"]!!.updateTemplate.resources
         resources.size() shouldBe 2
 
-        val dynamoResource = resources.get("DynamoDbDocumentdev") as DynamoResource
+        val dynamoResource = resources.get("doctabledev") as DynamoResource
 
         dynamoResource shouldNotBe null
     }

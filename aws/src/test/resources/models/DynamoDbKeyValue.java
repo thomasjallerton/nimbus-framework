@@ -4,7 +4,7 @@ import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKey
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute;
 import java.util.Objects;
 
-@DynamoDbKeyValueStore(keyType = Integer.class)
+@DynamoDbKeyValueStore(tableName = "keytable", keyType = Integer.class)
 public class DynamoDbKeyValue {
 
   @Override

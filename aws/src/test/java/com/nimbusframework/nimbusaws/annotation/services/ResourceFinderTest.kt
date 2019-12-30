@@ -73,7 +73,7 @@ class ResourceFinderTest : AnnotationSpec() {
     @Test
     fun canFetchDynamoDbDocumentStore() {
         val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
-        val dynamoConfiguration = DynamoConfiguration("DynamoDbDocument$stage")
+        val dynamoConfiguration = DynamoConfiguration("doctable$stage")
         val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
         cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
         cfDocuments[stage] = cloudFormationFiles
@@ -103,7 +103,7 @@ class ResourceFinderTest : AnnotationSpec() {
     @Test
     fun canFetchDynamoDbKeyValueStore() {
         val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
-        val dynamoConfiguration = DynamoConfiguration("DynamoDbKeyValue$stage")
+        val dynamoConfiguration = DynamoConfiguration("keytable$stage")
         val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
         cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
         cfDocuments[stage] = cloudFormationFiles

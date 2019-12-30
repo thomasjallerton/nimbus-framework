@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.annotations.function.DocumentStoreServerle
 import com.nimbusframework.nimbuscore.annotations.persistent.StoreEventType;
 import com.nimbusframework.nimbuscore.eventabstractions.StoreEvent;
 import models.Document;
+import models.DynamoDbDocument;
 
 public class DocumentStoreHandlers {
 
@@ -25,6 +26,11 @@ public class DocumentStoreHandlers {
     @DocumentStoreServerlessFunction(dataModel = Document.class, method = StoreEventType.INSERT)
     public void handleInsert3(StoreEvent storeEvent, Document newEvent) {
         System.out.println("This item was added! " + newEvent);
+    }
+
+    @DocumentStoreServerlessFunction(dataModel = DynamoDbDocument.class, method = StoreEventType.INSERT)
+    public void handleInsert4() {
+        System.out.println("item was added!");
     }
 
     @DocumentStoreServerlessFunction(dataModel = Document.class, method = StoreEventType.MODIFY)

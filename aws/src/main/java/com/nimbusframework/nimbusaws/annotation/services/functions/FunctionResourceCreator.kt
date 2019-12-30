@@ -21,7 +21,6 @@ abstract class FunctionResourceCreator(
         private val repeatableClass: Class<out Annotation>
 ) {
 
-    protected val resourceFinder: ResourceFinder = ResourceFinder(cfDocuments, processingEnv, nimbusState)
     protected val messager = processingEnv.messager
 
     fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
