@@ -11,6 +11,13 @@
     <description>Annotation processor and testing classes for nimbus</description>
     <url>https://www.nimbusframework.com</url>
 
+<parent>
+    <groupId>com.nimbusframework</groupId>
+    <artifactId>nimbus-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</parent>
+
+
     <developers>
         <developer>
             <name>Thomas Allerton</name>
@@ -49,38 +56,56 @@
 
 
     <properties>
-        <auto-service.version>1.0-rc2</auto-service.version>
-        <kotlin.version>1.3.61</kotlin.version>
-        <aws.version>1.11.477</aws.version>
+<!--
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <auto-service.version>1.0-rc6</auto-service.version>
+        <aws.version>1.11.699</aws.version>
         <jetty.version>9.4.17.v20190418</jetty.version>
-        <jackson.version>2.10.0.pr1</jackson.version>
+            <joda-time.version>2.10.5</joda-time.version>
+        <jackson.version>2.10.1</jackson.version>
+            <gson.version>2.8.6</gson.version>
+            <guice.version>4.2.2</guice.version>
+        <kotlin.version>1.3.61</kotlin.version>
+            <kotlin-guice.version>1.4.1</kotlin-guice.version>
+            <kotlintest-runner-junit5.version>3.4.2</kotlintest-runner-junit5.version>
+            <junit-jupiter-api.version>5.5.2</junit-jupiter-api.version>
+
+
+                <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+                <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+                <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+                        <maven-scm-provider-gitexe.version>1.11.2</maven-scm-provider-gitexe.version>
+                <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
+                <maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
+                        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+-->
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
-            <version>4.0</version>
+            <version>${guice.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.misfitlabs.kotlinguice4</groupId>
             <artifactId>kotlin-guice</artifactId>
-            <version>1.4.1</version>
+            <version>${kotlin-guice.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.inject.extensions</groupId>
             <artifactId>guice-assistedinject</artifactId>
-            <version>4.0</version>
+            <version>${guice.version}</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>2.10.5</version>
+            <version>${joda-time.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.5</version>
+            <version>${gson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -90,7 +115,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-reflect</artifactId>
-            <version>RELEASE</version>
+            <version>${kotlin.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -103,13 +128,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.4.0</version>
+            <version>${junit-jupiter-api.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.kotlintest</groupId>
             <artifactId>kotlintest-runner-junit5</artifactId>
-            <version>3.3.0</version>
+            <version>${kotlintest-runner-junit5.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -162,7 +187,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <executions>
                     <!-- Replacing default-compile as it is treated specially by maven -->
                     <execution>
@@ -199,7 +224,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.3</version>
+                <version>${maven-release-plugin.version}</version>
                 <configuration>
                     <localCheckout>true</localCheckout>
                     <pushChanges>false</pushChanges>
@@ -210,7 +235,7 @@
                     <dependency>
                         <groupId>org.apache.maven.scm</groupId>
                         <artifactId>maven-scm-provider-gitexe</artifactId>
-                        <version>1.9.5</version>
+                        <version>${maven-scm-provider-gitexe.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -218,7 +243,7 @@
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
+                <version>${nexus-staging-maven-plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
@@ -229,7 +254,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
+                <version>${maven-source-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -239,19 +264,22 @@
                     </execution>
                 </executions>
             </plugin>
+<!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>${maven-javadoc-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
+-->
         </plugins>
 
     </build>
@@ -270,7 +298,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
+                        <version>${maven-gpg-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
