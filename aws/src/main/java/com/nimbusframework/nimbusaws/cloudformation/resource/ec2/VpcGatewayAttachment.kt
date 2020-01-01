@@ -30,7 +30,7 @@ class VpcGatewayAttachment(
     }
 
     override fun getName(): String {
-        return vpc.getName() + "InternetGatewayAttachment"
+        return "InetGwayAttach" + vpc.getName()
     }
 
 }

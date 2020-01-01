@@ -15,6 +15,10 @@ class WebSocketApi(
         return "apigateway."
     }
 
+    override fun getTriggerName(): String {
+        return "WebSocket"
+    }
+
     override fun getTriggerArn(): JsonObject {
         return JsonObject()
     }

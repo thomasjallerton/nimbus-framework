@@ -21,6 +21,10 @@ class FileBucket(
         return "s3."
     }
 
+    override fun getTriggerName(): String {
+        return "Bucket"
+    }
+
     override fun getArn(suffix: String): JsonObject {
         val values = JsonArray()
         values.add("arn:aws:s3:::")

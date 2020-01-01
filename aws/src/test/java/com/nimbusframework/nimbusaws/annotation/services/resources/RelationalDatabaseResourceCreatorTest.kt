@@ -41,7 +41,7 @@ internal class RelationalDatabaseResourceCreatorTest: AnnotationSpec() {
         val resources = cfDocuments["dev"]!!.updateTemplate.resources
         resources.size() shouldBe 13
 
-        val rdsResource = resources.get("testRelationalDatabaseRdsInstance") as RdsResource
+        val rdsResource = resources.get("RdsInstancetestRelationalDatabase") as RdsResource
         rdsResource shouldNotBe null
 
         val config = rdsResource.rdsConfiguration
@@ -61,7 +61,7 @@ internal class RelationalDatabaseResourceCreatorTest: AnnotationSpec() {
         val resources = cfDocuments["dev"]!!.updateTemplate.resources
         resources.size() shouldBe 13
 
-        val rdsResource = resources.get("testRdsDatabaseRdsInstance") as RdsResource
+        val rdsResource = resources.get("RdsInstancetestRdsDatabase") as RdsResource
 
         rdsResource shouldNotBe null
 

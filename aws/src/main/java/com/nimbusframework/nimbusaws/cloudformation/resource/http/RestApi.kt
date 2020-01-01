@@ -11,14 +11,16 @@ class RestApi(
         stage: String
 ): AbstractRestResource(nimbusState, stage), FunctionTrigger {
 
-    private val creationTime = Calendar.getInstance().timeInMillis
-
     override fun getTriggerArn(): JsonObject {
         return getArn("/*/*")
     }
 
     override fun getTriggerType(): String {
         return "apigateway."
+    }
+
+    override fun getTriggerName(): String {
+        return "RestApi"
     }
 
     override fun getPath(): String {

@@ -44,7 +44,7 @@ class UsesQueueProcessorTest: AnnotationSpec() {
         HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
         HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
-        iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleUsesQueueHandlerfuncExecution") as IamRoleResource
+        iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleUsesQueueHandlerfunc") as IamRoleResource
         usesQueueProcessor = UsesQueueProcessor(cfDocuments, nimbusState, messager)
     }
 
@@ -53,7 +53,7 @@ class UsesQueueProcessorTest: AnnotationSpec() {
         val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesQueueHandlerfuncFunction") as FunctionResource
 
         usesQueueProcessor.handleUseResources(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[1], functionResource)
-        val queueResource = cfDocuments["dev"]!!.updateTemplate.resources.get("NimbusSQSQueuemessageQueue")!!
+        val queueResource = cfDocuments["dev"]!!.updateTemplate.resources.get("SQSQueuemessageQueue")!!
 
         functionResource.usesClient(ClientType.Queue) shouldBe true
         functionResource.getStrEnvValue("NIMBUS_STAGE") shouldBe "dev"

@@ -24,6 +24,6 @@ class QueueResource(
     }
 
     override fun getName(): String {
-        return "NimbusSQSQueue$name"
+        return "SQSQueue$name"
     }
 }

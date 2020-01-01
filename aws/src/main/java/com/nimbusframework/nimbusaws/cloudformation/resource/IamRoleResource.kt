@@ -40,7 +40,7 @@ class IamRoleResource(
     }
 
     override fun getName(): String {
-        return "IamRole${functionName}Execution"
+        return "IamRole${functionName}"
     }
 
     fun addAllowStatement(action: String, resource: Resource, suffix: String) {

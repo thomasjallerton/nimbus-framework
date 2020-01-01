@@ -50,7 +50,7 @@ class RdsResource(
     }
 
     override fun getName(): String {
-        return "${rdsConfiguration.name}RdsInstance"
+        return "RdsInstance${rdsConfiguration.name}"
     }
 
     private fun toEngine(language: DatabaseLanguage, instanceClass: String): String {

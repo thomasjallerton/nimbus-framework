@@ -21,6 +21,10 @@ class SnsTopicResource(
         return "sns."
     }
 
+    override fun getTriggerName(): String {
+        return "Sns"
+    }
+
     override fun toCloudFormation(): JsonObject {
         val snsTopic = JsonObject()
         snsTopic.addProperty("Type", "AWS::SNS::Topic")

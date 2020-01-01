@@ -26,6 +26,6 @@ class WebSocketDeployment(
     }
 
     override fun getName(): String {
-        return "WebsocketApiDeployment$creationTime"
+        return "${nimbusState.projectName}WebSocketApiDeployment$creationTime"
     }
 }

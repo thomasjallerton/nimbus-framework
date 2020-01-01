@@ -58,7 +58,7 @@ class FileStorageBucketResourceCreatorTest : AnnotationSpec() {
         resources.size() shouldBe 3
 
         val fileBucket = resources.get("websiteFileBucket") as FileBucket
-        val fileBucketPolicy = resources.get("websiteFileBucketPolicy") as FileStorageBucketPolicy
+        val fileBucketPolicy = resources.get("PolicywebsiteFileBucket") as FileStorageBucketPolicy
         val websiteUrlOutput = outputs.get("websiteFileBucketWebsiteUrl") as BucketWebsiteUrlOutput
 
         fileBucket shouldNotBe null

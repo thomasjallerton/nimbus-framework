@@ -16,6 +16,10 @@ class CronRule(
         return "events."
     }
 
+    override fun getTriggerName(): String {
+        return "Cron"
+    }
+
     override fun getTriggerArn(): JsonObject {
         return getArn()
     }
