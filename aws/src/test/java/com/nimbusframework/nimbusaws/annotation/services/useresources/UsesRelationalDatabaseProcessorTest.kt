@@ -51,9 +51,9 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
         usesRelationalDatabaseProcessor.handleUseResources(elements.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], functionResource)
 
         functionResource.usesClient(ClientType.Database) shouldBe true
-        functionResource.getJsonEnvValue("testRelationalDatabaseRdsInstance_CONNECTION_URL") shouldNotBe null
-        functionResource.getStrEnvValue("testRelationalDatabaseRdsInstance_USERNAME") shouldBe "username"
-        functionResource.getStrEnvValue("testRelationalDatabaseRdsInstance_PASSWORD") shouldBe "password"
+        functionResource.getJsonEnvValue("RdsInstancetestRelationalDatabase_CONNECTION_URL") shouldNotBe null
+        functionResource.getStrEnvValue("RdsInstancetestRelationalDatabase_USERNAME") shouldBe "username"
+        functionResource.getStrEnvValue("RdsInstancetestRelationalDatabase_PASSWORD") shouldBe "password"
 
         functionResource.containsDependency(com.mysql.cj.jdbc.Driver::class.java.canonicalName) shouldBe true
     }

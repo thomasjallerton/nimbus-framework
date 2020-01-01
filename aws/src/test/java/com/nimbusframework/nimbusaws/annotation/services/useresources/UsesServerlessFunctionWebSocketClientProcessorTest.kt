@@ -41,7 +41,7 @@ class UsesServerlessFunctionWebSocketClientProcessorTest: AnnotationSpec() {
         WebSocketFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesWebSocketHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
         functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesWebSocketHandlerfuncFunction") as FunctionResource
-        iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleWebSocketHandlerfuncExecution") as IamRoleResource
+        iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleWebSocketHandlerfunc") as IamRoleResource
         usesServerlessFunctionWebSocketClientProcessor = UsesServerlessFunctionWebSocketClientProcessor(cfDocuments)
     }
 

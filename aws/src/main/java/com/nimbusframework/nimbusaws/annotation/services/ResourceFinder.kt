@@ -78,11 +78,11 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
         val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
         return try {
             val relationalDatabase = typeElement.getAnnotation(RelationalDatabase::class.java)
-            resourceCollections.getValue(dataModelStage).updateTemplate.resources.get("${relationalDatabase.name}RdsInstance") as RdsResource?
+            resourceCollections.getValue(dataModelStage).updateTemplate.resources.get("RdsInstance${relationalDatabase.name}") as RdsResource?
         } catch (e: NullPointerException) {
             try {
                 val rdsDatabase = typeElement.getAnnotation(RdsDatabase::class.java)
-                resourceCollections.getValue(dataModelStage).updateTemplate.resources.get("${rdsDatabase.name}RdsInstance") as RdsResource?
+                resourceCollections.getValue(dataModelStage).updateTemplate.resources.get("RdsInstance${rdsDatabase.name}") as RdsResource?
             } catch (e: NullPointerException) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Input class expected to be annotated with RelationalDatabase but isn't", serverlessMethod)
                 null

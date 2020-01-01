@@ -44,6 +44,6 @@ class FileStorageBucketPolicy(
     }
 
     override fun getName(): String {
-        return bucketResource.getName()+"Policy"
+        return "Policy" + bucketResource.getName()
     }
 }

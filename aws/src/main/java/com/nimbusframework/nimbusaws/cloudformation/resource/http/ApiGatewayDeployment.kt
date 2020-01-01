@@ -25,6 +25,6 @@ class ApiGatewayDeployment(
     }
 
     override fun getName(): String {
-        return "${nimbusState.projectName}ApiGatewayDeployment$creationTime"
+        return "${nimbusState.projectName}RestApiDeployment$creationTime"
     }
 }

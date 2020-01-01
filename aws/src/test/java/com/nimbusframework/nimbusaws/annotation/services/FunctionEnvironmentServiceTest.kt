@@ -39,9 +39,9 @@ class FunctionEnvironmentServiceTest : AnnotationSpec() {
         createResources.size() shouldBe 1
         updateResources.size() shouldBe 4
 
-        updateResources.get("IamRoleTesttestMethodExecution") shouldNotBe null
+        updateResources.get("IamRoleTesttestMethod") shouldNotBe null
         updateResources.get("NimbusDeploymentBucket") shouldNotBe null
-        updateResources.get("TesttestMethodLogGroup") shouldNotBe null
+        updateResources.get("LogGroupTesttestMethod") shouldNotBe null
         updateResources.get("TesttestMethodFunction") shouldNotBe null
     }
 

@@ -20,7 +20,7 @@ class LogGroupResource(
     }
 
     override fun getName(): String {
-        return "$className${methodName}LogGroup"
+        return "LogGroup$className${methodName}"
     }
 
     override fun toCloudFormation(): JsonObject {

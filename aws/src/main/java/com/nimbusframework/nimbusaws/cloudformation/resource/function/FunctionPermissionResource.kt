@@ -40,6 +40,6 @@ class FunctionPermissionResource(
     }
 
     override fun getName(): String {
-        return function.getName() + "PermissionApiGateway"
+        return "LambdaPerm${trigger.getTriggerName()}" + function.getShortName()
     }
 }
