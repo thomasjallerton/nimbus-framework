@@ -51,6 +51,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <java.version>11</java.version>
+
         <auto-service.version>1.0-rc6</auto-service.version>
         <aws.version>1.11.699</aws.version>
         <aws-lambda-java-core.version>1.2.0</aws-lambda-java-core.version>
