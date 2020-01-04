@@ -22,9 +22,9 @@ class KeyValueStoreFunctionResourceCreatorTest : AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
     private lateinit var resourceFinder: ResourceFinder
+    private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
@@ -33,25 +33,28 @@ class KeyValueStoreFunctionResourceCreatorTest : AnnotationSpec() {
         roundEnvironment = mockk()
         resourceFinder = mockk()
 
-        val compileState = CompileStateService("handlers/KeyValueStoreHandlers.java")
-        elements = compileState.elements
+        compileStateService = CompileStateService("handlers/KeyValueStoreHandlers.java")
+
         functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
-        keyValueStoreFunctionResourceCreator = KeyValueStoreFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment, resourceFinder)
     }
 
     @Test
     fun correctlyProcessesKeyValueStoreFunctionAnnotation() {
-        every { resourceFinder.getKeyValueStoreResource(any(), any(), any()) } returns DynamoResource(DynamoConfiguration("table"), nimbusState, "dev")
-        val results: MutableList<FunctionInformation> = mutableListOf()
-        val classElem = elements.getTypeElement("handlers.KeyValueStoreHandlers")
-        val funcElem = classElem.enclosedElements[1]
-        keyValueStoreFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
-        cfDocuments["dev"] shouldNotBe null
+        compileStateService.compileObjects {
+            keyValueStoreFunctionResourceCreator = KeyValueStoreFunctionResourceCreator(cfDocuments, nimbusState, it, resourceFinder)
 
-        val resources = cfDocuments["dev"]!!.updateTemplate.resources
-        resources.size() shouldBe 5
+            every { resourceFinder.getKeyValueStoreResource(any(), any(), any()) } returns DynamoResource(DynamoConfiguration("table"), nimbusState, "dev")
+            val results: MutableList<FunctionInformation> = mutableListOf()
+            val classElem = it.elementUtils.getTypeElement("handlers.KeyValueStoreHandlers")
+            val funcElem = classElem.enclosedElements[1]
+            keyValueStoreFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            cfDocuments["dev"] shouldNotBe null
 
-        results.size shouldBe 1
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+            resources.size() shouldBe 5
+
+            results.size shouldBe 1
+        }
     }
 
 }

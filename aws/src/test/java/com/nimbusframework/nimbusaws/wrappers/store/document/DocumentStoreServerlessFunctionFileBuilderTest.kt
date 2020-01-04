@@ -13,15 +13,17 @@ internal class DocumentStoreServerlessFunctionFileBuilderTest: AnnotationSpec() 
 
     @Test
     fun correctCompiles() {
-        val compilation = CompileStateService("handlers/DocumentStoreHandlers.java", "models/Document.java", "models/DynamoDbDocument.java", "models/DocumentExistingArn.java", useNimbus = true)
-        compilation.status shouldBe Compilation.Status.SUCCESS
+        val compileStateService = CompileStateService("handlers/DocumentStoreHandlers.java", "models/Document.java", "models/DynamoDbDocument.java", "models/DocumentExistingArn.java", useNimbus = true)
+        compileStateService.compileObjects {}
+        compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
 
     @Test
     fun insertTwoEventArgumentsFailsCompilation() {
-        val compilation = CompileStateService("handlers/BadDocumentStoreHandlers.java", "models/Document.java", "models/DynamoDbDocument.java", "models/DocumentExistingArn.java", useNimbus = true)
+        val compileStateService = CompileStateService("handlers/BadDocumentStoreHandlers.java", "models/Document.java", "models/DynamoDbDocument.java", "models/DocumentExistingArn.java", useNimbus = true)
+        compileStateService.compileObjects {}
 
-        compilation.status shouldBe Compilation.Status.FAILURE
-        compilation.diagnostics shouldNotBe emptyList<Diagnostic<out JavaFileObject>>()
+        compileStateService.status shouldBe Compilation.Status.FAILURE
+        compileStateService.diagnostics shouldNotBe emptyList<Diagnostic<out JavaFileObject>>()
     }
 }

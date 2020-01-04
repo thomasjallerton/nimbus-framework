@@ -16,8 +16,7 @@ internal class BasicServerlessFunctionFileBuilderTest: AnnotationSpec() {
     fun correctCompiles() {
         val fileText = fileService.getResourceFileText("handlers/BasicHandlers.java")
 
-        val compilation = javac().withProcessors(NimbusAnnotationProcessor())
-                .compile(JavaFileObjects.forSourceString("handlers.BasicHandlers", fileText))
+        val compilation = javac().withProcessors(NimbusAnnotationProcessor()).compile(JavaFileObjects.forSourceString("handlers.BasicHandlers", fileText))
         compilation.status() shouldBe Compilation.Status.SUCCESS
     }
 }

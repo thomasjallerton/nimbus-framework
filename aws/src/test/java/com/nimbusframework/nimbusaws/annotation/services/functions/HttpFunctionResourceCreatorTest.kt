@@ -18,46 +18,51 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
+    private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        val compileState = CompileStateService("handlers/HttpHandlers.java")
-        elements = compileState.elements
+        compileStateService = CompileStateService("handlers/HttpHandlers.java")
         functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
-        httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment)
     }
 
     @Test
     fun correctlyProcessesHttpStoreFunctionAnnotation() {
-        val results: MutableList<FunctionInformation> = mutableListOf()
-        val classElem = elements.getTypeElement("handlers.HttpHandlers")
-        val funcElem = classElem.enclosedElements[1]
-        httpFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
-        cfDocuments["dev"] shouldNotBe null
+        compileStateService.compileObjects {
+            httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, nimbusState, it)
 
-        val resources = cfDocuments["dev"]!!.updateTemplate.resources
-        resources.size() shouldBe 9
+            val results: MutableList<FunctionInformation> = mutableListOf()
+            val classElem = it.elementUtils.getTypeElement("handlers.HttpHandlers")
+            val funcElem = classElem.enclosedElements[1]
+            httpFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            cfDocuments["dev"] shouldNotBe null
 
-        results.size shouldBe 1
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+            resources.size() shouldBe 9
+
+            results.size shouldBe 1
+        }
     }
 
     @Test
     fun correctlyProcessesHttpStoreFunctionAnnotationWithLongerPath() {
-        val results: MutableList<FunctionInformation> = mutableListOf()
-        val classElem = elements.getTypeElement("handlers.HttpHandlers")
-        val funcElem = classElem.enclosedElements[2]
-        httpFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
-        cfDocuments["dev"] shouldNotBe null
+        compileStateService.compileObjects {
+            httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, nimbusState, it)
+            val results: MutableList<FunctionInformation> = mutableListOf()
+            val classElem = it.elementUtils.getTypeElement("handlers.HttpHandlers")
+            val funcElem = classElem.enclosedElements[2]
+            httpFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            cfDocuments["dev"] shouldNotBe null
 
-        val resources = cfDocuments["dev"]!!.updateTemplate.resources
-        resources.size() shouldBe 10
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+            resources.size() shouldBe 10
 
-        results.size shouldBe 1
+            results.size shouldBe 1
+        }
     }
 
 }

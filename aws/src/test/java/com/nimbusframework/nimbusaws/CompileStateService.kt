@@ -22,32 +22,35 @@ class CompileStateService(
 ) {
 
     private val fileService = FileReader()
-    lateinit var elements: Elements
-    lateinit var types: Types
-    lateinit var processingEnvironment: ProcessingEnvironment
 
-    val status: Compilation.Status
-    val diagnostics: ImmutableList<Diagnostic<out JavaFileObject>>
+    lateinit var status: Compilation.Status
+    lateinit var diagnostics: ImmutableList<Diagnostic<out JavaFileObject>>
+
+    private val fileObjects: List<JavaFileObject>
 
     init {
-        val fileObjects = filesToCompile.map {
+        fileObjects = filesToCompile.map {
             val fileText = fileService.getResourceFileText(it)
             val fullyQualifiedName = it.replace('/', '.').removeSuffix(".java")
             JavaFileObjects.forSourceString(fullyQualifiedName, fileText)
         }
+    }
 
+    fun compileObjects(toRunWhileProcessing: (ProcessingEnvironment) -> Unit) {
         val compiler = Compiler.javac()
+
         val compilation = if (useNimbus) {
             compiler.withProcessors(NimbusAnnotationProcessor())
         } else {
-            compiler.withProcessors(EvaluatingProcessor())
+            compiler.withProcessors(EvaluatingProcessor(toRunWhileProcessing))
+
         }.compile(fileObjects)
 
         status = compilation.status()
         diagnostics = compilation.diagnostics()
     }
 
-    internal inner class EvaluatingProcessor : AbstractProcessor() {
+    internal inner class EvaluatingProcessor(private val toRunWhileProcessing: (ProcessingEnvironment) -> Unit) : AbstractProcessor() {
 
         override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment): Boolean {
             return true
@@ -56,9 +59,7 @@ class CompileStateService(
         @Synchronized
         override fun init(processingEnv: ProcessingEnvironment) {
             super.init(processingEnv)
-            processingEnvironment = processingEnv
-            elements = processingEnv.elementUtils
-            types = processingEnv.typeUtils
+            toRunWhileProcessing(processingEnv)
         }
     }
 }

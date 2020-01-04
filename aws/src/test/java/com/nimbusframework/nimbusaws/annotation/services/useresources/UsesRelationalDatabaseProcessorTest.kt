@@ -15,6 +15,7 @@ import io.kotlintest.shouldNotBe
 import io.kotlintest.specs.AnnotationSpec
 import io.mockk.mockk
 import javax.annotation.processing.Messager
+import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.util.Elements
 
@@ -24,8 +25,8 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
     private lateinit var messager: Messager
+    private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
@@ -34,28 +35,35 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)
 
-        val compileState = CompileStateService("models/RelationalDatabaseModel.java", "handlers/UsesRDBHandler.java")
-        elements = compileState.elements
+        compileStateService = CompileStateService("models/RelationalDatabaseModel.java", "handlers/UsesRDBHandler.java")
+    }
 
+    private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
+        val elements = processingEnvironment.elementUtils
         RelationalDatabaseResourceCreator(roundEnvironment, cfDocuments, nimbusState).handleAgnosticType(elements.getTypeElement("models.RelationalDatabaseModel"))
 
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
-        usesRelationalDatabaseProcessor = UsesRelationalDatabaseProcessor(cfDocuments, compileState.processingEnvironment, nimbusState)
+        usesRelationalDatabaseProcessor = UsesRelationalDatabaseProcessor(cfDocuments, processingEnvironment, nimbusState)
+        toRun()
     }
 
     @Test
     fun correctlySetsPermissions() {
-        val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesRDBHandlerfuncFunction") as FunctionResource
+        compileStateService.compileObjects {
+            setup(it) {
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesRDBHandlerfuncFunction") as FunctionResource
 
-        usesRelationalDatabaseProcessor.handleUseResources(elements.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], functionResource)
+                usesRelationalDatabaseProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], functionResource)
 
-        functionResource.usesClient(ClientType.Database) shouldBe true
-        functionResource.getJsonEnvValue("RdsInstancetestRelationalDatabase_CONNECTION_URL") shouldNotBe null
-        functionResource.getStrEnvValue("RdsInstancetestRelationalDatabase_USERNAME") shouldBe "username"
-        functionResource.getStrEnvValue("RdsInstancetestRelationalDatabase_PASSWORD") shouldBe "password"
+                functionResource.usesClient(ClientType.Database) shouldBe true
+                functionResource.getJsonEnvValue("RdsInstancetestRelationalDatabase_CONNECTION_URL") shouldNotBe null
+                functionResource.getStrEnvValue("RdsInstancetestRelationalDatabase_USERNAME") shouldBe "username"
+                functionResource.getStrEnvValue("RdsInstancetestRelationalDatabase_PASSWORD") shouldBe "password"
 
-        functionResource.containsDependency(com.mysql.cj.jdbc.Driver::class.java.canonicalName) shouldBe true
+                functionResource.containsDependency(com.mysql.cj.jdbc.Driver::class.java.canonicalName) shouldBe true
+            }
+        }
     }
 
 }

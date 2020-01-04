@@ -13,8 +13,9 @@ internal class KeyValueStoreServerlessFunctionFileBuilderTest: AnnotationSpec() 
 
     @Test
     fun correctCompiles() {
-        val compilation = CompileStateService("handlers/KeyValueStoreHandlers.java", "models/KeyValue.java", "models/DynamoDbKeyValue.java", "models/KeyValueExistingArn.java", useNimbus = true)
+        val compileStateService = CompileStateService("handlers/KeyValueStoreHandlers.java", "models/KeyValue.java", "models/DynamoDbKeyValue.java", "models/KeyValueExistingArn.java", useNimbus = true)
+        compileStateService.compileObjects {  }
 
-        compilation.status shouldBe Compilation.Status.SUCCESS
+        compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
 }
