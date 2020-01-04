@@ -1,3 +1,20 @@
+~.iml
+.idea/~.xml
+.idea/copyright/~.xml
+.idea/dictionaries/~.xml
+.idea/libraries/~.xml
+.idea/
+example/out/
+example/out
+example/target/
+example/target
+example/aws/
+example/aws
+out/
+out
+target/
+target
+
 .DS_Store
 
 node_modules
@@ -10,3 +27,4 @@ website/build/
 website/yarn.lock
 website/node_modules
 website/i18n/*
+
