@@ -94,7 +94,7 @@ class FunctionResource(
 
         properties.add("Role", iamRoleResource.getArn())
 
-        properties.addProperty("Runtime", "java8")
+        properties.addProperty("Runtime", "java11")
         properties.addProperty("Timeout", functionConfig.timeout)
 
         val environment = JsonObject()
