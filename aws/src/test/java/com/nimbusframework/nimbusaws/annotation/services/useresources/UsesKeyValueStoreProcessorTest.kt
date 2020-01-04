@@ -15,6 +15,7 @@ import io.kotlintest.specs.AnnotationSpec
 import io.mockk.mockk
 import io.mockk.verify
 import javax.annotation.processing.Messager
+import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.util.Elements
 import javax.tools.Diagnostic
@@ -25,9 +26,9 @@ class UsesKeyValueStoreProcessorTest: AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
     private lateinit var iamRoleResource: IamRoleResource
     private lateinit var messager: Messager
+    private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
@@ -36,34 +37,47 @@ class UsesKeyValueStoreProcessorTest: AnnotationSpec() {
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)
 
-        val compileState = CompileStateService("models/KeyValue.java", "handlers/UsesKeyValueStoreHandler.java")
-        elements = compileState.elements
+        compileStateService = CompileStateService("models/KeyValue.java", "handlers/UsesKeyValueStoreHandler.java")
 
-        KeyValueStoreResourceCreator(roundEnvironment, cfDocuments, nimbusState, compileState.processingEnvironment).handleAgnosticType(elements.getTypeElement("models.KeyValue"))
+    }
 
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+    private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
+        val elements = processingEnvironment.elementUtils
+        KeyValueStoreResourceCreator(roundEnvironment, cfDocuments, nimbusState, processingEnvironment).handleAgnosticType(elements.getTypeElement("models.KeyValue"))
+
+        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRolealueStoreHandlerfunc") as IamRoleResource
-        usesKeyValueStoreProcessor = UsesKeyValueStoreProcessor(cfDocuments, compileState.processingEnvironment, nimbusState, messager)
+        usesKeyValueStoreProcessor = UsesKeyValueStoreProcessor(cfDocuments, processingEnvironment, nimbusState, messager)
+
+        toRun()
     }
 
     @Test
     fun correctlySetsPermissions() {
-        val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesKeyValueStoreHandlerfuncFunction") as FunctionResource
-        usesKeyValueStoreProcessor.handleUseResources(elements.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[1], functionResource)
-        val dynamoResource = cfDocuments["dev"]!!.updateTemplate.resources.get("KeyValuedev")!!
+        compileStateService.compileObjects {
+            setup(it) {
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesKeyValueStoreHandlerfuncFunction") as FunctionResource
+                usesKeyValueStoreProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[1], functionResource)
+                val dynamoResource = cfDocuments["dev"]!!.updateTemplate.resources.get("KeyValuedev")!!
 
-        functionResource.usesClient(ClientType.KeyValueStore) shouldBe true
-        iamRoleResource.allows("dynamodb:*", dynamoResource) shouldBe true
+                functionResource.usesClient(ClientType.KeyValueStore) shouldBe true
+                iamRoleResource.allows("dynamodb:*", dynamoResource) shouldBe true
+            }
+        }
     }
 
     @Test
     fun reportsErrorIfCannotFindDocumentStore() {
-        val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesKeyValueStoreHandlerfunc2Function") as FunctionResource
-        usesKeyValueStoreProcessor.handleUseResources(elements.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[2], functionResource)
+        compileStateService.compileObjects {
+            setup(it) {
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesKeyValueStoreHandlerfunc2Function") as FunctionResource
+                usesKeyValueStoreProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[2], functionResource)
 
-        verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
+                verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
+            }
+        }
     }
 
 }

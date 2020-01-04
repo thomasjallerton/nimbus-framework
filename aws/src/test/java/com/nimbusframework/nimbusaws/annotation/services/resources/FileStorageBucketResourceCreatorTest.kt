@@ -22,50 +22,56 @@ class FileStorageBucketResourceCreatorTest : AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
+    private lateinit var compileState: CompileStateService
 
     @BeforeEach
     fun setup() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        elements = CompileStateService("models/FileStorage.java", "models/Website.java").elements
+        compileState = CompileStateService("models/FileStorage.java", "models/Website.java")
         fileStorageBucketResourceCreator = FileStorageBucketResourceCreator(roundEnvironment, cfDocuments, nimbusState)
     }
 
     @Test
     fun correctlyProcessesFileStorageBucketAnnotation() {
-        fileStorageBucketResourceCreator.handleAgnosticType(elements.getTypeElement("models.FileStorage"))
-        cfDocuments["dev"] shouldNotBe null
+        compileState.compileObjects {
+            val elements = it.elementUtils
+            fileStorageBucketResourceCreator.handleAgnosticType(elements.getTypeElement("models.FileStorage"))
+            cfDocuments["dev"] shouldNotBe null
 
-        val resources = cfDocuments["dev"]!!.updateTemplate.resources
-        resources.size() shouldBe 2
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+            resources.size() shouldBe 2
 
-        val fileBucket = resources.get("ImageBucketFileBucket") as FileBucket
+            val fileBucket = resources.get("ImageBucketFileBucket") as FileBucket
 
-        fileBucket shouldNotBe null
+            fileBucket shouldNotBe null
 
-        fileBucket.annotationBucketName shouldBe "ImageBucket"
+            fileBucket.annotationBucketName shouldBe "ImageBucket"
+        }
     }
 
     @Test
     fun correctlyProcessesFileStorageBucketAsWebsiteAnnotation() {
-        fileStorageBucketResourceCreator.handleAgnosticType(elements.getTypeElement("models.Website"))
-        cfDocuments["dev"] shouldNotBe null
+        compileState.compileObjects {
+            val elements = it.elementUtils
+            fileStorageBucketResourceCreator.handleAgnosticType(elements.getTypeElement("models.Website"))
+            cfDocuments["dev"] shouldNotBe null
 
-        val resources = cfDocuments["dev"]!!.updateTemplate.resources
-        val outputs = cfDocuments["dev"]!!.updateTemplate.outputs
-        resources.size() shouldBe 3
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+            val outputs = cfDocuments["dev"]!!.updateTemplate.outputs
+            resources.size() shouldBe 3
 
-        val fileBucket = resources.get("websiteFileBucket") as FileBucket
-        val fileBucketPolicy = resources.get("PolicywebsiteFileBucket") as FileStorageBucketPolicy
-        val websiteUrlOutput = outputs.get("websiteFileBucketWebsiteUrl") as BucketWebsiteUrlOutput
+            val fileBucket = resources.get("websiteFileBucket") as FileBucket
+            val fileBucketPolicy = resources.get("PolicywebsiteFileBucket") as FileStorageBucketPolicy
+            val websiteUrlOutput = outputs.get("websiteFileBucketWebsiteUrl") as BucketWebsiteUrlOutput
 
-        fileBucket shouldNotBe null
-        fileBucketPolicy shouldNotBe null
-        websiteUrlOutput shouldNotBe null
+            fileBucket shouldNotBe null
+            fileBucketPolicy shouldNotBe null
+            websiteUrlOutput shouldNotBe null
 
-        fileBucket.annotationBucketName shouldBe "website"
+            fileBucket.annotationBucketName shouldBe "website"
+        }
     }
 
 }

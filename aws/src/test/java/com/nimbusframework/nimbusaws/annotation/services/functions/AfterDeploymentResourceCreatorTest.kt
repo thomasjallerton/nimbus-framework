@@ -8,42 +8,39 @@ import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotlintest.specs.AnnotationSpec
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
-import io.mockk.mockk
-import javax.annotation.processing.RoundEnvironment
-import javax.lang.model.util.Elements
 
 class AfterDeploymentResourceCreatorTest : AnnotationSpec() {
 
     private lateinit var afterDeploymentFunctionResourceCreator: AfterDeploymentResourceCreator
-    private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
+    private lateinit var compileState: CompileStateService
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
 
     @BeforeEach
     fun setup() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
-        roundEnvironment = mockk()
-        val compileState = CompileStateService("handlers/AfterDeploymentHandlers.java")
-        elements = compileState.elements
+        compileState = CompileStateService("handlers/AfterDeploymentHandlers.java")
         functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
-        afterDeploymentFunctionResourceCreator = AfterDeploymentResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment)
     }
 
     @Test
     fun correctlyProcessesAfterDeploymentFunctionAnnotation() {
-        val results: MutableList<FunctionInformation> = mutableListOf()
-        val classElem = elements.getTypeElement("handlers.AfterDeploymentHandlers")
-        val funcElem = classElem.enclosedElements[1]
-        afterDeploymentFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
-        cfDocuments["dev"] shouldNotBe null
+        compileState.compileObjects { processingEnv ->
+            afterDeploymentFunctionResourceCreator = AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv)
 
-        val resources = cfDocuments["dev"]!!.updateTemplate.resources
-        resources.size() shouldBe 4
+            val results: MutableList<FunctionInformation> = mutableListOf()
+            val classElem = processingEnv.elementUtils.getTypeElement("handlers.AfterDeploymentHandlers")
+            val funcElem = classElem.enclosedElements[1]
+            afterDeploymentFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            cfDocuments["dev"] shouldNotBe null
 
-        results.size shouldBe 1
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+            resources.size() shouldBe 4
+
+            results.size shouldBe 1
+        }
     }
 
 }

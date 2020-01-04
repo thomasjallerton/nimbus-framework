@@ -17,52 +17,60 @@ class KeyValueStoreResourceCreatorTest : AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
+    private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        val compileState = CompileStateService("models/KeyValue.java", "models/DynamoDbKeyValue.java", "models/KeyValueExistingArn.java")
-        elements = compileState.elements
-        keyValueStoreResourceCreator = KeyValueStoreResourceCreator(roundEnvironment, cfDocuments, nimbusState, compileState.processingEnvironment)
+        compileStateService = CompileStateService("models/KeyValue.java", "models/DynamoDbKeyValue.java", "models/KeyValueExistingArn.java")
     }
 
     @Test
     fun correctlyProcessesKeyValueAnnotation() {
-        keyValueStoreResourceCreator.handleAgnosticType(elements.getTypeElement("models.KeyValue"))
-        cfDocuments["dev"] shouldNotBe null
+        compileStateService.compileObjects {
+            keyValueStoreResourceCreator = KeyValueStoreResourceCreator(roundEnvironment, cfDocuments, nimbusState, it)
 
-        val resources = cfDocuments["dev"]!!.updateTemplate.resources
-        resources.size() shouldBe 2
+            keyValueStoreResourceCreator.handleAgnosticType(it.elementUtils.getTypeElement("models.KeyValue"))
+            cfDocuments["dev"] shouldNotBe null
 
-        val dynamoResource = resources.get("KeyValuedev") as DynamoResource
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+            resources.size() shouldBe 2
 
-        dynamoResource shouldNotBe null
+            val dynamoResource = resources.get("KeyValuedev") as DynamoResource
+
+            dynamoResource shouldNotBe null
+        }
     }
 
     @Test
     fun correctlyProcessesDynamoDbKeyValueAnnotation() {
-        keyValueStoreResourceCreator.handleSpecificType(elements.getTypeElement("models.DynamoDbKeyValue"))
-        cfDocuments["dev"] shouldNotBe null
+        compileStateService.compileObjects {
+            keyValueStoreResourceCreator = KeyValueStoreResourceCreator(roundEnvironment, cfDocuments, nimbusState, it)
+            keyValueStoreResourceCreator.handleSpecificType(it.elementUtils.getTypeElement("models.DynamoDbKeyValue"))
+            cfDocuments["dev"] shouldNotBe null
 
-        val resources = cfDocuments["dev"]!!.updateTemplate.resources
-        resources.size() shouldBe 2
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+            resources.size() shouldBe 2
 
-        val dynamoResource = resources.get("keytabledev") as DynamoResource
+            val dynamoResource = resources.get("keytabledev") as DynamoResource
 
-        dynamoResource shouldNotBe null
+            dynamoResource shouldNotBe null
+        }
     }
 
     @Test
     fun doesNotCreateResourceIfExistingArnSet() {
-        keyValueStoreResourceCreator.handleSpecificType(elements.getTypeElement("models.KeyValueExistingArn"))
-        cfDocuments["dev"] shouldNotBe null
+        compileStateService.compileObjects {
+            keyValueStoreResourceCreator = KeyValueStoreResourceCreator(roundEnvironment, cfDocuments, nimbusState, it)
+            keyValueStoreResourceCreator.handleSpecificType(it.elementUtils.getTypeElement("models.KeyValueExistingArn"))
+            cfDocuments["dev"] shouldNotBe null
 
-        val resources = cfDocuments["dev"]!!.updateTemplate.resources
-        resources.size() shouldBe 1
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+            resources.size() shouldBe 1
 
-        resources.get("KeyValueExistingArndev") shouldBe null
+            resources.get("KeyValueExistingArndev") shouldBe null
+        }
     }
 }

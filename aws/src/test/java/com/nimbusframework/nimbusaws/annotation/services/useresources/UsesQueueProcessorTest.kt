@@ -15,6 +15,7 @@ import io.kotlintest.specs.AnnotationSpec
 import io.mockk.mockk
 import io.mockk.verify
 import javax.annotation.processing.Messager
+import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.util.Elements
 import javax.tools.Diagnostic
@@ -25,9 +26,9 @@ class UsesQueueProcessorTest: AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
     private lateinit var iamRoleResource: IamRoleResource
     private lateinit var messager: Messager
+    private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
@@ -36,38 +37,50 @@ class UsesQueueProcessorTest: AnnotationSpec() {
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)
 
-        val compileState = CompileStateService("handlers/QueueHandlers.java", "handlers/UsesQueueHandler.java")
-        elements = compileState.elements
+        compileStateService = CompileStateService("handlers/QueueHandlers.java", "handlers/UsesQueueHandler.java")
+    }
 
-        QueueFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.QueueHandlers").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+    private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
+        val elements = processingEnvironment.elementUtils
+        QueueFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.QueueHandlers").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleUsesQueueHandlerfunc") as IamRoleResource
         usesQueueProcessor = UsesQueueProcessor(cfDocuments, nimbusState, messager)
+
+        toRun()
     }
 
     @Test
     fun correctlySetsPermissions() {
-        val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesQueueHandlerfuncFunction") as FunctionResource
+        compileStateService.compileObjects {
+            setup(it) {
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesQueueHandlerfuncFunction") as FunctionResource
 
-        usesQueueProcessor.handleUseResources(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[1], functionResource)
-        val queueResource = cfDocuments["dev"]!!.updateTemplate.resources.get("SQSQueuemessageQueue")!!
+                usesQueueProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesQueueHandler").enclosedElements[1], functionResource)
+                val queueResource = cfDocuments["dev"]!!.updateTemplate.resources.get("SQSQueuemessageQueue")!!
 
-        functionResource.usesClient(ClientType.Queue) shouldBe true
-        functionResource.getStrEnvValue("NIMBUS_STAGE") shouldBe "dev"
-        functionResource.getJsonEnvValue("NIMBUS_QUEUE_URL_ID_MESSAGEQUEUE") shouldNotBe null
+                functionResource.usesClient(ClientType.Queue) shouldBe true
+                functionResource.getStrEnvValue("NIMBUS_STAGE") shouldBe "dev"
+                functionResource.getJsonEnvValue("NIMBUS_QUEUE_URL_ID_MESSAGEQUEUE") shouldNotBe null
 
-        iamRoleResource.allows("sqs:SendMessage", queueResource) shouldBe true
+                iamRoleResource.allows("sqs:SendMessage", queueResource) shouldBe true
+            }
+        }
     }
 
     @Test
     fun throwsErrorIfQueueDoesNotExist() {
-        val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesQueueHandlerfunc2Function") as FunctionResource
+        compileStateService.compileObjects {
+            setup(it) {
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesQueueHandlerfunc2Function") as FunctionResource
 
-        usesQueueProcessor.handleUseResources(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[2], functionResource)
+                usesQueueProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesQueueHandler").enclosedElements[2], functionResource)
 
-        verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
+                verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
+            }
+        }
     }
 }

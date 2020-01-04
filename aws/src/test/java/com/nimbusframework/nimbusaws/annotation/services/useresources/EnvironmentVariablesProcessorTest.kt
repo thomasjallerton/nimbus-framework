@@ -17,14 +17,14 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.util.Elements
 import javax.tools.Diagnostic
 
-class EnvironmentVariablesProcessorTest: AnnotationSpec() {
+class EnvironmentVariablesProcessorTest : AnnotationSpec() {
 
     private lateinit var environmentVariablesProcessor: EnvironmentVariablesProcessor
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
     private lateinit var messager: Messager
+    private lateinit var compileState: CompileStateService
 
     @BeforeEach
     fun setup() {
@@ -33,47 +33,59 @@ class EnvironmentVariablesProcessorTest: AnnotationSpec() {
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)
 
-        val compileState = CompileStateService("handlers/UsesEnvironmentVariableHandler.java")
-        elements = compileState.elements
-
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        compileState = CompileStateService("handlers/UsesEnvironmentVariableHandler.java")
 
         environmentVariablesProcessor = EnvironmentVariablesProcessor(messager)
     }
 
     @Test
     fun correctlySetsVariableFromString() {
-        val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfuncFunction") as FunctionResource
+        compileState.compileObjects {
+            val elements = it.elementUtils
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
-        environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], functionResource)
+            val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfuncFunction") as FunctionResource
 
-        functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
-        functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_VALUE"
+            environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], functionResource)
+
+            functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
+            functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_VALUE"
+        }
     }
 
     @Test
     fun handlesLocalVariableBeingNull() {
-        val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfunc2Function") as FunctionResource
+        compileState.compileObjects {
+            val elements = it.elementUtils
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+            val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfunc2Function") as FunctionResource
 
-        environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], functionResource)
+            environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], functionResource)
 
-        verify { messager.printMessage(Diagnostic.Kind.ERROR, any()) }
+            verify { messager.printMessage(Diagnostic.Kind.ERROR, any()) }
 
-        functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
-        functionResource.getStrEnvValue("TEST_KEY") shouldBe "\${TEST_VALUE}"
+            functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
+            functionResource.getStrEnvValue("TEST_KEY") shouldBe "\${TEST_VALUE}"
+        }
     }
 
     @Test
     fun handlesLocalVariableBeingSet() {
         withEnvironment("TEST_VALUE", "TEST_ENV_VAL") {
+            compileState.compileObjects {
+                val elements = it.elementUtils
+                HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+                HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
-            val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfunc2Function") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfunc2Function") as FunctionResource
 
-            environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], functionResource)
+                environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], functionResource)
 
-            functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
-            functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_ENV_VAL"
+                functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
+                functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_ENV_VAL"
+            }
         }
     }
 

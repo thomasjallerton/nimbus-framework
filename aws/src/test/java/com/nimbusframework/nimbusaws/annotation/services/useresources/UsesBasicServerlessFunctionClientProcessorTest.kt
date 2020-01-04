@@ -14,6 +14,7 @@ import io.kotlintest.specs.AnnotationSpec
 import io.mockk.mockk
 import io.mockk.verify
 import javax.annotation.processing.Messager
+import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.util.Elements
 import javax.tools.Diagnostic
@@ -24,9 +25,9 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
     private lateinit var iamRoleResource: IamRoleResource
     private lateinit var messager: Messager
+    private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
@@ -35,38 +36,52 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)
 
-        val compileState = CompileStateService("handlers/BasicHandlers.java", "handlers/UsesBasicFunctionHandler.java")
-        elements = compileState.elements
+        compileStateService = CompileStateService("handlers/BasicHandlers.java", "handlers/UsesBasicFunctionHandler.java")
+    }
 
-        BasicFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.BasicHandlers").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+    private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
+        val elements = processingEnvironment.elementUtils
+        usesBasicServerlessFunctionClientProcessor = UsesBasicServerlessFunctionClientProcessor(cfDocuments, processingEnvironment, nimbusState, messager)
 
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.BasicHandlers").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+
+        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRolecFunctionHandlerfunc") as IamRoleResource
-        usesBasicServerlessFunctionClientProcessor = UsesBasicServerlessFunctionClientProcessor(cfDocuments, compileState.processingEnvironment, nimbusState, messager)
+
+        toRun()
     }
 
     @Test
     fun correctlySetsPermissions() {
-        val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesBasicFunctionHandlerfuncFunction") as FunctionResource
+        compileStateService.compileObjects {
+            setup(it) {
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesBasicFunctionHandlerfuncFunction") as FunctionResource
 
-        usesBasicServerlessFunctionClientProcessor.handleUseResources(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[1], functionResource)
-        val basicFunctionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("BasicHandlersgetCurrentTimeFunction")!!
+                usesBasicServerlessFunctionClientProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[1], functionResource)
+                val basicFunctionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("BasicHandlersgetCurrentTimeFunction")!!
 
-        iamRoleResource.allows("lambda:*", basicFunctionResource) shouldBe true
+                iamRoleResource.allows("lambda:*", basicFunctionResource) shouldBe true
 
-        functionResource.usesClient(ClientType.BasicFunction) shouldBe true
-        functionResource.getStrEnvValue("NIMBUS_PROJECT_NAME") shouldBe ""
-        functionResource.getStrEnvValue("FUNCTION_STAGE") shouldBe "dev"
+                functionResource.usesClient(ClientType.BasicFunction) shouldBe true
+                functionResource.getStrEnvValue("NIMBUS_PROJECT_NAME") shouldBe ""
+                functionResource.getStrEnvValue("FUNCTION_STAGE") shouldBe "dev"
+            }
+        }
+
     }
 
     @Test
     fun alertsIfNoCorrespondingBasicFunction() {
-        val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesBasicFunctionHandlerfunc2Function") as FunctionResource
+        compileStateService.compileObjects {
+            setup(it) {
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesBasicFunctionHandlerfunc2Function") as FunctionResource
 
-        usesBasicServerlessFunctionClientProcessor.handleUseResources(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[2], functionResource)
+                usesBasicServerlessFunctionClientProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[2], functionResource)
 
-        verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
+                verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
+            }
+        }
     }
 }

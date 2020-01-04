@@ -75,7 +75,7 @@
         <reflections.version>0.9.10</reflections.version>
         <junit.version>4.13-rc-1</junit.version>
         <compile-testing.version>0.15</compile-testing.version>
-        <mockk.version>1.9.3</mockk.version>
+        <mockk.version>1.9.2</mockk.version>
 
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>

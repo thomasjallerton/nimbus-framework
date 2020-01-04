@@ -18,32 +18,34 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
+    private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        val compileState = CompileStateService("handlers/QueueHandlers.java")
-        elements = compileState.elements
+        compileStateService = CompileStateService("handlers/QueueHandlers.java")
         functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
-        queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment)
     }
 
     @Test
     fun correctlyProcessesQueueFunctionAnnotation() {
-        val results: MutableList<FunctionInformation> = mutableListOf()
-        val classElem = elements.getTypeElement("handlers.QueueHandlers")
-        val funcElem = classElem.enclosedElements[1]
-        queueFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
-        cfDocuments["dev"] shouldNotBe null
+        compileStateService.compileObjects {
+            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, nimbusState, it)
 
-        val resources = cfDocuments["dev"]!!.updateTemplate.resources
-        resources.size() shouldBe 6
+            val results: MutableList<FunctionInformation> = mutableListOf()
+            val classElem = it.elementUtils.getTypeElement("handlers.QueueHandlers")
+            val funcElem = classElem.enclosedElements[1]
+            queueFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            cfDocuments["dev"] shouldNotBe null
 
-        results.size shouldBe 1
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+            resources.size() shouldBe 6
+
+            results.size shouldBe 1
+        }
     }
 
 }

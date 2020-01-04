@@ -15,37 +15,37 @@ import javax.lang.model.util.Elements
 
 class FileUploadResourceCreatorTest : AnnotationSpec() {
 
-    private lateinit var fileUploadResourceCreator: FileUploadResourceCreator
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
+    private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        val compileState = CompileStateService("models/FileStorage.java")
-        elements = compileState.elements
+        compileStateService = CompileStateService("models/FileStorage.java")
         functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
-        fileUploadResourceCreator = FileUploadResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment)
     }
 
     @Test
     fun correctlyProcessesFileUploadAnnotation() {
-        val results: MutableList<FunctionInformation> = mutableListOf()
-        val classElem = elements.getTypeElement("models.FileStorage")
-        fileUploadResourceCreator.handleElement(classElem, functionEnvironmentService, results)
-        cfDocuments["dev"] shouldBe null
+        compileStateService.compileObjects {
+            val fileUploadResourceCreator = FileUploadResourceCreator(cfDocuments, nimbusState, it)
+            val results: MutableList<FunctionInformation> = mutableListOf()
+            val classElem = it.elementUtils.getTypeElement("models.FileStorage")
+            fileUploadResourceCreator.handleElement(classElem, functionEnvironmentService, results)
+            cfDocuments["dev"] shouldBe null
 
-        results.size shouldBe 0
+            results.size shouldBe 0
 
-        val fileUploadDescription = nimbusState.fileUploads["dev"]!!["imagebucketdev"]!![0]
-        fileUploadDescription.localFile shouldBe "test"
-        fileUploadDescription.targetFile shouldBe "test"
-        fileUploadDescription.substituteVariables shouldBe false
+            val fileUploadDescription = nimbusState.fileUploads["dev"]!!["imagebucketdev"]!![0]
+            fileUploadDescription.localFile shouldBe "test"
+            fileUploadDescription.targetFile shouldBe "test"
+            fileUploadDescription.substituteVariables shouldBe false
+        }
     }
 
 }

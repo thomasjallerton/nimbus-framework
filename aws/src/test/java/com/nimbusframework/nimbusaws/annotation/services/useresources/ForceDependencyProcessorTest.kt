@@ -19,8 +19,8 @@ class ForceDependencyProcessorTest: AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
     private lateinit var messager: Messager
+    private lateinit var compileState: CompileStateService
 
     @BeforeEach
     fun setup() {
@@ -29,22 +29,24 @@ class ForceDependencyProcessorTest: AnnotationSpec() {
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)
 
-        val compileState = CompileStateService("handlers/ForceDependencyHandler.java")
-        elements = compileState.elements
-
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, compileState.processingEnvironment).handleElement(elements.getTypeElement("handlers.ForceDependencyHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        compileState = CompileStateService("handlers/ForceDependencyHandler.java")
 
         forceDependencyProcessor = ForceDependencyProcessor()
     }
 
     @Test
     fun correctlySetsVariableFromString() {
-        val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("ForceDependencyHandlerfuncFunction") as FunctionResource
+        compileState.compileObjects {
+            val elements = it.elementUtils
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.ForceDependencyHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
-        forceDependencyProcessor.handleUseResources(elements.getTypeElement("handlers.ForceDependencyHandler").enclosedElements[1], functionResource)
+            val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("ForceDependencyHandlerfuncFunction") as FunctionResource
 
-        functionResource.containsDependency("com.test.test") shouldBe true
-        functionResource.containsDependency("com.example.test") shouldBe true
+            forceDependencyProcessor.handleUseResources(elements.getTypeElement("handlers.ForceDependencyHandler").enclosedElements[1], functionResource)
+
+            functionResource.containsDependency("com.test.test") shouldBe true
+            functionResource.containsDependency("com.example.test") shouldBe true
+        }
     }
 
 }

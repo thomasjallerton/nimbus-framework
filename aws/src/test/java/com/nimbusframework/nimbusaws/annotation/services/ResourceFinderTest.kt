@@ -33,15 +33,15 @@ class ResourceFinderTest : AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
-    private lateinit var elements: Elements
     private lateinit var methodElement: Element
+    private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        val compileState = CompileStateService(
+        compileStateService = CompileStateService(
                 "models/Document.java",
                 "models/DynamoDbDocument.java",
                 "models/RelationalDatabaseModel.java",
@@ -49,102 +49,125 @@ class ResourceFinderTest : AnnotationSpec() {
                 "models/KeyValue.java",
                 "models/DynamoDbKeyValue.java"
         )
-        this.elements = compileState.elements
-        methodElement = elements.getTypeElement("models.Document")
-
-        resourceFinder = ResourceFinder(cfDocuments, compileState.processingEnvironment, nimbusState)
     }
 
     @Test
     fun canFetchDocumentStore() {
-        val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
-        val dynamoConfiguration = DynamoConfiguration("Document$stage")
-        val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
-        cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
-        cfDocuments[stage] = cloudFormationFiles
+        compileStateService.compileObjects {
+            methodElement = it.elementUtils.getTypeElement("models.Document")
+            resourceFinder = ResourceFinder(cfDocuments, it, nimbusState)
 
-        val dataModelAnnotation = TestDataModelAnnotation(elements.getTypeElement("models.Document"), arrayOf(stage))
+            val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
+            val dynamoConfiguration = DynamoConfiguration("Document$stage")
+            val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
+            cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
+            cfDocuments[stage] = cloudFormationFiles
 
-        val foundResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.Document"), arrayOf(stage))
 
-        foundResource shouldBe dynamoResource
+            val foundResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
+
+            foundResource shouldBe dynamoResource
+        }
     }
 
     @Test
     fun canFetchDynamoDbDocumentStore() {
-        val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
-        val dynamoConfiguration = DynamoConfiguration("doctable$stage")
-        val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
-        cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
-        cfDocuments[stage] = cloudFormationFiles
+        compileStateService.compileObjects {
+            methodElement = it.elementUtils.getTypeElement("models.Document")
+            resourceFinder = ResourceFinder(cfDocuments, it, nimbusState)
+            val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
+            val dynamoConfiguration = DynamoConfiguration("doctable$stage")
+            val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
+            cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
+            cfDocuments[stage] = cloudFormationFiles
 
-        val dataModelAnnotation = TestDataModelAnnotation(elements.getTypeElement("models.DynamoDbDocument"), arrayOf(stage))
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.DynamoDbDocument"), arrayOf(stage))
 
-        val foundResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
+            val foundResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
 
-        foundResource shouldBe dynamoResource
+            foundResource shouldBe dynamoResource
+        }
     }
 
     @Test
     fun canFetchKeyValueStore() {
-        val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
-        val dynamoConfiguration = DynamoConfiguration("KeyValue$stage")
-        val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
-        cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
-        cfDocuments[stage] = cloudFormationFiles
+        compileStateService.compileObjects {
+            methodElement = it.elementUtils.getTypeElement("models.Document")
+            resourceFinder = ResourceFinder(cfDocuments, it, nimbusState)
+            val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
+            val dynamoConfiguration = DynamoConfiguration("KeyValue$stage")
+            val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
+            cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
+            cfDocuments[stage] = cloudFormationFiles
 
-        val dataModelAnnotation = TestDataModelAnnotation(elements.getTypeElement("models.KeyValue"), arrayOf(stage))
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.KeyValue"), arrayOf(stage))
 
-        val foundResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
+            val foundResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
 
-        foundResource shouldBe dynamoResource
+            foundResource shouldBe dynamoResource
+        }
     }
 
     @Test
     fun canFetchDynamoDbKeyValueStore() {
-        val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
-        val dynamoConfiguration = DynamoConfiguration("keytable$stage")
-        val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
-        cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
-        cfDocuments[stage] = cloudFormationFiles
+        compileStateService.compileObjects {
+            methodElement = it.elementUtils.getTypeElement("models.Document")
+            resourceFinder = ResourceFinder(cfDocuments, it, nimbusState)
 
-        val dataModelAnnotation = TestDataModelAnnotation(elements.getTypeElement("models.DynamoDbKeyValue"), arrayOf(stage))
+            val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
+            val dynamoConfiguration = DynamoConfiguration("keytable$stage")
+            val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)
+            cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
+            cfDocuments[stage] = cloudFormationFiles
 
-        val foundResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.DynamoDbKeyValue"), arrayOf(stage))
 
-        foundResource shouldBe dynamoResource
+            val foundResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
+
+            foundResource shouldBe dynamoResource
+        }
     }
 
     @Test
     fun canFetchRelationalDatabase() {
-        val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
-        val rdsConfiguration = RdsConfiguration("testRelationalDatabase", "username", "password", DatabaseLanguage.MYSQL, RdsConfiguration.toInstanceType(DatabaseSize.FREE), 30)
+        compileStateService.compileObjects {
+            methodElement = it.elementUtils.getTypeElement("models.Document")
+            resourceFinder = ResourceFinder(cfDocuments, it, nimbusState)
+            val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
+            val rdsConfiguration = RdsConfiguration("testRelationalDatabase", "username", "password", DatabaseLanguage.MYSQL, RdsConfiguration.toInstanceType(DatabaseSize.FREE), 30)
 
-        val rdsResource = createRdsResource(rdsConfiguration)
-        cloudFormationFiles.updateTemplate.resources.addResource(rdsResource)
-        cfDocuments[stage] = cloudFormationFiles
+            val rdsResource = createRdsResource(rdsConfiguration)
+            cloudFormationFiles.updateTemplate.resources.addResource(rdsResource)
+            cfDocuments[stage] = cloudFormationFiles
 
-        val dataModelAnnotation = TestDataModelAnnotation(elements.getTypeElement("models.RelationalDatabaseModel"), arrayOf(stage))
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.RelationalDatabaseModel"), arrayOf(stage))
 
-        val foundResource = resourceFinder.getRelationalDatabaseResource(dataModelAnnotation, methodElement, stage) as RdsResource
+            val foundResource = resourceFinder.getRelationalDatabaseResource(dataModelAnnotation, methodElement, stage) as RdsResource
 
-        foundResource shouldBe rdsResource
+            foundResource shouldBe rdsResource
+        }
     }
 
     @Test
     fun canFetchRdsDatabase() {
-        val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
-        val rdsConfiguration = RdsConfiguration("testRdsDatabase", "username", "password", DatabaseLanguage.MYSQL, "micro", 30)
+        compileStateService.compileObjects {
+            methodElement = it.elementUtils.getTypeElement("models.Document")
+            resourceFinder = ResourceFinder(cfDocuments, it, nimbusState)
 
-        val rdsResource = createRdsResource(rdsConfiguration)
-        cloudFormationFiles.updateTemplate.resources.addResource(rdsResource)
-        cfDocuments[stage] = cloudFormationFiles
+            val cloudFormationFiles = CloudFormationFiles(nimbusState, stage)
+            val rdsConfiguration = RdsConfiguration("testRdsDatabase", "username", "password", DatabaseLanguage.MYSQL, "micro", 30)
 
-        val dataModelAnnotation = TestDataModelAnnotation(elements.getTypeElement("models.RdsDatabaseModel"), arrayOf(stage))
+            val rdsResource = createRdsResource(rdsConfiguration)
+            cloudFormationFiles.updateTemplate.resources.addResource(rdsResource)
+            cfDocuments[stage] = cloudFormationFiles
 
-        val foundResource = resourceFinder.getRelationalDatabaseResource(dataModelAnnotation, methodElement, stage) as RdsResource
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.RdsDatabaseModel"), arrayOf(stage))
 
-        foundResource shouldBe rdsResource
+            val foundResource = resourceFinder.getRelationalDatabaseResource(dataModelAnnotation, methodElement, stage) as RdsResource
+
+            foundResource shouldBe rdsResource
+        }
     }
 
     private fun createRdsResource(databaseConfiguration: RdsConfiguration): RdsResource {
