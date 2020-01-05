@@ -8,6 +8,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(UsesQueues.class)
 public @interface UsesQueue {
-    String id();
+    Class<?> queue();
     String[] stages() default {NimbusConstants.stage};
 }

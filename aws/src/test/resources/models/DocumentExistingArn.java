@@ -1,7 +1,6 @@
 package models;
 
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore;
-import com.nimbusframework.nimbuscore.annotations.document.DocumentStore;
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute;
 import com.nimbusframework.nimbuscore.annotations.persistent.Key;
 import java.util.Objects;

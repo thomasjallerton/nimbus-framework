@@ -1,4 +1,4 @@
-package com.nimbusframework.nimbuscore.annotations.keyvalue;
+package com.nimbusframework.nimbuscore.annotations.database;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface KeyValueStores {
-    KeyValueStore[] value();
+public @interface RelationalDatabaseDefinitions {
+    RelationalDatabaseDefinition[] value();
 }

@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbuscore.examples;
 
-import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStore;
+import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefinition;
 
-@KeyValueStore(keyType = Integer.class, tableName = "test", keyName = "test")
+@KeyValueStoreDefinition(keyType = Integer.class, tableName = "test", keyName = "test")
 public class KeyValueStoreWithTableName {
 
   private String value;

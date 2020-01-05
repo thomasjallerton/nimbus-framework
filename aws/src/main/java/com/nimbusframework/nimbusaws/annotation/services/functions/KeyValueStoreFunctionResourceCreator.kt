@@ -11,6 +11,7 @@ import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.wrappers.store.keyvalue.KeyValueStoreServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.KeyValueStoreServerlessFunctionAnnotation
+import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
@@ -18,12 +19,12 @@ import javax.tools.Diagnostic
 class KeyValueStoreFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment,
+        private val processingEnv: ProcessingEnvironment,
+        private val messager: Messager,
         private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
         cfDocuments,
         nimbusState,
-        processingEnv,
         KeyValueStoreServerlessFunction::class.java,
         KeyValueStoreServerlessFunctions::class.java
 ) {

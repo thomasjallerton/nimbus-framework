@@ -15,11 +15,7 @@ import com.nimbusframework.nimbusaws.annotation.services.functions.KeyValueStore
 import com.nimbusframework.nimbusaws.annotation.services.functions.NotificationFunctionResourceCreator;
 import com.nimbusframework.nimbusaws.annotation.services.functions.QueueFunctionResourceCreator;
 import com.nimbusframework.nimbusaws.annotation.services.functions.WebSocketFunctionResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.resources.CloudResourceResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.resources.DocumentStoreResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.resources.FileStorageBucketResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.resources.KeyValueStoreResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.resources.RelationalDatabaseResourceCreator;
+import com.nimbusframework.nimbusaws.annotation.services.resources.*;
 import com.nimbusframework.nimbusaws.annotation.services.useresources.EnvironmentVariablesProcessor;
 import com.nimbusframework.nimbusaws.annotation.services.useresources.ForceDependencyProcessor;
 import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesBasicServerlessFunctionClientProcessor;
@@ -61,21 +57,24 @@ import java.util.*;
         "com.nimbusframework.nimbuscore.annotations.function.repeatable.FileStorageServerlessFunctions",
         "com.nimbusframework.nimbuscore.annotations.function.WebSocketServerlessFunction",
         "com.nimbusframework.nimbuscore.annotations.function.repeatable.WebSocketServerlessFunctions",
-        "com.nimbusframework.nimbuscore.annotations.dynamo.KeyValueStore",
-        "com.nimbusframework.nimbuscore.annotations.dynamo.KeyValueStores",
-        "com.nimbusframework.nimbuscore.annotations.dynamo.DocumentStore",
-        "com.nimbusframework.nimbuscore.annotations.dynamo.DocumentStores",
-        "com.nimbusframework.nimbuscore.annotations.database.RelationalDatabase",
-        "com.nimbusframework.nimbuscore.annotations.database.RelationalDatabases",
+        "com.nimbusframework.nimbuscore.annotations.dynamo.KeyValueStoreDefinition",
+        "com.nimbusframework.nimbuscore.annotations.dynamo.KeyValueStoreDefinitions",
+        "com.nimbusframework.nimbuscore.annotations.dynamo.DocumentStoreDefinition",
+        "com.nimbusframework.nimbuscore.annotations.dynamo.DocumentStoreDefinitions",
+        "com.nimbusframework.nimbuscore.annotations.queue.QueueDefinition",
+        "com.nimbusframework.nimbuscore.annotations.queue.QueueDefinitions",
+        "com.nimbusframework.nimbuscore.annotations.notification.NotificationTopicDefinition",
+        "com.nimbusframework.nimbuscore.annotations.notification.NotificationTopicDefinitions",
+        "com.nimbusframework.nimbuscore.annotations.database.RelationalDatabaseDefinition",
+        "com.nimbusframework.nimbuscore.annotations.database.RelationalDatabaseDefinitions",
         "com.nimbusframework.nimbuscore.annotations.deployment.FileUpload",
         "com.nimbusframework.nimbuscore.annotations.deployment.FileUploads",
         "com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployment",
         "com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployments",
         "com.nimbusframework.nimbuscore.annotations.deployment.ForceDependency",
         "com.nimbusframework.nimbuscore.annotations.deployment.ForceDependencies",
-        "com.nimbusframework.nimbuscore.annotations.file.FileStorageBucket",
-        "com.nimbusframework.nimbuscore.annotations.file.FileStorageBuckets"
-
+        "com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition",
+        "com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinitions"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
@@ -122,6 +121,8 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         List<CloudResourceResourceCreator> resourceCreators = new LinkedList<>();
         resourceCreators.add(new DocumentStoreResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
         resourceCreators.add(new KeyValueStoreResourceCreator(roundEnv, cloudFormationFiles, nimbusState, processingEnv));
+        resourceCreators.add(new NotificationTopicResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
+        resourceCreators.add(new QueueResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
         resourceCreators.add(new RelationalDatabaseResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
         resourceCreators.add(new FileStorageBucketResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
 
@@ -132,16 +133,16 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         ResourceFinder resourceFinder = new ResourceFinder(cloudFormationFiles, processingEnv, nimbusState);
 
         List<FunctionResourceCreator> functionResourceCreators = new LinkedList<>();
-        functionResourceCreators.add(new DocumentStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, resourceFinder));
-        functionResourceCreators.add(new KeyValueStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, resourceFinder));
+        functionResourceCreators.add(new DocumentStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager, resourceFinder));
+        functionResourceCreators.add(new KeyValueStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager, resourceFinder));
         functionResourceCreators.add(new HttpFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
-        functionResourceCreators.add(new NotificationFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
-        functionResourceCreators.add(new QueueFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new NotificationFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager, resourceFinder));
+        functionResourceCreators.add(new QueueFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager, resourceFinder));
         functionResourceCreators.add(new BasicFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
-        functionResourceCreators.add(new FileStorageResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new FileStorageResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager, resourceFinder));
         functionResourceCreators.add(new WebSocketFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
 
-        functionResourceCreators.add(new FileUploadResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
+        functionResourceCreators.add(new FileUploadResourceCreator(cloudFormationFiles, nimbusState, resourceFinder, messager));
         functionResourceCreators.add(new AfterDeploymentResourceCreator(cloudFormationFiles, nimbusState, processingEnv));
 
         List<FunctionInformation> allInformation = new LinkedList<>();
@@ -149,14 +150,13 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             allInformation.addAll(creator.handle(roundEnv, functionEnvironmentService));
         }
 
-
         List<UsesResourcesProcessor> usesResourcesProcessors = new LinkedList<>();
         usesResourcesProcessors.add(new UsesBasicServerlessFunctionClientProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
         usesResourcesProcessors.add(new UsesDocumentStoreProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
-        usesResourcesProcessors.add(new UsesFileStorageClientProcessor(cloudFormationFiles, nimbusState));
+        usesResourcesProcessors.add(new UsesFileStorageClientProcessor(cloudFormationFiles, messager, resourceFinder));
         usesResourcesProcessors.add(new UsesKeyValueStoreProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
-        usesResourcesProcessors.add(new UsesNotificationTopicProcessor(cloudFormationFiles, nimbusState, messager));
-        usesResourcesProcessors.add(new UsesQueueProcessor(cloudFormationFiles, nimbusState, messager));
+        usesResourcesProcessors.add(new UsesNotificationTopicProcessor(cloudFormationFiles, messager, resourceFinder));
+        usesResourcesProcessors.add(new UsesQueueProcessor(cloudFormationFiles, messager, resourceFinder));
         usesResourcesProcessors.add(new UsesRelationalDatabaseProcessor(cloudFormationFiles, processingEnv, nimbusState));
         usesResourcesProcessors.add(new UsesServerlessFunctionWebSocketClientProcessor(cloudFormationFiles));
         usesResourcesProcessors.add(new EnvironmentVariablesProcessor(messager));

@@ -3,15 +3,15 @@ package com.nimbusframework.nimbusaws.cloudformation.resource.file
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
-class NotificationConfiguration {
+class S3NotificationConfiguration {
 
-    private val lambdaConfigurations: MutableList<LambdaConfiguration> = mutableListOf()
+    private val s3LambdaConfigurations: MutableList<S3LambdaConfiguration> = mutableListOf()
 
     fun toJson(): JsonObject {
         val notificationConfiguration = JsonObject()
 
         val lambdaConfigurationsArray = JsonArray()
-        for (lambdaConfiguration in lambdaConfigurations) {
+        for (lambdaConfiguration in s3LambdaConfigurations) {
             lambdaConfigurationsArray.add(lambdaConfiguration.toJson())
         }
 
@@ -20,7 +20,7 @@ class NotificationConfiguration {
         return notificationConfiguration
     }
 
-    fun addLambdaConfiguration(lambdaConfiguration: LambdaConfiguration) {
-        lambdaConfigurations.add(lambdaConfiguration)
+    fun addLambdaConfiguration(s3LambdaConfiguration: S3LambdaConfiguration) {
+        s3LambdaConfigurations.add(s3LambdaConfiguration)
     }
 }

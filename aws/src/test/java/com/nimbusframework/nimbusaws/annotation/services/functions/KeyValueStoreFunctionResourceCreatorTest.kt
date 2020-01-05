@@ -41,7 +41,7 @@ class KeyValueStoreFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesKeyValueStoreFunctionAnnotation() {
         compileStateService.compileObjects {
-            keyValueStoreFunctionResourceCreator = KeyValueStoreFunctionResourceCreator(cfDocuments, nimbusState, it, resourceFinder)
+            keyValueStoreFunctionResourceCreator = KeyValueStoreFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true), resourceFinder)
 
             every { resourceFinder.getKeyValueStoreResource(any(), any(), any()) } returns DynamoResource(DynamoConfiguration("table"), nimbusState, "dev")
             val results: MutableList<FunctionInformation> = mutableListOf()

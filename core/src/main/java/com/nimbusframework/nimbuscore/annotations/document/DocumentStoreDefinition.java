@@ -1,4 +1,4 @@
-package com.nimbusframework.nimbuscore.annotations.keyvalue;
+package com.nimbusframework.nimbuscore.annotations.document;
 
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
 
@@ -6,10 +6,8 @@ import java.lang.annotation.*;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(KeyValueStores.class)
-public @interface KeyValueStore {
+@Repeatable(DocumentStoreDefinitions.class)
+public @interface DocumentStoreDefinition {
     String tableName() default "";
-    Class<?> keyType();
-    String keyName() default "PrimaryKey";
     String[] stages() default {NimbusConstants.stage};
 }

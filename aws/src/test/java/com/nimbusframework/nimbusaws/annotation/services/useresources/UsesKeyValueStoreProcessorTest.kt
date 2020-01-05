@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.services.useresources
 
+import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
@@ -66,6 +67,8 @@ class UsesKeyValueStoreProcessorTest: AnnotationSpec() {
                 iamRoleResource.allows("dynamodb:*", dynamoResource) shouldBe true
             }
         }
+        compileStateService.status shouldBe Compilation.Status.SUCCESS
+
     }
 
     @Test

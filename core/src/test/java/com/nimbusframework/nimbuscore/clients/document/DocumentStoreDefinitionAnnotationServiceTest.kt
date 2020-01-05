@@ -6,7 +6,7 @@ import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
 import io.kotlintest.specs.AnnotationSpec
 import io.kotlintest.shouldBe
 
-class DocumentStoreAnnotationServiceTest : AnnotationSpec() {
+class DocumentStoreDefinitionAnnotationServiceTest : AnnotationSpec() {
 
     @Test
     fun correctlyGetsNameWhenNoneSet() {

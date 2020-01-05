@@ -2,8 +2,8 @@ package com.nimbusframework.nimbusaws.annotation.services.resources
 
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStores
-import com.nimbusframework.nimbuscore.annotations.document.DocumentStore
-import com.nimbusframework.nimbuscore.annotations.document.DocumentStores
+import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefinition
+import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefinitions
 import com.nimbusframework.nimbuscore.annotations.persistent.Key
 import com.nimbusframework.nimbuscore.wrappers.DynamoConfiguration
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
@@ -20,14 +20,14 @@ class DocumentStoreResourceCreator(
 ) : CloudResourceResourceCreator(
         roundEnvironment,
         cfDocuments,
-        DocumentStore::class.java,
-        DocumentStores::class.java,
+        DocumentStoreDefinition::class.java,
+        DocumentStoreDefinitions::class.java,
         DynamoDbDocumentStore::class.java,
         DynamoDbDocumentStores::class.java
 ) {
 
     override fun handleAgnosticType(type: Element) {
-        val documentStores = type.getAnnotationsByType(DocumentStore::class.java)
+        val documentStores = type.getAnnotationsByType(DocumentStoreDefinition::class.java)
 
         for (documentStore in documentStores) {
             for (stage in documentStore.stages) {

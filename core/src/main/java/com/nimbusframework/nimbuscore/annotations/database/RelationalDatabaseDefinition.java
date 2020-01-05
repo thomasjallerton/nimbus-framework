@@ -6,8 +6,8 @@ import java.lang.annotation.*;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(RelationalDatabases.class)
-public @interface RelationalDatabase {
+@Repeatable(RelationalDatabaseDefinitions.class)
+public @interface RelationalDatabaseDefinition {
     String name();
     String username();
     String password();

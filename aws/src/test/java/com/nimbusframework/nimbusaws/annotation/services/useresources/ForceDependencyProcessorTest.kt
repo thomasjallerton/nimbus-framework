@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.services.useresources
 
+import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
@@ -47,6 +48,11 @@ class ForceDependencyProcessorTest: AnnotationSpec() {
             functionResource.containsDependency("com.test.test") shouldBe true
             functionResource.containsDependency("com.example.test") shouldBe true
         }
+    }
+
+    @AfterEach
+    fun final() {
+        compileState.status shouldBe Compilation.Status.SUCCESS
     }
 
 }

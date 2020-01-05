@@ -1,9 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.services
 
-import com.nimbusframework.nimbuscore.annotations.file.FileStorageEventType
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
-import com.nimbusframework.nimbuscore.annotations.function.NotificationServerlessFunction
-import com.nimbusframework.nimbuscore.annotations.function.QueueServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.outputs.RestApiOutput
 import com.nimbusframework.nimbusaws.cloudformation.outputs.WebSocketApiOutput
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
@@ -13,15 +10,11 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.NimbusBucketResourc
 import com.nimbusframework.nimbusaws.cloudformation.resource.Resource
 import com.nimbusframework.nimbusaws.cloudformation.resource.basic.CronRule
 import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoStreamResource
-import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileBucket
-import com.nimbusframework.nimbusaws.cloudformation.resource.file.LambdaConfiguration
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionEventMappingResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionPermissionResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.http.*
-import com.nimbusframework.nimbusaws.cloudformation.resource.notification.SnsTopicResource
-import com.nimbusframework.nimbusaws.cloudformation.resource.queue.QueueResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.websocket.*
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
@@ -50,7 +43,6 @@ class FunctionEnvironmentService(
         iamRoleResource.addAllowStatement("logs:PutLogEvents", logGroup, ":*:*")
 
         function.setIamRoleResource(iamRoleResource)
-        function.addEnvVariable("NIMBUS_STAGE", functionConfig.stage)
 
         val cloudFormationDocuments = cloudFormationFiles.getOrPut(functionConfig.stage) { CloudFormationFiles(
                 nimbusState,
@@ -146,41 +138,6 @@ class FunctionEnvironmentService(
 
     }
 
-    fun newNotification(notificationFunction: NotificationServerlessFunction, function: FunctionResource) {
-        val cfDocuments = cloudFormationFiles[function.stage]!!
-        val updateResources = cfDocuments.updateTemplate.resources
-
-        val snsTopic = SnsTopicResource(notificationFunction.topic, function, nimbusState, function.stage)
-        updateResources.addResource(snsTopic)
-
-        val permission = FunctionPermissionResource(function, snsTopic, nimbusState)
-        updateResources.addResource(permission)
-    }
-
-    fun newQueue(queueFunction: QueueServerlessFunction, function: FunctionResource) {
-        val cfDocuments = cloudFormationFiles[function.stage]!!
-        val updateResources = cfDocuments.updateTemplate.resources
-
-        val sqsQueue = QueueResource(nimbusState, queueFunction.id, queueFunction.timeout * 6, function.stage)
-        updateResources.addResource(sqsQueue)
-
-        val eventMapping = FunctionEventMappingResource(
-                sqsQueue.getArn(""),
-                sqsQueue.getName(),
-                queueFunction.batchSize,
-                function,
-                false,
-                nimbusState
-        )
-        updateResources.addResource(eventMapping)
-
-        val iamRoleResource = function.getIamRoleResource()
-
-        iamRoleResource.addAllowStatement("sqs:ReceiveMessage", sqsQueue, "")
-        iamRoleResource.addAllowStatement("sqs:DeleteMessage", sqsQueue, "")
-        iamRoleResource.addAllowStatement("sqs:GetQueueAttributes", sqsQueue, "")
-    }
-
     fun newStoreTrigger(store: Resource, function: FunctionResource) {
         val cfDocuments = cloudFormationFiles[function.stage]!!
         val updateResources = cfDocuments.updateTemplate.resources
@@ -214,30 +171,6 @@ class FunctionEnvironmentService(
 
         updateResources.addResource(cronRule)
         updateResources.addResource(lambdaPermissionResource)
-    }
-
-    fun newFileTrigger(name: String, eventType: FileStorageEventType, function: FunctionResource) {
-        val newBucket = FileBucket(nimbusState, name, arrayOf(), function.stage)
-
-        val updateResources = cloudFormationFiles[function.stage]!!.updateTemplate.resources
-        val oldBucket = updateResources.get(newBucket.getName()) as FileBucket?
-
-        val lambdaConfiguration = LambdaConfiguration(eventType, function)
-
-        if (oldBucket != null) {
-            val permission = FunctionPermissionResource(function, oldBucket, nimbusState)
-            oldBucket.addDependsOn(function)
-            oldBucket.addDependsOn(permission)
-            updateResources.addResource(permission)
-            oldBucket.addLambdaConfiguration(lambdaConfiguration)
-        } else {
-            newBucket.addLambdaConfiguration(lambdaConfiguration)
-            val permission = FunctionPermissionResource(function, newBucket, nimbusState)
-            newBucket.addDependsOn(function)
-            newBucket.addDependsOn(permission)
-            updateResources.addResource(permission)
-            updateResources.addResource(newBucket)
-        }
     }
 
     fun newWebSocketRoute(routeKey: String, function: FunctionResource) {

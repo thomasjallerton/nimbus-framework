@@ -3,7 +3,7 @@ package com.nimbusframework.nimbusaws.cloudformation.resource.database
 import com.nimbusframework.nimbusaws.annotation.annotations.database.RdsDatabase
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseSize
-import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabase
+import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabaseDefinition
 
 data class RdsConfiguration(
         val name: String,
@@ -17,7 +17,7 @@ data class RdsConfiguration(
     companion object {
 
         @JvmStatic
-        fun fromRelationDatabase(relationalDatabase: RelationalDatabase) : RdsConfiguration {
+        fun fromRelationDatabase(relationalDatabase: RelationalDatabaseDefinition) : RdsConfiguration {
             val username = getValue(relationalDatabase.username)
             val password = getValue(relationalDatabase.password)
 

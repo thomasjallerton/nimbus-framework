@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.services.useresources
 
+import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
@@ -64,6 +65,11 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
                 functionResource.containsDependency(com.mysql.cj.jdbc.Driver::class.java.canonicalName) shouldBe true
             }
         }
+    }
+
+    @AfterEach
+    fun final() {
+        compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
 
 }
