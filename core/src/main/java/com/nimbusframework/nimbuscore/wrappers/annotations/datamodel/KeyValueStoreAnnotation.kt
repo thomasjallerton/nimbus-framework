@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbuscore.wrappers.annotations.datamodel
 
-import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStore
+import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefinition
 
-class KeyValueStoreAnnotation(private val keyValueStore: KeyValueStore): DataModelAnnotation() {
+class KeyValueStoreAnnotation(private val keyValueStore: KeyValueStoreDefinition): DataModelAnnotation() {
 
     override val stages: Array<String> = keyValueStore.stages
 

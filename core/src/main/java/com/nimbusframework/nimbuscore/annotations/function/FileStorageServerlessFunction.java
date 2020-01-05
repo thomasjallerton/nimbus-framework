@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(FileStorageServerlessFunctions.class)
 public @interface FileStorageServerlessFunction {
-    String bucketName();
+    Class<?> fileStorageBucket();
     FileStorageEventType eventType();
     int timeout() default 10;
     int memory() default 1024;

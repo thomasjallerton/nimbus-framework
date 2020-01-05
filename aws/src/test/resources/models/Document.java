@@ -1,12 +1,12 @@
 package models;
 
-import com.nimbusframework.nimbuscore.annotations.document.DocumentStore;
+import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefinition;
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute;
 import com.nimbusframework.nimbuscore.annotations.persistent.Key;
 
 import java.util.Objects;
 
-@DocumentStore
+@DocumentStoreDefinition
 public class Document {
 
     @Override

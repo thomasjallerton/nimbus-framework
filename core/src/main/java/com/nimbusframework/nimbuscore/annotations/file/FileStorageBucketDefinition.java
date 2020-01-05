@@ -6,8 +6,8 @@ import java.lang.annotation.*;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(FileStorageBuckets.class)
-public @interface FileStorageBucket {
+@Repeatable(FileStorageBucketDefinitions.class)
+public @interface FileStorageBucketDefinition {
     String bucketName();
     boolean staticWebsite() default false;
     String[] allowedCorsOrigins() default {};

@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.services.useresources
 
+import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
@@ -63,5 +64,10 @@ class UsesServerlessFunctionWebSocketClientProcessorTest: AnnotationSpec() {
                 iamRoleResource.allows("execute-api:ManageConnections", webSocketApi, "/*") shouldBe true
             }
         }
+    }
+
+    @AfterEach
+    fun final() {
+        compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
 }

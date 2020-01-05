@@ -16,8 +16,10 @@ import com.nimbusframework.nimbusaws.clients.notification.NotificationClientSNS
 import com.nimbusframework.nimbusaws.clients.queue.QueueClientSQS
 import com.nimbusframework.nimbusaws.clients.rdbms.DatabaseClientRds
 import com.nimbusframework.nimbusaws.clients.websocket.ServerlessFunctionWebSocketClientApiGateway
-import com.nimbusframework.nimbuscore.annotations.document.DocumentStore
-import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStore
+import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefinition
+import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition
+import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefinition
+import com.nimbusframework.nimbuscore.annotations.notification.NotificationTopicDefinition
 import com.nimbusframework.nimbuscore.clients.database.DatabaseClient
 import com.nimbusframework.nimbuscore.clients.database.InternalClientBuilder
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreAnnotationService
@@ -28,7 +30,9 @@ import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreAnnotationService
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
+import com.nimbusframework.nimbuscore.clients.notification.NotificationTopicAnnotationService
 import com.nimbusframework.nimbuscore.clients.queue.QueueClient
+import com.nimbusframework.nimbuscore.clients.queue.QueueIdAnnotationService
 import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
 
@@ -44,7 +48,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
 
     override fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>, stage: String): KeyValueStoreClient<K, V> {
         val keyValueStoreClient = when {
-            value.isAnnotationPresent(KeyValueStore::class.java) -> {
+            value.isAnnotationPresent(KeyValueStoreDefinition::class.java) -> {
                 val tableName = KeyValueStoreAnnotationService.getTableName(value, stage)
                 val keyNameAndType = KeyValueStoreAnnotationService.getKeyNameAndType(value, stage)
                 KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second)
@@ -62,7 +66,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
 
     override fun <T> getDocumentStoreClient(document: Class<T>, stage: String): DocumentStoreClient<T> {
         val documentStoreClient = when {
-            document.isAnnotationPresent(DocumentStore::class.java) -> {
+            document.isAnnotationPresent(DocumentStoreDefinition::class.java) -> {
                 val tableName = DocumentStoreAnnotationService.getTableName(document, stage)
                 DocumentStoreClientDynamo(document, tableName, stage)
             }
@@ -78,6 +82,13 @@ object AwsInternalClientBuilder: InternalClientBuilder {
 
     override fun getQueueClient(id: String): QueueClient {
         val queueClient = QueueClientSQS(id)
+        injector.injectMembers(queueClient)
+        return queueClient
+    }
+
+    override fun getQueueClient(queueClass: Class<*>, stage: String): QueueClient {
+        val queueId = QueueIdAnnotationService.getQueueId(queueClass, stage)
+        val queueClient = QueueClientSQS(queueId)
         injector.injectMembers(queueClient)
         return queueClient
     }
@@ -98,6 +109,13 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         return notificationClient
     }
 
+    override fun getNotificationClient(topicClass: Class<*>, stage: String): NotificationClient {
+        val topic = NotificationTopicAnnotationService.getTopicName(topicClass, stage)
+        val notificationClient = NotificationClientSNS(topic)
+        injector.injectMembers(notificationClient)
+        return notificationClient
+    }
+
     override fun getBasicServerlessFunctionClient(handlerClass: Class<*>, functionName: String): BasicServerlessFunctionClient {
         val basicClient = BasicServerlessFunctionClientLambda(handlerClass, functionName)
         injector.injectMembers(basicClient)
@@ -108,6 +126,17 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         val fileStorageClient = FileStorageClientS3(bucketName, stage)
         injector.injectMembers(fileStorageClient)
         return fileStorageClient
+    }
+
+    override fun getFileStorageClient(bucketClass: Class<*>, stage: String): FileStorageClient {
+        if (bucketClass.isAnnotationPresent(FileStorageBucketDefinition::class.java)) {
+            val bucketName = bucketClass.getAnnotation(FileStorageBucketDefinition::class.java).bucketName
+            val fileStorageClient = FileStorageClientS3(bucketName, stage)
+            injector.injectMembers(fileStorageClient)
+            return fileStorageClient
+        } else {
+            throw IllegalStateException("${bucketClass.simpleName} is not a known type of File Storage Bucket. (Probably not annotated with @FileStorageBucketDefinition)")
+        }
     }
 
     override fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient {

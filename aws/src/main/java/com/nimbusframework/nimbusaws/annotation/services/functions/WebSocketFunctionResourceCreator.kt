@@ -15,11 +15,10 @@ import javax.lang.model.element.Element
 class WebSocketFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment
+        private val processingEnv: ProcessingEnvironment
 ) : FunctionResourceCreator(
         cfDocuments,
         nimbusState,
-        processingEnv,
         WebSocketServerlessFunction::class.java,
         WebSocketServerlessFunctions::class.java
 ) {

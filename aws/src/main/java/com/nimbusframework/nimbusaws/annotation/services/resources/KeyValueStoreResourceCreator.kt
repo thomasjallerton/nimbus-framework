@@ -2,8 +2,8 @@ package com.nimbusframework.nimbusaws.annotation.services.resources
 
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStores
-import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStore
-import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStores
+import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefinition
+import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefinitions
 import com.nimbusframework.nimbuscore.wrappers.DynamoConfiguration
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResource
@@ -23,14 +23,14 @@ class KeyValueStoreResourceCreator(
 ): CloudResourceResourceCreator(
         roundEnvironment,
         cfDocuments,
-        KeyValueStore::class.java,
-        KeyValueStores::class.java,
+        KeyValueStoreDefinition::class.java,
+        KeyValueStoreDefinitions::class.java,
         DynamoDbKeyValueStore::class.java,
         DynamoDbKeyValueStores::class.java
 ) {
 
     override fun handleAgnosticType(type: Element) {
-        val keyValueStores = type.getAnnotationsByType(KeyValueStore::class.java)
+        val keyValueStores = type.getAnnotationsByType(KeyValueStoreDefinition::class.java)
 
         for (keyValueStore in keyValueStores) {
             for (stage in keyValueStore.stages) {

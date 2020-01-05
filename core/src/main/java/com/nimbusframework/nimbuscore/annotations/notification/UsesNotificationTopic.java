@@ -8,6 +8,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(UsesNotificationTopics.class)
 public @interface UsesNotificationTopic {
-    String topic();
+    Class<?> notificationTopic();
     String[] stages() default {NimbusConstants.stage};
 }

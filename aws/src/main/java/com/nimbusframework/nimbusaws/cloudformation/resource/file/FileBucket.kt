@@ -39,8 +39,8 @@ class FileBucket(
         return joinJson("", values)
     }
 
-    private val bucketName: String = "$annotationBucketName$stage".toLowerCase()
-    private val notificationConfiguration: NotificationConfiguration = NotificationConfiguration()
+    val bucketName: String = "$annotationBucketName$stage".toLowerCase()
+    private val s3NotificationConfiguration: S3NotificationConfiguration = S3NotificationConfiguration()
     private var websiteConfiguration: WebsiteConfiguration = WebsiteConfiguration()
 
     override fun toCloudFormation(): JsonObject {
@@ -49,7 +49,7 @@ class FileBucket(
         val properties = JsonObject()
 
         if (hasNotificationConfiguration) {
-            properties.add("NotificationConfiguration", notificationConfiguration.toJson())
+            properties.add("NotificationConfiguration", s3NotificationConfiguration.toJson())
         }
 
         if (hasWebsiteConfiguration && websiteConfiguration.enabled) {
@@ -75,9 +75,9 @@ class FileBucket(
         return "${nimbusState.projectName}${annotationBucketName}FileBucket"
     }
 
-    fun addLambdaConfiguration(lambdaConfiguration: LambdaConfiguration) {
+    fun addLambdaConfiguration(s3LambdaConfiguration: S3LambdaConfiguration) {
         hasNotificationConfiguration = true
-        notificationConfiguration.addLambdaConfiguration(lambdaConfiguration)
+        s3NotificationConfiguration.addLambdaConfiguration(s3LambdaConfiguration)
     }
 
     fun setWebsiteConfiguration(websiteConfiguration: WebsiteConfiguration) {

@@ -1,11 +1,11 @@
 package models;
 
-import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStore;
+import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefinition;
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute;
 
 import java.util.Objects;
 
-@KeyValueStore(keyType = Integer.class)
+@KeyValueStoreDefinition(keyType = Integer.class)
 public class KeyValue {
 
     @Override

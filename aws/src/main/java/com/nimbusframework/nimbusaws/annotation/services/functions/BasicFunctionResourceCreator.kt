@@ -9,17 +9,17 @@ import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.basic.BasicServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
+import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class BasicFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment
+        private val processingEnv: ProcessingEnvironment
 ) : FunctionResourceCreator(
         cfDocuments,
         nimbusState,
-        processingEnv,
         BasicServerlessFunction::class.java,
         BasicServerlessFunctions::class.java
 ) {

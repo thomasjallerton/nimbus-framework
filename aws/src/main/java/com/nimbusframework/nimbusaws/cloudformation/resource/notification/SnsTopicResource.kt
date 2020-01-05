@@ -8,11 +8,17 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
 class SnsTopicResource(
-        private val topic: String,
-        private val function: FunctionResource?,
+        val topic: String,
         nimbusState: NimbusState,
         stage: String
 ): Resource(nimbusState, stage), FunctionTrigger {
+
+    private var function: FunctionResource?= null
+
+    fun setFunction(functionResource: FunctionResource) {
+        function = functionResource
+    }
+
     override fun getTriggerArn(): JsonObject {
         return getArn()
     }
@@ -37,7 +43,7 @@ class SnsTopicResource(
             val subscription = JsonArray()
             val endpoint = JsonObject()
 
-            endpoint.add("Endpoint", function.getArn())
+            endpoint.add("Endpoint", function!!.getArn())
             endpoint.addProperty("Protocol", "lambda")
 
             subscription.add(endpoint)

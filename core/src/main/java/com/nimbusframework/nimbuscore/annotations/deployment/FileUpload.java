@@ -8,7 +8,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(FileUploads.class)
 public @interface FileUpload {
-    String bucketName();
+    Class<?> fileStorageBucket();
     String localPath();
     String targetPath();
     boolean substituteNimbusVariables() default false;

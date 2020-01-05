@@ -1,7 +1,6 @@
 package handlers;
 
 import com.nimbusframework.nimbuscore.annotations.database.UsesRelationalDatabase;
-import com.nimbusframework.nimbuscore.annotations.file.UsesFileStorage;
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod;
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction;
 import com.nimbusframework.nimbuscore.clients.ClientBuilder;

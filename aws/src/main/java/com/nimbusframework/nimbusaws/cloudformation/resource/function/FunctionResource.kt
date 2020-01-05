@@ -21,6 +21,10 @@ class FunctionResource(
     private val jsonEnvVariables: MutableMap<String, JsonObject> = mutableMapOf()
     private lateinit var iamRoleResource: IamRoleResource
 
+    init {
+        envVariables["NIMBUS_STAGE"] = functionConfig.stage
+    }
+
     fun setIamRoleResource(resource: IamRoleResource) {
         iamRoleResource = resource
         dependsOn.add(iamRoleResource.getName())

@@ -6,24 +6,29 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.Resource
 
 class QueueResource(
         nimbusState: NimbusState,
-        private val name: String,
-        private val visibilityTimeout: Int,
+        val id: String,
+        private var visibilityTimeout: Int,
         stage: String
 ): Resource(nimbusState, stage) {
+
     override fun toCloudFormation(): JsonObject {
         val queue = JsonObject()
         queue.addProperty("Type", "AWS::SQS::Queue")
 
         val properties = getProperties()
         properties.addProperty("VisibilityTimeout", visibilityTimeout)
-        properties.addProperty("QueueName", "$name$stage")
+        properties.addProperty("QueueName", "$id$stage")
 
         queue.add("Properties", properties)
 
         return queue
     }
 
+    fun updateVisibilityTimeout(functionTimeout: Int) {
+        visibilityTimeout = functionTimeout * 6
+    }
+
     override fun getName(): String {
-        return "SQSQueue$name"
+        return "SQSQueue$id"
     }
 }

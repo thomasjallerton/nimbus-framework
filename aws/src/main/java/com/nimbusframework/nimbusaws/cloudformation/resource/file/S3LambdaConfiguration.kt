@@ -4,7 +4,7 @@ import com.nimbusframework.nimbuscore.annotations.file.FileStorageEventType
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.google.gson.JsonObject
 
-class LambdaConfiguration(
+class S3LambdaConfiguration(
         private val eventType: FileStorageEventType,
         private val functionResource: FunctionResource
 ) {

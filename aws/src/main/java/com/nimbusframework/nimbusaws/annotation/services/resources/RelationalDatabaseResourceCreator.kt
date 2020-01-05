@@ -2,15 +2,14 @@ package com.nimbusframework.nimbusaws.annotation.services.resources
 
 import com.nimbusframework.nimbusaws.annotation.annotations.database.RdsDatabase
 import com.nimbusframework.nimbusaws.annotation.annotations.database.RdsDatabases
-import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabase
-import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabases
+import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabaseDefinition
+import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabaseDefinitions
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.database.RdsConfiguration
 import com.nimbusframework.nimbusaws.cloudformation.resource.database.RdsResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.database.SubnetGroup
 import com.nimbusframework.nimbusaws.cloudformation.resource.ec2.*
 import com.nimbusframework.nimbuscore.persisted.NimbusState
-import java.util.*
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 
@@ -21,14 +20,14 @@ class RelationalDatabaseResourceCreator(
 ): CloudResourceResourceCreator(
         roundEnvironment,
         cfDocuments,
-        RelationalDatabase::class.java,
-        RelationalDatabases::class.java,
+        RelationalDatabaseDefinition::class.java,
+        RelationalDatabaseDefinitions::class.java,
         RdsDatabase::class.java,
         RdsDatabases::class.java
 ) {
 
     override fun handleAgnosticType(type: Element) {
-        val relationalDatabases = type.getAnnotationsByType(RelationalDatabase::class.java)
+        val relationalDatabases = type.getAnnotationsByType(RelationalDatabaseDefinition::class.java)
 
         for (relationalDatabase in relationalDatabases) {
             handleDatabaseConfiguration(relationalDatabase.stages, RdsConfiguration.fromRelationDatabase(relationalDatabase))

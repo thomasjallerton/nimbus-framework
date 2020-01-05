@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbusaws.annotation.services.resources
 
-import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucket
-import com.nimbusframework.nimbuscore.annotations.file.FileStorageBuckets
+import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition
+import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinitions
 import com.nimbusframework.nimbuscore.wrappers.WebsiteConfiguration
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.outputs.BucketWebsiteUrlOutput
@@ -19,12 +19,12 @@ class FileStorageBucketResourceCreator(
 ): CloudResourceResourceCreator(
         roundEnvironment,
         cfDocuments,
-        FileStorageBucket::class.java,
-        FileStorageBuckets::class.java
+        FileStorageBucketDefinition::class.java,
+        FileStorageBucketDefinitions::class.java
 ) {
 
     override fun handleAgnosticType(type: Element) {
-        val storageBuckets = type.getAnnotationsByType(FileStorageBucket::class.java)
+        val storageBuckets = type.getAnnotationsByType(FileStorageBucketDefinition::class.java)
 
         for (storageBucket in storageBuckets) {
             for (stage in storageBucket.stages) {

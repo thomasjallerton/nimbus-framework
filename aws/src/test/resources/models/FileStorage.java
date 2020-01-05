@@ -1,8 +1,8 @@
 package models;
 
 import com.nimbusframework.nimbuscore.annotations.deployment.FileUpload;
-import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucket;
+import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition;
 
-@FileStorageBucket(bucketName = "ImageBucket")
-@FileUpload(bucketName = "ImageBucket", localPath = "test", targetPath = "test")
+@FileStorageBucketDefinition(bucketName = "ImageBucket")
+@FileUpload(fileStorageBucket = FileStorage.class, localPath = "test", targetPath = "test")
 public class FileStorage {}

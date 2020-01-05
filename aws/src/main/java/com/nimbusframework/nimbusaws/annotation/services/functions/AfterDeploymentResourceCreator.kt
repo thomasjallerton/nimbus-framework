@@ -9,17 +9,17 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionCo
 import com.nimbusframework.nimbusaws.wrappers.deployment.DeploymentFunctionFileBuilder
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
+import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class AfterDeploymentResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment
+        private val processingEnv: ProcessingEnvironment
 ): FunctionResourceCreator(
         cfDocuments,
         nimbusState,
-        processingEnv,
         AfterDeployment::class.java,
         AfterDeployments::class.java
 ) {

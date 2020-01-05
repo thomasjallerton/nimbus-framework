@@ -15,11 +15,10 @@ import javax.lang.model.element.Element
 class HttpFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment
+        private val processingEnv: ProcessingEnvironment
 ) : FunctionResourceCreator(
         cfDocuments,
         nimbusState,
-        processingEnv,
         HttpServerlessFunction::class.java,
         HttpServerlessFunctions::class.java
 ) {

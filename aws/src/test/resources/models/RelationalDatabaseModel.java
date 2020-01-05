@@ -2,9 +2,9 @@ package models;
 
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage;
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseSize;
-import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabase;
+import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabaseDefinition;
 
-@RelationalDatabase(
+@RelationalDatabaseDefinition(
     name = "testRelationalDatabase",
     username = "username",
     password = "password",

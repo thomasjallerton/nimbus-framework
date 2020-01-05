@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.services.useresources
 
+import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
@@ -87,6 +88,11 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
                 functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_ENV_VAL"
             }
         }
+    }
+
+    @AfterEach
+    fun final() {
+        compileState.status shouldBe Compilation.Status.SUCCESS
     }
 
 }

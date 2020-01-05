@@ -16,7 +16,7 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.util.Elements
 
 
-internal class RelationalDatabaseResourceCreatorTest: AnnotationSpec() {
+internal class RelationalDatabaseDefinitionResourceCreatorTest: AnnotationSpec() {
 
     private lateinit var relationalDatabaseResourceCreator: RelationalDatabaseResourceCreator
     private lateinit var roundEnvironment: RoundEnvironment

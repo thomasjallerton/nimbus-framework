@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.services.useresources
 
+import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.BasicFunctionResourceCreator
@@ -83,5 +84,10 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
                 verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
             }
         }
+    }
+
+    @AfterEach
+    fun final() {
+        compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
 }

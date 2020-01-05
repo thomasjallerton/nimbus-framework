@@ -1,14 +1,15 @@
 package handlers;
 
-import com.nimbusframework.nimbuscore.annotations.file.UsesFileStorage;
+import com.nimbusframework.nimbuscore.annotations.file.UsesFileStorageBucket;
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod;
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction;
 import com.nimbusframework.nimbuscore.clients.ClientBuilder;
+import models.FileStorage;
 
 public class UsesFileStorageClientHandler {
 
     @HttpServerlessFunction(method = HttpMethod.POST, path = "test")
-    @UsesFileStorage(bucketName = "Test")
+    @UsesFileStorageBucket(fileStorageBucket = FileStorage.class)
     public void func() {
         ClientBuilder.getFileStorageClient("Test");
     }

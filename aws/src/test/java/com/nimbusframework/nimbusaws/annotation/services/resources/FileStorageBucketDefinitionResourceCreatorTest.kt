@@ -16,7 +16,7 @@ import io.mockk.mockk
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.util.Elements
 
-class FileStorageBucketResourceCreatorTest : AnnotationSpec() {
+class FileStorageBucketDefinitionResourceCreatorTest : AnnotationSpec() {
 
     private lateinit var fileStorageBucketResourceCreator: FileStorageBucketResourceCreator
     private lateinit var roundEnvironment: RoundEnvironment

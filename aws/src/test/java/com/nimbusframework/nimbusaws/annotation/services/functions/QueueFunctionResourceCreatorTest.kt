@@ -1,16 +1,24 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
+import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.resource.queue.QueueResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotlintest.specs.AnnotationSpec
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
+import io.mockk.Called
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import javax.annotation.processing.Messager
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.util.Elements
+import javax.tools.Diagnostic
 
 class QueueFunctionResourceCreatorTest : AnnotationSpec() {
 
@@ -20,12 +28,17 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
     private lateinit var nimbusState: NimbusState
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
     private lateinit var compileStateService: CompileStateService
+    private lateinit var messager: Messager
+    private lateinit var resourceFinder: ResourceFinder
 
     @BeforeEach
     fun setup() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
+        messager = mockk(relaxed = true)
+        resourceFinder = mockk()
+
         compileStateService = CompileStateService("handlers/QueueHandlers.java")
         functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
     }
@@ -33,7 +46,9 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesQueueFunctionAnnotation() {
         compileStateService.compileObjects {
-            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, nimbusState, it)
+            every { resourceFinder.getQueueResource(any(), any(), any()) } returns QueueResource(nimbusState, "messageQueue", 10, "dev")
+
+            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
 
             val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = it.elementUtils.getTypeElement("handlers.QueueHandlers")
@@ -42,9 +57,29 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 6
+            resources.size() shouldBe 5
 
             results.size shouldBe 1
+
+            verify { messager wasNot Called }
+        }
+
+        compileStateService.status shouldBe Compilation.Status.SUCCESS
+    }
+
+    @Test
+    fun logsErrorWhenCannotFindQueue() {
+        compileStateService.compileObjects {
+            every { resourceFinder.getQueueResource(any(), any(), any()) } returns null
+
+            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
+
+            val results: MutableList<FunctionInformation> = mutableListOf()
+            val classElem = it.elementUtils.getTypeElement("handlers.QueueHandlers")
+            val funcElem = classElem.enclosedElements[1]
+            queueFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+
+            verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
         }
     }
 

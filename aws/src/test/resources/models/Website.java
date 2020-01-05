@@ -1,8 +1,8 @@
 package models;
 
-import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucket;
+import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition;
 
-@FileStorageBucket(
+@FileStorageBucketDefinition(
     bucketName = "website",
     staticWebsite = true
 )
