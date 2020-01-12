@@ -29,6 +29,8 @@ abstract class FunctionResourceCreator(
         annotatedElements.forEach { type -> handleElement(type, functionEnvironmentService, results) }
         annotatedElementsRepeatable.forEach { type -> handleElement(type, functionEnvironmentService, results) }
 
+        afterAllElements()
+
         return results
     }
 
@@ -48,4 +50,6 @@ abstract class FunctionResourceCreator(
 
         return MethodInformation(className, methodName, qualifiedName, parameters, returnType)
     }
+
+    open fun afterAllElements() {}
 }

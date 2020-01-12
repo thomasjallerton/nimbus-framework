@@ -76,7 +76,7 @@ import java.util.*;
         "com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition",
         "com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinitions"
 })
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedSourceVersion(SourceVersion.RELEASE_11)
 @AutoService(Processor.class)
 public class NimbusAnnotationProcessor extends AbstractProcessor {
 

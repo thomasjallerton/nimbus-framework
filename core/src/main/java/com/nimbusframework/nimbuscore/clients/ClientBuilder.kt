@@ -13,6 +13,7 @@ import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
 import com.nimbusframework.nimbuscore.clients.queue.QueueClient
 import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
+import java.net.URLClassLoader
 
 object ClientBuilder {
 
@@ -116,6 +117,11 @@ object ClientBuilder {
         } catch (e: NoClassDefFoundError) {
             EmptyBasicServerlessFunctionClient()
         }
+    }
+
+    @JvmStatic
+    fun <T> getBasicServerlessFunctionInterface(handlerClass: Class<T>): T {
+        return Class.forName(handlerClass.canonicalName + "Serverless").getDeclaredConstructor().newInstance() as T
     }
 
     @JvmStatic

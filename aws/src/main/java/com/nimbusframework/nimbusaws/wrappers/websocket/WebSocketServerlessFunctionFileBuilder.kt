@@ -116,7 +116,7 @@ class WebSocketServerlessFunctionFileBuilder(
 
                 out = PrintWriter(builderFile.openWriter())
 
-                val packageName = findPackageName(methodInformation.packageName)
+                val packageName = methodInformation.packageName
 
                 if (packageName != "") write("package $packageName;")
 
