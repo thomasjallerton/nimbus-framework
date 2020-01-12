@@ -25,9 +25,11 @@ abstract class ServerlessFunctionFileBuilder(
         inputType: Class<*>?,
         returnType: Class<*>?,
         private val nimbusState: NimbusState
-) {
+): FileBuilder() {
 
-    private val primitiveToBoxedMap = mapOf<String, String>(
+    private val messager: Messager = processingEnv.messager
+
+    private val primitiveToBoxedMap = mapOf(
             Pair("byte", "java.lang.Byte"),
             Pair("short", "java.lang.Short"),
             Pair("int", "java.lang.Integer"),
@@ -39,16 +41,10 @@ abstract class ServerlessFunctionFileBuilder(
             Pair("void", "java.lang.Void")
     )
 
-    private var tabLevel: Int = 0
-
     protected val eventCanonicalName: String = if (eventType != null) eventType.canonicalName else ""
     protected val eventSimpleName: String = if (eventType != null) eventType.simpleName else ""
 
-    protected var out: PrintWriter? = null
-
-    protected val params = findParamIndexes()
-
-    private val messager: Messager = processingEnv.messager
+    protected val params = findParamIndexes(methodInformation, eventCanonicalName)
 
     protected val voidMethodReturn = methodInformation.returnType.kind == TypeKind.NULL || methodInformation.returnType.kind == TypeKind.VOID
 
@@ -107,7 +103,7 @@ abstract class ServerlessFunctionFileBuilder(
 
     fun classFilePath(): String {
         val className = getGeneratedClassName()
-        val packageName = findPackageName(methodInformation.packageName)
+        val packageName = methodInformation.packageName
         val packagePath = packageName.replace(".", File.separator)
 
         return if (packageName.isEmpty()) {
@@ -133,9 +129,8 @@ abstract class ServerlessFunctionFileBuilder(
 
                 out = PrintWriter(builderFile.openWriter())
 
-                val packageName = findPackageName(methodInformation.packageName)
 
-                if (packageName != "") write("package $packageName;")
+                if (methodInformation.packageName != "") write("package ${methodInformation.packageName};")
 
                 writeImports()
 
@@ -155,6 +150,7 @@ abstract class ServerlessFunctionFileBuilder(
                 if (eventCanonicalName != "") {
                     write("import $eventCanonicalName;")
                 }
+
                 if (methodInformation.packageName.isNotBlank()) {
                     write("import ${methodInformation.packageName}.${methodInformation.className};")
                 }
@@ -223,24 +219,12 @@ abstract class ServerlessFunctionFileBuilder(
                 "${methodInformation.packageName}.${methodInformation.className}::${methodInformation.methodName}"
             }
         } else {
-            if (methodInformation.packageName.contains(".")) {
-                methodInformation.packageName.substringBeforeLast(".") + ".${getGeneratedClassName()}::handleRequest"
-            } else {
+            if (methodInformation.packageName == "") {
                 "${getGeneratedClassName()}::handleRequest"
+            } else {
+                methodInformation.packageName + ".${getGeneratedClassName()}::handleRequest"
             }
         }
-    }
-
-    protected fun write(toWrite: String = "") {
-        if (toWrite.startsWith("}")) tabLevel--
-
-        var tabs = ""
-        for (i in 1..tabLevel) {
-            tabs += "\t"
-        }
-        out?.println("$tabs$toWrite")
-
-        if (toWrite.endsWith("{")) tabLevel++
     }
 
     protected fun customFunction(): Boolean {
@@ -252,63 +236,6 @@ abstract class ServerlessFunctionFileBuilder(
         }
         return false
     }
-
-    private fun findParamIndexes(): FunctionParams {
-        val functionParams = FunctionParams()
-        for ((paramIndex, param) in methodInformation.parameters.withIndex()) {
-            if (param.toString() == eventCanonicalName) {
-                functionParams.eventParam = Param(param, paramIndex)
-            } else if (isAListType(param) && param.toString().contains(eventCanonicalName)) {
-                functionParams.eventParam = Param(param, paramIndex)
-            } else {
-                functionParams.inputParam = Param(param, paramIndex)
-            }
-        }
-        return functionParams
-    }
-
-
-    protected fun findPackageName(qualifiedName: String): String {
-        val lastDot = qualifiedName.lastIndexOf('.')
-        return if (lastDot > 0) {
-            qualifiedName.substring(0, lastDot)
-        } else {
-            ""
-        }
-    }
-
-    protected fun isAListType(type: TypeMirror): Boolean {
-        return type.toString().startsWith("java.util.List<")
-    }
-
-    protected fun findListType(list: TypeMirror): String {
-        return list.toString().substringAfter("<").substringBefore(">")
-    }
-
-    protected data class Param(val type: TypeMirror?, val index: Int) {
-        fun doesNotExist(): Boolean {
-            return type == null
-        }
-
-        fun exists(): Boolean {
-            return type != null
-        }
-
-        fun canonicalName(): String {
-            if (type?.kind == TypeKind.VOID) return "java.lang.Void"
-            return type?.toString() ?: "java.lang.Void"
-        }
-
-        fun simpleName(): String {
-            if (type?.kind == TypeKind.VOID) return "Void"
-            return type?.toString()?.substringAfterLast('.') ?: "Void"
-        }
-    }
-
-    protected data class FunctionParams(
-            var inputParam: Param = Param(null, -1),
-            var eventParam: Param = Param(null, -1)
-    )
 
     protected fun compilationError(msg: String) {
         messager.printMessage(Diagnostic.Kind.ERROR, msg, compilingElement)

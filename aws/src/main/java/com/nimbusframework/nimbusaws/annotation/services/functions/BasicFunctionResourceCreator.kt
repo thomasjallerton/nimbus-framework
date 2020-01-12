@@ -5,8 +5,10 @@ import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentServ
 import com.nimbusframework.nimbuscore.annotations.function.BasicServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.BasicServerlessFunctions
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
+import com.nimbusframework.nimbusaws.wrappers.basic.BasicFunctionClientBuilder
 import com.nimbusframework.nimbusaws.wrappers.basic.BasicServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import javax.annotation.processing.Messager
@@ -23,6 +25,8 @@ class BasicFunctionResourceCreator(
         BasicServerlessFunction::class.java,
         BasicServerlessFunctions::class.java
 ) {
+
+    private val methodsToProcess: MutableMap<Pair<String, String>, MutableSet<MethodInformation>> = mutableMapOf()
 
     override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
         val basicFunctions = type.getAnnotationsByType(BasicServerlessFunction::class.java)
@@ -41,6 +45,8 @@ class BasicFunctionResourceCreator(
 
         fileBuilder.createClass()
 
+        methodsToProcess.getOrPut(Pair(methodInformation.className, methodInformation.packageName)) {mutableSetOf()}.add(methodInformation)
+
         val handler = fileBuilder.getHandler()
 
         for (basicFunction in basicFunctions) {
@@ -51,7 +57,6 @@ class BasicFunctionResourceCreator(
                     stages = basicFunction.stages.toSet()
             )
             nimbusState.handlerFiles.add(handlerInformation)
-
 
             for (stage in basicFunction.stages) {
                 val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
@@ -73,6 +78,13 @@ class BasicFunctionResourceCreator(
 
                 results.add(FunctionInformation(type, functionResource))
             }
+        }
+    }
+
+    override fun afterAllElements() {
+        for (classToProcess in methodsToProcess) {
+            val classInformation = classToProcess.key
+            BasicFunctionClientBuilder(classInformation.first, classInformation.second, classToProcess.value, processingEnv).writeInterfaceClass()
         }
     }
 }

@@ -50,7 +50,7 @@ class FileStorageServerlessFunctionFileBuilder(
         write("return null;")
     }
 
-    override fun isValidFunction(functionParams: ServerlessFunctionFileBuilder.FunctionParams) {
+    override fun isValidFunction(functionParams: FunctionParams) {
         if (functionParams.inputParam.index != -1) {
             compilationError("FileStorageServerlessFunction cannot have a custom user type, only a maximum of one FileStorageEvent type")
         }
