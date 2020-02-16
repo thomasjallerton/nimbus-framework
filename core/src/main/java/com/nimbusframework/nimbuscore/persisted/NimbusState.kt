@@ -1,7 +1,11 @@
 package com.nimbusframework.nimbuscore.persisted
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class NimbusState(
         val projectName: String = "",
+        val cloudProvider: CloudProvider = CloudProvider.AWS,
         val compilationTimeStamp: String = "",
         val afterDeployments: MutableMap<String, MutableList<String>> = mutableMapOf(),
         //Stage -> Bucket -> LocalFile -> RemoteFile

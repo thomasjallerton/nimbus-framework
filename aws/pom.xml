@@ -8,7 +8,7 @@
   <packaging>jar</packaging>
 
   <name>nimbus-aws</name>
-  <description>AWS CloudFormation generation of nimbus annotations</description>
+  <description>AWS CloudFormation generation of nimbus annotations in Amazon Web Services</description>
   <url>https://www.nimbusframework.com</url>
 
 <parent>
@@ -79,16 +79,6 @@
       <artifactId>kotlin-test</artifactId>
       <version>${kotlin.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-yaml</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
@@ -223,13 +213,11 @@
       <version>${mockk.version}</version>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>org.jetbrains.kotlin</groupId>
-          <artifactId>kotlin-stdlib-jdk8</artifactId>
-          <version>${kotlin.version}</version>
-      </dependency>
-
-
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib-jdk8</artifactId>
+      <version>${kotlin.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

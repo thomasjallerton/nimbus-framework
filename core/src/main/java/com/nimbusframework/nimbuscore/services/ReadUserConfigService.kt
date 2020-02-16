@@ -3,7 +3,7 @@ package com.nimbusframework.nimbusaws.annotation.services
 import com.nimbusframework.nimbuscore.persisted.UserConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.nimbusframework.nimbusaws.configuration.CONFIG_FILE
+import com.nimbusframework.nimbuscore.CONFIG_FILE
 
 
 class ReadUserConfigService {

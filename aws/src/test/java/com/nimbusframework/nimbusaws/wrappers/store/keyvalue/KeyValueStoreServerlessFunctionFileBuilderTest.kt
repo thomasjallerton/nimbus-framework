@@ -1,11 +1,7 @@
 package com.nimbusframework.nimbusaws.wrappers.store.keyvalue
 
 import com.google.testing.compile.Compilation
-import com.google.testing.compile.Compiler.javac
-import com.google.testing.compile.JavaFileObjects
 import com.nimbusframework.nimbusaws.CompileStateService
-import com.nimbusframework.nimbusaws.annotation.processor.NimbusAnnotationProcessor
-import com.nimbusframework.nimbusaws.annotation.services.FileReader
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.AnnotationSpec
 
