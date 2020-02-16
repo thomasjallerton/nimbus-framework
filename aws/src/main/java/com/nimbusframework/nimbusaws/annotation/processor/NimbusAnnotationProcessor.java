@@ -31,6 +31,7 @@ import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
+import com.nimbusframework.nimbuscore.persisted.CloudProvider;
 import com.nimbusframework.nimbuscore.persisted.NimbusState;
 import com.nimbusframework.nimbuscore.persisted.UserConfig;
 
@@ -109,7 +110,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSzzz", Locale.US);
 
             String compilationTime = simpleDateFormat.format(cal.getTime());
-            nimbusState = new NimbusState(userConfig.getProjectName(), compilationTime, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashSet<>(), userConfig.getAssemble());
+            nimbusState = new NimbusState(userConfig.getProjectName(), CloudProvider.AWS, compilationTime, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashSet<>(), userConfig.getAssemble());
         }
 
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(

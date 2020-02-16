@@ -2,7 +2,6 @@ package com.nimbusframework.nimbusaws.wrappers.store.document
 
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
-import com.nimbusframework.nimbusaws.annotation.services.FileReader
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
 import io.kotlintest.specs.AnnotationSpec

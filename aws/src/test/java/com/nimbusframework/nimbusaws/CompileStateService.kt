@@ -6,13 +6,10 @@ import com.google.testing.compile.Compiler
 import com.google.testing.compile.JavaFileObjects
 import com.nimbusframework.nimbusaws.annotation.processor.NimbusAnnotationProcessor
 import com.nimbusframework.nimbusaws.annotation.services.FileReader
-import io.kotlintest.shouldBe
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.TypeElement
-import javax.lang.model.util.Elements
-import javax.lang.model.util.Types
 import javax.tools.Diagnostic
 import javax.tools.JavaFileObject
 
