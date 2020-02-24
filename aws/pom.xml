@@ -11,12 +11,11 @@
   <description>AWS CloudFormation generation of nimbus annotations in Amazon Web Services</description>
   <url>https://www.nimbusframework.com</url>
 
-<parent>
-    <groupId>com.nimbusframework</groupId>
-    <artifactId>nimbus-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-</parent>
-
+  <parent>
+      <groupId>com.nimbusframework</groupId>
+      <artifactId>nimbus-parent</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+  </parent>
 
   <developers>
     <developer>
@@ -53,10 +52,6 @@
       </url>
     </repository>
   </distributionManagement>
-
-
-  <properties>
-  </properties>
 
   <dependencies>
     <dependency>

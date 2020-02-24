@@ -3,6 +3,9 @@ package com.nimbusframework.nimbusaws.annotation.processor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
+import com.nimbusframework.nimbusaws.annotation.services.function.BasicFunctionResourceCreator;
+import com.nimbusframework.nimbusaws.arm.ArmFiles;
+import com.nimbusframework.nimbusaws.arm.ArmTemplate;
 import com.nimbusframework.nimbusaws.annotation.services.AzureResourceManagerTemplateWriter;
 import com.nimbusframework.nimbusaws.annotation.services.ReadUserConfigService;
 import com.nimbusframework.nimbuscore.persisted.CloudProvider;
@@ -61,7 +64,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
     private UserConfig userConfig;
 
-    //private Map<String, AzureResourceManagerTemplateWriter> cloudFormationFiles = new HashMap<>();
+    private Map<String, ArmFiles> armFilesPerStage = new HashMap<>();
 
     private Messager messager;
 
@@ -87,15 +90,19 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             nimbusState = new NimbusState(userConfig.getProjectName(), CloudProvider.AZURE, compilationTime, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashSet<>(), userConfig.getAssemble());
         }
 
+        BasicFunctionResourceCreator basicFunctionResourceCreator = new BasicFunctionResourceCreator(armFilesPerStage, nimbusState);
+
+        basicFunctionResourceCreator.handle(roundEnv);
+
         if (roundEnv.processingOver()) {
 
-//            for (Map.Entry<String, CloudFormationFiles> entry : cloudFormationFiles.entrySet()) {
-//                String stage = entry.getKey();
-//                CloudFormationFiles cloudFormationFiles= entry.getValue();
-//
-//                cloudformationWriter.saveTemplate("cloudformation-stack-update-" + stage, cloudFormationFiles.getUpdateTemplate());
-//                cloudformationWriter.saveTemplate("cloudformation-stack-create-" + stage, cloudFormationFiles.getCreateTemplate());
-//            }
+            for (Map.Entry<String, ArmFiles> entry : armFilesPerStage.entrySet()) {
+                String stage = entry.getKey();
+                ArmFiles armFiles= entry.getValue();
+
+                azureResourceManagerTemplateWriter.saveTemplate("arm-template-create-" + stage, armFiles.getCreateTemplate());
+                azureResourceManagerTemplateWriter.saveTemplate("arm-template-update-" + stage, armFiles.getUpdateTemplate());
+            }
 
             ObjectMapper mapper = new ObjectMapper();
             try {
