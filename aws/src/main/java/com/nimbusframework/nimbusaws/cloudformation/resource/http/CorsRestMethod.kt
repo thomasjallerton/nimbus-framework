@@ -61,8 +61,8 @@ class CorsRestMethod (
 
 
         val responseParameters = JsonObject()
-        val method = allowedMethods.reduce {acc, item -> "$acc,$item"}
-        responseParameters.addProperty("method.response.header.Access-Control-Allow-Method", "'$method'")
+        val methods = allowedMethods.reduce { acc, item -> "$acc,$item"}
+        responseParameters.addProperty("method.response.header.Access-Control-Allow-Methods", "'$methods'")
 
         var strAllowedHeaders = "origin,content-type"
         this.allowedHeaders.forEach { strAllowedHeaders += ",$it" }
@@ -98,7 +98,7 @@ class CorsRestMethod (
 
         val responseParametersMethod = JsonObject()
         responseParametersMethod.addProperty("method.response.header.Access-Control-Allow-Headers", true)
-        responseParametersMethod.addProperty("method.response.header.Access-Control-Allow-Method", true)
+        responseParametersMethod.addProperty("method.response.header.Access-Control-Allow-Methods", true)
         responseParametersMethod.addProperty("method.response.header.Access-Control-Allow-Origin", true)
 
         methodResponse.add("ResponseParameters", responseParametersMethod)
