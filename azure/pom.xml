@@ -241,9 +241,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <release>${java.version}</release>
-                </configuration>
             </plugin>
 
 
