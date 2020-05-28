@@ -26,6 +26,18 @@ jobs:
         # The Java version to make available on the path. Takes a whole or semver Java version, or 1.x syntax (e.g. 1.8 => Java 8.x)
         java-version: 1.11
         
-    # Runs a single command using the runners shell
-    - name: Run a one-line script
-      run: echo Hello, world!
+    - name: Release
+      uses: qcastel/github-actions-maven-release@master
+      with:
+        maven-repo-server-id: ossrh
+        maven-repo-server-username: thomasjallerton
+        maven-repo-server-password: ${{ secrets.REPO_PASSWORD }}
+
+        gpg-enabled: "true"
+        gpg-key-id: ${{ secrets.GPG_KEY_ID }}
+        gpg-key: ${{ secrets.GPG_KEY }}
+
+        git-release-bot-name: "nimbusdeploybot"
+        git-release-bot-email: "nimbusdeploybot@gmail.com"
+
+        access-token: ${{ secrets.BOT_REPO_ACCESS_TOKEN }}
