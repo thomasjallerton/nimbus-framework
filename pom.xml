@@ -4,7 +4,7 @@
 
     <groupId>com.nimbusframework</groupId>
     <artifactId>nimbus-parent</artifactId>
-    <version>0.13.1-SNAPSHOT</version>
+    <version>0.13.1</version>
     <packaging>pom</packaging>
 
     <name>nimbus-parent</name>
@@ -32,7 +32,7 @@
         <connection>scm:git:git://github.com/thomasjallerton/nimbus-core.git</connection>
         <developerConnection>scm:git:ssh://github.com:thomasjallerton/nimbus-core.git</developerConnection>
         <url>http://github.com/thomasjallerton/nimbus-core/tree/master</url>
-        <tag>HEAD</tag>
+        <tag>nimbus-parent-0.13.1</tag>
     </scm>
 
     <distributionManagement>
