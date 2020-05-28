@@ -35,11 +35,14 @@ jobs:
       uses: actions/github-script@0.9.0
       with:
         script: |
-          const version = "${{ steps.snapshotversion.version }}".split('-')[0]
+          const version = "${{ steps.snapshotversion.outputs.version }}".split('-')[0]
           core.setOutput('version', version)
           
+    - name: Debug Action
+      uses: hmarr/debug-action@v1.0.0
+
     - name: Set release version
-      run: echo $(mvn versions:set -DnewVersion=${{ steps.version.version }})
+      run: echo $(mvn versions:set -DnewVersion=${{ steps.version.outputs.version }})
     
     - name: Git Commit and Push
       uses: github-actions-x/commit@v2.6
