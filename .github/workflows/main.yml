@@ -45,7 +45,7 @@ jobs:
       uses: github-actions-x/commit@v2.6
       with:
         # Github Token with commit access
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
         email: nimbusdeploybot@gmail.com
         user: nimbusdeploybot
     
