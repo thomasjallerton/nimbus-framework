@@ -17,42 +17,6 @@
         <version>0.13-SNAPSHOT</version>
     </parent>
 
-    <developers>
-        <developer>
-            <name>Thomas Allerton</name>
-            <email>thomasjallerton@gmail.com</email>
-            <organization>Nimbus</organization>
-            <organizationUrl>https://www.nimbusframework.com</organizationUrl>
-        </developer>
-    </developers>
-
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <scm>
-        <connection>scm:git:git://github.com/thomasjallerton/nimbus-core.git</connection>
-        <developerConnection>scm:git:ssh://github.com:thomasjallerton/nimbus-core.git</developerConnection>
-        <url>http://github.com/thomasjallerton/nimbus-core/tree/master</url>
-        <tag>HEAD</tag>
-    </scm>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/
-            </url>
-        </repository>
-    </distributionManagement>
-
     <dependencies>
         <dependency>
             <groupId>com.nimbusframework</groupId>
