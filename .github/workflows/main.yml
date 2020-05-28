@@ -44,13 +44,14 @@ jobs:
     - name: Set release version
       run: echo $(mvn versions:set -DnewVersion=${{ steps.version.outputs.version }})
     
-    - name: Git Commit and Push
+    - name: Commit release version
       uses: github-actions-x/commit@v2.6
       with:
-        # Github Token with commit access
+        push-branch: master
         github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
         email: nimbusdeploybot@gmail.com
         user: nimbusdeploybot
+        commit-message: Prepare release version
     
     - name: Release Maven package
       uses: samuelmeuli/action-maven-publish@v1
@@ -59,3 +60,15 @@ jobs:
         gpg_passphrase: ${{ secrets.GPG_PASSWORD }}
         nexus_username: thomasjallerton
         nexus_password: ${{ secrets.REPO_PASSWORD }}
+        
+    - name: Move to new snapshot version
+      run: echo $(mvn -B release:update-versions )
+      
+    - name: Prepare for next development cycle
+      uses: github-actions-x/commit@v2.6
+      with:
+        push-branch: master
+        github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        email: nimbusdeploybot@gmail.com
+        user: nimbusdeploybot
+        commit-message: prepare for next development cycle
