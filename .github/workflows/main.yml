@@ -25,7 +25,30 @@ jobs:
       with:
         # The Java version to make available on the path. Takes a whole or semver Java version, or 1.x syntax (e.g. 1.8 => Java 8.x)
         java-version: 1.11
-        
+      
+    - name: Get Snapshot Version
+      id: snapshotversion
+      run: echo ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+    
+    - name: Get release version
+      id: version
+      uses: actions/github-script@0.9.0
+      with:
+        script: |
+          const version = steps.snapshotversion.version.split('-')[0]
+          core.setOutput('version', version)
+          
+    - name: Set release version
+      run: echo $(mvn versions:set -DnewVersion=${{ steps.version.version }})
+    
+    - name: Git Commit and Push
+      uses: github-actions-x/commit@v2.6
+      with:
+        # Github Token with commit access
+        github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        email: nimbusdeploybot@gmail.com
+        user: nimbusdeploybot
+    
     - name: Release Maven package
       uses: samuelmeuli/action-maven-publish@v1
       with:
