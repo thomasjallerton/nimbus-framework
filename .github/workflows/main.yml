@@ -35,7 +35,7 @@ jobs:
       uses: actions/github-script@0.9.0
       with:
         script: |
-          const version = steps.snapshotversion.version.split('-')[0]
+          const version = "${{ steps.snapshotversion.version }}".split('-')[0]
           core.setOutput('version', version)
           
     - name: Set release version
