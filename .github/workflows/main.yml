@@ -40,9 +40,6 @@ jobs:
         script: |
           const version = "${{ steps.snapshotversion.outputs.version }}".split('-')[0]
           core.setOutput('version', version)
-          
-    - name: Debug Action
-      uses: hmarr/debug-action@v1.0.0
 
     - name: Set release version
       run: echo $(mvn versions:set -DnewVersion=${{ steps.version.outputs.version }})
@@ -52,7 +49,8 @@ jobs:
       with:
         branch: master
         tagging_message: '${{ steps.version.outputs.version }}'
-        commit_message: Prepare release version
+        file_pattern: pom.xml *pom.xml
+        commit_message: release version
     
     - name: Release Maven package
       uses: samuelmeuli/action-maven-publish@v1
