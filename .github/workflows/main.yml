@@ -50,7 +50,6 @@ jobs:
         branch: master
         file_pattern: pom.xml aws/pom.xml core/pom.xml
         tagging_message: '${{ steps.version.outputs.version }}'
-        file_pattern: pom.xml *pom.xml
         commit_message: release version
     
     - name: Release Maven package
