@@ -52,6 +52,7 @@ jobs:
         email: nimbusdeploybot@gmail.com
         user: nimbusdeploybot
         commit-message: Prepare release version
+        rebase: true
     
     - name: Release Maven package
       uses: samuelmeuli/action-maven-publish@v1
@@ -72,3 +73,4 @@ jobs:
         email: nimbusdeploybot@gmail.com
         user: nimbusdeploybot
         commit-message: prepare for next development cycle
+        rebase: true
