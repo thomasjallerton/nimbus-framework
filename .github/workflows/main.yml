@@ -19,6 +19,8 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.head_ref }}
       
     - name: Setup Java JDK
       uses: actions/setup-java@v1.3.0
@@ -45,14 +47,11 @@ jobs:
       run: echo $(mvn versions:set -DnewVersion=${{ steps.version.outputs.version }})
     
     - name: Commit release version
-      uses: github-actions-x/commit@v2.6
+      uses: stefanzweifel/git-auto-commit-action@v4.3.0
       with:
-        push-branch: master
-        github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
-        email: nimbusdeploybot@gmail.com
-        user: nimbusdeploybot
-        commit-message: Prepare release version
-        rebase: true
+        branch: master
+        tagging_message: '${{ steps.version.outputs.version }}'
+        commit_message: Prepare release version
     
     - name: Release Maven package
       uses: samuelmeuli/action-maven-publish@v1
@@ -65,12 +64,8 @@ jobs:
     - name: Move to new snapshot version
       run: echo $(mvn -B release:update-versions )
       
-    - name: Prepare for next development cycle
-      uses: github-actions-x/commit@v2.6
+    - name: Commit release version
+      uses: stefanzweifel/git-auto-commit-action@v4.3.0
       with:
-        push-branch: master
-        github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
-        email: nimbusdeploybot@gmail.com
-        user: nimbusdeploybot
-        commit-message: prepare for next development cycle
-        rebase: true
+        branch: master
+        commit_message: prepare for next development cycle
