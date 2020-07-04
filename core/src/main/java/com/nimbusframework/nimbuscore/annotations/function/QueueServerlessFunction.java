@@ -1,6 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.function;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.QueueServerlessFunctions;
 
 import java.lang.annotation.*;
@@ -13,5 +12,5 @@ public @interface QueueServerlessFunction {
     int batchSize();
     int timeout() default 10;
     int memory() default 1024;
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }

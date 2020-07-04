@@ -1,13 +1,13 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
-import com.nimbusframework.nimbuscore.annotations.function.DocumentStoreServerlessFunction
-import com.nimbusframework.nimbuscore.annotations.function.repeatable.DocumentStoreServerlessFunctions
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.store.document.DocumentStoreServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.function.DocumentStoreServerlessFunction
+import com.nimbusframework.nimbuscore.annotations.function.repeatable.DocumentStoreServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.DocumentStoreServerlessFunctionAnnotation
@@ -40,6 +40,8 @@ class DocumentStoreFunctionResourceCreator(
 
 
         for (documentStoreFunction in documentStoreFunctions) {
+            val stages = stageService.determineStages(documentStoreFunction.stages)
+
             val dataModelAnnotation = DocumentStoreServerlessFunctionAnnotation(documentStoreFunction)
 
             if (!fileWritten) {
@@ -59,14 +61,12 @@ class DocumentStoreFunctionResourceCreator(
                         handlerClassPath = fileBuilder.classFilePath(),
                         handlerFile = fileBuilder.handlerFile(),
                         replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                        stages = documentStoreFunction.stages.toSet()
+                        stages = stages
                 )
                 nimbusState.handlerFiles.add(handlerInformation)
-
-
             }
 
-            for (stage in documentStoreFunction.stages) {
+            for (stage in stages) {
                 val config = FunctionConfig(documentStoreFunction.timeout, documentStoreFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(
                         handler,

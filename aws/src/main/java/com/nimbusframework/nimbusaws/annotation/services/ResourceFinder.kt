@@ -25,13 +25,14 @@ import javax.tools.Diagnostic
 class ResourceFinder(private val resourceCollections: Map<String, CloudFormationFiles>, private val processingEnv: ProcessingEnvironment, private val nimbusState: NimbusState) {
 
     private val messager = processingEnv.messager
+    private val stageServive = StageService(nimbusState.defaultStages)
 
     fun getDocumentStoreResource(dataModelAnnotation: DataModelAnnotation, serverlessMethod: Element, dataModelStage: String): Resource? {
         try {
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val documentStores = typeElement.getAnnotationsByType(DocumentStoreDefinition::class.java)
             for (documentStore in documentStores) {
-                for (stage in documentStore.stages) {
+                for (stage in stageServive.determineStages(documentStore.stages)) {
                     if (stage == dataModelStage) {
                         return getStoreResource("", documentStore.tableName, typeElement.simpleName.toString(), dataModelStage)
                     }
@@ -39,7 +40,7 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
             }
             val dynamoStores = typeElement.getAnnotationsByType(DynamoDbDocumentStore::class.java)
             for (dynamoStore in dynamoStores) {
-                for (stage in dynamoStore.stages) {
+                for (stage in stageServive.determineStages(dynamoStore.stages)) {
                     if (stage == dataModelStage) {
                         return getStoreResource(dynamoStore.existingArn, dynamoStore.tableName, typeElement.simpleName.toString(), dataModelStage)
                     }
@@ -58,17 +59,17 @@ class ResourceFinder(private val resourceCollections: Map<String, CloudFormation
             val typeElement = dataModelAnnotation.getTypeElement(processingEnv)
             val keyValueStores = typeElement.getAnnotationsByType(KeyValueStoreDefinition::class.java)
             for (keyValueStore in keyValueStores) {
-                for (stage in keyValueStore.stages) {
+                for (stage in stageServive.determineStages(keyValueStore.stages)) {
                     if (stage == dataModelStage) {
                         return getStoreResource("", keyValueStore.tableName, typeElement.simpleName.toString(), dataModelStage)
                     }
                 }
             }
             val dynamoDbKeyValueStores = typeElement.getAnnotationsByType(DynamoDbKeyValueStore::class.java)
-            for (keyValueStore in dynamoDbKeyValueStores) {
-                for (stage in keyValueStore.stages) {
+            for (dynamoDbKeyValueStore in dynamoDbKeyValueStores) {
+                for (stage in stageServive.determineStages(dynamoDbKeyValueStore.stages)) {
                     if (stage == dataModelStage) {
-                        return getStoreResource(keyValueStore.existingArn, keyValueStore.tableName, typeElement.simpleName.toString(), dataModelStage)
+                        return getStoreResource(dynamoDbKeyValueStore.existingArn, dynamoDbKeyValueStore.tableName, typeElement.simpleName.toString(), dataModelStage)
                     }
                 }
             }

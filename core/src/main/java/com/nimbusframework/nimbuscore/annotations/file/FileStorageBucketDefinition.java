@@ -1,7 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.file;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
-
 import java.lang.annotation.*;
 
 @Target(ElementType.TYPE)
@@ -13,5 +11,5 @@ public @interface FileStorageBucketDefinition {
     String[] allowedCorsOrigins() default {};
     String indexFile() default "index.html";
     String errorFile() default "error.html";
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }

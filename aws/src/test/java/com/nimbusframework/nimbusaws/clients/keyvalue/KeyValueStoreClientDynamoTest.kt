@@ -3,14 +3,11 @@ package com.nimbusframework.nimbusaws.clients.keyvalue
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
-import com.nimbusframework.nimbusaws.clients.document.DocumentStoreClientDynamo
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
-import com.nimbusframework.nimbusaws.examples.DocumentStoreNoTableName
-import com.nimbusframework.nimbusaws.examples.KeyValueStoreNoTableName
+import com.nimbusframework.nimbusaws.examples.keyvalue.KeyValueStoreNoTableName
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
-import io.kotlintest.matchers.collections.shouldContain
 import io.kotlintest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotlintest.specs.AnnotationSpec
 import io.kotlintest.shouldBe
@@ -41,7 +38,7 @@ class KeyValueStoreClientDynamoTest : AnnotationSpec() {
         dynamoClient = mockk(relaxed = true)
         every { dynamoClient.toAttributeValue("key") } returns AttributeValue("key")
 
-        every { dynamoFactory.create("tableName", "com.nimbusframework.nimbusaws.examples.KeyValueStoreNoTableName", any()) } returns dynamoClient
+        every { dynamoFactory.create("tableName", "com.nimbusframework.nimbusaws.examples.keyvalue.KeyValueStoreNoTableName", any()) } returns dynamoClient
 
         underTest = KeyValueStoreClientDynamo(String::class.java, KeyValueStoreNoTableName::class.java, "dev", "PrimaryKey", "tableName", String::class.java)
         val injector = Guice.createInjector(object: AbstractModule() {

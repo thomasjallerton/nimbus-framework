@@ -7,14 +7,15 @@ object QueueIdAnnotationService {
 
     fun getQueueId(clazz: Class<*>, stage: String): String {
         val queueAnnotations = clazz.getDeclaredAnnotationsByType(QueueDefinition::class.java)
+        // Attempt to find specific annotation for this stage. If none exist then there is one annotation that has no stage (so uses the defaults)
         for (queue in queueAnnotations) {
-            for (annotationStage in queue.stages) {
-                if (annotationStage == stage) {
-                    return queue.queueId
-                }
+            if (queue.stages.contains(stage)) {
+                return queue.queueId
             }
         }
-        throw InvalidStageException()
+        val queue = queueAnnotations.firstOrNull { it.stages.isEmpty() } ?: throw InvalidStageException()
+        return queue.queueId
     }
+
 
 }

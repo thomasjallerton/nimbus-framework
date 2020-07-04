@@ -67,4 +67,5 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@v4.3.0
       with:
         branch: master
+        file_pattern: pom.xml aws/pom.xml core/pom.xml
         commit_message: prepare for next development cycle

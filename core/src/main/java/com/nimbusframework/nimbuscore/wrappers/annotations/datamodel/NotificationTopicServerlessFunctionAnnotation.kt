@@ -4,8 +4,6 @@ import com.nimbusframework.nimbuscore.annotations.function.NotificationServerles
 
 class NotificationTopicServerlessFunctionAnnotation(private val notificationTopicFunctionAnnotation: NotificationServerlessFunction): DataModelAnnotation() {
 
-    override val stages = notificationTopicFunctionAnnotation.stages
-
     override fun internalDataModel(): Class<out Any> {
         return notificationTopicFunctionAnnotation.notificationTopic.java
     }

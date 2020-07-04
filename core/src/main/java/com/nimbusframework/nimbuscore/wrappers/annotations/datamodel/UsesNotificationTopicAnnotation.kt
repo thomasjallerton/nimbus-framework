@@ -4,8 +4,6 @@ import com.nimbusframework.nimbuscore.annotations.notification.UsesNotificationT
 
 class UsesNotificationTopicAnnotation(private val notificationTopicAnnotation: UsesNotificationTopic): DataModelAnnotation() {
 
-    override val stages = notificationTopicAnnotation.stages
-
     override fun internalDataModel(): Class<out Any> {
         return notificationTopicAnnotation.notificationTopic.java
     }

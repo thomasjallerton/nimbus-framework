@@ -2,16 +2,15 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbuscore.annotations.function.BasicServerlessFunction
-import com.nimbusframework.nimbuscore.annotations.function.repeatable.BasicServerlessFunctions
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.basic.BasicFunctionClientBuilder
 import com.nimbusframework.nimbusaws.wrappers.basic.BasicServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.function.BasicServerlessFunction
+import com.nimbusframework.nimbuscore.annotations.function.repeatable.BasicServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import javax.annotation.processing.Messager
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
@@ -50,15 +49,17 @@ class BasicFunctionResourceCreator(
         val handler = fileBuilder.getHandler()
 
         for (basicFunction in basicFunctions) {
+            val stages = stageService.determineStages(basicFunction.stages)
+
             val handlerInformation = HandlerInformation(
                     handlerClassPath = fileBuilder.classFilePath(),
                     handlerFile = fileBuilder.handlerFile(),
                     replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                    stages = basicFunction.stages.toSet()
+                    stages = stages
             )
             nimbusState.handlerFiles.add(handlerInformation)
 
-            for (stage in basicFunction.stages) {
+            for (stage in stages) {
                 val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
                 val updateResources = cloudFormationDocuments.updateTemplate.resources
 

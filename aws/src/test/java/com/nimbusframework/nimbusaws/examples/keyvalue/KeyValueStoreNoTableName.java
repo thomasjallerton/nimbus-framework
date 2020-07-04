@@ -1,10 +1,10 @@
-package com.nimbusframework.nimbusaws.examples;
+package com.nimbusframework.nimbusaws.examples.keyvalue;
 
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore;
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute;
 import java.util.Objects;
 
-@DynamoDbKeyValueStore(keyType = Integer.class)
+@DynamoDbKeyValueStore(keyType = Integer.class, stages = {"dev"})
 public class KeyValueStoreNoTableName {
 
   @Attribute

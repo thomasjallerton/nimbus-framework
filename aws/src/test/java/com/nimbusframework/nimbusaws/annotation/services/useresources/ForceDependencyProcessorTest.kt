@@ -32,7 +32,7 @@ class ForceDependencyProcessorTest: AnnotationSpec() {
 
         compileState = CompileStateService("handlers/ForceDependencyHandler.java")
 
-        forceDependencyProcessor = ForceDependencyProcessor()
+        forceDependencyProcessor = ForceDependencyProcessor(nimbusState)
     }
 
     @Test

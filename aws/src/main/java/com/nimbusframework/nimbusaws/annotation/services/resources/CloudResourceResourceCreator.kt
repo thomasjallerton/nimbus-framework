@@ -1,17 +1,22 @@
 package com.nimbusframework.nimbusaws.annotation.services.resources
 
+import com.nimbusframework.nimbusaws.annotation.services.StageService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 
 abstract class CloudResourceResourceCreator(
         private val roundEnvironment: RoundEnvironment,
         protected val cfDocuments: MutableMap<String, CloudFormationFiles>,
+        protected val nimbusState: NimbusState,
         private val singleAgnosticClass: Class<out Annotation>,
         private val repeatableAgnosticClass: Class<out Annotation>,
         private val singleSpecificClass: Class<out Annotation>? = null,
         private val repeatableSpecificClass: Class<out Annotation>? = null
 ) {
+
+    protected val stageService = StageService(nimbusState.defaultStages)
 
     fun create() {
         val annotatedElements = roundEnvironment.getElementsAnnotatedWith(singleAgnosticClass)

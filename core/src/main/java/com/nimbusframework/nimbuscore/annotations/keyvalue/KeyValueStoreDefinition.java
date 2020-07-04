@@ -1,7 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.keyvalue;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
-
 import java.lang.annotation.*;
 
 @Target(ElementType.TYPE)
@@ -11,5 +9,5 @@ public @interface KeyValueStoreDefinition {
     String tableName() default "";
     Class<?> keyType();
     String keyName() default "PrimaryKey";
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }

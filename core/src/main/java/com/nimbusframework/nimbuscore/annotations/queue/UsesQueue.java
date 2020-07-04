@@ -1,7 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.queue;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
-
 import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
@@ -9,5 +7,5 @@ import java.lang.annotation.*;
 @Repeatable(UsesQueues.class)
 public @interface UsesQueue {
     Class<?> queue();
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }

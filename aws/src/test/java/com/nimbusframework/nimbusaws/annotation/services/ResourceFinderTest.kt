@@ -11,6 +11,7 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResour
 import com.nimbusframework.nimbusaws.cloudformation.resource.ec2.SecurityGroupResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.ec2.Subnet
 import com.nimbusframework.nimbusaws.cloudformation.resource.ec2.Vpc
+import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseSize
 import com.nimbusframework.nimbuscore.annotations.function.DocumentStoreServerlessFunction
@@ -28,7 +29,7 @@ import javax.lang.model.util.Elements
 
 class ResourceFinderTest : AnnotationSpec() {
 
-    private val stage: String = "dev"
+    private val stage: String = NimbusConstants.stage
     private lateinit var resourceFinder: ResourceFinder
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
@@ -63,7 +64,7 @@ class ResourceFinderTest : AnnotationSpec() {
             cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
             cfDocuments[stage] = cloudFormationFiles
 
-            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.Document"), arrayOf(stage))
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.Document"))
 
             val foundResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
 
@@ -82,7 +83,7 @@ class ResourceFinderTest : AnnotationSpec() {
             cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
             cfDocuments[stage] = cloudFormationFiles
 
-            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.DynamoDbDocument"), arrayOf(stage))
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.DynamoDbDocument"))
 
             val foundResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
 
@@ -101,7 +102,7 @@ class ResourceFinderTest : AnnotationSpec() {
             cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
             cfDocuments[stage] = cloudFormationFiles
 
-            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.KeyValue"), arrayOf(stage))
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.KeyValue"))
 
             val foundResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
 
@@ -121,7 +122,7 @@ class ResourceFinderTest : AnnotationSpec() {
             cloudFormationFiles.updateTemplate.resources.addResource(dynamoResource)
             cfDocuments[stage] = cloudFormationFiles
 
-            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.DynamoDbKeyValue"), arrayOf(stage))
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.DynamoDbKeyValue"))
 
             val foundResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, methodElement, stage) as DynamoResource
 
@@ -141,7 +142,7 @@ class ResourceFinderTest : AnnotationSpec() {
             cloudFormationFiles.updateTemplate.resources.addResource(rdsResource)
             cfDocuments[stage] = cloudFormationFiles
 
-            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.RelationalDatabaseModel"), arrayOf(stage))
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.RelationalDatabaseModel"))
 
             val foundResource = resourceFinder.getRelationalDatabaseResource(dataModelAnnotation, methodElement, stage) as RdsResource
 
@@ -162,7 +163,7 @@ class ResourceFinderTest : AnnotationSpec() {
             cloudFormationFiles.updateTemplate.resources.addResource(rdsResource)
             cfDocuments[stage] = cloudFormationFiles
 
-            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.RdsDatabaseModel"), arrayOf(stage))
+            val dataModelAnnotation = TestDataModelAnnotation(it.elementUtils.getTypeElement("models.RdsDatabaseModel"))
 
             val foundResource = resourceFinder.getRelationalDatabaseResource(dataModelAnnotation, methodElement, stage) as RdsResource
 

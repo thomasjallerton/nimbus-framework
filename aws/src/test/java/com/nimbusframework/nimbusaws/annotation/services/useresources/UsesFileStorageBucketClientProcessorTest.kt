@@ -51,7 +51,7 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
 
         functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesFileStorageClientHandlerfuncFunction") as FunctionResource
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleageClientHandlerfunc") as IamRoleResource
-        usesFileStorageClientProcessor = UsesFileStorageClientProcessor(cfDocuments, messager, resourceFinder)
+        usesFileStorageClientProcessor = UsesFileStorageClientProcessor(cfDocuments, messager, resourceFinder, nimbusState)
 
         toRun()
     }

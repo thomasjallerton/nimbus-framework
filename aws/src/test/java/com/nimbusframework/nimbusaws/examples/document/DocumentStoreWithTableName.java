@@ -1,10 +1,10 @@
-package com.nimbusframework.nimbuscore.examples;
+package com.nimbusframework.nimbusaws.examples.document;
 
-import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefinition;
+import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore;
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute;
 import com.nimbusframework.nimbuscore.annotations.persistent.Key;
 
-@DocumentStoreDefinition(tableName = "test")
+@DynamoDbDocumentStore(tableName = "test")
 public class DocumentStoreWithTableName {
 
   @Key

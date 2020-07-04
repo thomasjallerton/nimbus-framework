@@ -1,3 +1,5 @@
 package com.nimbusframework.nimbuscore.exceptions
 
-open class NonRetryableException(message: String): Exception("The transaction cannot be retried due to $message")
+import java.lang.RuntimeException
+
+open class NonRetryableException(message: String): RuntimeException("The transaction cannot be retried due to $message")

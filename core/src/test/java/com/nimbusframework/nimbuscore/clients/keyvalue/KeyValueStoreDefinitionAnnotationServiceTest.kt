@@ -1,7 +1,8 @@
 package com.nimbusframework.nimbuscore.clients.keyvalue
 
-import com.nimbusframework.nimbuscore.examples.KeyValueStoreNoTableName
-import com.nimbusframework.nimbuscore.examples.KeyValueStoreWithTableName
+import com.nimbusframework.nimbuscore.examples.keyvalue.KeyValueStoreNoTableName
+import com.nimbusframework.nimbuscore.examples.keyvalue.KeyValueStoreNoTableNameNoStage
+import com.nimbusframework.nimbuscore.examples.keyvalue.KeyValueStoreWithTableName
 import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
 import io.kotlintest.specs.AnnotationSpec
 import io.kotlintest.shouldBe
@@ -12,6 +13,12 @@ class KeyValueStoreDefinitionAnnotationServiceTest : AnnotationSpec() {
     fun correctlyGetsNameWhenNoneSet() {
         val tableName = KeyValueStoreAnnotationService.getTableName(KeyValueStoreNoTableName::class.java, "dev")
         tableName shouldBe "KeyValueStoreNoTableNamedev"
+    }
+
+    @Test
+    fun correctlyGetsNameWhenNoStageSet() {
+        val tableName = KeyValueStoreAnnotationService.getTableName(KeyValueStoreNoTableNameNoStage::class.java, "dev")
+        tableName shouldBe "KeyValueStoreNoTableNameNoStagedev"
     }
 
     @Test
@@ -27,12 +34,19 @@ class KeyValueStoreDefinitionAnnotationServiceTest : AnnotationSpec() {
 
     @Test(expected = InvalidStageException::class)
     fun throwsExceptionWhenWrongStageWhenFetchingNameAndType() {
-        KeyValueStoreAnnotationService.getTableName(KeyValueStoreNoTableName::class.java, "prod")
+        KeyValueStoreAnnotationService.getKeyNameAndType(KeyValueStoreNoTableName::class.java, "prod")
     }
 
     @Test
     fun correctlyGetsKeyNameAndKeyType() {
         val keyNameAndType = KeyValueStoreAnnotationService.getKeyNameAndType(KeyValueStoreNoTableName::class.java, "dev")
+        keyNameAndType.first shouldBe "PrimaryKey"
+        keyNameAndType.second shouldBe java.lang.Integer::class.java
+    }
+
+    @Test
+    fun correctlyGetsKeyNameAndKeyTypeWhenNoStageSet() {
+        val keyNameAndType = KeyValueStoreAnnotationService.getKeyNameAndType(KeyValueStoreNoTableNameNoStage::class.java, "dev")
         keyNameAndType.first shouldBe "PrimaryKey"
         keyNameAndType.second shouldBe java.lang.Integer::class.java
     }

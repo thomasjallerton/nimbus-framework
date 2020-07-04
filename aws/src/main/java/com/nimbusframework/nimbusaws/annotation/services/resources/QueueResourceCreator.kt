@@ -1,7 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.services.resources
 
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.resource.notification.SnsTopicResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.queue.QueueResource
 import com.nimbusframework.nimbuscore.annotations.queue.QueueDefinition
 import com.nimbusframework.nimbuscore.annotations.queue.QueueDefinitions
@@ -12,10 +11,11 @@ import javax.lang.model.element.Element
 class QueueResourceCreator(
         roundEnvironment: RoundEnvironment,
         cfDocuments: MutableMap<String, CloudFormationFiles>,
-        private val nimbusState: NimbusState
+        nimbusState: NimbusState
 ): CloudResourceResourceCreator(
         roundEnvironment,
         cfDocuments,
+        nimbusState,
         QueueDefinition::class.java,
         QueueDefinitions::class.java
 ) {
@@ -24,7 +24,7 @@ class QueueResourceCreator(
         val queues = type.getAnnotationsByType(QueueDefinition::class.java)
 
         for (queue in queues) {
-            for (stage in queue.stages) {
+            for (stage in stageService.determineStages(queue.stages)) {
                 val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
                 val updateResources = cloudFormationDocuments.updateTemplate.resources
 

@@ -1,6 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.function;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.DocumentStoreServerlessFunctions;
 import com.nimbusframework.nimbuscore.annotations.persistent.StoreEventType;
 
@@ -14,5 +13,5 @@ public @interface DocumentStoreServerlessFunction {
     StoreEventType method();
     int timeout() default 10;
     int memory() default 1024;
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }
