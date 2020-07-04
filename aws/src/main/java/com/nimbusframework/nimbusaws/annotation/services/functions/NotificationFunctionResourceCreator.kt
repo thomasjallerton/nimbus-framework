@@ -1,17 +1,16 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
-import com.nimbusframework.nimbuscore.annotations.function.NotificationServerlessFunction
-import com.nimbusframework.nimbuscore.annotations.function.repeatable.NotificationServerlessFunctions
-import com.nimbusframework.nimbuscore.persisted.NimbusState
-import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionPermissionResource
-import com.nimbusframework.nimbusaws.cloudformation.resource.notification.SnsTopicResource
 import com.nimbusframework.nimbusaws.wrappers.notification.NotificationServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.function.NotificationServerlessFunction
+import com.nimbusframework.nimbuscore.annotations.function.repeatable.NotificationServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.NotificationTopicServerlessFunctionAnnotation
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -44,15 +43,17 @@ class NotificationFunctionResourceCreator(
         )
 
         for (notificationFunction in notificationFunctions) {
+            val stages = stageService.determineStages(notificationFunction.stages)
+
             val handlerInformation = HandlerInformation(
                     handlerClassPath = fileBuilder.classFilePath(),
                     handlerFile = fileBuilder.handlerFile(),
                     replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                    stages = notificationFunction.stages.toSet()
+                    stages = stages
             )
             nimbusState.handlerFiles.add(handlerInformation)
 
-            for (stage in notificationFunction.stages) {
+            for (stage in stages) {
                 val config = FunctionConfig(notificationFunction.timeout, notificationFunction.memory, stage)
 
                 val functionResource = functionEnvironmentService.newFunction(

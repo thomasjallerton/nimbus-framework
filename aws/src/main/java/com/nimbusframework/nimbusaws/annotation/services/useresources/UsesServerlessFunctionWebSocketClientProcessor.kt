@@ -1,14 +1,16 @@
 package com.nimbusframework.nimbusaws.annotation.services.useresources
 
-import com.nimbusframework.nimbuscore.annotations.websocket.UsesServerlessFunctionWebSocket
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbuscore.annotations.websocket.UsesServerlessFunctionWebSocket
 import com.nimbusframework.nimbuscore.persisted.ClientType
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.lang.model.element.Element
 
 class UsesServerlessFunctionWebSocketClientProcessor(
-        private val cfDocuments: Map<String, CloudFormationFiles>
-): UsesResourcesProcessor  {
+        private val cfDocuments: Map<String, CloudFormationFiles>,
+        nimbusState: NimbusState
+): UsesResourcesProcessor(nimbusState)  {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
         val iamRoleResource = functionResource.getIamRoleResource()
@@ -16,7 +18,7 @@ class UsesServerlessFunctionWebSocketClientProcessor(
         for (webSocketClient in serverlessMethod.getAnnotationsByType(UsesServerlessFunctionWebSocket::class.java)) {
             functionResource.addClient(ClientType.WebSocket)
 
-            for (stage in webSocketClient.stages) {
+            for (stage in stageService.determineStages(webSocketClient.stages)) {
                 if (stage == functionResource.stage) {
 
                     val webSocketApi = cfDocuments.getValue(stage).updateTemplate.rootWebSocketApi

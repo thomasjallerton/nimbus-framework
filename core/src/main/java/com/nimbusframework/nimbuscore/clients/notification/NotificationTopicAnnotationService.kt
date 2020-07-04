@@ -7,14 +7,14 @@ object NotificationTopicAnnotationService {
 
     fun getTopicName(clazz: Class<*>, stage: String): String {
         val notificationTopicAnnotations = clazz.getDeclaredAnnotationsByType(NotificationTopicDefinition::class.java)
+        // Attempt to find specific annotation for this stage. If none exist then there is one annotation that has no stage (so uses the defaults)
         for (notificationTopic in notificationTopicAnnotations) {
-            for (annotationStage in notificationTopic.stages) {
-                if (annotationStage == stage) {
-                    return notificationTopic.topicName
-                }
+            if (notificationTopic.stages.contains(stage)) {
+                return notificationTopic.topicName
             }
         }
-        throw InvalidStageException()
+        val notificationTopic = notificationTopicAnnotations.firstOrNull { it.stages.isEmpty() } ?: throw InvalidStageException()
+        return notificationTopic.topicName
     }
 
 }

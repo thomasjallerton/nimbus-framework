@@ -1,9 +1,9 @@
 package com.nimbusframework.nimbusaws.annotation.services.useresources
 
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
-import com.nimbusframework.nimbuscore.annotations.keyvalue.UsesKeyValueStore
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbuscore.annotations.keyvalue.UsesKeyValueStore
 import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.UsesKeyValueStoreAnnotation
@@ -15,9 +15,9 @@ import javax.tools.Diagnostic
 class UsesKeyValueStoreProcessor(
         private val cfDocuments: Map<String, CloudFormationFiles>,
         private val processingEnv: ProcessingEnvironment,
-        private val nimbusState: NimbusState,
+        nimbusState: NimbusState,
         private val messager: Messager
-): UsesResourcesProcessor {
+): UsesResourcesProcessor(nimbusState) {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
         val iamRoleResource = functionResource.getIamRoleResource()
@@ -26,7 +26,7 @@ class UsesKeyValueStoreProcessor(
         for (usesKeyValueStore in serverlessMethod.getAnnotationsByType(UsesKeyValueStore::class.java)) {
             functionResource.addClient(ClientType.KeyValueStore)
 
-            for (stage in usesKeyValueStore.stages) {
+            for (stage in stageService.determineStages(usesKeyValueStore.stages)) {
                 if (stage == functionResource.stage) {
                     val annotation = UsesKeyValueStoreAnnotation(usesKeyValueStore)
                     val resource = resourceFinder.getKeyValueStoreResource(annotation, serverlessMethod, stage)

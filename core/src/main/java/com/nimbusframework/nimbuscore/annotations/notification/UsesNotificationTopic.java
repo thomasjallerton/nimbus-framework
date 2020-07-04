@@ -1,7 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.notification;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
-
 import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
@@ -9,5 +7,5 @@ import java.lang.annotation.*;
 @Repeatable(UsesNotificationTopics.class)
 public @interface UsesNotificationTopic {
     Class<?> notificationTopic();
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }

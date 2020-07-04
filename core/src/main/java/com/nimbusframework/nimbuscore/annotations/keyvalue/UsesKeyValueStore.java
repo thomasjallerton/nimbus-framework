@@ -1,7 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.keyvalue;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
-
 import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
@@ -9,5 +7,5 @@ import java.lang.annotation.*;
 @Repeatable(UsesKeyValueStores.class)
 public @interface UsesKeyValueStore {
     Class<?> dataModel();
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }

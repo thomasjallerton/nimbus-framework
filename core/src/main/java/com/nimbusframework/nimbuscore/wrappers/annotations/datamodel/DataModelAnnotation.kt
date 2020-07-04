@@ -7,7 +7,6 @@ import javax.lang.model.type.PrimitiveType
 
 abstract class DataModelAnnotation {
 
-    abstract val stages: Array<String>
     protected abstract fun internalDataModel(): Class<out Any>
 
     open fun getTypeElement(processingEnv: ProcessingEnvironment): TypeElement {

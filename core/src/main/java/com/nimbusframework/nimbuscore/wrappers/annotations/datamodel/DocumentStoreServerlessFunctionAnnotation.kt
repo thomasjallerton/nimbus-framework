@@ -4,9 +4,8 @@ import com.nimbusframework.nimbuscore.annotations.function.DocumentStoreServerle
 
 class DocumentStoreServerlessFunctionAnnotation(private val documentStoreFunction: DocumentStoreServerlessFunction): DataModelAnnotation() {
 
-    override val stages: Array<String> = documentStoreFunction.stages
-
     override fun internalDataModel(): Class<out Any> {
         return documentStoreFunction.dataModel.java
     }
+
 }

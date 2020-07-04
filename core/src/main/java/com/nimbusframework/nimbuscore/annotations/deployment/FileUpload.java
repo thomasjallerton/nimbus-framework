@@ -1,7 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.deployment;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
-
 import java.lang.annotation.*;
 
 @Target(ElementType.TYPE)
@@ -12,5 +10,5 @@ public @interface FileUpload {
     String localPath();
     String targetPath();
     boolean substituteNimbusVariables() default false;
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }

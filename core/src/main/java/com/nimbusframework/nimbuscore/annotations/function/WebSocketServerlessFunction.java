@@ -1,6 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.function;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.WebSocketServerlessFunctions;
 
 import java.lang.annotation.*;
@@ -12,5 +11,5 @@ public @interface WebSocketServerlessFunction {
     String topic();
     int timeout() default 10;
     int memory() default 1024;
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }

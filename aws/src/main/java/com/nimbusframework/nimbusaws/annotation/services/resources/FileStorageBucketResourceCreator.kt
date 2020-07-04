@@ -1,24 +1,25 @@
 package com.nimbusframework.nimbusaws.annotation.services.resources
 
-import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition
-import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinitions
-import com.nimbusframework.nimbuscore.wrappers.WebsiteConfiguration
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.outputs.BucketWebsiteUrlOutput
 import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileBucket
 import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileStorageBucketPolicy
+import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition
+import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinitions
 import com.nimbusframework.nimbuscore.persisted.ExportInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
+import com.nimbusframework.nimbuscore.wrappers.WebsiteConfiguration
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 
 class FileStorageBucketResourceCreator(
         roundEnvironment: RoundEnvironment,
         cfDocuments: MutableMap<String, CloudFormationFiles>,
-        private val nimbusState: NimbusState
+        nimbusState: NimbusState
 ): CloudResourceResourceCreator(
         roundEnvironment,
         cfDocuments,
+        nimbusState,
         FileStorageBucketDefinition::class.java,
         FileStorageBucketDefinitions::class.java
 ) {
@@ -27,7 +28,7 @@ class FileStorageBucketResourceCreator(
         val storageBuckets = type.getAnnotationsByType(FileStorageBucketDefinition::class.java)
 
         for (storageBucket in storageBuckets) {
-            for (stage in storageBucket.stages) {
+            for (stage in stageService.determineStages(storageBucket.stages)) {
                 val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
                 val updateTemplate = cloudFormationDocuments.updateTemplate
                 val updateResources = updateTemplate.resources

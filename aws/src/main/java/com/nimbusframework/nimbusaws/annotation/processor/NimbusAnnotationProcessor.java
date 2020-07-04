@@ -1,36 +1,16 @@
 package com.nimbusframework.nimbusaws.annotation.processor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.auto.service.AutoService;
 import com.nimbusframework.nimbusaws.annotation.services.CloudFormationWriter;
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService;
 import com.nimbusframework.nimbusaws.annotation.services.ReadUserConfigService;
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder;
-import com.nimbusframework.nimbusaws.annotation.services.functions.AfterDeploymentResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.functions.BasicFunctionResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.functions.DocumentStoreFunctionResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.functions.FileStorageResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.functions.FileUploadResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.functions.FunctionResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.functions.KeyValueStoreFunctionResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.functions.NotificationFunctionResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.functions.QueueFunctionResourceCreator;
-import com.nimbusframework.nimbusaws.annotation.services.functions.WebSocketFunctionResourceCreator;
+import com.nimbusframework.nimbusaws.annotation.services.functions.*;
 import com.nimbusframework.nimbusaws.annotation.services.resources.*;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.EnvironmentVariablesProcessor;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.ForceDependencyProcessor;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesBasicServerlessFunctionClientProcessor;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesDocumentStoreProcessor;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesFileStorageClientProcessor;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesKeyValueStoreProcessor;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesNotificationTopicProcessor;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesQueueProcessor;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesRelationalDatabaseProcessor;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesResourcesProcessor;
-import com.nimbusframework.nimbusaws.annotation.services.useresources.UsesServerlessFunctionWebSocketClientProcessor;
+import com.nimbusframework.nimbusaws.annotation.services.useresources.*;
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.auto.service.AutoService;
 import com.nimbusframework.nimbuscore.persisted.CloudProvider;
 import com.nimbusframework.nimbuscore.persisted.NimbusState;
 import com.nimbusframework.nimbuscore.persisted.UserConfig;
@@ -110,7 +90,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSzzz", Locale.US);
 
             String compilationTime = simpleDateFormat.format(cal.getTime());
-            nimbusState = new NimbusState(userConfig.getProjectName(), CloudProvider.AWS, compilationTime, new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashSet<>(), userConfig.getAssemble());
+            nimbusState = new NimbusState(userConfig.getProjectName(), CloudProvider.AWS, compilationTime, userConfig.getDefaultStages(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashSet<>(), userConfig.getAssemble());
         }
 
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(
@@ -154,14 +134,14 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         List<UsesResourcesProcessor> usesResourcesProcessors = new LinkedList<>();
         usesResourcesProcessors.add(new UsesBasicServerlessFunctionClientProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
         usesResourcesProcessors.add(new UsesDocumentStoreProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
-        usesResourcesProcessors.add(new UsesFileStorageClientProcessor(cloudFormationFiles, messager, resourceFinder));
+        usesResourcesProcessors.add(new UsesFileStorageClientProcessor(cloudFormationFiles, messager, resourceFinder, nimbusState));
         usesResourcesProcessors.add(new UsesKeyValueStoreProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
-        usesResourcesProcessors.add(new UsesNotificationTopicProcessor(cloudFormationFiles, messager, resourceFinder));
-        usesResourcesProcessors.add(new UsesQueueProcessor(cloudFormationFiles, messager, resourceFinder));
+        usesResourcesProcessors.add(new UsesNotificationTopicProcessor(cloudFormationFiles, messager, resourceFinder, nimbusState));
+        usesResourcesProcessors.add(new UsesQueueProcessor(cloudFormationFiles, messager, resourceFinder, nimbusState));
         usesResourcesProcessors.add(new UsesRelationalDatabaseProcessor(cloudFormationFiles, processingEnv, nimbusState));
-        usesResourcesProcessors.add(new UsesServerlessFunctionWebSocketClientProcessor(cloudFormationFiles));
-        usesResourcesProcessors.add(new EnvironmentVariablesProcessor(messager));
-        usesResourcesProcessors.add(new ForceDependencyProcessor());
+        usesResourcesProcessors.add(new UsesServerlessFunctionWebSocketClientProcessor(cloudFormationFiles, nimbusState));
+        usesResourcesProcessors.add(new EnvironmentVariablesProcessor(nimbusState, messager));
+        usesResourcesProcessors.add(new ForceDependencyProcessor(nimbusState));
 
         for (FunctionInformation functionInformation : allInformation) {
             for (UsesResourcesProcessor handler : usesResourcesProcessors) {

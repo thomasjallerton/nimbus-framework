@@ -4,7 +4,7 @@ import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.DataModelAn
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.TypeElement
 
-class TestDataModelAnnotation(private val typeElem: TypeElement, override val stages: Array<String>): DataModelAnnotation() {
+class TestDataModelAnnotation(private val typeElem: TypeElement): DataModelAnnotation() {
 
     override fun internalDataModel(): Class<out Any> {
         return Any::class.java

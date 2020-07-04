@@ -50,7 +50,7 @@ class UsesNotificationTopicProcessorTest: AnnotationSpec() {
 
         functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesNotificationTopicHandlerfuncFunction") as FunctionResource
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoletionTopicHandlerfunc") as IamRoleResource
-        usesNotificationTopicProcessor = UsesNotificationTopicProcessor(cfDocuments, messager, ResourceFinder(cfDocuments, processingEnvironment, nimbusState))
+        usesNotificationTopicProcessor = UsesNotificationTopicProcessor(cfDocuments, messager, ResourceFinder(cfDocuments, processingEnvironment, nimbusState), nimbusState)
 
         toRun()
     }

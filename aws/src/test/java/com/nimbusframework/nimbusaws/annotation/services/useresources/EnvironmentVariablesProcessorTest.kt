@@ -36,7 +36,7 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
 
         compileState = CompileStateService("handlers/UsesEnvironmentVariableHandler.java")
 
-        environmentVariablesProcessor = EnvironmentVariablesProcessor(messager)
+        environmentVariablesProcessor = EnvironmentVariablesProcessor(nimbusState, messager)
     }
 
     @Test

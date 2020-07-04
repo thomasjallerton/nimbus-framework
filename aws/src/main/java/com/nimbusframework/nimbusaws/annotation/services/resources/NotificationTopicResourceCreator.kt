@@ -11,10 +11,11 @@ import javax.lang.model.element.Element
 class NotificationTopicResourceCreator(
         roundEnvironment: RoundEnvironment,
         cfDocuments: MutableMap<String, CloudFormationFiles>,
-        private val nimbusState: NimbusState
+        nimbusState: NimbusState
 ): CloudResourceResourceCreator(
         roundEnvironment,
         cfDocuments,
+        nimbusState,
         NotificationTopicDefinition::class.java,
         NotificationTopicDefinitions::class.java
 ) {
@@ -23,7 +24,7 @@ class NotificationTopicResourceCreator(
         val notificationTopics = type.getAnnotationsByType(NotificationTopicDefinition::class.java)
 
         for (notificationTopic in notificationTopics) {
-            for (stage in notificationTopic.stages) {
+            for (stage in stageService.determineStages(notificationTopic.stages)) {
                 val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
                 val updateResources = cloudFormationDocuments.updateTemplate.resources
 

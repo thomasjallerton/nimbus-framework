@@ -1,7 +1,6 @@
 package com.nimbusframework.nimbuscore.annotations.function;
 
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.EnvironmentVariables;
 
 import java.lang.annotation.*;
@@ -14,7 +13,7 @@ public @interface EnvironmentVariable {
     String key();
     String value();
     String testValue() default "NIMBUS_NOT_SET";
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }
 
 

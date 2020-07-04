@@ -1,4 +1,4 @@
-package com.nimbusframework.nimbusaws.examples;
+package com.nimbusframework.nimbusaws.examples.keyvalue;
 
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore;
 

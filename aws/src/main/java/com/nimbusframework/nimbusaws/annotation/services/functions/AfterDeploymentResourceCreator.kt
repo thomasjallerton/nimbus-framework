@@ -2,14 +2,13 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployment
-import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployments
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.deployment.DeploymentFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployment
+import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployments
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
-import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
@@ -40,19 +39,19 @@ class AfterDeploymentResourceCreator(
         val handler = fileBuilder.getHandler()
 
         for (afterDeployment in afterDeployments) {
+            val stages = stageService.determineStages(afterDeployment.stages)
+
             val handlerInformation = HandlerInformation(
                     handlerClassPath = fileBuilder.classFilePath(),
                     handlerFile = fileBuilder.handlerFile(),
                     replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                    stages = afterDeployment.stages.toSet()
+                    stages = stages
             )
             nimbusState.handlerFiles.add(handlerInformation)
 
-            for (stage in afterDeployment.stages) {
+            for (stage in stages) {
                 val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
                 val updateResources = cloudFormationDocuments.updateTemplate.resources
-
-
 
                 val config = FunctionConfig(300, 1024, stage)
 

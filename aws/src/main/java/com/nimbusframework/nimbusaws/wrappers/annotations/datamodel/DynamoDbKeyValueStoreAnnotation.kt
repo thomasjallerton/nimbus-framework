@@ -6,9 +6,8 @@ import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.DataModelAn
 
 class DynamoDbKeyValueStoreAnnotation(private val keyValueStore: DynamoDbKeyValueStore): DataModelAnnotation() {
 
-    override val stages: Array<String> = keyValueStore.stages
-
     override fun internalDataModel(): Class<out Any> {
         return keyValueStore.keyType.java
     }
+
 }

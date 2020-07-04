@@ -1,6 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.function;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.HttpServerlessFunctions;
 
 import java.lang.annotation.*;
@@ -15,5 +14,5 @@ public @interface HttpServerlessFunction {
     int memory() default 1024;
     String allowedCorsOrigin() default "";
     String[] allowedCorsHeaders() default {};
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }

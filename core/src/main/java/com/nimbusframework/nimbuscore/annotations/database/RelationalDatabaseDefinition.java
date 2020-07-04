@@ -1,7 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.database;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
-
 import java.lang.annotation.*;
 
 @Target(ElementType.TYPE)
@@ -14,5 +12,5 @@ public @interface RelationalDatabaseDefinition {
     DatabaseSize databaseClass() default DatabaseSize.FREE;
     DatabaseLanguage databaseLanguage();
     int allocatedSizeGB() default 20;
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }

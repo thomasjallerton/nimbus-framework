@@ -1,11 +1,11 @@
-package com.nimbusframework.nimbusaws.examples;
+package com.nimbusframework.nimbuscore.examples.document;
 
-import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore;
+import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefinition;
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute;
 import com.nimbusframework.nimbuscore.annotations.persistent.Key;
 
-@DynamoDbDocumentStore(tableName = "test")
-public class DocumentStoreWithTableName {
+@DocumentStoreDefinition(stages = "dev")
+public class DocumentStoreNoTableName {
 
   @Key
   private String string;
@@ -13,7 +13,7 @@ public class DocumentStoreWithTableName {
   @Attribute
   private Integer integer;
 
-  public DocumentStoreWithTableName(String string, Integer integer) {
+  public DocumentStoreNoTableName(String string, Integer integer) {
     this.string = string;
     this.integer = integer;
   }
