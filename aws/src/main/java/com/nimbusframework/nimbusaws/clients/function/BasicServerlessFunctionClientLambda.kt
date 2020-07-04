@@ -7,6 +7,7 @@ import com.amazonaws.services.lambda.model.InvocationType
 import com.amazonaws.services.lambda.model.InvokeRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Inject
+import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import java.nio.charset.Charset
@@ -27,7 +28,7 @@ internal class BasicServerlessFunctionClientLambda(
 
     private val projectName by lazy {  environmentVariableClient.get("NIMBUS_PROJECT_NAME") ?: "" }
 
-    private val stage by lazy { environmentVariableClient.get("FUNCTION_STAGE") ?: "dev" }
+    private val stage by lazy { environmentVariableClient.get("FUNCTION_STAGE") ?: NimbusConstants.stage }
 
     override fun invoke() {
         invoke("", Unit.javaClass)

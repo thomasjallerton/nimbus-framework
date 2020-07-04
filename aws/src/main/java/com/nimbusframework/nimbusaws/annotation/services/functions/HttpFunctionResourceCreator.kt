@@ -1,12 +1,12 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
-import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
-import com.nimbusframework.nimbuscore.annotations.function.repeatable.HttpServerlessFunctions
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.http.HttpServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
+import com.nimbusframework.nimbuscore.annotations.function.repeatable.HttpServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.ProcessingEnvironment
@@ -38,15 +38,17 @@ class HttpFunctionResourceCreator(
         fileBuilder.createClass()
 
         for (httpFunction in httpFunctions) {
+            val stages = stageService.determineStages(httpFunction.stages)
+
             val handlerInformation = HandlerInformation(
                     handlerClassPath = fileBuilder.classFilePath(),
                     handlerFile = fileBuilder.handlerFile(),
                     replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                    stages = httpFunction.stages.toSet()
+                    stages = stages
             )
             nimbusState.handlerFiles.add(handlerInformation)
 
-            for (stage in httpFunction.stages) {
+            for (stage in stages) {
                 val handler = fileBuilder.getHandler()
 
                 val config = FunctionConfig(httpFunction.timeout, httpFunction.memory, stage)

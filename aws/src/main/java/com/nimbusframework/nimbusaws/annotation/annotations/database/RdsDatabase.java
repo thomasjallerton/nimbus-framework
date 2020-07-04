@@ -1,12 +1,8 @@
 package com.nimbusframework.nimbusaws.annotation.annotations.database;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+
+import java.lang.annotation.*;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -18,5 +14,5 @@ public @interface RdsDatabase {
   String awsDatabaseInstance();
   DatabaseLanguage databaseLanguage();
   int allocatedSizeGB() default 20;
-  String[] stages() default {NimbusConstants.stage};
+  String[] stages() default {};
 }

@@ -4,8 +4,6 @@ import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefiniti
 
 class KeyValueStoreAnnotation(private val keyValueStore: KeyValueStoreDefinition): DataModelAnnotation() {
 
-    override val stages: Array<String> = keyValueStore.stages
-
     override fun internalDataModel(): Class<out Any> {
         return keyValueStore.keyType.java
     }

@@ -4,7 +4,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
-import com.nimbusframework.nimbusaws.examples.DocumentStoreNoTableName
+import com.nimbusframework.nimbusaws.examples.document.DocumentStoreNoTableName
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
@@ -40,7 +40,7 @@ class DocumentStoreClientDynamoTest : AnnotationSpec() {
         dynamoClient = mockk(relaxed = true)
         every { dynamoClient.toAttributeValue("test") } returns AttributeValue("test")
 
-        every { dynamoFactory.create("tableName", "com.nimbusframework.nimbusaws.examples.DocumentStoreNoTableName", any()) } returns dynamoClient
+        every { dynamoFactory.create("tableName", "com.nimbusframework.nimbusaws.examples.document.DocumentStoreNoTableName", any()) } returns dynamoClient
 
         underTest = DocumentStoreClientDynamo(DocumentStoreNoTableName::class.java, "tableName", "dev")
         val injector = Guice.createInjector(object: AbstractModule() {

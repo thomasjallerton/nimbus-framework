@@ -2,10 +2,10 @@ package com.nimbusframework.nimbusaws.annotation.services.useresources
 
 import com.microsoft.sqlserver.jdbc.SQLServerDriver
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
-import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage
-import com.nimbusframework.nimbuscore.annotations.database.UsesRelationalDatabase
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage
+import com.nimbusframework.nimbuscore.annotations.database.UsesRelationalDatabase
 import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.UsesRelationalDatabaseAnnotation
@@ -15,8 +15,8 @@ import javax.lang.model.element.Element
 class UsesRelationalDatabaseProcessor(
         private val cfDocuments: Map<String, CloudFormationFiles>,
         private val processingEnv: ProcessingEnvironment,
-        private val nimbusState: NimbusState
-): UsesResourcesProcessor {
+        nimbusState: NimbusState
+): UsesResourcesProcessor(nimbusState) {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
         val resourceFinder = ResourceFinder(cfDocuments, processingEnv, nimbusState)
@@ -24,7 +24,7 @@ class UsesRelationalDatabaseProcessor(
         for (usesRelationalDatabase in serverlessMethod.getAnnotationsByType(UsesRelationalDatabase::class.java)) {
             functionResource.addClient(ClientType.Database)
 
-            for (stage in usesRelationalDatabase.stages) {
+            for (stage in stageService.determineStages(usesRelationalDatabase.stages)) {
                 if (stage == functionResource.stage) {
 
                     val annotation = UsesRelationalDatabaseAnnotation(usesRelationalDatabase)

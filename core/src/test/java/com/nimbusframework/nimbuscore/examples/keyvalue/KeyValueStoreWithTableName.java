@@ -1,4 +1,4 @@
-package com.nimbusframework.nimbuscore.examples;
+package com.nimbusframework.nimbuscore.examples.keyvalue;
 
 import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefinition;
 

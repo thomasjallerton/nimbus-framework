@@ -1,11 +1,11 @@
-package com.nimbusframework.nimbuscore.examples;
+package com.nimbusframework.nimbuscore.examples.document;
 
 import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefinition;
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute;
 import com.nimbusframework.nimbuscore.annotations.persistent.Key;
 
-@DocumentStoreDefinition
-public class DocumentStoreNoTableName {
+@DocumentStoreDefinition(tableName = "test")
+public class DocumentStoreWithTableName {
 
   @Key
   private String string;
@@ -13,7 +13,7 @@ public class DocumentStoreNoTableName {
   @Attribute
   private Integer integer;
 
-  public DocumentStoreNoTableName(String string, Integer integer) {
+  public DocumentStoreWithTableName(String string, Integer integer) {
     this.string = string;
     this.integer = integer;
   }

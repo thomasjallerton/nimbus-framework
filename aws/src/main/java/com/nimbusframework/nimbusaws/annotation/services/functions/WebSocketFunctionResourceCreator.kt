@@ -1,12 +1,12 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
-import com.nimbusframework.nimbuscore.annotations.function.WebSocketServerlessFunction
-import com.nimbusframework.nimbuscore.annotations.function.repeatable.WebSocketServerlessFunctions
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.websocket.WebSocketServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.function.WebSocketServerlessFunction
+import com.nimbusframework.nimbuscore.annotations.function.repeatable.WebSocketServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.ProcessingEnvironment
@@ -39,15 +39,17 @@ class WebSocketFunctionResourceCreator(
         fileBuilder.createClass()
 
         for (webSocketFunction in webSocketFunctions) {
+            val stages = stageService.determineStages(webSocketFunction.stages)
+
             val handlerInformation = HandlerInformation(
                     handlerClassPath = fileBuilder.classFilePath(),
                     handlerFile = fileBuilder.handlerFile(),
                     replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                    stages = webSocketFunction.stages.toSet()
+                    stages = stages
             )
             nimbusState.handlerFiles.add(handlerInformation)
 
-            for (stage in webSocketFunction.stages) {
+            for (stage in stages) {
                 val handler = fileBuilder.getHandler()
 
                 val config = FunctionConfig(webSocketFunction.timeout, webSocketFunction.memory, stage)

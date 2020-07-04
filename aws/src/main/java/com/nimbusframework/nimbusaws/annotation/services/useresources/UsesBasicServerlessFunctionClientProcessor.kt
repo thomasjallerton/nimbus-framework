@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.annotation.services.useresources
 
-import com.nimbusframework.nimbuscore.annotations.function.UsesBasicServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbuscore.annotations.function.UsesBasicServerlessFunction
 import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.UsesBasicServerlessFunctionAnnotation
@@ -14,9 +14,9 @@ import javax.tools.Diagnostic
 class UsesBasicServerlessFunctionClientProcessor(
         private val cfDocuments: Map<String, CloudFormationFiles>,
         private val processingEnv: ProcessingEnvironment,
-        private val nimbusState: NimbusState,
+        nimbusState: NimbusState,
         private val messager: Messager
-): UsesResourcesProcessor {
+): UsesResourcesProcessor(nimbusState) {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
 
@@ -27,7 +27,7 @@ class UsesBasicServerlessFunctionClientProcessor(
 
             functionResource.addExtraDependency(targetElem.qualifiedName.toString() + "Serverless")
 
-            for (stage in usesBasicServerlessFunctionClient.stages) {
+            for (stage in stageService.determineStages(usesBasicServerlessFunctionClient.stages)) {
                 if (stage == functionResource.stage) {
 
                     functionResource.addEnvVariable("NIMBUS_PROJECT_NAME", nimbusState.projectName)

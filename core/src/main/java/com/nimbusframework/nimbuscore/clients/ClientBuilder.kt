@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbuscore.clients
 
+import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 import com.nimbusframework.nimbuscore.clients.database.DatabaseClient
 import com.nimbusframework.nimbuscore.clients.database.InternalClientBuilder
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClient
@@ -172,7 +173,7 @@ object ClientBuilder {
         return if (System.getenv().containsKey("NIMBUS_STAGE")) {
             System.getenv("NIMBUS_STAGE")
         } else {
-            "dev"
+            NimbusConstants.stage
         }
     }
 }

@@ -3,15 +3,13 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbuscore.annotations.deployment.FileUpload
 import com.nimbusframework.nimbuscore.annotations.deployment.FileUploads
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbuscore.clients.file.FileStorageBucketNameAnnotationService
 import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.FileUploadAnnotation
 import javax.annotation.processing.Messager
-import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
@@ -32,7 +30,9 @@ class FileUploadResourceCreator(
 
 
         for (fileUpload in fileUploads) {
-            for (stage in fileUpload.stages) {
+            val stages = stageService.determineStages(fileUpload.stages)
+
+            for (stage in stages) {
 
                 val bucketMap = nimbusState.fileUploads.getOrPut(stage) { mutableMapOf() }
 

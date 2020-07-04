@@ -19,7 +19,6 @@ import com.nimbusframework.nimbusaws.clients.websocket.ServerlessFunctionWebSock
 import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefinition
 import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition
 import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefinition
-import com.nimbusframework.nimbuscore.annotations.notification.NotificationTopicDefinition
 import com.nimbusframework.nimbuscore.clients.database.DatabaseClient
 import com.nimbusframework.nimbuscore.clients.database.InternalClientBuilder
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreAnnotationService

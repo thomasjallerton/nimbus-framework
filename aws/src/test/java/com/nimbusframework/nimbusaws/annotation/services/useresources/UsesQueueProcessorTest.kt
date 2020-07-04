@@ -56,7 +56,7 @@ class UsesQueueProcessorTest: AnnotationSpec() {
         HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleUsesQueueHandlerfunc") as IamRoleResource
-        usesQueueProcessor = UsesQueueProcessor(cfDocuments, messager, resourceFinder)
+        usesQueueProcessor = UsesQueueProcessor(cfDocuments, messager, resourceFinder, nimbusState)
 
         toRun()
     }

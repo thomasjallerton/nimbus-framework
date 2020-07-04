@@ -1,6 +1,5 @@
 package com.nimbusframework.nimbuscore.annotations.function;
 
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants;
 import com.nimbusframework.nimbuscore.annotations.file.FileStorageEventType;
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.FileStorageServerlessFunctions;
 
@@ -14,5 +13,5 @@ public @interface FileStorageServerlessFunction {
     FileStorageEventType eventType();
     int timeout() default 10;
     int memory() default 1024;
-    String[] stages() default {NimbusConstants.stage};
+    String[] stages() default {};
 }

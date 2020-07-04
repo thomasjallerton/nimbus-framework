@@ -1,16 +1,16 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
-import com.nimbusframework.nimbuscore.annotations.function.QueueServerlessFunction
-import com.nimbusframework.nimbuscore.annotations.function.repeatable.QueueServerlessFunctions
-import com.nimbusframework.nimbuscore.persisted.NimbusState
-import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionEventMappingResource
 import com.nimbusframework.nimbusaws.wrappers.queue.QueueServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.function.QueueServerlessFunction
+import com.nimbusframework.nimbuscore.annotations.function.repeatable.QueueServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.QueueServerlessFunctionAnnotation
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -43,15 +43,17 @@ class QueueFunctionResourceCreator(
         )
 
         for (queueFunction in queueFunctions) {
+            val stages = stageService.determineStages(queueFunction.stages)
+
             val handlerInformation = HandlerInformation(
                     handlerClassPath = fileBuilder.classFilePath(),
                     handlerFile = fileBuilder.handlerFile(),
                     replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                    stages = queueFunction.stages.toSet()
+                    stages = stages
             )
             nimbusState.handlerFiles.add(handlerInformation)
 
-            for (stage in queueFunction.stages) {
+            for (stage in stages) {
                 val config = FunctionConfig(queueFunction.timeout, queueFunction.memory, stage)
 
                 val functionResource = functionEnvironmentService.newFunction(

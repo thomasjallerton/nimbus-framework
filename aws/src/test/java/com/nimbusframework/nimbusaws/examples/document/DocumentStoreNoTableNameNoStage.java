@@ -1,12 +1,13 @@
-package com.nimbusframework.nimbusaws.examples;
+package com.nimbusframework.nimbusaws.examples.document;
 
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore;
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute;
 import com.nimbusframework.nimbuscore.annotations.persistent.Key;
+
 import java.util.Objects;
 
 @DynamoDbDocumentStore
-public class DocumentStoreNoTableName {
+public class DocumentStoreNoTableNameNoStage {
 
   @Key
   private String string;
@@ -14,9 +15,9 @@ public class DocumentStoreNoTableName {
   @Attribute
   private Integer integer;
 
-  public DocumentStoreNoTableName() {}
+  public DocumentStoreNoTableNameNoStage() {}
 
-  public DocumentStoreNoTableName(String string, Integer integer) {
+  public DocumentStoreNoTableNameNoStage(String string, Integer integer) {
     this.string = string;
     this.integer = integer;
   }
@@ -45,7 +46,7 @@ public class DocumentStoreNoTableName {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    DocumentStoreNoTableName that = (DocumentStoreNoTableName) o;
+    DocumentStoreNoTableNameNoStage that = (DocumentStoreNoTableNameNoStage) o;
     return Objects.equals(string, that.string) &&
         Objects.equals(integer, that.integer);
   }
