@@ -79,12 +79,6 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         return documentStoreClient
     }
 
-    override fun getQueueClient(id: String): QueueClient {
-        val queueClient = QueueClientSQS(id)
-        injector.injectMembers(queueClient)
-        return queueClient
-    }
-
     override fun getQueueClient(queueClass: Class<*>, stage: String): QueueClient {
         val queueId = QueueIdAnnotationService.getQueueId(queueClass, stage)
         val queueClient = QueueClientSQS(queueId)
@@ -102,12 +96,6 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         return EnvironmentVariableClientLambda()
     }
 
-    override fun getNotificationClient(topic: String): NotificationClient {
-        val notificationClient = NotificationClientSNS(topic)
-        injector.injectMembers(notificationClient)
-        return notificationClient
-    }
-
     override fun getNotificationClient(topicClass: Class<*>, stage: String): NotificationClient {
         val topic = NotificationTopicAnnotationService.getTopicName(topicClass, stage)
         val notificationClient = NotificationClientSNS(topic)
@@ -119,12 +107,6 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         val basicClient = BasicServerlessFunctionClientLambda(handlerClass, functionName)
         injector.injectMembers(basicClient)
         return basicClient
-    }
-
-    override fun getFileStorageClient(bucketName: String, stage: String): FileStorageClient {
-        val fileStorageClient = FileStorageClientS3(bucketName, stage)
-        injector.injectMembers(fileStorageClient)
-        return fileStorageClient
     }
 
     override fun getFileStorageClient(bucketClass: Class<*>, stage: String): FileStorageClient {

@@ -43,17 +43,6 @@ object ClientBuilder {
     }
 
     @JvmStatic
-    fun getQueueClient(id: String): QueueClient {
-        return try {
-            internalClientBuilder.getQueueClient(id)
-        } catch (e: ClassNotFoundException) {
-            EmptyQueueClient()
-        } catch (e: NoClassDefFoundError) {
-            EmptyQueueClient()
-        }
-    }
-
-    @JvmStatic
     fun getQueueClient(queueClass: Class<*>): QueueClient {
         return try {
             internalClientBuilder.getQueueClient(queueClass, getStage())
@@ -86,18 +75,6 @@ object ClientBuilder {
         }
     }
 
-
-    @JvmStatic
-    fun getNotificationClient(topic: String): NotificationClient {
-        return try {
-            internalClientBuilder.getNotificationClient(topic)
-        } catch (e: ClassNotFoundException) {
-            EmptyNotificationClient()
-        } catch (e: NoClassDefFoundError) {
-            EmptyNotificationClient()
-        }
-    }
-
     @JvmStatic
     fun getNotificationClient(topicClass: Class<*>): NotificationClient {
         return try {
@@ -123,17 +100,6 @@ object ClientBuilder {
     @JvmStatic
     fun <T> getBasicServerlessFunctionInterface(handlerClass: Class<T>): T {
         return Class.forName(handlerClass.canonicalName + "Serverless").getDeclaredConstructor().newInstance() as T
-    }
-
-    @JvmStatic
-    fun getFileStorageClient(bucketName: String): FileStorageClient {
-        return try {
-            internalClientBuilder.getFileStorageClient(bucketName, getStage())
-        } catch (e: ClassNotFoundException) {
-            EmptyFileStorageClient()
-        } catch (e: NoClassDefFoundError) {
-            EmptyFileStorageClient()
-        }
     }
 
     @JvmStatic
