@@ -11,7 +11,7 @@ public class UsesNotificationTopicHandler {
     @HttpServerlessFunction(method = HttpMethod.POST, path = "test")
     @UsesNotificationTopic(notificationTopic = NotificationTopic.class)
     public void func() {
-        ClientBuilder.getNotificationClient("Test");
+        ClientBuilder.getNotificationClient(NotificationTopic.class);
     }
 
 }
