@@ -3,8 +3,8 @@ package com.nimbusframework.nimbuscore.clients.notification
 import com.nimbusframework.nimbuscore.examples.notification.NotificationTopicNoStage
 import com.nimbusframework.nimbuscore.examples.notification.NotificationTopic
 import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.AnnotationSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.AnnotationSpec
 
 internal class NotificationTopicAnnotationServiceTest : AnnotationSpec() {
 

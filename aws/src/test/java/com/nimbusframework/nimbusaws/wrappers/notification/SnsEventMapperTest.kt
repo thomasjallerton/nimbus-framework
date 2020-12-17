@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.wrappers.notification
 
 import com.amazonaws.services.lambda.runtime.events.SNSEvent
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.AnnotationSpec
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
 import org.joda.time.DateTime
 
 class SnsEventMapperTest: AnnotationSpec() {
