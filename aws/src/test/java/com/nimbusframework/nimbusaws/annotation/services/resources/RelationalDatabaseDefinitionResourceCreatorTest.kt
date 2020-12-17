@@ -7,13 +7,11 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.database.RdsResourc
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseSize
 import com.nimbusframework.nimbuscore.persisted.NimbusState
-import io.kotlintest.matchers.types.shouldBeSameInstanceAs
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldNotBe
-import io.kotlintest.specs.AnnotationSpec
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
 import javax.annotation.processing.RoundEnvironment
-import javax.lang.model.util.Elements
 
 
 internal class RelationalDatabaseDefinitionResourceCreatorTest: AnnotationSpec() {

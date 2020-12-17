@@ -7,8 +7,8 @@ import com.google.inject.Guice
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
 import com.nimbusframework.nimbuscore.exceptions.RetryableException
 import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
-import io.kotlintest.matchers.collections.shouldContain
-import io.kotlintest.specs.AnnotationSpec
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.collections.shouldContain
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot

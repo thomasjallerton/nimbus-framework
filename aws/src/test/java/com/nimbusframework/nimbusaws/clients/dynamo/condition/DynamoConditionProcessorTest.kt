@@ -6,13 +6,12 @@ import com.nimbusframework.nimbuscore.clients.store.conditions.BracketsCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonOperator
 import com.nimbusframework.nimbuscore.clients.store.conditions.ConditionBuilder
-import com.nimbusframework.nimbuscore.clients.store.conditions.bool.BooleanComparisonCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.bool.NotCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeNotExists
 import com.nimbusframework.nimbuscore.clients.store.conditions.variable.NumericVariable
-import io.kotlintest.specs.AnnotationSpec
-import io.kotlintest.shouldBe
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 

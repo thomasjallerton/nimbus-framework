@@ -6,8 +6,8 @@ import com.nimbusframework.nimbuscore.clients.store.conditions.bool.NotCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
 import com.nimbusframework.nimbuscore.clients.store.conditions.variable.ColumnVariable
 import com.nimbusframework.nimbuscore.clients.store.conditions.variable.NumericVariable
-import io.kotlintest.specs.AnnotationSpec
-import io.kotlintest.shouldBe
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
 
 class ConditionBuilderTest : AnnotationSpec() {
 
