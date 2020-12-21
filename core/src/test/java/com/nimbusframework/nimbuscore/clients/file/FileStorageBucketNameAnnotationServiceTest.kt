@@ -3,8 +3,8 @@ package com.nimbusframework.nimbuscore.clients.file
 import com.nimbusframework.nimbuscore.examples.filestorage.FileStorage
 import com.nimbusframework.nimbuscore.examples.filestorage.FileStorageNoStage
 import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
-import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.AnnotationSpec
 
 internal class FileStorageBucketNameAnnotationServiceTest : AnnotationSpec() {
 

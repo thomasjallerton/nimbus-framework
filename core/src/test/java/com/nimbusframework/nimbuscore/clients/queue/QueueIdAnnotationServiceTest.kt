@@ -3,8 +3,8 @@ package com.nimbusframework.nimbuscore.clients.queue
 import com.nimbusframework.nimbuscore.examples.queue.Queue
 import com.nimbusframework.nimbuscore.examples.queue.QueueNoStage
 import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
-import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.core.spec.style.AnnotationSpec
 
 internal class QueueIdAnnotationServiceTest : AnnotationSpec() {
 

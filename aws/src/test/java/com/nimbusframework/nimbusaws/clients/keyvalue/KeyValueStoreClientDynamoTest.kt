@@ -8,9 +8,9 @@ import com.nimbusframework.nimbusaws.examples.keyvalue.KeyValueStoreNoTableName
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
-import io.kotlintest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotlintest.specs.AnnotationSpec
-import io.kotlintest.shouldBe
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
