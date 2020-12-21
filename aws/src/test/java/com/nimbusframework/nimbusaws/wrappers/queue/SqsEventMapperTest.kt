@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.wrappers.queue
 
 import com.amazonaws.services.lambda.runtime.events.SQSEvent
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.shouldBe
+import io.kotlintest.shouldBe
+import io.kotlintest.specs.AnnotationSpec
 
 class SqsEventMapperTest: AnnotationSpec() {
 

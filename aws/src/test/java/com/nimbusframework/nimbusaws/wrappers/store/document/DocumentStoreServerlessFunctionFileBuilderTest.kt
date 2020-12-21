@@ -2,9 +2,9 @@ package com.nimbusframework.nimbusaws.wrappers.store.document
 
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
+import io.kotlintest.shouldBe
+import io.kotlintest.shouldNotBe
+import io.kotlintest.specs.AnnotationSpec
 import javax.tools.Diagnostic
 import javax.tools.JavaFileObject
 

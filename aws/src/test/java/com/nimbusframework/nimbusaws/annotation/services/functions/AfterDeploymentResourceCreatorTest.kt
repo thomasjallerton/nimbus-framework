@@ -5,9 +5,9 @@ import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbuscore.persisted.NimbusState
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
+import io.kotlintest.specs.AnnotationSpec
+import io.kotlintest.shouldBe
+import io.kotlintest.shouldNotBe
 
 class AfterDeploymentResourceCreatorTest : AnnotationSpec() {
 

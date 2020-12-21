@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.nimbusframework.nimbusaws.examples.SimpleObject
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.shouldBe
+import io.kotlintest.shouldBe
+import io.kotlintest.specs.AnnotationSpec
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot

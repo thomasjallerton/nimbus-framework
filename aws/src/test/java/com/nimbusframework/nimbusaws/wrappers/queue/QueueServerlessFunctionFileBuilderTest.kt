@@ -3,8 +3,8 @@ package com.nimbusframework.nimbusaws.wrappers.queue
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.services.FileReader
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.shouldBe
+import io.kotlintest.shouldBe
+import io.kotlintest.specs.AnnotationSpec
 
 internal class QueueServerlessFunctionFileBuilderTest: AnnotationSpec() {
 

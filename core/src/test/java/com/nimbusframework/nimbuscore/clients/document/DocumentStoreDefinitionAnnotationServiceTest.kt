@@ -4,8 +4,8 @@ import com.nimbusframework.nimbuscore.examples.document.DocumentStoreNoTableName
 import com.nimbusframework.nimbuscore.examples.document.DocumentStoreNoTableNameNoStage
 import com.nimbusframework.nimbuscore.examples.document.DocumentStoreWithTableName
 import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.shouldBe
+import io.kotlintest.specs.AnnotationSpec
+import io.kotlintest.shouldBe
 
 class DocumentStoreDefinitionAnnotationServiceTest : AnnotationSpec() {
 

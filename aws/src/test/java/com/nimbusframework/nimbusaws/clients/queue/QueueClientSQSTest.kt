@@ -1,11 +1,13 @@
 package com.nimbusframework.nimbusaws.clients.queue
 
 import com.amazonaws.services.sqs.AmazonSQS
+import com.amazonaws.services.sqs.model.SendMessageResult
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.nimbusframework.nimbusaws.examples.SimpleObject
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
-import io.kotest.core.spec.style.AnnotationSpec
+import io.kotlintest.specs.AnnotationSpec
+import io.kotlintest.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify

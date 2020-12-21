@@ -4,7 +4,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.nimbusframework.nimbusaws.examples.RelationalDatabaseExample
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
-import io.kotest.core.spec.style.AnnotationSpec
+import io.kotlintest.specs.AnnotationSpec
 import io.mockk.every
 import io.mockk.mockk
 import org.postgresql.util.PSQLException
