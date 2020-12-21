@@ -6,9 +6,9 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.ResourceCollection
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
-import io.kotlintest.specs.AnnotationSpec
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldNotBe
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
 
 class FunctionEnvironmentServiceTest : AnnotationSpec() {

@@ -4,8 +4,8 @@ import com.nimbusframework.nimbusaws.examples.keyvalue.KeyValueStoreNoTableName
 import com.nimbusframework.nimbusaws.examples.keyvalue.KeyValueStoreNoTableNameNoStage
 import com.nimbusframework.nimbusaws.examples.keyvalue.KeyValueStoreWithTableName
 import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.AnnotationSpec
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
 
 class DynamoDbKeyValueStoreAnnotationServiceTest : AnnotationSpec() {
 

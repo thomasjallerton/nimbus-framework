@@ -8,13 +8,12 @@ import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.DynamoConfiguration
-import io.kotlintest.specs.AnnotationSpec
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldNotBe
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import javax.annotation.processing.RoundEnvironment
-import javax.lang.model.util.Elements
 
 class KeyValueStoreFunctionResourceCreatorTest : AnnotationSpec() {
 
