@@ -32,4 +32,6 @@ interface InternalClientBuilder {
 
     fun getTransactionalClient(): TransactionalClient
 
+    fun <T> getBasicServerlessFunctionInterface(handlerClass: Class<T>): T
+
 }

@@ -99,7 +99,7 @@ object ClientBuilder {
 
     @JvmStatic
     fun <T> getBasicServerlessFunctionInterface(handlerClass: Class<T>): T {
-        return Class.forName(handlerClass.canonicalName + "Serverless").getDeclaredConstructor().newInstance() as T
+        return internalClientBuilder.getBasicServerlessFunctionInterface(handlerClass)
     }
 
     @JvmStatic

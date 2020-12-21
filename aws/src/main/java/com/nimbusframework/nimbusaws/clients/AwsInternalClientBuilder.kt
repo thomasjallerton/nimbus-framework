@@ -45,6 +45,10 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         return transactionalClient
     }
 
+    override fun <T> getBasicServerlessFunctionInterface(handlerClass: Class<T>): T {
+        return Class.forName(handlerClass.canonicalName + "Serverless").getDeclaredConstructor().newInstance() as T
+    }
+
     override fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>, stage: String): KeyValueStoreClient<K, V> {
         val keyValueStoreClient = when {
             value.isAnnotationPresent(KeyValueStoreDefinition::class.java) -> {
