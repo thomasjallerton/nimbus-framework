@@ -12,7 +12,7 @@ public class UsesQueueHandler {
     @HttpServerlessFunction(method = HttpMethod.POST, path = "test")
     @UsesQueue(queue = Queue.class)
     public void func() {
-        ClientBuilder.getQueueClient("messageQueue");
+        ClientBuilder.getQueueClient(Queue.class);
     }
 
     @HttpServerlessFunction(method = HttpMethod.POST, path = "test2")

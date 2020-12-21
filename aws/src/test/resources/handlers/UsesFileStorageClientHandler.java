@@ -11,7 +11,7 @@ public class UsesFileStorageClientHandler {
     @HttpServerlessFunction(method = HttpMethod.POST, path = "test")
     @UsesFileStorageBucket(fileStorageBucket = FileStorage.class)
     public void func() {
-        ClientBuilder.getFileStorageClient("Test");
+        ClientBuilder.getFileStorageClient(FileStorage.class);
     }
 
 }

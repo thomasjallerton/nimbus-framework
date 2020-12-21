@@ -5,7 +5,6 @@ import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
-import com.nimbusframework.nimbusaws.annotation.services.functions.QueueFunctionResourceCreator
 import com.nimbusframework.nimbusaws.annotation.services.resources.QueueResourceCreator
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
@@ -13,16 +12,15 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionRe
 import com.nimbusframework.nimbusaws.cloudformation.resource.queue.QueueResource
 import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldNotBe
-import io.kotlintest.specs.AnnotationSpec
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
-import javax.lang.model.util.Elements
 import javax.tools.Diagnostic
 
 class UsesQueueProcessorTest: AnnotationSpec() {

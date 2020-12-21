@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>nimbus-core</artifactId>
-    <version>0.13.6-SNAPSHOT</version>
+    <version>0.14.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>nimbus-core</name>
@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.nimbusframework</groupId>
         <artifactId>nimbus-parent</artifactId>
-        <version>0.13.6-SNAPSHOT</version>
+        <version>0.14.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -72,9 +72,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.kotlintest</groupId>
-            <artifactId>kotlintest-runner-junit5</artifactId>
-            <version>${kotlintest-runner-junit5.version}</version>
+            <groupId>io.kotest</groupId>
+            <artifactId>kotest-runner-junit5-jvm</artifactId>
+            <version>${kotest.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -90,7 +90,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test</artifactId>
+            <artifactId>kotlin-test-junit</artifactId>
             <version>${kotlin.version}</version>
             <scope>test</scope>
         </dependency>

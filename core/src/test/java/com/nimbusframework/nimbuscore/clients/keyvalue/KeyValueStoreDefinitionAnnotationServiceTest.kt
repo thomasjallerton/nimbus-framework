@@ -4,8 +4,8 @@ import com.nimbusframework.nimbuscore.examples.keyvalue.KeyValueStoreNoTableName
 import com.nimbusframework.nimbuscore.examples.keyvalue.KeyValueStoreNoTableNameNoStage
 import com.nimbusframework.nimbuscore.examples.keyvalue.KeyValueStoreWithTableName
 import com.nimbusframework.nimbuscore.exceptions.InvalidStageException
-import io.kotlintest.specs.AnnotationSpec
-import io.kotlintest.shouldBe
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
 
 class KeyValueStoreDefinitionAnnotationServiceTest : AnnotationSpec() {
 

@@ -2,8 +2,8 @@ package com.nimbusframework.nimbusaws.wrappers.store.keyvalue
 
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.AnnotationSpec
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
 
 internal class KeyValueStoreServerlessFunctionFileBuilderTest: AnnotationSpec() {
 

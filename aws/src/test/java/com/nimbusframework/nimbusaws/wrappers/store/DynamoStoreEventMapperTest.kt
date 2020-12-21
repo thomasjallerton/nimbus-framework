@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.wrappers.store
 
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.AnnotationSpec
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
 
 class DynamoStoreEventMapperTest: AnnotationSpec() {
 

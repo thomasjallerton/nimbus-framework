@@ -10,8 +10,8 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileBucket
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.AnnotationSpec
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
