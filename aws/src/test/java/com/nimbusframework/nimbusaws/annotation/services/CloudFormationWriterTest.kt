@@ -4,7 +4,7 @@ import com.google.gson.JsonObject
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbusaws.cloudformation.resource.Resource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
-import io.kotest.core.spec.style.AnnotationSpec
+import io.kotlintest.specs.AnnotationSpec
 import io.mockk.called
 import io.mockk.every
 import io.mockk.mockk

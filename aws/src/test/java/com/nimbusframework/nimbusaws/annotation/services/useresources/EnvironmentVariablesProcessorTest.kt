@@ -8,13 +8,14 @@ import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.extensions.system.withEnvironment
-import io.kotest.matchers.shouldBe
+import io.kotlintest.extensions.system.withEnvironment
+import io.kotlintest.shouldBe
+import io.kotlintest.specs.AnnotationSpec
 import io.mockk.mockk
 import io.mockk.verify
 import javax.annotation.processing.Messager
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.util.Elements
 import javax.tools.Diagnostic
 
 class EnvironmentVariablesProcessorTest : AnnotationSpec() {

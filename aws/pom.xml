@@ -154,15 +154,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.kotest</groupId>
-            <artifactId>kotest-assertions-core-jvm</artifactId>
-            <version>${kotest.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.kotest</groupId>
-            <artifactId>kotest-runner-junit5-jvm</artifactId>
-            <version>${kotest.version}</version>
+            <groupId>io.kotlintest</groupId>
+            <artifactId>kotlintest-runner-junit5</artifactId>
+            <version>${kotlintest-runner-junit5.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

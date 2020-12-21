@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbuscore.clients.store.conditions.variable
 
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.shouldBe
+import io.kotlintest.specs.AnnotationSpec
+import io.kotlintest.shouldBe
 
 class ColumnVariableTest : AnnotationSpec() {
 

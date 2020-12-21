@@ -2,12 +2,14 @@ package com.nimbusframework.nimbusaws.clients.file
 
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.*
+import com.amazonaws.services.sns.AmazonSNS
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.nimbusframework.nimbuscore.clients.file.FileInformation
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.shouldBe
+import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
+import io.kotlintest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotlintest.shouldBe
+import io.kotlintest.specs.AnnotationSpec
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot

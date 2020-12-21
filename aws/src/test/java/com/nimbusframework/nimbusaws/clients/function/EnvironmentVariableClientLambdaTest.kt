@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.clients.function
 
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.extensions.system.withEnvironment
-import io.kotest.matchers.shouldBe
+import io.kotlintest.extensions.system.withEnvironment
+import io.kotlintest.shouldBe
+import io.kotlintest.specs.AnnotationSpec
 
 class EnvironmentVariableClientLambdaTest: AnnotationSpec() {
 

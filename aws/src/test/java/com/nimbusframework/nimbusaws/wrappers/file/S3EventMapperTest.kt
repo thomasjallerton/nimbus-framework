@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.wrappers.file
 
 import com.amazonaws.services.s3.event.S3EventNotification
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.shouldBe
+import io.kotlintest.shouldBe
+import io.kotlintest.specs.AnnotationSpec
 
 class S3EventMapperTest: AnnotationSpec() {
 

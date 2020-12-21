@@ -4,17 +4,22 @@ import com.amazonaws.services.lambda.AWSLambda
 import com.amazonaws.services.lambda.model.InvocationType
 import com.amazonaws.services.lambda.model.InvokeRequest
 import com.amazonaws.services.lambda.model.InvokeResult
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbusaws.examples.BasicFunctionHandler
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.shouldBe
+import io.kotlintest.matchers.types.shouldBeSameInstanceAs
+import io.kotlintest.should
+import io.kotlintest.shouldBe
+import io.kotlintest.shouldNotBe
+import io.kotlintest.specs.AnnotationSpec
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets.UTF_8
 
 class BasicServerlessFunctionClientLambdaTest : AnnotationSpec() {

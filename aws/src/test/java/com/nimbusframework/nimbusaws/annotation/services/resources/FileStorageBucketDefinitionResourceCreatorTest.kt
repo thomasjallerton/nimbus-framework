@@ -3,14 +3,18 @@ package com.nimbusframework.nimbusaws.annotation.services.resources
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.outputs.BucketWebsiteUrlOutput
+import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileBucket
 import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileStorageBucketPolicy
 import com.nimbusframework.nimbuscore.persisted.NimbusState
-import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
+import io.kotlintest.should
+import io.kotlintest.specs.AnnotationSpec
+import io.kotlintest.shouldBe
+import io.kotlintest.shouldNot
+import io.kotlintest.shouldNotBe
 import io.mockk.mockk
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.util.Elements
 
 class FileStorageBucketDefinitionResourceCreatorTest : AnnotationSpec() {
 
