@@ -159,15 +159,19 @@ abstract class ServerlessFunctionFileBuilder(
 
                 write()
 
-                write("public $returnTypeSimpleName handleRequest($inputTypeSimpleName input, Context context) {")
+                write("private final ${methodInformation.className} handler;")
 
+
+                write("public ${getGeneratedClassName()}() {")
                 write("ClientBinder.INSTANCE.setInternalBuilder(AwsInternalClientBuilder.INSTANCE);")
+                write("handler = new ${methodInformation.className}();")
+                write("}")
+
+                write("public $returnTypeSimpleName handleRequest($inputTypeSimpleName input, Context context) {")
 
                 write("try {")
 
                 write("String requestId = context.getAwsRequestId();")
-
-                write("${methodInformation.className} handler = new ${methodInformation.className}();")
 
                 writeFunction(params.inputParam, params.eventParam)
 
