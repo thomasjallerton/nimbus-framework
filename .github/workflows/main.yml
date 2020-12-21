@@ -61,7 +61,11 @@ jobs:
         gpg_passphrase: ${{ secrets.GPG_PASSWORD }}
         nexus_username: thomasjallerton
         nexus_password: ${{ secrets.REPO_PASSWORD }}
-        
+
+    - name: Rollback release
+      if: ${{ failure() }}
+      run: echo $(mvn release:rollback)
+
     - name: Move to new snapshot version
       run: echo $(mvn -B release:update-versions )
       
