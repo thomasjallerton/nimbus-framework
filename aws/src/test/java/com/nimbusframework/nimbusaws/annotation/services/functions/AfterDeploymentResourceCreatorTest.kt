@@ -8,6 +8,7 @@ import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.mockk
 
 class AfterDeploymentResourceCreatorTest : AnnotationSpec() {
 
@@ -28,7 +29,7 @@ class AfterDeploymentResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesAfterDeploymentFunctionAnnotation() {
         compileState.compileObjects { processingEnv ->
-            afterDeploymentFunctionResourceCreator = AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv)
+            afterDeploymentFunctionResourceCreator = AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv, mockk(relaxed = true))
 
             val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.AfterDeploymentHandlers")

@@ -10,9 +10,12 @@ import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
+import io.mockk.verify
+import javax.annotation.processing.Messager
 import javax.annotation.processing.RoundEnvironment
+import javax.tools.Diagnostic
 
-class BasicFunctionResourceCreatorTest : AnnotationSpec() {
+class CustomFactoryCreationTest: AnnotationSpec() {
 
     private lateinit var basicFunctionResourceCreator: BasicFunctionResourceCreator
     private lateinit var roundEnvironment: RoundEnvironment
@@ -26,16 +29,16 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        compileState = CompileStateService("handlers/BasicHandlers.java")
         functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
     }
 
     @Test
-    fun correctlyProcessesBasicFunctionAnnotation() {
+    fun correctlyProcessesCustomFactory() {
+        compileState = CompileStateService("handlers/CustomFactoryFactory.java", "handlers/CustomFactoryHandler.java")
         compileState.compileObjects { processingEnv ->
             basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, mockk(relaxed = true))
             val results: MutableList<FunctionInformation> = mutableListOf()
-            val classElem = processingEnv.elementUtils.getTypeElement("handlers.BasicHandlers")
+            val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandler")
             val funcElem = classElem.enclosedElements[2]
             basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
             cfDocuments["dev"] shouldNotBe null
@@ -45,28 +48,22 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
 
             results.size shouldBe 1
         }
-    }
-
-    @Test
-    fun correctlyProcessesBasicFunctionCronAnnotation() {
-        compileState.compileObjects { processingEnv ->
-            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, mockk(relaxed = true))
-            val results: MutableList<FunctionInformation> = mutableListOf()
-            val classElem = processingEnv.elementUtils.getTypeElement("handlers.BasicHandlers")
-            val funcElem = classElem.enclosedElements[1]
-            basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
-            cfDocuments["dev"] shouldNotBe null
-
-            val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 6
-
-            results.size shouldBe 1
-        }
-    }
-
-    @AfterEach
-    fun after() {
         compileState.status shouldBe Compilation.Status.SUCCESS
     }
 
+    @Test
+    fun correctlyProcessesCustomFactoryWrongInterface() {
+        compileState = CompileStateService("handlers/CustomFactoryHandlerWrongFactory.java", "handlers/CustomFactoryWrongFactory.java")
+        val messager = mockk<Messager>(relaxed = true)
+        compileState.compileObjects { processingEnv ->
+            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, messager)
+            val results: MutableList<FunctionInformation> = mutableListOf()
+            val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandlerWrongFactory")
+            val funcElem = classElem.enclosedElements[2]
+            basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+
+            verify { messager.printMessage(Diagnostic.Kind.ERROR, "Custom factory handlers.CustomFactoryWrongFactory does not implement CustomFactory<CustomFactoryHandlerWrongFactory>", any()) }
+        }
+        compileState.status shouldBe Compilation.Status.FAILURE
+    }
 }

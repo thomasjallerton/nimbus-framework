@@ -9,16 +9,20 @@ import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployment
 import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployments
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
+import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class AfterDeploymentResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        private val processingEnv: ProcessingEnvironment
+        processingEnv: ProcessingEnvironment,
+        messager: Messager
 ): FunctionResourceCreator(
         cfDocuments,
         nimbusState,
+        processingEnv,
+        messager,
         AfterDeployment::class.java,
         AfterDeployments::class.java
 ) {

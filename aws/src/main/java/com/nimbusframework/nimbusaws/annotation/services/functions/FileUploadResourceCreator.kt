@@ -10,17 +10,21 @@ import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.FileUploadAnnotation
 import javax.annotation.processing.Messager
+import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 class FileUploadResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        private val resourceFinder: ResourceFinder,
-        private val messager: Messager
+        processingEnv: ProcessingEnvironment,
+        messager: Messager,
+        private val resourceFinder: ResourceFinder
 ): FunctionResourceCreator(
         cfDocuments,
         nimbusState,
+        processingEnv,
+        messager,
         FileUpload::class.java,
         FileUploads::class.java
 ) {

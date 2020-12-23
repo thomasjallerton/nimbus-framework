@@ -30,7 +30,7 @@ class WebSocketFunctionResourceCreatorTest : AnnotationSpec() {
 
     private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
         functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
-        webSocketFunctionResourceCreator = WebSocketFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment)
+        webSocketFunctionResourceCreator = WebSocketFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, mockk(relaxed = true))
         toRun()
     }
 

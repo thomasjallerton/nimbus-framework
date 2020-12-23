@@ -42,8 +42,8 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
     fun correctlySetsVariableFromString() {
         compileState.compileObjects {
             val elements = it.elementUtils
-            HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
-            HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
             val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfuncFunction") as FunctionResource
 
@@ -58,8 +58,8 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
     fun handlesLocalVariableBeingNull() {
         compileState.compileObjects {
             val elements = it.elementUtils
-            HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
-            HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
             val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfunc2Function") as FunctionResource
 
             environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], functionResource)
@@ -76,8 +76,8 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
         withEnvironment("TEST_VALUE", "TEST_ENV_VAL") {
             compileState.compileObjects {
                 val elements = it.elementUtils
-                HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
-                HttpFunctionResourceCreator(cfDocuments, nimbusState, it).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+                HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+                HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
                 val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfunc2Function") as FunctionResource
 

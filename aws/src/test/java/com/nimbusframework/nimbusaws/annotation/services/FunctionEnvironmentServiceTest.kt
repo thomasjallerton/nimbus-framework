@@ -30,7 +30,7 @@ class FunctionEnvironmentServiceTest : AnnotationSpec() {
 
     @Test
     fun correctlyCreatesAFunction() {
-        val methodInformation = MethodInformation("Test", "testMethod", "com.test", listOf(), mockk())
+        val methodInformation = MethodInformation("Test", null, "testMethod", "com.test", listOf(), mockk())
         val handlerInformation = HandlerInformation()
         val functionConfig = FunctionConfig(10, 2000, "dev")
 
