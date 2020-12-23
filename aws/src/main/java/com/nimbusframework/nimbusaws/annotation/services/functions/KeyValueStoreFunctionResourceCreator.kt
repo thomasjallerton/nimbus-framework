@@ -19,12 +19,14 @@ import javax.tools.Diagnostic
 class KeyValueStoreFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        private val processingEnv: ProcessingEnvironment,
-        private val messager: Messager,
+        processingEnv: ProcessingEnvironment,
+        messager: Messager,
         private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
         cfDocuments,
         nimbusState,
+        processingEnv,
+        messager,
         KeyValueStoreServerlessFunction::class.java,
         KeyValueStoreServerlessFunctions::class.java
 ) {

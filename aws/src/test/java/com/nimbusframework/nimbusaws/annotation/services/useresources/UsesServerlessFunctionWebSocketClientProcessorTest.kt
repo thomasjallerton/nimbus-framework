@@ -40,7 +40,7 @@ class UsesServerlessFunctionWebSocketClientProcessorTest: AnnotationSpec() {
 
     private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
         val elements = processingEnvironment.elementUtils
-        WebSocketFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesWebSocketHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        WebSocketFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesWebSocketHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
         functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesWebSocketHandlerfuncFunction") as FunctionResource
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleWebSocketHandlerfunc") as IamRoleResource

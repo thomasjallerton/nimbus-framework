@@ -44,7 +44,7 @@ class FileUploadResourceCreatorTest : AnnotationSpec() {
         compileStateService.compileObjects {
             every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns FileBucket(nimbusState, "ImageBucket", arrayOf(), "dev" )
 
-            val fileUploadResourceCreator = FileUploadResourceCreator(cfDocuments, nimbusState, resourceFinder, messager)
+            val fileUploadResourceCreator = FileUploadResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
             val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = it.elementUtils.getTypeElement("models.FileStorage")
             fileUploadResourceCreator.handleElement(classElem, functionEnvironmentService, results)
@@ -66,7 +66,7 @@ class FileUploadResourceCreatorTest : AnnotationSpec() {
         compileStateService.compileObjects {
             every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns null
 
-            val fileUploadResourceCreator = FileUploadResourceCreator(cfDocuments, nimbusState, resourceFinder, messager)
+            val fileUploadResourceCreator = FileUploadResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
             val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = it.elementUtils.getTypeElement("models.FileStorage")
             fileUploadResourceCreator.handleElement(classElem, functionEnvironmentService, results)

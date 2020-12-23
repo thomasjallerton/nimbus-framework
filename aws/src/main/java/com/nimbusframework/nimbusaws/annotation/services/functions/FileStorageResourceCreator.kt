@@ -21,12 +21,14 @@ import javax.tools.Diagnostic
 class FileStorageResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        private val processingEnv: ProcessingEnvironment,
-        private val messager: Messager,
+        processingEnv: ProcessingEnvironment,
+        messager: Messager,
         private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
         cfDocuments,
         nimbusState,
+        processingEnv,
+        messager,
         FileStorageServerlessFunction::class.java,
         FileStorageServerlessFunctions::class.java
 ) {

@@ -20,12 +20,14 @@ import javax.tools.Diagnostic
 class NotificationFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        private val processingEnv: ProcessingEnvironment,
-        private val messager: Messager,
+        processingEnv: ProcessingEnvironment,
+        messager: Messager,
         private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
         cfDocuments,
         nimbusState,
+        processingEnv,
+        messager,
         NotificationServerlessFunction::class.java,
         NotificationServerlessFunctions::class.java
 ) {

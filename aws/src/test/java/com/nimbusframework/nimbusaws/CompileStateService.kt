@@ -40,7 +40,6 @@ class CompileStateService(
             compiler.withProcessors(NimbusAnnotationProcessor())
         } else {
             compiler.withProcessors(EvaluatingProcessor(toRunWhileProcessing))
-
         }.compile(fileObjects)
 
         status = compilation.status()

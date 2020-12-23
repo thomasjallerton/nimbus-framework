@@ -17,19 +17,25 @@ import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 class DocumentStoreFunctionResourceCreator(
-        cfDocuments: MutableMap<String, CloudFormationFiles>,
-        nimbusState: NimbusState,
-        private val processingEnv: ProcessingEnvironment,
-        private val messager: Messager,
-        private val resourceFinder: ResourceFinder
+    cfDocuments: MutableMap<String, CloudFormationFiles>,
+    nimbusState: NimbusState,
+    processingEnv: ProcessingEnvironment,
+    messager: Messager,
+    private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
-        cfDocuments,
-        nimbusState,
-        DocumentStoreServerlessFunction::class.java,
-        DocumentStoreServerlessFunctions::class.java
+    cfDocuments,
+    nimbusState,
+    processingEnv,
+    messager,
+    DocumentStoreServerlessFunction::class.java,
+    DocumentStoreServerlessFunctions::class.java
 ) {
 
-    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+    override fun handleElement(
+        type: Element,
+        functionEnvironmentService: FunctionEnvironmentService,
+        results: MutableList<FunctionInformation>
+    ) {
         val documentStoreFunctions = type.getAnnotationsByType(DocumentStoreServerlessFunction::class.java)
 
         val methodInformation = extractMethodInformation(type)
@@ -46,22 +52,22 @@ class DocumentStoreFunctionResourceCreator(
 
             if (!fileWritten) {
                 val fileBuilder = DocumentStoreServerlessFunctionFileBuilder<Any>(
-                        processingEnv,
-                        methodInformation,
-                        type,
-                        documentStoreFunction.method,
-                        dataModelAnnotation.getTypeElement(processingEnv),
-                        nimbusState
+                    processingEnv,
+                    methodInformation,
+                    type,
+                    documentStoreFunction.method,
+                    dataModelAnnotation.getTypeElement(processingEnv),
+                    nimbusState
                 )
 
                 handler = fileBuilder.getHandler()
                 fileBuilder.createClass()
                 fileWritten = true
                 handlerInformation = HandlerInformation(
-                        handlerClassPath = fileBuilder.classFilePath(),
-                        handlerFile = fileBuilder.handlerFile(),
-                        replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                        stages = stages
+                    handlerClassPath = fileBuilder.classFilePath(),
+                    handlerFile = fileBuilder.handlerFile(),
+                    replacementVariable = "\${${fileBuilder.handlerFile()}}",
+                    stages = stages
                 )
                 nimbusState.handlerFiles.add(handlerInformation)
             }
@@ -69,17 +75,21 @@ class DocumentStoreFunctionResourceCreator(
             for (stage in stages) {
                 val config = FunctionConfig(documentStoreFunction.timeout, documentStoreFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(
-                        handler,
-                        methodInformation,
-                        handlerInformation,
-                        config
+                    handler,
+                    methodInformation,
+                    handlerInformation,
+                    config
                 )
 
                 val dynamoResource = resourceFinder.getDocumentStoreResource(dataModelAnnotation, type, stage)
 
                 if (dynamoResource == null) {
                     val dataModelClass = dataModelAnnotation.getTypeElement(processingEnv)
-                    messager.printMessage(Diagnostic.Kind.ERROR, "${dataModelClass.simpleName} is not annotated with a DocumentStore annotation", type)
+                    messager.printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "${dataModelClass.simpleName} is not annotated with a DocumentStore annotation",
+                        type
+                    )
                     return
                 }
 

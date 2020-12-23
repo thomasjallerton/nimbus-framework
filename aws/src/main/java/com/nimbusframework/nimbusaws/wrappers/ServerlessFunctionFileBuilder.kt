@@ -164,7 +164,11 @@ abstract class ServerlessFunctionFileBuilder(
 
                 write("public ${getGeneratedClassName()}() {")
                 write("ClientBinder.INSTANCE.setInternalBuilder(AwsInternalClientBuilder.INSTANCE);")
-                write("handler = new ${methodInformation.className}();")
+                if (methodInformation.customFactoryQualifiedName == null) {
+                    write("handler = new ${methodInformation.className}();")
+                } else {
+                    write("handler = new ${methodInformation.customFactoryQualifiedName}().create();")
+                }
                 write("}")
 
                 write("public $returnTypeSimpleName handleRequest($inputTypeSimpleName input, Context context) {")
