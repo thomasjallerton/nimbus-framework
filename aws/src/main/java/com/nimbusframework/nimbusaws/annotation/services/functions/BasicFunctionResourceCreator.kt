@@ -11,16 +11,20 @@ import com.nimbusframework.nimbuscore.annotations.function.BasicServerlessFuncti
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.BasicServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
+import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class BasicFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
-        private val processingEnv: ProcessingEnvironment
+        processingEnv: ProcessingEnvironment,
+        messager: Messager
 ) : FunctionResourceCreator(
         cfDocuments,
         nimbusState,
+        processingEnv,
+        messager,
         BasicServerlessFunction::class.java,
         BasicServerlessFunctions::class.java
 ) {

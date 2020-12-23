@@ -40,7 +40,7 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
         val elements = processingEnvironment.elementUtils
         RelationalDatabaseResourceCreator(roundEnvironment, cfDocuments, nimbusState).handleAgnosticType(elements.getTypeElement("models.RelationalDatabaseModel"))
 
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
         usesRelationalDatabaseProcessor = UsesRelationalDatabaseProcessor(cfDocuments, processingEnvironment, nimbusState)
         toRun()

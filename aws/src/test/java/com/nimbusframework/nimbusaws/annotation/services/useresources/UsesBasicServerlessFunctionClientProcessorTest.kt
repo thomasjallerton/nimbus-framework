@@ -43,10 +43,10 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
         val elements = processingEnvironment.elementUtils
         usesBasicServerlessFunctionClientProcessor = UsesBasicServerlessFunctionClientProcessor(cfDocuments, processingEnvironment, nimbusState, messager)
 
-        BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.BasicHandlers").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.BasicHandlers").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment).handleElement(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRolecFunctionHandlerfunc") as IamRoleResource
 
