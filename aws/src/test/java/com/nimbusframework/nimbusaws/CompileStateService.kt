@@ -6,6 +6,7 @@ import com.google.testing.compile.Compiler
 import com.google.testing.compile.JavaFileObjects
 import com.nimbusframework.nimbusaws.annotation.processor.NimbusAnnotationProcessor
 import com.nimbusframework.nimbusaws.annotation.services.FileReader
+import io.kotest.matchers.shouldBe
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
@@ -36,12 +37,18 @@ class CompileStateService(
     fun compileObjects(toRunWhileProcessing: (ProcessingEnvironment) -> Unit) {
         val compiler = Compiler.javac()
 
+        var wasRun = false
         val compilation = if (useNimbus) {
+            wasRun = true
             compiler.withProcessors(NimbusAnnotationProcessor())
         } else {
-            compiler.withProcessors(EvaluatingProcessor(toRunWhileProcessing))
+            compiler.withProcessors(EvaluatingProcessor {
+                wasRun = true
+                toRunWhileProcessing(it)
+            })
         }.compile(fileObjects)
 
+        wasRun shouldBe true
         status = compilation.status()
         diagnostics = compilation.diagnostics()
     }

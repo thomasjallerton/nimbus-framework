@@ -52,6 +52,7 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
             functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
             functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_VALUE"
         }
+        compileState.status shouldBe Compilation.Status.SUCCESS
     }
 
     @Test
@@ -69,6 +70,7 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
             functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
             functionResource.getStrEnvValue("TEST_KEY") shouldBe "\${TEST_VALUE}"
         }
+        compileState.status shouldBe Compilation.Status.SUCCESS
     }
 
     @Test
@@ -87,11 +89,6 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
                 functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_ENV_VAL"
             }
         }
-    }
-
-    @AfterEach
-    fun final() {
         compileState.status shouldBe Compilation.Status.SUCCESS
     }
-
 }

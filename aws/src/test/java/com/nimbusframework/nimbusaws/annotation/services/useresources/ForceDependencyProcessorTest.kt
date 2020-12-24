@@ -47,10 +47,6 @@ class ForceDependencyProcessorTest: AnnotationSpec() {
             functionResource.containsDependency("com.test.test") shouldBe true
             functionResource.containsDependency("com.example.test") shouldBe true
         }
-    }
-
-    @AfterEach
-    fun final() {
         compileState.status shouldBe Compilation.Status.SUCCESS
     }
 

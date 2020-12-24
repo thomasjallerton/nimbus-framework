@@ -77,7 +77,7 @@ abstract class FunctionResourceCreator(
         return customFactory.qualifiedName.toString()
     }
 
-    private fun hasEmptyConstructor(element: TypeElement) {
+    protected fun hasEmptyConstructor(element: TypeElement) {
         val hasEmpty = element.enclosedElements.filter { it.kind == ElementKind.CONSTRUCTOR }
             .map { it.asType() as ExecutableType }
             .any { it.parameterTypes.isEmpty() }

@@ -39,7 +39,7 @@ class CustomFactoryCreationTest: AnnotationSpec() {
             basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, mockk(relaxed = true))
             val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandler")
-            val funcElem = classElem.enclosedElements[2]
+            val funcElem = classElem.enclosedElements[3]
             basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
             cfDocuments["dev"] shouldNotBe null
 
