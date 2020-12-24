@@ -62,10 +62,6 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
                 functionResource.containsDependency(com.mysql.cj.jdbc.Driver::class.java.canonicalName) shouldBe true
             }
         }
-    }
-
-    @AfterEach
-    fun final() {
         compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
 

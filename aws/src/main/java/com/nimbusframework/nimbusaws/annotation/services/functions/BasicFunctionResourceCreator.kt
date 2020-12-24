@@ -14,6 +14,7 @@ import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
+import javax.lang.model.element.TypeElement
 
 class BasicFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
@@ -34,6 +35,8 @@ class BasicFunctionResourceCreator(
     override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
         val basicFunctions = type.getAnnotationsByType(BasicServerlessFunction::class.java)
         val methodInformation = extractMethodInformation(type)
+
+        hasEmptyConstructor(type.enclosingElement as TypeElement)
 
         //TODO: Need to generate separate class per stage if necessary
         val cron = basicFunctions.map { it.cron.isNotEmpty() }.reduce { acc, b -> acc || b }

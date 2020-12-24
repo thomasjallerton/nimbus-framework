@@ -9,8 +9,12 @@ import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import javax.annotation.processing.Messager
 import javax.annotation.processing.RoundEnvironment
+import javax.tools.Diagnostic
 
 class BasicFunctionResourceCreatorTest : AnnotationSpec() {
 
@@ -45,6 +49,24 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
 
             results.size shouldBe 1
         }
+        compileState.status shouldBe Compilation.Status.SUCCESS
+    }
+
+    @Test
+    fun correctlyProcessesBasicCustomFactoryNoEmptyConstructor() {
+        compileState = CompileStateService("handlers/CustomFactoryHandlerNoEmptyConstructor.java", "handlers/CustomFactoryFactoryNoEmptyConstructor.java")
+        val messager = mockk<Messager>(relaxed = true)
+        compileState.compileObjects { processingEnv ->
+            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, messager)
+            every { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) } answers { processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, "") }
+            val results: MutableList<FunctionInformation> = mutableListOf()
+            val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandlerNoEmptyConstructor")
+            val funcElem = classElem.enclosedElements[2]
+            basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+
+            verify { messager.printMessage(Diagnostic.Kind.ERROR, "handlers.CustomFactoryHandlerNoEmptyConstructor must have a non-parameterized constructor", any()) }
+        }
+        compileState.status shouldBe Compilation.Status.FAILURE
     }
 
     @Test
@@ -62,11 +84,6 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
 
             results.size shouldBe 1
         }
-    }
-
-    @AfterEach
-    fun after() {
         compileState.status shouldBe Compilation.Status.SUCCESS
     }
-
 }

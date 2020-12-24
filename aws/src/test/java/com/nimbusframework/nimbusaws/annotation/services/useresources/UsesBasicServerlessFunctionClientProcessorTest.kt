@@ -12,8 +12,7 @@ import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
@@ -34,7 +33,7 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
         nimbusState = NimbusState()
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        messager = mockk(relaxed = true)
+        messager = mockk()
 
         compileStateService = CompileStateService("handlers/BasicHandlers.java", "handlers/UsesBasicFunctionHandler.java")
     }
@@ -42,6 +41,8 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
     private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
         val elements = processingEnvironment.elementUtils
         usesBasicServerlessFunctionClientProcessor = UsesBasicServerlessFunctionClientProcessor(cfDocuments, processingEnvironment, nimbusState, messager)
+
+        every { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) } answers { processingEnvironment.messager.printMessage(Diagnostic.Kind.ERROR, "") }
 
         BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.BasicHandlers").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
 
@@ -69,7 +70,7 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
                 functionResource.getStrEnvValue("FUNCTION_STAGE") shouldBe "dev"
             }
         }
-
+        compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
 
     @Test
@@ -83,10 +84,6 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
                 verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
             }
         }
-    }
-
-    @AfterEach
-    fun final() {
-        compileStateService.status shouldBe Compilation.Status.SUCCESS
+        compileStateService.status shouldBe Compilation.Status.FAILURE
     }
 }

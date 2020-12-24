@@ -69,10 +69,6 @@ class UsesNotificationTopicProcessorTest: AnnotationSpec() {
                 iamRoleResource.allows("sns:Publish", notificationTopicResource) shouldBe true
             }
         }
-    }
-
-    @AfterEach
-    fun final() {
         compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
 

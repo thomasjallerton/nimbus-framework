@@ -61,10 +61,7 @@ class UsesServerlessFunctionWebSocketClientProcessorTest: AnnotationSpec() {
                 iamRoleResource.allows("execute-api:ManageConnections", webSocketApi, "/*") shouldBe true
             }
         }
-    }
-
-    @AfterEach
-    fun final() {
         compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
+
 }
