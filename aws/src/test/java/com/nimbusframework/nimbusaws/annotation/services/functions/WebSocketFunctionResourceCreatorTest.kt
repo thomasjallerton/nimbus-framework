@@ -38,10 +38,9 @@ class WebSocketFunctionResourceCreatorTest : AnnotationSpec() {
     fun correctlyProcessesWebSocketFunctionAnnotation() {
         compileStateService.compileObjects {
             setup(it) {
-                val results: MutableList<FunctionInformation> = mutableListOf()
                 val classElem = it.elementUtils.getTypeElement("handlers.WebSocketHandlers")
                 val funcElem = classElem.enclosedElements[1]
-                webSocketFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+                val results = webSocketFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
                 cfDocuments["dev"] shouldNotBe null
 
                 val resources = cfDocuments["dev"]!!.updateTemplate.resources

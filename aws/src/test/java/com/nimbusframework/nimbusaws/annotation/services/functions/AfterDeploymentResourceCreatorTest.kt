@@ -31,10 +31,9 @@ class AfterDeploymentResourceCreatorTest : AnnotationSpec() {
         compileState.compileObjects { processingEnv ->
             afterDeploymentFunctionResourceCreator = AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv, mockk(relaxed = true))
 
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.AfterDeploymentHandlers")
             val funcElem = classElem.enclosedElements[1]
-            afterDeploymentFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            val results = afterDeploymentFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources

@@ -37,10 +37,9 @@ class CustomFactoryCreationTest: AnnotationSpec() {
         compileState = CompileStateService("handlers/CustomFactoryFactory.java", "handlers/CustomFactoryHandler.java")
         compileState.compileObjects { processingEnv ->
             basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, mockk(relaxed = true))
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandler")
             val funcElem = classElem.enclosedElements[3]
-            basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            val results = basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
@@ -57,10 +56,9 @@ class CustomFactoryCreationTest: AnnotationSpec() {
         val messager = mockk<Messager>(relaxed = true)
         compileState.compileObjects { processingEnv ->
             basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, messager)
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandlerWrongFactory")
             val funcElem = classElem.enclosedElements[2]
-            basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
 
             verify { messager.printMessage(Diagnostic.Kind.ERROR, "Custom factory handlers.CustomFactoryWrongFactory does not implement CustomFactory<CustomFactoryHandlerWrongFactory>", any()) }
         }

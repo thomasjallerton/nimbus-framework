@@ -49,10 +49,9 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
 
             queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
 
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = it.elementUtils.getTypeElement("handlers.QueueHandlers")
             val funcElem = classElem.enclosedElements[1]
-            queueFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            val results = queueFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
@@ -73,10 +72,9 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
 
             queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
 
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = it.elementUtils.getTypeElement("handlers.QueueHandlers")
             val funcElem = classElem.enclosedElements[1]
-            queueFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            queueFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
 
             verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
         }

@@ -33,8 +33,9 @@ class FileStorageResourceCreator(
         FileStorageServerlessFunctions::class.java
 ) {
 
-    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val fileStorageFunctions = type.getAnnotationsByType(FileStorageServerlessFunction::class.java)
+        val results = mutableListOf<FunctionInformation>()
 
         val methodInformation = extractMethodInformation(type)
         val fileStorageFileBuilder = FileStorageServerlessFunctionFileBuilder(
@@ -74,7 +75,7 @@ class FileStorageResourceCreator(
 
                 if (bucket == null) {
                     messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find FileStorageBucket class", type)
-                    return
+                    return listOf()
                 }
 
                 val lambdaConfiguration = S3LambdaConfiguration(fileStorageFunction.eventType, functionResource)
@@ -88,5 +89,6 @@ class FileStorageResourceCreator(
                 results.add(FunctionInformation(type, functionResource))
             }
         }
+        return results
     }
 }

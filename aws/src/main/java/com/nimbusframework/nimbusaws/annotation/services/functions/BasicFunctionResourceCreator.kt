@@ -32,9 +32,10 @@ class BasicFunctionResourceCreator(
 
     private val methodsToProcess: MutableMap<Pair<String, String>, MutableSet<MethodInformation>> = mutableMapOf()
 
-    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val basicFunctions = type.getAnnotationsByType(BasicServerlessFunction::class.java)
         val methodInformation = extractMethodInformation(type)
+        val results = mutableListOf<FunctionInformation>()
 
         hasEmptyConstructor(type.enclosingElement as TypeElement)
 
@@ -87,6 +88,7 @@ class BasicFunctionResourceCreator(
                 results.add(FunctionInformation(type, functionResource))
             }
         }
+        return results
     }
 
     override fun afterAllElements() {

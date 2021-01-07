@@ -43,10 +43,9 @@ class KeyValueStoreFunctionResourceCreatorTest : AnnotationSpec() {
             keyValueStoreFunctionResourceCreator = KeyValueStoreFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true), resourceFinder)
 
             every { resourceFinder.getKeyValueStoreResource(any(), any(), any()) } returns DynamoResource(DynamoConfiguration("table"), nimbusState, "dev")
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = it.elementUtils.getTypeElement("handlers.KeyValueStoreHandlers")
             val funcElem = classElem.enclosedElements[1]
-            keyValueStoreFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            val results = keyValueStoreFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources

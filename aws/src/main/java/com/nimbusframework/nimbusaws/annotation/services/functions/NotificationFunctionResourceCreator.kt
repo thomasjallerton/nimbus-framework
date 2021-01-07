@@ -32,8 +32,9 @@ class NotificationFunctionResourceCreator(
         NotificationServerlessFunctions::class.java
 ) {
 
-    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val notificationFunctions = type.getAnnotationsByType(NotificationServerlessFunction::class.java)
+        val results = mutableListOf<FunctionInformation>()
 
         val methodInformation = extractMethodInformation(type)
 
@@ -69,7 +70,7 @@ class NotificationFunctionResourceCreator(
 
                 if (snsTopic == null) {
                     messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find notification topic class", type)
-                    return
+                    return listOf()
                 }
 
                 val updateResources = cfDocuments[stage]!!.updateTemplate.resources
@@ -85,7 +86,7 @@ class NotificationFunctionResourceCreator(
                 results.add(FunctionInformation(type, functionResource))
             }
         }
-
+        return results
     }
 
 }

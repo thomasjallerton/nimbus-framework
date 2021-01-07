@@ -50,10 +50,9 @@ class FileStorageResourceCreatorTest : AnnotationSpec() {
 
             fileStorageResourceCreator = FileStorageResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
 
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = it.elementUtils.getTypeElement("handlers.FileStorageHandlers")
             val funcElem = classElem.enclosedElements[1]
-            fileStorageResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            val results = fileStorageResourceCreator.handleElement(funcElem, functionEnvironmentService)
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
@@ -76,7 +75,7 @@ class FileStorageResourceCreatorTest : AnnotationSpec() {
 
             val classElem = it.elementUtils.getTypeElement("handlers.FileStorageHandlers")
             val funcElem = classElem.enclosedElements[1]
-            fileStorageResourceCreator.handleElement(funcElem, functionEnvironmentService, mutableListOf())
+            fileStorageResourceCreator.handleElement(funcElem, functionEnvironmentService)
 
             verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
         }
