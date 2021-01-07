@@ -27,8 +27,9 @@ class WebSocketFunctionResourceCreator(
         WebSocketServerlessFunctions::class.java
 ) {
 
-    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val webSocketFunctions = type.getAnnotationsByType(WebSocketServerlessFunction::class.java)
+        val results = mutableListOf<FunctionInformation>()
 
         val methodInformation = extractMethodInformation(type)
 
@@ -70,5 +71,6 @@ class WebSocketFunctionResourceCreator(
                 results.add(FunctionInformation(type, functionResource))
             }
         }
+        return results
     }
 }

@@ -38,7 +38,7 @@ class ForceDependencyProcessorTest: AnnotationSpec() {
     fun correctlySetsVariableFromString() {
         compileState.compileObjects {
             val elements = it.elementUtils
-            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.ForceDependencyHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.ForceDependencyHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
 
             val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("ForceDependencyHandlerfuncFunction") as FunctionResource
 
@@ -47,10 +47,6 @@ class ForceDependencyProcessorTest: AnnotationSpec() {
             functionResource.containsDependency("com.test.test") shouldBe true
             functionResource.containsDependency("com.example.test") shouldBe true
         }
-    }
-
-    @AfterEach
-    fun final() {
         compileState.status shouldBe Compilation.Status.SUCCESS
     }
 

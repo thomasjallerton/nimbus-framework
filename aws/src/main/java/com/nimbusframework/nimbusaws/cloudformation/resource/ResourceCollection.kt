@@ -17,6 +17,10 @@ class ResourceCollection {
         return resourceMap[id]
     }
 
+    fun find(condition: (Resource) -> Boolean): Resource? {
+        return resourceMap.values.firstOrNull(condition)
+    }
+
     fun isEmpty(): Boolean {
         return resourceMap.isEmpty()
     }

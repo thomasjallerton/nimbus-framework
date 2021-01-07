@@ -42,8 +42,8 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
     fun correctlySetsVariableFromString() {
         compileState.compileObjects {
             val elements = it.elementUtils
-            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
-            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState))
 
             val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfuncFunction") as FunctionResource
 
@@ -52,14 +52,15 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
             functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
             functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_VALUE"
         }
+        compileState.status shouldBe Compilation.Status.SUCCESS
     }
 
     @Test
     fun handlesLocalVariableBeingNull() {
         compileState.compileObjects {
             val elements = it.elementUtils
-            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
-            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
+            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState))
             val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfunc2Function") as FunctionResource
 
             environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], functionResource)
@@ -69,6 +70,7 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
             functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
             functionResource.getStrEnvValue("TEST_KEY") shouldBe "\${TEST_VALUE}"
         }
+        compileState.status shouldBe Compilation.Status.SUCCESS
     }
 
     @Test
@@ -76,8 +78,8 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
         withEnvironment("TEST_VALUE", "TEST_ENV_VAL") {
             compileState.compileObjects {
                 val elements = it.elementUtils
-                HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
-                HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+                HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
+                HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState))
 
                 val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfunc2Function") as FunctionResource
 
@@ -87,11 +89,6 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
                 functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_ENV_VAL"
             }
         }
-    }
-
-    @AfterEach
-    fun final() {
         compileState.status shouldBe Compilation.Status.SUCCESS
     }
-
 }

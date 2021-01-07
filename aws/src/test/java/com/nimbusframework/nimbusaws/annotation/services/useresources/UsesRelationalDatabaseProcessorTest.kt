@@ -40,7 +40,7 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
         val elements = processingEnvironment.elementUtils
         RelationalDatabaseResourceCreator(roundEnvironment, cfDocuments, nimbusState).handleAgnosticType(elements.getTypeElement("models.RelationalDatabaseModel"))
 
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState), mutableListOf())
+        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
 
         usesRelationalDatabaseProcessor = UsesRelationalDatabaseProcessor(cfDocuments, processingEnvironment, nimbusState)
         toRun()
@@ -62,10 +62,6 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
                 functionResource.containsDependency(com.mysql.cj.jdbc.Driver::class.java.canonicalName) shouldBe true
             }
         }
-    }
-
-    @AfterEach
-    fun final() {
         compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
 

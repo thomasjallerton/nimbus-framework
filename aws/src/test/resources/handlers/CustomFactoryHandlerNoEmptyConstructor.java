@@ -6,15 +6,12 @@ import com.nimbusframework.nimbuscore.eventabstractions.BasicEvent;
 import java.util.Calendar;
 import models.Person;
 
-@CustomFactory(CustomFactoryFactory.class)
-public class CustomFactoryHandler {
+@CustomFactory(CustomFactoryFactoryNoEmptyConstructor.class)
+public class CustomFactoryHandlerNoEmptyConstructor {
 
   private final String message;
 
-  public CustomFactoryHandler() {
-    this.message = null;
-  }
-  public CustomFactoryHandler(String message) {
+  public CustomFactoryHandlerNoEmptyConstructor(String message) {
     this.message = message;
   }
 

@@ -31,12 +31,9 @@ class DocumentStoreFunctionResourceCreator(
     DocumentStoreServerlessFunctions::class.java
 ) {
 
-    override fun handleElement(
-        type: Element,
-        functionEnvironmentService: FunctionEnvironmentService,
-        results: MutableList<FunctionInformation>
-    ) {
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val documentStoreFunctions = type.getAnnotationsByType(DocumentStoreServerlessFunction::class.java)
+        val results = mutableListOf<FunctionInformation>()
 
         val methodInformation = extractMethodInformation(type)
 
@@ -90,7 +87,7 @@ class DocumentStoreFunctionResourceCreator(
                         "${dataModelClass.simpleName} is not annotated with a DocumentStore annotation",
                         type
                     )
-                    return
+                    return listOf()
                 }
 
                 functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
@@ -98,5 +95,6 @@ class DocumentStoreFunctionResourceCreator(
                 results.add(FunctionInformation(type, functionResource))
             }
         }
+        return results
     }
 }
