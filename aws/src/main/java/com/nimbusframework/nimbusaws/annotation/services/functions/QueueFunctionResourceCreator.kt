@@ -32,8 +32,9 @@ class QueueFunctionResourceCreator(
         QueueServerlessFunctions::class.java
 ) {
 
-    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val queueFunctions = type.getAnnotationsByType(QueueServerlessFunction::class.java)
+        val results = mutableListOf<FunctionInformation>()
 
         val methodInformation = extractMethodInformation(type)
 
@@ -69,7 +70,7 @@ class QueueFunctionResourceCreator(
 
                 if (sqsQueue == null) {
                     messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find queue class", type)
-                    return
+                    return listOf()
                 }
 
                 val eventMapping = FunctionEventMappingResource(
@@ -96,6 +97,7 @@ class QueueFunctionResourceCreator(
                 results.add(FunctionInformation(type, functionResource))
             }
         }
+        return results
     }
 
 }

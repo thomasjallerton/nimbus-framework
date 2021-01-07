@@ -34,10 +34,9 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
         compileStateService.compileObjects {
             httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true))
 
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = it.elementUtils.getTypeElement("handlers.HttpHandlers")
             val funcElem = classElem.enclosedElements[1]
-            httpFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            val results = httpFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
@@ -51,10 +50,9 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
     fun correctlyProcessesHttpStoreFunctionAnnotationWithLongerPath() {
         compileStateService.compileObjects {
             httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true))
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = it.elementUtils.getTypeElement("handlers.HttpHandlers")
             val funcElem = classElem.enclosedElements[2]
-            httpFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            val results = httpFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources

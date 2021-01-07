@@ -90,7 +90,17 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSzzz", Locale.US);
 
             String compilationTime = simpleDateFormat.format(cal.getTime());
-            nimbusState = new NimbusState(userConfig.getProjectName(), CloudProvider.AWS, compilationTime, userConfig.getDefaultStages(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashSet<>(), userConfig.getAssemble());
+            nimbusState = new NimbusState(
+                    userConfig.getProjectName(),
+                    CloudProvider.AWS,
+                    compilationTime,
+                    userConfig.getDefaultStages(),
+                    userConfig.getKeepWarmStages(),
+                    new HashMap<>(),
+                    new HashMap<>(),
+                    new HashMap<>(),
+                    new HashSet<>(),
+                    userConfig.getAssemble());
         }
 
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(

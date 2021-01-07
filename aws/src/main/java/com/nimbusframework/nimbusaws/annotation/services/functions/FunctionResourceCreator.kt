@@ -6,9 +6,9 @@ import com.nimbusframework.nimbusaws.annotation.services.StageService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.annotations.deployment.CustomFactory
+import com.nimbusframework.nimbuscore.annotations.function.decorator.KeepWarm
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.CustomFactoryAnnotation
-import java.util.*
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
@@ -29,20 +29,31 @@ abstract class FunctionResourceCreator(
         private val repeatableClass: Class<out Annotation>
 ) {
 
+    private val KEEP_WARM_CRON = "rate(10 minutes)"
     protected val stageService = StageService(nimbusState.defaultStages)
 
     fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val annotatedElements = roundEnv.getElementsAnnotatedWithAny(setOf(singleClass, repeatableClass))
-        val results = LinkedList<FunctionInformation>()
 
-        annotatedElements.forEach { type -> handleElement(type, functionEnvironmentService, results) }
+        val results = annotatedElements.flatMap { type ->
+            val functionInformation = handleElement(type, functionEnvironmentService)
+            // handle decorators
+            if (type.getAnnotation(KeepWarm::class.java) != null) {
+                functionInformation.forEach { functionEnvironmentService.newCronTrigger(KEEP_WARM_CRON, it.resource) }
+            } else {
+                val functionInformationForStage = functionInformation.filter { nimbusState.keepWarmStages.contains(it.resource.stage) }
+                functionInformationForStage.forEach { functionEnvironmentService.newCronTrigger(KEEP_WARM_CRON, it.resource) }
+            }
+            functionInformation
+        }
+
 
         afterAllElements()
 
         return results
     }
 
-    abstract fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>)
+    abstract fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation>
 
     protected fun extractMethodInformation(type: Element): MethodInformation {
         val methodName = type.simpleName.toString()

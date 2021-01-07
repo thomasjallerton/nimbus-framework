@@ -38,10 +38,9 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
     fun correctlyProcessesBasicFunctionAnnotation() {
         compileState.compileObjects { processingEnv ->
             basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, mockk(relaxed = true))
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.BasicHandlers")
             val funcElem = classElem.enclosedElements[2]
-            basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            val results = basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
@@ -59,10 +58,9 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
         compileState.compileObjects { processingEnv ->
             basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, messager)
             every { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) } answers { processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, "") }
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandlerNoEmptyConstructor")
             val funcElem = classElem.enclosedElements[2]
-            basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
 
             verify { messager.printMessage(Diagnostic.Kind.ERROR, "handlers.CustomFactoryHandlerNoEmptyConstructor must have a non-parameterized constructor", any()) }
         }
@@ -73,10 +71,9 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
     fun correctlyProcessesBasicFunctionCronAnnotation() {
         compileState.compileObjects { processingEnv ->
             basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, mockk(relaxed = true))
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.BasicHandlers")
             val funcElem = classElem.enclosedElements[1]
-            basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            val results = basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources

@@ -32,8 +32,9 @@ class KeyValueStoreFunctionResourceCreator(
 ) {
 
 
-    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val keyValueStoreFunctions = type.getAnnotationsByType(KeyValueStoreServerlessFunction::class.java)
+        val results = mutableListOf<FunctionInformation>()
 
         val methodInformation = extractMethodInformation(type)
 
@@ -85,7 +86,7 @@ class KeyValueStoreFunctionResourceCreator(
                 if (dynamoResource == null) {
                     val dataModelClass = dataModelAnnotation.getTypeElement(processingEnv)
                     messager.printMessage(Diagnostic.Kind.ERROR, "${dataModelClass.simpleName} is not annotated with a KeyValueStore annotation", type)
-                    return
+                    return listOf()
                 }
 
                 functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
@@ -93,5 +94,6 @@ class KeyValueStoreFunctionResourceCreator(
                 results.add(FunctionInformation(type, functionResource))
             }
         }
+        return results
     }
 }

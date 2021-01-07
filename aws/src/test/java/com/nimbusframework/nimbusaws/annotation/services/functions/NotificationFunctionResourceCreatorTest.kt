@@ -44,10 +44,9 @@ class NotificationFunctionResourceCreatorTest : AnnotationSpec() {
         compileStateService.compileObjects {
             every { resourceFinder.getNotificationTopicResource(any(), any(), any()) } returns SnsTopicResource("notificationTopic", nimbusState, "dev")
             notificationStoreFunctionResourceCreator = NotificationFunctionResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
-            val results: MutableList<FunctionInformation> = mutableListOf()
             val classElem = it.elementUtils.getTypeElement("handlers.NotificationHandlers")
             val funcElem = classElem.enclosedElements[1]
-            notificationStoreFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService, results)
+            val results = notificationStoreFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources

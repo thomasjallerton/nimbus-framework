@@ -27,8 +27,9 @@ class AfterDeploymentResourceCreator(
         AfterDeployments::class.java
 ) {
 
-    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val afterDeployments = type.getAnnotationsByType(AfterDeployment::class.java)
+        val results = mutableListOf<FunctionInformation>()
 
         val methodInformation = extractMethodInformation(type)
         val fileBuilder = DeploymentFunctionFileBuilder(
@@ -74,6 +75,7 @@ class AfterDeploymentResourceCreator(
                 results.add(FunctionInformation(type, functionResource))
             }
         }
+        return results
     }
 
 }

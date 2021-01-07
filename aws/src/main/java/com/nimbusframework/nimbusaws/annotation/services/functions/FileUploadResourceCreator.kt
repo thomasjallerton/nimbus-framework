@@ -29,9 +29,9 @@ class FileUploadResourceCreator(
         FileUploads::class.java
 ) {
 
-    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService, results: MutableList<FunctionInformation>) {
+    override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val fileUploads = type.getAnnotationsByType(FileUpload::class.java)
-
+        val results = mutableListOf<FunctionInformation>()
 
         for (fileUpload in fileUploads) {
             val stages = stageService.determineStages(fileUpload.stages)
@@ -44,7 +44,7 @@ class FileUploadResourceCreator(
 
                 if (bucket == null) {
                     messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find file storage bucket class", type)
-                    return
+                    return listOf()
                 }
 
                 val fileList = bucketMap.getOrPut(bucket.bucketName) { mutableListOf() }
@@ -52,6 +52,7 @@ class FileUploadResourceCreator(
                 fileList.add(FileUploadDescription(fileUpload.localPath, fileUpload.targetPath, fileUpload.substituteNimbusVariables))
             }
         }
+        return results
     }
 
 }
