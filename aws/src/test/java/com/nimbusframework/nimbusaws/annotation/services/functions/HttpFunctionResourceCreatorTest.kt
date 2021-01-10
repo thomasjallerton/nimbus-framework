@@ -32,7 +32,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesHttpStoreFunctionAnnotation() {
         compileStateService.compileObjects {
-            httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true))
+            httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, nimbusState, it, setOf(), mockk(relaxed = true))
 
             val classElem = it.elementUtils.getTypeElement("handlers.HttpHandlers")
             val funcElem = classElem.enclosedElements[1]
@@ -49,7 +49,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesHttpStoreFunctionAnnotationWithLongerPath() {
         compileStateService.compileObjects {
-            httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, nimbusState, it, mockk(relaxed = true))
+            httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, nimbusState, it, setOf(), mockk(relaxed = true))
             val classElem = it.elementUtils.getTypeElement("handlers.HttpHandlers")
             val funcElem = classElem.enclosedElements[2]
             val results = httpFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)

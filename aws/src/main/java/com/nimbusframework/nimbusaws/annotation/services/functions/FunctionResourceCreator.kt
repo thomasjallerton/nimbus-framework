@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.StageService
+import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.annotations.deployment.CustomFactory
@@ -24,12 +25,12 @@ abstract class FunctionResourceCreator(
         protected val cfDocuments: MutableMap<String, CloudFormationFiles>,
         protected val nimbusState: NimbusState,
         protected val processingEnv: ProcessingEnvironment,
+        private val decoratorHandlers: Set<FunctionDecoratorHandler>,
         protected val messager: Messager,
         private val singleClass: Class<out Annotation>,
         private val repeatableClass: Class<out Annotation>
 ) {
 
-    private val KEEP_WARM_CRON = "rate(10 minutes)"
     protected val stageService = StageService(nimbusState.defaultStages)
 
     fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
@@ -38,12 +39,7 @@ abstract class FunctionResourceCreator(
         val results = annotatedElements.flatMap { type ->
             val functionInformation = handleElement(type, functionEnvironmentService)
             // handle decorators
-            if (type.getAnnotation(KeepWarm::class.java) != null) {
-                functionInformation.forEach { functionEnvironmentService.newCronTrigger(KEEP_WARM_CRON, it.resource) }
-            } else {
-                val functionInformationForStage = functionInformation.filter { nimbusState.keepWarmStages.contains(it.resource.stage) }
-                functionInformationForStage.forEach { functionEnvironmentService.newCronTrigger(KEEP_WARM_CRON, it.resource) }
-            }
+            decoratorHandlers.forEach { it.handleDecorator(type, functionInformation) }
             functionInformation
         }
 

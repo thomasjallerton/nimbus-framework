@@ -2,6 +2,8 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
+import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.KeepWarmDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
@@ -35,69 +37,25 @@ class FunctionResourceCreatorTest : AnnotationSpec() {
     }
 
     @Test
-    fun correctlyProcessesNoKeepWarmAnnotation() {
+    fun correctlyProcessesFunction() {
         val functionInformation = mockk<FunctionInformation>()
-        val functionResource = mockk<FunctionResource>()
+        val functionDecoratorHandler = mockk<FunctionDecoratorHandler>(relaxed = true)
 
-        every { functionInformation.resource } returns functionResource
-        every { functionInformation.resource.stage } returns "not default"
-
-        nimbusState = NimbusState(keepWarmStages = listOf("test"))
-
-        val underTest = DummyFunctionResourceCreator(cfDocuments, nimbusState, mockk(), mockk(relaxed = true), listOf(functionInformation))
+        val underTest = DummyFunctionResourceCreator(
+            cfDocuments,
+            nimbusState,
+            mockk(),
+            functionDecoratorHandler,
+            mockk(relaxed = true),
+            listOf(functionInformation)
+        )
 
         val typeMock = mockk<Element>()
-        every { typeMock.getAnnotation(KeepWarm::class.java) } returns null
         every { roundEnvironment.getElementsAnnotatedWithAny(any<Set<Class<out Annotation>>>()) } returns setOf(typeMock)
 
         val results = underTest.handle(roundEnvironment, functionEnvironmentService)
 
-        verify(exactly = 0) { functionEnvironmentService.newCronTrigger(any(), eq(functionResource)) }
-
-        results.size shouldBe 1
-        results shouldContain functionInformation
-    }
-
-    @Test
-    fun correctlyProcessesKeepWarmAnnotation() {
-        val functionInformation = mockk<FunctionInformation>()
-        val functionResource = mockk<FunctionResource>()
-
-        every { functionInformation.resource } returns functionResource
-
-        val underTest = DummyFunctionResourceCreator(cfDocuments, nimbusState, mockk(), mockk(relaxed = true), listOf(functionInformation))
-
-        val typeMock = mockk<Element>()
-        every { typeMock.getAnnotation(KeepWarm::class.java) } returns mockk()
-        every { roundEnvironment.getElementsAnnotatedWithAny(any<Set<Class<out Annotation>>>()) } returns setOf(typeMock)
-
-        val results = underTest.handle(roundEnvironment, functionEnvironmentService)
-
-        verify { functionEnvironmentService.newCronTrigger(any(), eq(functionResource)) }
-
-        results.size shouldBe 1
-        results shouldContain functionInformation
-    }
-
-    @Test
-    fun correctlyProcessesKeepWarmState() {
-        val functionInformation = mockk<FunctionInformation>()
-        val functionResource = mockk<FunctionResource>()
-
-        every { functionInformation.resource } returns functionResource
-        every { functionResource.stage } returns "test"
-
-        nimbusState = NimbusState(keepWarmStages = listOf("test"))
-
-        val underTest = DummyFunctionResourceCreator(cfDocuments, nimbusState, mockk(), mockk(relaxed = true), listOf(functionInformation))
-
-        val typeMock = mockk<Element>()
-        every { typeMock.getAnnotation(KeepWarm::class.java) } returns null
-        every { roundEnvironment.getElementsAnnotatedWithAny(any<Set<Class<out Annotation>>>()) } returns setOf(typeMock)
-
-        val results = underTest.handle(roundEnvironment, functionEnvironmentService)
-
-        verify { functionEnvironmentService.newCronTrigger(any(), eq(functionResource)) }
+        verify { functionDecoratorHandler.handleDecorator(typeMock, listOf(functionInformation)) }
 
         results.size shouldBe 1
         results shouldContain functionInformation
@@ -107,12 +65,14 @@ class FunctionResourceCreatorTest : AnnotationSpec() {
         cfDocuments: MutableMap<String, CloudFormationFiles>,
         nimbusState: NimbusState,
         processingEnv: ProcessingEnvironment,
+        decoratorHandler: FunctionDecoratorHandler,
         messager: Messager,
         private val returnedFunctionInformation: List<FunctionInformation>
     ) : FunctionResourceCreator(
         cfDocuments,
         nimbusState,
         processingEnv,
+        setOf(decoratorHandler),
         messager,
         HttpServerlessFunction::class.java,
         HttpServerlessFunctions::class.java

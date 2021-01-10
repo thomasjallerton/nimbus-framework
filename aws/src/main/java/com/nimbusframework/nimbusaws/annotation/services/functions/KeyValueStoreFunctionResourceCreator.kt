@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.store.keyvalue.KeyValueStoreServerlessFunctionFileBuilder
@@ -17,18 +18,20 @@ import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 class KeyValueStoreFunctionResourceCreator(
-        cfDocuments: MutableMap<String, CloudFormationFiles>,
-        nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment,
-        messager: Messager,
-        private val resourceFinder: ResourceFinder
+    cfDocuments: MutableMap<String, CloudFormationFiles>,
+    nimbusState: NimbusState,
+    processingEnv: ProcessingEnvironment,
+    decoratorHandlers: Set<FunctionDecoratorHandler>,
+    messager: Messager,
+    private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
-        cfDocuments,
-        nimbusState,
-        processingEnv,
-        messager,
-        KeyValueStoreServerlessFunction::class.java,
-        KeyValueStoreServerlessFunctions::class.java
+    cfDocuments,
+    nimbusState,
+    processingEnv,
+    decoratorHandlers,
+    messager,
+    KeyValueStoreServerlessFunction::class.java,
+    KeyValueStoreServerlessFunctions::class.java
 ) {
 
 
@@ -50,22 +53,22 @@ class KeyValueStoreFunctionResourceCreator(
 
             if (!fileWritten) {
                 val fileBuilder = KeyValueStoreServerlessFunctionFileBuilder<Any>(
-                        processingEnv,
-                        methodInformation,
-                        type,
-                        keyValueStoreFunction.method,
-                        dataModelAnnotation.getTypeElement(processingEnv),
-                        nimbusState
+                    processingEnv,
+                    methodInformation,
+                    type,
+                    keyValueStoreFunction.method,
+                    dataModelAnnotation.getTypeElement(processingEnv),
+                    nimbusState
                 )
 
                 handler = fileBuilder.getHandler()
                 fileBuilder.createClass()
                 fileWritten = true
                 handlerInformation = HandlerInformation(
-                        handlerClassPath = fileBuilder.classFilePath(),
-                        handlerFile = fileBuilder.handlerFile(),
-                        replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                        stages = stages
+                    handlerClassPath = fileBuilder.classFilePath(),
+                    handlerFile = fileBuilder.handlerFile(),
+                    replacementVariable = "\${${fileBuilder.handlerFile()}}",
+                    stages = stages
                 )
                 nimbusState.handlerFiles.add(handlerInformation)
 
@@ -75,17 +78,21 @@ class KeyValueStoreFunctionResourceCreator(
                 val config = FunctionConfig(keyValueStoreFunction.timeout, keyValueStoreFunction.memory, stage)
 
                 val functionResource = functionEnvironmentService.newFunction(
-                        handler,
-                        methodInformation,
-                        handlerInformation,
-                        config
+                    handler,
+                    methodInformation,
+                    handlerInformation,
+                    config
                 )
 
                 val dynamoResource = resourceFinder.getKeyValueStoreResource(dataModelAnnotation, type, stage)
 
                 if (dynamoResource == null) {
                     val dataModelClass = dataModelAnnotation.getTypeElement(processingEnv)
-                    messager.printMessage(Diagnostic.Kind.ERROR, "${dataModelClass.simpleName} is not annotated with a KeyValueStore annotation", type)
+                    messager.printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "${dataModelClass.simpleName} is not annotated with a KeyValueStore annotation",
+                        type
+                    )
                     return listOf()
                 }
 

@@ -8,6 +8,8 @@ import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentServ
 import com.nimbusframework.nimbusaws.annotation.services.ReadUserConfigService;
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder;
 import com.nimbusframework.nimbusaws.annotation.services.functions.*;
+import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler;
+import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.KeepWarmDecoratorHandler;
 import com.nimbusframework.nimbusaws.annotation.services.resources.*;
 import com.nimbusframework.nimbusaws.annotation.services.useresources.*;
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles;
@@ -121,20 +123,23 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             creator.create();
         }
 
+        Set<FunctionDecoratorHandler> functionDecoratorHandlers = new HashSet<>();
+        functionDecoratorHandlers.add(new KeepWarmDecoratorHandler(nimbusState, functionEnvironmentService));
+
         ResourceFinder resourceFinder = new ResourceFinder(cloudFormationFiles, processingEnv, nimbusState);
 
         List<FunctionResourceCreator> functionResourceCreators = new LinkedList<>();
-        functionResourceCreators.add(new DocumentStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager, resourceFinder));
-        functionResourceCreators.add(new KeyValueStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager, resourceFinder));
-        functionResourceCreators.add(new HttpFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager));
-        functionResourceCreators.add(new NotificationFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager, resourceFinder));
-        functionResourceCreators.add(new QueueFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager, resourceFinder));
-        functionResourceCreators.add(new BasicFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager));
-        functionResourceCreators.add(new FileStorageResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager, resourceFinder));
-        functionResourceCreators.add(new WebSocketFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager));
+        functionResourceCreators.add(new DocumentStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new KeyValueStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new HttpFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager));
+        functionResourceCreators.add(new NotificationFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new QueueFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new BasicFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager));
+        functionResourceCreators.add(new FileStorageResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new WebSocketFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager));
 
-        functionResourceCreators.add(new FileUploadResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager, resourceFinder));
-        functionResourceCreators.add(new AfterDeploymentResourceCreator(cloudFormationFiles, nimbusState, processingEnv, messager));
+        functionResourceCreators.add(new FileUploadResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new AfterDeploymentResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager));
 
         List<FunctionInformation> allInformation = new LinkedList<>();
         for (FunctionResourceCreator creator : functionResourceCreators) {

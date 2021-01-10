@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.websocket.WebSocketServerlessFunctionFileBuilder
@@ -14,17 +15,19 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class WebSocketFunctionResourceCreator(
-        cfDocuments: MutableMap<String, CloudFormationFiles>,
-        nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment,
-        messager: Messager
+    cfDocuments: MutableMap<String, CloudFormationFiles>,
+    nimbusState: NimbusState,
+    processingEnv: ProcessingEnvironment,
+    decoratorHandlers: Set<FunctionDecoratorHandler>,
+    messager: Messager
 ) : FunctionResourceCreator(
-        cfDocuments,
-        nimbusState,
-        processingEnv,
-        messager,
-        WebSocketServerlessFunction::class.java,
-        WebSocketServerlessFunctions::class.java
+    cfDocuments,
+    nimbusState,
+    processingEnv,
+    decoratorHandlers,
+    messager,
+    WebSocketServerlessFunction::class.java,
+    WebSocketServerlessFunctions::class.java
 ) {
 
     override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
@@ -35,10 +38,10 @@ class WebSocketFunctionResourceCreator(
 
 
         val fileBuilder = WebSocketServerlessFunctionFileBuilder(
-                processingEnv,
-                methodInformation,
-                type,
-                nimbusState
+            processingEnv,
+            methodInformation,
+            type,
+            nimbusState
         )
 
         fileBuilder.createClass()
@@ -47,10 +50,10 @@ class WebSocketFunctionResourceCreator(
             val stages = stageService.determineStages(webSocketFunction.stages)
 
             val handlerInformation = HandlerInformation(
-                    handlerClassPath = fileBuilder.classFilePath(),
-                    handlerFile = fileBuilder.handlerFile(),
-                    replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                    stages = stages
+                handlerClassPath = fileBuilder.classFilePath(),
+                handlerFile = fileBuilder.handlerFile(),
+                replacementVariable = "\${${fileBuilder.handlerFile()}}",
+                stages = stages
             )
             nimbusState.handlerFiles.add(handlerInformation)
 
@@ -60,10 +63,10 @@ class WebSocketFunctionResourceCreator(
                 val config = FunctionConfig(webSocketFunction.timeout, webSocketFunction.memory, stage)
 
                 val functionResource = functionEnvironmentService.newFunction(
-                        handler,
-                        methodInformation,
-                        handlerInformation,
-                        config
+                    handler,
+                    methodInformation,
+                    handlerInformation,
+                    config
                 )
 
                 functionEnvironmentService.newWebSocketRoute(webSocketFunction.topic, functionResource)
