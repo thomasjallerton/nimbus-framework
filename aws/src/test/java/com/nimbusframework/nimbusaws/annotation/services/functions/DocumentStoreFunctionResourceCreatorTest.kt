@@ -40,7 +40,7 @@ class DocumentStoreFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesDocumentStoreFunctionAnnotation() {
         compileState.compileObjects {processingEnvironment ->
-            documentStoreFunctionResourceCreator = DocumentStoreFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, mockk(relaxed = true), resourceFinder)
+            documentStoreFunctionResourceCreator = DocumentStoreFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, setOf(), mockk(relaxed = true), resourceFinder)
             every { resourceFinder.getDocumentStoreResource(any(), any(), any()) } returns DynamoResource(DynamoConfiguration("table"), nimbusState, "dev")
             val classElem = processingEnvironment.elementUtils.getTypeElement("handlers.DocumentStoreHandlers")
             val funcElem = classElem.enclosedElements[1]

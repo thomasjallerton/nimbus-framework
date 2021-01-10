@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionEventMappingResource
@@ -18,18 +19,20 @@ import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 class QueueFunctionResourceCreator(
-        cfDocuments: MutableMap<String, CloudFormationFiles>,
-        nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment,
-        messager: Messager,
-        private val resourceFinder: ResourceFinder
+    cfDocuments: MutableMap<String, CloudFormationFiles>,
+    nimbusState: NimbusState,
+    processingEnv: ProcessingEnvironment,
+    decoratorHandlers: Set<FunctionDecoratorHandler>,
+    messager: Messager,
+    private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
-        cfDocuments,
-        nimbusState,
-        processingEnv,
-        messager,
-        QueueServerlessFunction::class.java,
-        QueueServerlessFunctions::class.java
+    cfDocuments,
+    nimbusState,
+    processingEnv,
+    decoratorHandlers,
+    messager,
+    QueueServerlessFunction::class.java,
+    QueueServerlessFunctions::class.java
 ) {
 
     override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
@@ -39,20 +42,20 @@ class QueueFunctionResourceCreator(
         val methodInformation = extractMethodInformation(type)
 
         val fileBuilder = QueueServerlessFunctionFileBuilder(
-                processingEnv,
-                methodInformation,
-                type,
-                nimbusState
+            processingEnv,
+            methodInformation,
+            type,
+            nimbusState
         )
 
         for (queueFunction in queueFunctions) {
             val stages = stageService.determineStages(queueFunction.stages)
 
             val handlerInformation = HandlerInformation(
-                    handlerClassPath = fileBuilder.classFilePath(),
-                    handlerFile = fileBuilder.handlerFile(),
-                    replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                    stages = stages
+                handlerClassPath = fileBuilder.classFilePath(),
+                handlerFile = fileBuilder.handlerFile(),
+                replacementVariable = "\${${fileBuilder.handlerFile()}}",
+                stages = stages
             )
             nimbusState.handlerFiles.add(handlerInformation)
 
@@ -60,13 +63,14 @@ class QueueFunctionResourceCreator(
                 val config = FunctionConfig(queueFunction.timeout, queueFunction.memory, stage)
 
                 val functionResource = functionEnvironmentService.newFunction(
-                        fileBuilder.getHandler(),
-                        methodInformation,
-                        handlerInformation,
-                        config
+                    fileBuilder.getHandler(),
+                    methodInformation,
+                    handlerInformation,
+                    config
                 )
 
-                val sqsQueue = resourceFinder.getQueueResource(QueueServerlessFunctionAnnotation(queueFunction), type, stage)
+                val sqsQueue =
+                    resourceFinder.getQueueResource(QueueServerlessFunctionAnnotation(queueFunction), type, stage)
 
                 if (sqsQueue == null) {
                     messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find queue class", type)
@@ -74,12 +78,12 @@ class QueueFunctionResourceCreator(
                 }
 
                 val eventMapping = FunctionEventMappingResource(
-                        sqsQueue.getArn(""),
-                        sqsQueue.getName(),
-                        queueFunction.batchSize,
-                        functionResource,
-                        false,
-                        nimbusState
+                    sqsQueue.getArn(""),
+                    sqsQueue.getName(),
+                    queueFunction.batchSize,
+                    functionResource,
+                    false,
+                    nimbusState
                 )
 
                 val updateResources = cfDocuments[stage]!!.updateTemplate.resources

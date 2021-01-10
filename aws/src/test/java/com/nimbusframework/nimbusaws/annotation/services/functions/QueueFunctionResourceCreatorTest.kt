@@ -47,7 +47,7 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
         compileStateService.compileObjects {
             every { resourceFinder.getQueueResource(any(), any(), any()) } returns QueueResource(nimbusState, "messageQueue", 10, "dev")
 
-            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
+            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, nimbusState, it, setOf(), messager, resourceFinder)
 
             val classElem = it.elementUtils.getTypeElement("handlers.QueueHandlers")
             val funcElem = classElem.enclosedElements[1]
@@ -70,7 +70,7 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
         compileStateService.compileObjects {
             every { resourceFinder.getQueueResource(any(), any(), any()) } returns null
 
-            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
+            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, nimbusState, it, setOf(), messager, resourceFinder)
 
             val classElem = it.elementUtils.getTypeElement("handlers.QueueHandlers")
             val funcElem = classElem.enclosedElements[1]

@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.store.document.DocumentStoreServerlessFunctionFileBuilder
@@ -20,12 +21,14 @@ class DocumentStoreFunctionResourceCreator(
     cfDocuments: MutableMap<String, CloudFormationFiles>,
     nimbusState: NimbusState,
     processingEnv: ProcessingEnvironment,
+    decoratorHandlers: Set<FunctionDecoratorHandler>,
     messager: Messager,
     private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
     cfDocuments,
     nimbusState,
     processingEnv,
+    decoratorHandlers,
     messager,
     DocumentStoreServerlessFunction::class.java,
     DocumentStoreServerlessFunctions::class.java

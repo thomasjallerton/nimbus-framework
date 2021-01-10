@@ -48,7 +48,7 @@ class FileStorageResourceCreatorTest : AnnotationSpec() {
         compileStateService.compileObjects {
             every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns FileBucket(nimbusState, "ImageBucket", arrayOf(), "dev" )
 
-            fileStorageResourceCreator = FileStorageResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
+            fileStorageResourceCreator = FileStorageResourceCreator(cfDocuments, nimbusState, it, setOf(), messager, resourceFinder)
 
             val classElem = it.elementUtils.getTypeElement("handlers.FileStorageHandlers")
             val funcElem = classElem.enclosedElements[1]
@@ -71,7 +71,7 @@ class FileStorageResourceCreatorTest : AnnotationSpec() {
         compileStateService.compileObjects {
             every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns null
 
-            fileStorageResourceCreator = FileStorageResourceCreator(cfDocuments, nimbusState, it, messager, resourceFinder)
+            fileStorageResourceCreator = FileStorageResourceCreator(cfDocuments, nimbusState, it, setOf(), messager, resourceFinder)
 
             val classElem = it.elementUtils.getTypeElement("handlers.FileStorageHandlers")
             val funcElem = classElem.enclosedElements[1]

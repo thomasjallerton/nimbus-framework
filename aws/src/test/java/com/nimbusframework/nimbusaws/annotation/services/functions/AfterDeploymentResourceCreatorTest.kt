@@ -29,7 +29,7 @@ class AfterDeploymentResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesAfterDeploymentFunctionAnnotation() {
         compileState.compileObjects { processingEnv ->
-            afterDeploymentFunctionResourceCreator = AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv, mockk(relaxed = true))
+            afterDeploymentFunctionResourceCreator = AfterDeploymentResourceCreator(cfDocuments, nimbusState, processingEnv, setOf(), mockk(relaxed = true))
 
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.AfterDeploymentHandlers")
             val funcElem = classElem.enclosedElements[1]
@@ -40,6 +40,7 @@ class AfterDeploymentResourceCreatorTest : AnnotationSpec() {
             resources.size() shouldBe 4
 
             results.size shouldBe 1
+            results[0].canBeKeptWarm shouldBe false
         }
     }
 

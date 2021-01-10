@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.deployment.DeploymentFunctionFileBuilder
@@ -14,17 +15,19 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class AfterDeploymentResourceCreator(
-        cfDocuments: MutableMap<String, CloudFormationFiles>,
-        nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment,
-        messager: Messager
-): FunctionResourceCreator(
-        cfDocuments,
-        nimbusState,
-        processingEnv,
-        messager,
-        AfterDeployment::class.java,
-        AfterDeployments::class.java
+    cfDocuments: MutableMap<String, CloudFormationFiles>,
+    nimbusState: NimbusState,
+    processingEnv: ProcessingEnvironment,
+    decoratorHandlers: Set<FunctionDecoratorHandler>,
+    messager: Messager
+) : FunctionResourceCreator(
+    cfDocuments,
+    nimbusState,
+    processingEnv,
+    decoratorHandlers,
+    messager,
+    AfterDeployment::class.java,
+    AfterDeployments::class.java
 ) {
 
     override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
@@ -33,10 +36,10 @@ class AfterDeploymentResourceCreator(
 
         val methodInformation = extractMethodInformation(type)
         val fileBuilder = DeploymentFunctionFileBuilder(
-                processingEnv,
-                methodInformation,
-                type,
-                nimbusState
+            processingEnv,
+            methodInformation,
+            type,
+            nimbusState
         )
 
         fileBuilder.createClass()
@@ -47,10 +50,10 @@ class AfterDeploymentResourceCreator(
             val stages = stageService.determineStages(afterDeployment.stages)
 
             val handlerInformation = HandlerInformation(
-                    handlerClassPath = fileBuilder.classFilePath(),
-                    handlerFile = fileBuilder.handlerFile(),
-                    replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                    stages = stages
+                handlerClassPath = fileBuilder.classFilePath(),
+                handlerFile = fileBuilder.handlerFile(),
+                replacementVariable = "\${${fileBuilder.handlerFile()}}",
+                stages = stages
             )
             nimbusState.handlerFiles.add(handlerInformation)
 
@@ -61,10 +64,10 @@ class AfterDeploymentResourceCreator(
                 val config = FunctionConfig(300, 1024, stage)
 
                 val functionResource = functionEnvironmentService.newFunction(
-                        handler,
-                        methodInformation,
-                        handlerInformation,
-                        config
+                    handler,
+                    methodInformation,
+                    handlerInformation,
+                    config
                 )
 
                 val afterDeploymentList = nimbusState.afterDeployments.getOrPut(stage) { mutableListOf() }
@@ -72,7 +75,7 @@ class AfterDeploymentResourceCreator(
 
                 updateResources.addResource(functionResource)
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, false))
             }
         }
         return results

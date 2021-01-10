@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbuscore.annotations.deployment.FileUpload
 import com.nimbusframework.nimbuscore.annotations.deployment.FileUploads
@@ -15,23 +16,24 @@ import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 class FileUploadResourceCreator(
-        cfDocuments: MutableMap<String, CloudFormationFiles>,
-        nimbusState: NimbusState,
-        processingEnv: ProcessingEnvironment,
-        messager: Messager,
-        private val resourceFinder: ResourceFinder
-): FunctionResourceCreator(
-        cfDocuments,
-        nimbusState,
-        processingEnv,
-        messager,
-        FileUpload::class.java,
-        FileUploads::class.java
+    cfDocuments: MutableMap<String, CloudFormationFiles>,
+    nimbusState: NimbusState,
+    processingEnv: ProcessingEnvironment,
+    decoratorHandlers: Set<FunctionDecoratorHandler>,
+    messager: Messager,
+    private val resourceFinder: ResourceFinder
+) : FunctionResourceCreator(
+    cfDocuments,
+    nimbusState,
+    processingEnv,
+    decoratorHandlers,
+    messager,
+    FileUpload::class.java,
+    FileUploads::class.java
 ) {
 
     override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val fileUploads = type.getAnnotationsByType(FileUpload::class.java)
-        val results = mutableListOf<FunctionInformation>()
 
         for (fileUpload in fileUploads) {
             val stages = stageService.determineStages(fileUpload.stages)
@@ -49,10 +51,16 @@ class FileUploadResourceCreator(
 
                 val fileList = bucketMap.getOrPut(bucket.bucketName) { mutableListOf() }
 
-                fileList.add(FileUploadDescription(fileUpload.localPath, fileUpload.targetPath, fileUpload.substituteNimbusVariables))
+                fileList.add(
+                    FileUploadDescription(
+                        fileUpload.localPath,
+                        fileUpload.targetPath,
+                        fileUpload.substituteNimbusVariables
+                    )
+                )
             }
         }
-        return results
+        return mutableListOf()
     }
 
 }
