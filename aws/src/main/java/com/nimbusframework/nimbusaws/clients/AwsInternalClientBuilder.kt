@@ -1,11 +1,11 @@
 package com.nimbusframework.nimbusaws.clients
 
 import com.google.inject.Guice
-import com.nimbusframework.nimbusaws.AwsClientModule
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore
 import com.nimbusframework.nimbusaws.clients.document.DocumentStoreClientDynamo
 import com.nimbusframework.nimbusaws.clients.document.DynamoDbDocumentStoreAnnotationService
+import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoTransactionClient
 import com.nimbusframework.nimbusaws.clients.file.FileStorageClientS3
 import com.nimbusframework.nimbusaws.clients.function.BasicServerlessFunctionClientLambda
@@ -34,6 +34,9 @@ import com.nimbusframework.nimbuscore.clients.queue.QueueClient
 import com.nimbusframework.nimbuscore.clients.queue.QueueIdAnnotationService
 import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 
 object AwsInternalClientBuilder: InternalClientBuilder {
 
@@ -71,11 +74,25 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         val documentStoreClient = when {
             document.isAnnotationPresent(DocumentStoreDefinition::class.java) -> {
                 val tableName = DocumentStoreAnnotationService.getTableName(document, stage)
-                DocumentStoreClientDynamo(document, tableName, stage)
+                DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String> ->
+                    DynamoClient(
+                        tableName,
+                        document.canonicalName,
+                        columnNameMap,
+                        createDynamoDbClient()
+                    )
+                }
             }
             document.isAnnotationPresent(DynamoDbDocumentStore::class.java) -> {
                 val tableName = DynamoDbDocumentStoreAnnotationService.getTableName(document, stage)
-                DocumentStoreClientDynamo(document, tableName, stage)
+                DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String> ->
+                    DynamoClient(
+                        tableName,
+                        document.canonicalName,
+                        columnNameMap,
+                        createDynamoDbClient()
+                    )
+                }
             }
             else -> throw IllegalStateException("${document.simpleName} is not a known type of Document Store (DocumentStore, DynamoDbDocumentStore)")
         }
@@ -128,6 +145,13 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         val webSocketClientApi = ServerlessFunctionWebSocketClientApiGateway()
         injector.injectMembers(webSocketClientApi)
         return webSocketClientApi
+    }
+
+    private fun createDynamoDbClient(): DynamoDbClient {
+        return DynamoDbClient.builder()
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .httpClient(UrlConnectionHttpClient.builder().build())
+            .build()
     }
 
 
