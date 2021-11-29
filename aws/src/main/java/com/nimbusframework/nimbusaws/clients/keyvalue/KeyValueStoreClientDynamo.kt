@@ -1,15 +1,12 @@
 package com.nimbusframework.nimbusaws.clients.keyvalue
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
-import com.google.inject.Inject
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoStreamParser
 import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
-import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
-import javax.naming.InvalidNameException
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 internal class KeyValueStoreClientDynamo<K, V>(
         private val keyClass: Class<K>,
@@ -17,15 +14,13 @@ internal class KeyValueStoreClientDynamo<K, V>(
         stage: String,
         keyName: String,
         tableName: String,
-        keyType: Class<*>
+        keyType: Class<*>,
+        private val dynamoClientFactory: (Map<String, String>) -> DynamoClient
 ): AbstractKeyValueStoreClient<K, V>(keyClass, valueClass, keyType, keyName, tableName, stage){
 
     private val dynamoStreamProcessor = DynamoStreamParser(valueClass, attributes)
 
-    @Inject
-    private lateinit var dynamoClientFactory: DynamoClient.DynamoClientFactory
-
-    private val dynamoClient: DynamoClient by lazy { dynamoClientFactory.create(tableName, valueClass.canonicalName, columnNames) }
+    private val dynamoClient by lazy { dynamoClientFactory(columnNames) }
 
     override fun put(key: K, value: V) {
         dynamoClient.put(value, attributes, mapOf(Pair(keyName, dynamoClient.toAttributeValue(key))))

@@ -1,78 +1,106 @@
 package com.nimbusframework.nimbusaws.clients.file
 
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
-import com.amazonaws.services.s3.model.ObjectMetadata
-import com.amazonaws.services.s3.model.PutObjectRequest
-import com.google.inject.Inject
 import com.nimbusframework.nimbuscore.clients.file.FileInformation
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
+import software.amazon.awssdk.core.internal.util.Mimetype
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import java.io.File
 import java.io.InputStream
 
-internal class FileStorageClientS3(annotationBucketName: String, stage: String): FileStorageClient {
+internal class FileStorageClientS3(
+    annotationBucketName: String,
+    stage: String,
+    private val s3Client: S3Client
+): FileStorageClient {
 
     private val bucketName = (annotationBucketName + stage).toLowerCase()
 
-    @Inject
-    private lateinit var s3Client: AmazonS3
-
     override fun saveFile(path: String, inputStream: InputStream) {
-        s3Client.putObject(bucketName, path, inputStream, ObjectMetadata())
+        val putObjectRequest = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(path)
+            .build()
+        val requestBody = RequestBody.fromContentProvider({ inputStream }, Mimetype.MIMETYPE_TEXT_PLAIN)
+        s3Client.putObject(putObjectRequest, requestBody)
     }
 
     override fun saveFileWithContentType(path: String, content: String, contentType: String) {
-        val objectMetadata = ObjectMetadata()
-        objectMetadata.contentType = contentType
-        val putObjectRequest = PutObjectRequest(bucketName, path, content.byteInputStream(), objectMetadata)
+        val putObjectRequest = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(path)
+            .build()
+        val requestBody = RequestBody.fromContentProvider({ content.byteInputStream() }, contentType)
 
-        s3Client.putObject(putObjectRequest)
+        s3Client.putObject(putObjectRequest, requestBody)
     }
 
     override fun saveFileWithContentType(path: String, file: File, contentType: String) {
-        val objectMetadata = ObjectMetadata()
-        objectMetadata.contentType = contentType
-        val putObjectRequest = PutObjectRequest(bucketName, path, file.inputStream(), objectMetadata)
+        val putObjectRequest = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(path)
+            .build()
+        val requestBody = RequestBody.fromContentProvider({ file.inputStream() }, contentType)
 
-        s3Client.putObject(putObjectRequest)
+        s3Client.putObject(putObjectRequest, requestBody)
     }
 
     override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String) {
-        val objectMetadata = ObjectMetadata()
-        objectMetadata.contentType = contentType
-        val putObjectRequest = PutObjectRequest(bucketName, path, inputStream, objectMetadata)
+        val putObjectRequest = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(path)
+            .build()
+        val requestBody = RequestBody.fromContentProvider({ inputStream }, contentType)
 
-        s3Client.putObject(putObjectRequest)     }
+        s3Client.putObject(putObjectRequest, requestBody)
+    }
 
 
     override fun getFile(path: String): InputStream {
-        val result = s3Client.getObject(bucketName, path)
-        return result.objectContent
+        val getObject = GetObjectRequest.builder()
+            .bucket(bucketName)
+            .key(path)
+            .build()
+        return s3Client.getObject(getObject)
     }
 
     override fun listFiles(): List<FileInformation> {
-        var current = s3Client.listObjects(bucketName)
-        val keyList = current.objectSummaries
-        current = s3Client.listNextBatchOfObjects(current)
-
-        while (current.isTruncated) {
-            keyList.addAll(current.objectSummaries)
-            current = s3Client.listNextBatchOfObjects(current)
-        }
-        keyList.addAll(current.objectSummaries)
-
-        return keyList.map { s3ObjectSummary -> FileInformation(s3ObjectSummary.lastModified, s3ObjectSummary.size, s3ObjectSummary.key) }
+        val listRequest = ListObjectsRequest.builder()
+            .bucket(bucketName)
+            .build()
+        val contents = s3Client.listObjects(listRequest).contents()
+        return contents.map { s3ObjectSummary -> FileInformation(s3ObjectSummary.lastModified(), s3ObjectSummary.size(), s3ObjectSummary.key()) }
     }
 
     override fun saveFile(path: String, file: File) {
-        s3Client.putObject(bucketName, path, file)
+        val putObjectRequest = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(path)
+            .build()
+        val requestBody = RequestBody.fromFile(file)
+
+        s3Client.putObject(putObjectRequest, requestBody)
     }
 
     override fun saveFile(path: String, content: String) {
-        s3Client.putObject(bucketName, path, content)
+        val putObjectRequest = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(path)
+            .build()
+        val requestBody = RequestBody.fromString(content)
+
+        s3Client.putObject(putObjectRequest, requestBody)
     }
 
     override fun deleteFile(path: String) {
-        s3Client.deleteObject(bucketName, path)
+        val deleteRequest = DeleteObjectRequest.builder()
+            .bucket(bucketName)
+            .key(path)
+            .build()
+        s3Client.deleteObject(deleteRequest)
     }
 }

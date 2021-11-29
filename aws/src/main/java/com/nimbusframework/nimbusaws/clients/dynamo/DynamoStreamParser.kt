@@ -1,9 +1,9 @@
 package com.nimbusframework.nimbusaws.clients.dynamo
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute
 import com.nimbusframework.nimbuscore.annotations.persistent.Key
 import com.fasterxml.jackson.databind.ObjectMapper
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import java.lang.reflect.Field
 
 class DynamoStreamParser<T>(private val clazz: Class<T>, private val allAttributes: Map<String, Field>) {
@@ -12,18 +12,18 @@ class DynamoStreamParser<T>(private val clazz: Class<T>, private val allAttribut
 
     fun <K> fromAttributeValue(value: AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
         return when {
-            value.bool != null && expectedType == Boolean::class.java -> value.bool
-            value.n != null -> {
+            value.bool() != null && expectedType == Boolean::class.java -> value.bool()
+            value.n() != null -> {
                 when (expectedType) {
-                    Integer::class.java -> value.n.toInt()
-                    Double::class.java -> value.n.toDouble()
-                    Long::class.java -> value.n.toLong()
-                    Float::class.java -> value.n.toFloat()
-                    else -> value.n.toInt()
+                    Integer::class.java -> value.n().toInt()
+                    Double::class.java -> value.n().toDouble()
+                    Long::class.java -> value.n().toLong()
+                    Float::class.java -> value.n().toFloat()
+                    else -> value.n().toInt()
                 }
             }
-            value.s != null && expectedType == String::class.java -> value.s
-            value.s != null -> objectMapper.readValue(value.s, expectedType)
+            value.s() != null && expectedType == String::class.java -> value.s()
+            value.s() != null -> objectMapper.readValue(value.s(), expectedType)
             else -> throw MismatchedTypeException(expectedType.simpleName, fieldName)
         }
     }

@@ -53,9 +53,9 @@
         <java.version>11</java.version>
 
         <auto-service.version>1.0-rc6</auto-service.version>
-        <aws.version>1.11.699</aws.version>
-        <aws-lambda-java-core.version>1.2.0</aws-lambda-java-core.version>
-        <aws-lambda-java-events.version>2.2.6</aws-lambda-java-events.version>
+        <aws.version>1.12.119</aws.version>
+        <aws-lambda-java-core.version>1.2.1</aws-lambda-java-core.version>
+        <aws-lambda-java-events.version>3.11.0</aws-lambda-java-events.version>
         <jetty.version>9.4.17.v20190418</jetty.version>
         <joda-time.version>2.10.5</joda-time.version>
         <jackson.version>2.10.1</jackson.version>

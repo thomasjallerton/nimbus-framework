@@ -1,19 +1,17 @@
 package com.nimbusframework.nimbusaws.clients.queue
 
-import com.amazonaws.services.sqs.AmazonSQS
-import com.amazonaws.services.sqs.AmazonSQSClientBuilder
+import software.amazon.awssdk.services.sqs.SqsClient;
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Inject
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import com.nimbusframework.nimbuscore.clients.queue.QueueClient
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 
-internal class QueueClientSQS(id: String): QueueClient {
-
-    @Inject
-    private lateinit var sqsClient: AmazonSQS
-
-    @Inject
-    private lateinit var environmentVariableClient: EnvironmentVariableClient
+internal class QueueClientSQS(
+    id: String,
+    private val sqsClient: SqsClient,
+    private val environmentVariableClient: EnvironmentVariableClient
+): QueueClient {
 
     private val objectMapper = ObjectMapper()
 
@@ -21,12 +19,20 @@ internal class QueueClientSQS(id: String): QueueClient {
 
     override fun sendMessage(message: String) {
         if (queueUrl == "") throw InvalidQueueUrlException()
-        sqsClient.sendMessage(queueUrl, message)
+        val sndMessageRequest = SendMessageRequest.builder()
+            .queueUrl(queueUrl)
+            .messageBody(message)
+            .build()
+        sqsClient.sendMessage(sndMessageRequest)
     }
 
     override fun sendMessageAsJson(obj: Any) {
         if (queueUrl == "") throw InvalidQueueUrlException()
-        sqsClient.sendMessage(queueUrl, objectMapper.writeValueAsString(obj))
+        val sndMessageRequest = SendMessageRequest.builder()
+            .queueUrl(queueUrl)
+            .messageBody(objectMapper.writeValueAsString(obj))
+            .build()
+        sqsClient.sendMessage(sndMessageRequest)
     }
 
 }

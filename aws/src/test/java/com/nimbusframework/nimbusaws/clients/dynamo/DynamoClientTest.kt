@@ -1,10 +1,6 @@
 package com.nimbusframework.nimbusaws.clients.dynamo
 
 import com.amazonaws.AbortedException
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-import com.amazonaws.services.dynamodbv2.model.*
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
 import com.nimbusframework.nimbusaws.examples.document.DocumentStoreNoTableName
 import com.nimbusframework.nimbusaws.wrappers.store.keyvalue.exceptions.ConditionFailedException
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute
@@ -19,26 +15,29 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.model.*
 import java.lang.reflect.Field
 import javax.naming.InvalidNameException
 
 class DynamoClientTest : AnnotationSpec() {
 
     private lateinit var underTest: DynamoClient
-    private lateinit var mockDynamoDb: AmazonDynamoDB
+    private lateinit var mockDynamoDb: DynamoDbClient
 
 
     private val attributeMap: Map<String, AttributeValue>
-    private val keyMap: Map<String, AttributeValue> = mapOf(Pair("string", AttributeValue("test")))
+    private val keyMap: Map<String, AttributeValue> = mapOf(Pair("string", AttributeValue.builder().s("test").build()))
 
     private val attributes: MutableMap<String, Field> = mutableMapOf()
     private val columnNames: MutableMap<String, String> = mutableMapOf()
     private val obj = DocumentStoreNoTableName("test", 15)
 
     init {
-        val numberVal = AttributeValue()
-        numberVal.n = "15"
-        attributeMap = mapOf(Pair("string", AttributeValue("test")), Pair("integer", numberVal))
+        val numberVal = AttributeValue.builder()
+            .n("15")
+            .build()
+        attributeMap = mapOf(Pair("string", AttributeValue.builder().s("test").build()), Pair("integer", numberVal))
         for (field in DocumentStoreNoTableName::class.java.declaredFields) {
             if (field.isAnnotationPresent(Attribute::class.java)) {
                 val attributeAnnotation = field.getDeclaredAnnotation(Attribute::class.java)
@@ -57,92 +56,86 @@ class DynamoClientTest : AnnotationSpec() {
     @BeforeEach
     fun setUp() {
         mockDynamoDb = mockk()
-        val injector = Guice.createInjector(object: AbstractModule() {
-            override fun configure() {
-                bind(AmazonDynamoDB::class.java).toInstance(mockDynamoDb)
-            }
-        })
-        underTest = DynamoClient("testTable", "test", columnNames)
-        injector.injectMembers(underTest)
+        underTest = DynamoClient("testTable", "test", columnNames, mockDynamoDb)
     }
 
     @Test
     fun canPutItemWithNoCondition() {
         val putItemRequest = slot<PutItemRequest>()
 
-        every { mockDynamoDb.putItem(capture(putItemRequest)) } returns PutItemResult()
+        every { mockDynamoDb.putItem(capture(putItemRequest)) } returns PutItemResponse.builder().build()
 
         underTest.put(obj, attributes)
 
-        putItemRequest.captured.item shouldBe attributeMap
-        putItemRequest.captured.tableName shouldBe "testTable"
-        putItemRequest.captured.conditionExpression shouldBe null
+        putItemRequest.captured.item() shouldBe attributeMap
+        putItemRequest.captured.tableName() shouldBe "testTable"
+        putItemRequest.captured.conditionExpression() shouldBe null
     }
 
     @Test
     fun canPutItemWithCondition() {
         val putItemRequest = slot<PutItemRequest>()
 
-        every { mockDynamoDb.putItem(capture(putItemRequest)) } returns PutItemResult()
+        every { mockDynamoDb.putItem(capture(putItemRequest)) } returns PutItemResponse.builder().build()
 
         underTest.put(obj, attributes, mapOf(), AttributeNotExists("string"))
 
-        putItemRequest.captured.item shouldBe attributeMap
-        putItemRequest.captured.tableName shouldBe "testTable"
-        putItemRequest.captured.conditionExpression shouldNotBe null
+        putItemRequest.captured.item() shouldBe attributeMap
+        putItemRequest.captured.tableName() shouldBe "testTable"
+        putItemRequest.captured.conditionExpression() shouldNotBe null
     }
 
     @Test
     fun canDeleteKeyWithNoCondition() {
         val deleteItemRequest = slot<DeleteItemRequest>()
 
-        every { mockDynamoDb.deleteItem(capture(deleteItemRequest)) } returns DeleteItemResult()
+        every { mockDynamoDb.deleteItem(capture(deleteItemRequest)) } returns DeleteItemResponse.builder().build()
 
         underTest.deleteKey(keyMap)
 
-        deleteItemRequest.captured.key shouldBe keyMap
-        deleteItemRequest.captured.tableName shouldBe "testTable"
-        deleteItemRequest.captured.conditionExpression shouldBe null
+        deleteItemRequest.captured.key() shouldBe keyMap
+        deleteItemRequest.captured.tableName() shouldBe "testTable"
+        deleteItemRequest.captured.conditionExpression() shouldBe null
     }
 
     @Test
     fun canDeleteKeyWithCondition() {
         val deleteItemRequest = slot<DeleteItemRequest>()
 
-        every { mockDynamoDb.deleteItem(capture(deleteItemRequest)) } returns DeleteItemResult()
+        every { mockDynamoDb.deleteItem(capture(deleteItemRequest)) } returns DeleteItemResponse.builder().build()
 
         underTest.deleteKey(keyMap, AttributeExists("string"))
 
-        deleteItemRequest.captured.key shouldBe keyMap
-        deleteItemRequest.captured.tableName shouldBe "testTable"
-        deleteItemRequest.captured.conditionExpression shouldNotBe null
+        deleteItemRequest.captured.key() shouldBe keyMap
+        deleteItemRequest.captured.tableName() shouldBe "testTable"
+        deleteItemRequest.captured.conditionExpression() shouldNotBe null
     }
 
     @Test
     fun canGetAllItems() {
         val scanRequest = slot<ScanRequest>()
 
-        every { mockDynamoDb.scan(capture(scanRequest)) } returns ScanResult().withItems(attributeMap)
+        every { mockDynamoDb.scan(capture(scanRequest)) } returns ScanResponse.builder().items(attributeMap).build()
 
         underTest.getAll().size shouldBe 1
 
-        scanRequest.captured.tableName = "testTable"
+        scanRequest.captured.tableName() shouldBe "testTable"
     }
 
     @Test
     fun canGetItem() {
         val queryRequest = slot<QueryRequest>()
 
-        every { mockDynamoDb.query(capture(queryRequest)) } returns QueryResult().withItems(attributeMap).withCount(1)
+        every { mockDynamoDb.query(capture(queryRequest)) } returns QueryResponse.builder().items(attributeMap).count(1).build()
 
         underTest.get(keyMap) shouldBe attributeMap
 
         val convertedMap = keyMap.mapValues { entry ->
-            Condition().withComparisonOperator("EQ").withAttributeValueList(listOf(entry.value))
+            Condition.builder().comparisonOperator("EQ").attributeValueList(listOf(entry.value))
         }
 
-        queryRequest.captured.tableName shouldBe "testTable"
-        queryRequest.captured.keyConditions shouldBe convertedMap
+        queryRequest.captured.tableName() shouldBe "testTable"
+        queryRequest.captured.keyConditions() shouldBe convertedMap
     }
 
     @Test
@@ -150,7 +143,7 @@ class DynamoClientTest : AnnotationSpec() {
         val readItem = underTest.getReadItem(keyMap) {obj} as DynamoReadItemRequest<DocumentStoreNoTableName>
         readItem.transactReadItem.get.key shouldBe keyMap
         readItem.transactReadItem.get.tableName shouldBe "testTable"
-        readItem.getItem(ItemResponse().withItem(attributeMap)) shouldBe obj
+        readItem.getItem(ItemResponse.builder().item(attributeMap)) shouldBe obj
     }
 
     @Test
@@ -174,8 +167,7 @@ class DynamoClientTest : AnnotationSpec() {
     @Test
     fun canGetUpdateItemRequestNoCondition() {
         val updateItem = underTest.getUpdateValueRequest(keyMap, "integer", 10, "+") as DynamoWriteTransactItemRequest
-        val numberVal = AttributeValue()
-        numberVal.n = "10"
+        val numberVal = AttributeValue.builder().n("10").build()
 
         updateItem.transactWriteItem.update.key shouldBe keyMap
         updateItem.transactWriteItem.update.tableName shouldBe "testTable"
@@ -187,8 +179,7 @@ class DynamoClientTest : AnnotationSpec() {
     @Test
     fun canGetUpdateItemRequestWithCondition() {
         val updateItem = underTest.getUpdateValueRequest(keyMap, "integer", 10, "+", AttributeExists("string")) as DynamoWriteTransactItemRequest
-        val numberVal = AttributeValue()
-        numberVal.n = "10"
+        val numberVal = AttributeValue.builder().n("10").build()
 
         updateItem.transactWriteItem.update.key shouldBe keyMap
         updateItem.transactWriteItem.update.tableName shouldBe "testTable"
@@ -217,9 +208,9 @@ class DynamoClientTest : AnnotationSpec() {
 
     @Test
     fun canConvertToAttributeValue() {
-        underTest.toAttributeValue(10).n shouldBe "10"
-        underTest.toAttributeValue("10").s shouldBe "10"
-        underTest.toAttributeValue(true).bool shouldBe true
+        underTest.toAttributeValue(10).n() shouldBe "10"
+        underTest.toAttributeValue("10").s() shouldBe "10"
+        underTest.toAttributeValue(true).bool() shouldBe true
     }
 
     @Test
@@ -236,7 +227,7 @@ class DynamoClientTest : AnnotationSpec() {
     fun canExecuteDynamoRequestThrowsConditionException() {
         val putItemRequest = slot<PutItemRequest>()
 
-        every { mockDynamoDb.putItem(capture(putItemRequest)) } throws ConditionalCheckFailedException("")
+        every { mockDynamoDb.putItem(capture(putItemRequest)) } throws ConditionalCheckFailedException.builder().build()
 
         underTest.put(obj, attributes)
     }
@@ -245,7 +236,7 @@ class DynamoClientTest : AnnotationSpec() {
     fun canExecuteDynamoRequestThrowsRetryableException() {
         val putItemRequest = slot<PutItemRequest>()
 
-        every { mockDynamoDb.putItem(capture(putItemRequest)) } throws AmazonDynamoDBException("")
+        every { mockDynamoDb.putItem(capture(putItemRequest)) } throws DynamoDbException.builder().build()
 
         underTest.put(obj, attributes)
     }
