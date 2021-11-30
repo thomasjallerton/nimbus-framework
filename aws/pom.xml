@@ -87,9 +87,8 @@
             <artifactId>dynamodb</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-apigatewaymanagementapi</artifactId>
-            <version>${aws.version}</version>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>apigatewaymanagementapi</artifactId>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -199,11 +198,6 @@
             <artifactId>mockk</artifactId>
             <version>${mockk.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
-            <version>${kotlin.version}</version>
         </dependency>
     </dependencies>
 
