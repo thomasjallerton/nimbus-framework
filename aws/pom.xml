@@ -79,9 +79,8 @@
             <artifactId>url-connection-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-lambda</artifactId>
-            <version>${aws.version}</version>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>lambda</artifactId>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
