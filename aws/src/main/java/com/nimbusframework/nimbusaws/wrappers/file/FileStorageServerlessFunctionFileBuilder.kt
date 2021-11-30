@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbusaws.wrappers.file
 
 import com.amazonaws.services.lambda.runtime.events.S3Event
-import com.amazonaws.services.s3.event.S3EventNotification
+import com.amazonaws.services.lambda.runtime.events.models.s3.S3EventNotification
 import com.nimbusframework.nimbuscore.annotations.function.FileStorageServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder

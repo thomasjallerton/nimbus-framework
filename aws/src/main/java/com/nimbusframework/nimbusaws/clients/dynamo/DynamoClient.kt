@@ -1,6 +1,5 @@
 package com.nimbusframework.nimbusaws.clients.dynamo
 
-import com.amazonaws.AmazonClientException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbusaws.clients.dynamo.condition.DynamoConditionProcessor
 import com.nimbusframework.nimbusaws.wrappers.store.keyvalue.exceptions.ConditionFailedException
@@ -9,6 +8,8 @@ import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
 import com.nimbusframework.nimbuscore.exceptions.RetryableException
+import software.amazon.awssdk.core.exception.SdkClientException
+import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.*
 import java.lang.reflect.Field
@@ -81,8 +82,8 @@ class DynamoClient (
     }
 
     fun <T> getReadItem(keyMap: Map<String, AttributeValue>, transformer: (MutableMap<String, AttributeValue>) -> T): ReadItemRequest<T> {
-        val transactGetItem = TransactGetItem.builder().get(Get.builder().key(keyMap).tableName(tableName).build())
-        return DynamoReadItemRequest(transactGetItem) { item -> transformer(item.item) }
+        val transactGetItem = TransactGetItem.builder().get(Get.builder().key(keyMap).tableName(tableName).build()).build()
+        return DynamoReadItemRequest(transactGetItem) { item -> transformer(item.item()) }
     }
 
     fun getWriteItem(obj: Any?, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf(), condition: Condition? = null): WriteItemRequest {
@@ -95,7 +96,7 @@ class DynamoClient (
                     .expressionAttributeValues(valueMap)
         }
 
-        val transactWriteItem = TransactWriteItem.builder().put(put.build())
+        val transactWriteItem = TransactWriteItem.builder().put(put.build()).build()
         return DynamoWriteTransactItemRequest(transactWriteItem)
     }
 
@@ -114,7 +115,7 @@ class DynamoClient (
 
         update.expressionAttributeValues(attributeValues)
 
-        return DynamoWriteTransactItemRequest(TransactWriteItem.builder().update(update.build()))
+        return DynamoWriteTransactItemRequest(TransactWriteItem.builder().update(update.build()).build())
     }
 
     fun getDeleteRequest(keyMap: Map<String, AttributeValue>, condition: Condition? = null): WriteItemRequest {
@@ -129,7 +130,7 @@ class DynamoClient (
                     .expressionAttributeValues(valueMap)
         }
 
-        return DynamoWriteTransactItemRequest(TransactWriteItem.builder().delete(delete.build()))
+        return DynamoWriteTransactItemRequest(TransactWriteItem.builder().delete(delete.build()).build())
     }
 
     fun toAttributeValue(value: Any?): AttributeValue {
@@ -163,8 +164,8 @@ class DynamoClient (
             return toExecute()
         } catch (e: ConditionalCheckFailedException) {
             throw ConditionFailedException()
-        } catch (e: AmazonClientException) {
-            if (e.isRetryable) {
+        } catch (e: SdkException) {
+            if (e.retryable()) {
                 throw RetryableException(e.localizedMessage)
             } else {
                 e.printStackTrace()

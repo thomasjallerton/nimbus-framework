@@ -1,7 +1,5 @@
 package com.nimbusframework.nimbusaws.clients.rdbms
 
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
 import com.nimbusframework.nimbusaws.examples.RelationalDatabaseExample
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import io.kotest.core.spec.style.AnnotationSpec
@@ -19,13 +17,7 @@ class DatabaseClientRdsTest : AnnotationSpec() {
     @BeforeEach
     fun setup() {
         environmentVariableClient = mockk()
-        underTest = DatabaseClientRds(RelationalDatabaseExample::class.java)
-        val injector = Guice.createInjector(object: AbstractModule() {
-            override fun configure() {
-                bind(EnvironmentVariableClient::class.java).toInstance(environmentVariableClient)
-            }
-        })
-        injector.injectMembers(underTest)
+        underTest = DatabaseClientRds(RelationalDatabaseExample::class.java, environmentVariableClient)
     }
 
     @Test

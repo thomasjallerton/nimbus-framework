@@ -28,7 +28,40 @@ class DynamoStreamParser<T>(private val clazz: Class<T>, private val allAttribut
         }
     }
 
+    fun <K> fromAttributeValue(value: com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
+        return when {
+            value.bool != null && expectedType == Boolean::class.java -> value.bool
+            value.n != null -> {
+                when (expectedType) {
+                    Integer::class.java -> value.n.toInt()
+                    Double::class.java -> value.n.toDouble()
+                    Long::class.java -> value.n.toLong()
+                    Float::class.java -> value.n.toFloat()
+                    else -> value.n.toInt()
+                }
+            }
+            value.s != null && expectedType == String::class.java -> value.s
+            value.s != null -> objectMapper.readValue(value.s, expectedType)
+            else -> throw MismatchedTypeException(expectedType.simpleName, fieldName)
+        }
+    }
+
     fun toObject(obj: Map<String, AttributeValue>?): T? {
+        if (obj == null) return null
+
+        val resultMap: MutableMap<String, Any?> = mutableMapOf()
+
+        for ((columnName, field) in allAttributes) {
+            val attributeVal = obj[columnName]
+            if (attributeVal != null) {
+                resultMap[field.name] = fromAttributeValue(attributeVal, field.type, field.name)
+            }
+        }
+
+        return objectMapper.convertValue(resultMap, clazz)
+    }
+
+    fun toObjectFromLambda(obj: Map<String, com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue>?): T? {
         if (obj == null) return null
 
         val resultMap: MutableMap<String, Any?> = mutableMapOf()

@@ -1,9 +1,8 @@
 package com.nimbusframework.nimbusaws.clients.document
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
+import com.nimbusframework.nimbusaws.clients.dynamo.DynamoHelper.numAttribute
+import com.nimbusframework.nimbusaws.clients.dynamo.DynamoHelper.strAttribute
 import com.nimbusframework.nimbusaws.examples.document.DocumentStoreNoTableName
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
@@ -23,8 +22,8 @@ class DocumentStoreClientDynamoTest : AnnotationSpec() {
     private lateinit var dynamoClient: DynamoClient
 
     private val attributes: Map<String, Field>
-    private val exampleObj = mutableMapOf(Pair("string", AttributeValue("test")), Pair("integer", AttributeValue().withN("17")))
-    private val exampleKey = mapOf(Pair("string", AttributeValue("test")))
+    private val exampleObj = mutableMapOf(Pair("string", strAttribute("test")), Pair("integer", numAttribute("17")))
+    private val exampleKey = mapOf(Pair("string", strAttribute("test")))
     private val obj = DocumentStoreNoTableName("test", 17)
 
     init {
@@ -36,19 +35,9 @@ class DocumentStoreClientDynamoTest : AnnotationSpec() {
 
     @BeforeEach
     fun setUp() {
-        val dynamoFactory: DynamoClient.DynamoClientFactory = mockk()
         dynamoClient = mockk(relaxed = true)
-        every { dynamoClient.toAttributeValue("test") } returns AttributeValue("test")
-
-        every { dynamoFactory.create("tableName", "com.nimbusframework.nimbusaws.examples.document.DocumentStoreNoTableName", any()) } returns dynamoClient
-
-        underTest = DocumentStoreClientDynamo(DocumentStoreNoTableName::class.java, "tableName", "dev")
-        val injector = Guice.createInjector(object: AbstractModule() {
-            override fun configure() {
-                bind(DynamoClient.DynamoClientFactory::class.java).toInstance(dynamoFactory)
-            }
-        })
-        injector.injectMembers(underTest)
+        every { dynamoClient.toAttributeValue("test") } returns strAttribute("test")
+        underTest = DocumentStoreClientDynamo(DocumentStoreNoTableName::class.java, "tableName", "dev") { dynamoClient }
     }
 
     @Test

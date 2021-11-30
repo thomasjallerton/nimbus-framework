@@ -1,6 +1,5 @@
 package com.nimbusframework.nimbusaws.clients.dynamo
 
-import com.amazonaws.AbortedException
 import com.nimbusframework.nimbusaws.examples.document.DocumentStoreNoTableName
 import com.nimbusframework.nimbusaws.wrappers.store.keyvalue.exceptions.ConditionFailedException
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute
@@ -15,6 +14,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import software.amazon.awssdk.core.exception.AbortedException
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.*
 import java.lang.reflect.Field
@@ -131,7 +131,7 @@ class DynamoClientTest : AnnotationSpec() {
         underTest.get(keyMap) shouldBe attributeMap
 
         val convertedMap = keyMap.mapValues { entry ->
-            Condition.builder().comparisonOperator("EQ").attributeValueList(listOf(entry.value))
+            Condition.builder().comparisonOperator("EQ").attributeValueList(listOf(entry.value)).build()
         }
 
         queryRequest.captured.tableName() shouldBe "testTable"
@@ -141,27 +141,27 @@ class DynamoClientTest : AnnotationSpec() {
     @Test
     fun canGetReadItem() {
         val readItem = underTest.getReadItem(keyMap) {obj} as DynamoReadItemRequest<DocumentStoreNoTableName>
-        readItem.transactReadItem.get.key shouldBe keyMap
-        readItem.transactReadItem.get.tableName shouldBe "testTable"
-        readItem.getItem(ItemResponse.builder().item(attributeMap)) shouldBe obj
+        readItem.transactReadItem.get().key() shouldBe keyMap
+        readItem.transactReadItem.get().tableName() shouldBe "testTable"
+        readItem.getItem(ItemResponse.builder().item(attributeMap).build()) shouldBe obj
     }
 
     @Test
     fun canGetWriteItemRequestNoCondition() {
         val writeItem = underTest.getWriteItem(obj, attributes) as DynamoWriteTransactItemRequest
 
-        writeItem.transactWriteItem.put.item shouldBe attributeMap
-        writeItem.transactWriteItem.put.tableName shouldBe "testTable"
-        writeItem.transactWriteItem.put.conditionExpression shouldBe null
+        writeItem.transactWriteItem.put().item() shouldBe attributeMap
+        writeItem.transactWriteItem.put().tableName() shouldBe "testTable"
+        writeItem.transactWriteItem.put().conditionExpression() shouldBe null
     }
 
     @Test
     fun canGetWriteItemRequestWithCondition() {
         val writeItem = underTest.getWriteItem(obj, attributes, mapOf(), AttributeNotExists("string")) as DynamoWriteTransactItemRequest
 
-        writeItem.transactWriteItem.put.item shouldBe attributeMap
-        writeItem.transactWriteItem.put.tableName shouldBe "testTable"
-        writeItem.transactWriteItem.put.conditionExpression shouldNotBe null
+        writeItem.transactWriteItem.put().item() shouldBe attributeMap
+        writeItem.transactWriteItem.put().tableName() shouldBe "testTable"
+        writeItem.transactWriteItem.put().conditionExpression() shouldNotBe null
     }
 
     @Test
@@ -169,11 +169,11 @@ class DynamoClientTest : AnnotationSpec() {
         val updateItem = underTest.getUpdateValueRequest(keyMap, "integer", 10, "+") as DynamoWriteTransactItemRequest
         val numberVal = AttributeValue.builder().n("10").build()
 
-        updateItem.transactWriteItem.update.key shouldBe keyMap
-        updateItem.transactWriteItem.update.tableName shouldBe "testTable"
-        updateItem.transactWriteItem.update.updateExpression shouldBe "set integer = integer + :amount"
-        updateItem.transactWriteItem.update.expressionAttributeValues shouldBe mapOf(Pair(":amount", numberVal))
-        updateItem.transactWriteItem.update.conditionExpression shouldBe null
+        updateItem.transactWriteItem.update().key() shouldBe keyMap
+        updateItem.transactWriteItem.update().tableName() shouldBe "testTable"
+        updateItem.transactWriteItem.update().updateExpression() shouldBe "set integer = integer + :amount"
+        updateItem.transactWriteItem.update().expressionAttributeValues() shouldBe mapOf(Pair(":amount", numberVal))
+        updateItem.transactWriteItem.update().conditionExpression() shouldBe null
     }
 
     @Test
@@ -181,29 +181,29 @@ class DynamoClientTest : AnnotationSpec() {
         val updateItem = underTest.getUpdateValueRequest(keyMap, "integer", 10, "+", AttributeExists("string")) as DynamoWriteTransactItemRequest
         val numberVal = AttributeValue.builder().n("10").build()
 
-        updateItem.transactWriteItem.update.key shouldBe keyMap
-        updateItem.transactWriteItem.update.tableName shouldBe "testTable"
-        updateItem.transactWriteItem.update.updateExpression shouldBe "set integer = integer + :amount"
-        updateItem.transactWriteItem.update.expressionAttributeValues shouldBe mapOf(Pair(":amount", numberVal))
-        updateItem.transactWriteItem.update.conditionExpression shouldNotBe null
+        updateItem.transactWriteItem.update().key() shouldBe keyMap
+        updateItem.transactWriteItem.update().tableName() shouldBe "testTable"
+        updateItem.transactWriteItem.update().updateExpression() shouldBe "set integer = integer + :amount"
+        updateItem.transactWriteItem.update().expressionAttributeValues() shouldBe mapOf(Pair(":amount", numberVal))
+        updateItem.transactWriteItem.update().conditionExpression() shouldNotBe null
     }
 
     @Test
     fun canGetDeleteItemRequestNoCondition() {
         val writeItem = underTest.getDeleteRequest(keyMap) as DynamoWriteTransactItemRequest
 
-        writeItem.transactWriteItem.delete.key shouldBe keyMap
-        writeItem.transactWriteItem.delete.tableName shouldBe "testTable"
-        writeItem.transactWriteItem.delete.conditionExpression shouldBe null
+        writeItem.transactWriteItem.delete().key() shouldBe keyMap
+        writeItem.transactWriteItem.delete().tableName() shouldBe "testTable"
+        writeItem.transactWriteItem.delete().conditionExpression() shouldBe null
     }
 
     @Test
     fun canGetDeleteItemRequestWithCondition() {
         val writeItem = underTest.getDeleteRequest(keyMap, AttributeExists("string")) as DynamoWriteTransactItemRequest
 
-        writeItem.transactWriteItem.delete.key shouldBe keyMap
-        writeItem.transactWriteItem.delete.tableName shouldBe "testTable"
-        writeItem.transactWriteItem.delete.conditionExpression shouldNotBe null
+        writeItem.transactWriteItem.delete().key() shouldBe keyMap
+        writeItem.transactWriteItem.delete().tableName() shouldBe "testTable"
+        writeItem.transactWriteItem.delete().conditionExpression() shouldNotBe null
     }
 
     @Test
@@ -236,7 +236,7 @@ class DynamoClientTest : AnnotationSpec() {
     fun canExecuteDynamoRequestThrowsRetryableException() {
         val putItemRequest = slot<PutItemRequest>()
 
-        every { mockDynamoDb.putItem(capture(putItemRequest)) } throws DynamoDbException.builder().build()
+        every { mockDynamoDb.putItem(capture(putItemRequest)) } throws software.amazon.awssdk.core.exception.RetryableException.builder().message("hello").build()
 
         underTest.put(obj, attributes)
     }
@@ -245,7 +245,7 @@ class DynamoClientTest : AnnotationSpec() {
     fun canExecuteDynamoRequestThrowsNonRetryableException() {
         val putItemRequest = slot<PutItemRequest>()
 
-        every { mockDynamoDb.putItem(capture(putItemRequest)) } throws AbortedException("")
+        every { mockDynamoDb.putItem(capture(putItemRequest)) } throws AbortedException.builder().message("hello").build()
 
         underTest.put(obj, attributes)
     }

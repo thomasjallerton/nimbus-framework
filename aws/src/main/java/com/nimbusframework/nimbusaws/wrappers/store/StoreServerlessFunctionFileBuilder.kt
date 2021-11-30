@@ -98,8 +98,8 @@ abstract class StoreServerlessFunctionFileBuilder(
             write("if (!\"${method.name}\".equals(event.getEventName())) return null;")
 
             write("DynamoStreamParser<${inputParam.type}> parser = DynamoStreamParser.of(${inputParam.type}.class);")
-            write("${inputParam.type} parsedNewItem = parser.toObject(record.getDynamodb().getNewImage());")
-            write("${inputParam.type} parsedOldItem = parser.toObject(record.getDynamodb().getOldImage());")
+            write("${inputParam.type} parsedNewItem = parser.toObjectFromLambda(record.getDynamodb().getNewImage());")
+            write("${inputParam.type} parsedOldItem = parser.toObjectFromLambda(record.getDynamodb().getOldImage());")
         }
 
         val methodName = methodInformation.methodName

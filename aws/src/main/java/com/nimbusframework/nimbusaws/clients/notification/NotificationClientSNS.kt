@@ -1,7 +1,6 @@
 package com.nimbusframework.nimbusaws.clients.notification
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.inject.Inject
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
 import com.nimbusframework.nimbuscore.clients.notification.Protocol
@@ -12,11 +11,10 @@ import software.amazon.awssdk.services.sns.model.UnsubscribeRequest
 
 internal class NotificationClientSNS(
     topicName: String,
-    private val snsClient: SnsClient
-): NotificationClient {
+    private val snsClient: SnsClient,
+    private val environmentVariableClient: EnvironmentVariableClient
 
-    @Inject
-    private lateinit var environmentVariableClient: EnvironmentVariableClient
+): NotificationClient {
 
     private val topicArn: String by lazy {  environmentVariableClient.get("SNS_TOPIC_ARN_${topicName.toUpperCase()}") ?: "" }
 
