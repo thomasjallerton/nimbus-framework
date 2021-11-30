@@ -22,8 +22,8 @@ class ServerlessFunctionWebSocketClientApiGatewayTest : AnnotationSpec() {
 
     @BeforeEach
     fun setup() {
-        underTest = ServerlessFunctionWebSocketClientApiGateway()
         val clientBuilder: AmazonApiGatewayManagementApiClientBuilder = mockk()
+        underTest = ServerlessFunctionWebSocketClientApiGateway(clientBuilder)
         managementApi = mockk()
 
         every { clientBuilder.withEndpointConfiguration(any()) } returns clientBuilder
