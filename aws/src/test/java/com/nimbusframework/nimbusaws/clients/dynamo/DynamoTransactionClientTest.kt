@@ -1,7 +1,5 @@
 package com.nimbusframework.nimbusaws.clients.dynamo
 
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
 import com.nimbusframework.nimbuscore.exceptions.RetryableException
 import com.nimbusframework.nimbuscore.exceptions.StoreConditionException

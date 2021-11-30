@@ -1,37 +1,31 @@
 package com.nimbusframework.nimbusaws.clients.websocket
 
-import com.amazonaws.client.builder.AwsClientBuilder
-import com.amazonaws.services.apigatewaymanagementapi.AmazonApiGatewayManagementApi
-import com.amazonaws.services.apigatewaymanagementapi.AmazonApiGatewayManagementApiClientBuilder
-import com.amazonaws.services.apigatewaymanagementapi.model.PostToConnectionRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
+import software.amazon.awssdk.core.SdkBytes
+import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClientBuilder
+import software.amazon.awssdk.services.apigatewaymanagementapi.model.PostToConnectionRequest
+import java.net.URI
 import java.nio.ByteBuffer
 
 internal class ServerlessFunctionWebSocketClientApiGateway(
-    private val clientBuilder: AmazonApiGatewayManagementApiClientBuilder
+    private val apiGatewayManagementApiBuilder: ApiGatewayManagementApiClientBuilder
 ): ServerlessFunctionWebSocketClient {
 
     private val env = System.getenv()
     private val endpoint = if (env.containsKey("WEBSOCKET_ENDPOINT")) env["WEBSOCKET_ENDPOINT"]!! else ""
-    private val region = if (env.containsKey("AWS_DEFAULT_REGION")) env["AWS_DEFAULT_REGION"]!! else ""
-
-    private val apiGatewayManagementApi: AmazonApiGatewayManagementApi by lazy {
-        clientBuilder
-            .withEndpointConfiguration(
-                    AwsClientBuilder.EndpointConfiguration(
-                            endpoint,
-                            region
-                    )
-            ).build()
-    }
 
     private val objectMapper = ObjectMapper()
 
+    private val apiGatewayManagementApi by lazy {
+        apiGatewayManagementApiBuilder.endpointOverride(URI.create(endpoint)).build()
+    }
+
     override fun sendToConnection(connectionId: String, data: ByteBuffer) {
-        val postToConnectionRequest = PostToConnectionRequest()
-                .withConnectionId(connectionId)
-                .withData(data)
+        val postToConnectionRequest = PostToConnectionRequest.builder()
+            .connectionId(connectionId)
+            .data(SdkBytes.fromByteBuffer(data))
+            .build()
 
         apiGatewayManagementApi.postToConnection(postToConnectionRequest)
     }
@@ -39,11 +33,10 @@ internal class ServerlessFunctionWebSocketClientApiGateway(
     override fun sendToConnectionConvertToJson(connectionId: String, data: Any) {
         val json = objectMapper.writeValueAsBytes(data)
 
-        val buffer = ByteBuffer.wrap(json)
-
-        val postToConnectionRequest = PostToConnectionRequest()
-                .withConnectionId(connectionId)
-                .withData(buffer)
+        val postToConnectionRequest = PostToConnectionRequest.builder()
+            .connectionId(connectionId)
+            .data(SdkBytes.fromByteArray(json))
+            .build()
         apiGatewayManagementApi.postToConnection(postToConnectionRequest)
     }
 }

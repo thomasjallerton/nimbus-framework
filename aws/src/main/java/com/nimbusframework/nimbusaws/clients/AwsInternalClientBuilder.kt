@@ -1,6 +1,5 @@
 package com.nimbusframework.nimbusaws.clients
 
-import com.amazonaws.services.apigatewaymanagementapi.AmazonApiGatewayManagementApiClientBuilder
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore
 import com.nimbusframework.nimbusaws.clients.document.DocumentStoreClientDynamo
@@ -36,6 +35,8 @@ import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient
+import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClient
+import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClientBuilder
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.lambda.LambdaClient
 import software.amazon.awssdk.services.s3.S3Client
@@ -149,7 +150,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
     }
 
     override fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient {
-        return ServerlessFunctionWebSocketClientApiGateway(createApiGatewayManagementApiClientBuilder())
+        return ServerlessFunctionWebSocketClientApiGateway(createApiGatewayManagementApiClient())
     }
 
     private fun createDynamoDbClient(): DynamoDbClient {
@@ -187,7 +188,9 @@ object AwsInternalClientBuilder: InternalClientBuilder {
             .build()
     }
 
-    private fun createApiGatewayManagementApiClientBuilder(): AmazonApiGatewayManagementApiClientBuilder {
-        return AmazonApiGatewayManagementApiClientBuilder.standard()
+    private fun createApiGatewayManagementApiClient(): ApiGatewayManagementApiClientBuilder {
+        return ApiGatewayManagementApiClient.builder()
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .httpClient(UrlConnectionHttpClient.builder().build())
     }
 }

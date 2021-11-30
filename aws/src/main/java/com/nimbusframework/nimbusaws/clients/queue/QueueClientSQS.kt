@@ -2,7 +2,6 @@ package com.nimbusframework.nimbusaws.clients.queue
 
 import software.amazon.awssdk.services.sqs.SqsClient;
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.inject.Inject
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import com.nimbusframework.nimbuscore.clients.queue.QueueClient
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest
