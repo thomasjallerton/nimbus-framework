@@ -1,43 +1,42 @@
 package com.nimbusframework.nimbusaws.clients.queue
 
-import com.amazonaws.services.sqs.AmazonSQS
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
 import com.nimbusframework.nimbusaws.examples.SimpleObject
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
+import software.amazon.awssdk.services.sns.model.PublishRequest
+import software.amazon.awssdk.services.sqs.SqsClient
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 
 class QueueClientSQSTest : AnnotationSpec() {
 
     private lateinit var underTest: QueueClientSQS
-    private lateinit var sqsClient: AmazonSQS
+    private lateinit var sqsClient: SqsClient
     private lateinit var environmentVariableClient: EnvironmentVariableClient
 
     private val QUEUE_ID = "QUEUE"
     @BeforeEach
     fun setup() {
-        underTest = QueueClientSQS(QUEUE_ID)
         sqsClient = mockk(relaxed = true)
         environmentVariableClient = mockk()
-        val injector = Guice.createInjector(object: AbstractModule() {
-            override fun configure() {
-                bind(AmazonSQS::class.java).toInstance(sqsClient)
-                bind(EnvironmentVariableClient::class.java).toInstance(environmentVariableClient)
-            }
-        })
-        injector.injectMembers(underTest)
+        underTest = QueueClientSQS(QUEUE_ID, sqsClient, environmentVariableClient)
     }
 
     @Test
     fun canSendStringMessageWhenUrlSet() {
         every { environmentVariableClient.get("NIMBUS_QUEUE_URL_ID_QUEUE") } returns "URL"
 
+        val sendMessageRequest = slot<SendMessageRequest>()
+        every { sqsClient.sendMessage(capture(sendMessageRequest)) } returns mockk()
+
         underTest.sendMessage("TEST MESSAGE")
 
-        verify(exactly = 1) { sqsClient.sendMessage("URL", "TEST MESSAGE") }
+        sendMessageRequest.captured.messageBody() shouldBe "TEST MESSAGE"
+        sendMessageRequest.captured.queueUrl() shouldBe "URL"
     }
 
     @Test(InvalidQueueUrlException::class)
@@ -51,9 +50,13 @@ class QueueClientSQSTest : AnnotationSpec() {
     fun canSendJsonMessageWhenUrlSet() {
         every { environmentVariableClient.get("NIMBUS_QUEUE_URL_ID_QUEUE") } returns "URL"
 
+        val sendMessageRequest = slot<SendMessageRequest>()
+        every { sqsClient.sendMessage(capture(sendMessageRequest)) } returns mockk()
+
         underTest.sendMessageAsJson(SimpleObject("test"))
 
-        verify(exactly = 1) { sqsClient.sendMessage("URL", "{\"value\":\"test\"}") }
+        sendMessageRequest.captured.messageBody() shouldBe "{\"value\":\"test\"}"
+        sendMessageRequest.captured.queueUrl() shouldBe "URL"
     }
 
     @Test(InvalidQueueUrlException::class)
