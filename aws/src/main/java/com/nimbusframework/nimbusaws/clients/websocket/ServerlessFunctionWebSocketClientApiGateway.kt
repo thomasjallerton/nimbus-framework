@@ -5,18 +5,16 @@ import com.amazonaws.services.apigatewaymanagementapi.AmazonApiGatewayManagement
 import com.amazonaws.services.apigatewaymanagementapi.AmazonApiGatewayManagementApiClientBuilder
 import com.amazonaws.services.apigatewaymanagementapi.model.PostToConnectionRequest
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.inject.Inject
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
 import java.nio.ByteBuffer
 
-internal class ServerlessFunctionWebSocketClientApiGateway: ServerlessFunctionWebSocketClient {
+internal class ServerlessFunctionWebSocketClientApiGateway(
+    private val clientBuilder: AmazonApiGatewayManagementApiClientBuilder
+): ServerlessFunctionWebSocketClient {
 
     private val env = System.getenv()
     private val endpoint = if (env.containsKey("WEBSOCKET_ENDPOINT")) env["WEBSOCKET_ENDPOINT"]!! else ""
     private val region = if (env.containsKey("AWS_DEFAULT_REGION")) env["AWS_DEFAULT_REGION"]!! else ""
-
-    @Inject
-    private lateinit var clientBuilder: AmazonApiGatewayManagementApiClientBuilder
 
     private val apiGatewayManagementApi: AmazonApiGatewayManagementApi by lazy {
         clientBuilder

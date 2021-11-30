@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.clients
 
+import com.amazonaws.services.apigatewaymanagementapi.AmazonApiGatewayManagementApiClientBuilder
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore
 import com.nimbusframework.nimbusaws.clients.document.DocumentStoreClientDynamo
@@ -148,8 +149,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
     }
 
     override fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient {
-        val webSocketClientApi = ServerlessFunctionWebSocketClientApiGateway()
-        return webSocketClientApi
+        return ServerlessFunctionWebSocketClientApiGateway(createApiGatewayManagementApiClientBuilder())
     }
 
     private fun createDynamoDbClient(): DynamoDbClient {
@@ -187,4 +187,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
             .build()
     }
 
+    private fun createApiGatewayManagementApiClientBuilder(): AmazonApiGatewayManagementApiClientBuilder {
+        return AmazonApiGatewayManagementApiClientBuilder.standard()
+    }
 }
