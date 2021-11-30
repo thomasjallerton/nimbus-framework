@@ -36,6 +36,7 @@ import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSoc
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.lambda.LambdaClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsClient
 import software.amazon.awssdk.services.sqs.SqsClient
@@ -134,7 +135,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         handlerClass: Class<*>,
         functionName: String
     ): BasicServerlessFunctionClient {
-        return BasicServerlessFunctionClientLambda(handlerClass, functionName)
+        return BasicServerlessFunctionClientLambda(handlerClass, functionName, createLambdaClient(), getEnvironmentVariableClient())
     }
 
     override fun getFileStorageClient(bucketClass: Class<*>, stage: String): FileStorageClient {
@@ -179,5 +180,11 @@ object AwsInternalClientBuilder: InternalClientBuilder {
             .build()
     }
 
+    private fun createLambdaClient(): LambdaClient {
+        return LambdaClient.builder()
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .httpClient(UrlConnectionHttpClient.builder().build())
+            .build()
+    }
 
 }
