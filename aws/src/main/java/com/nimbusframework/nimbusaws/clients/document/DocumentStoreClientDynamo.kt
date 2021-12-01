@@ -12,12 +12,12 @@ internal class DocumentStoreClientDynamo<T>(
         clazz: Class<T>,
         tableName: String,
         stage: String,
-        private val dynamoClientFactory: (Map<String, String>) -> DynamoClient
+        dynamoClientFactory: (Map<String, String>) -> DynamoClient
 ): AbstractDocumentStoreClient<T>(clazz, tableName, stage) {
 
     private val dynamoStreamProcessor = DynamoStreamParser(clazz, allAttributes)
 
-    private val dynamoClient by lazy { dynamoClientFactory(columnNames) }
+    private val dynamoClient = dynamoClientFactory(columnNames)
 
     override fun put(obj: T) {
         dynamoClient.put(obj, allAttributes)

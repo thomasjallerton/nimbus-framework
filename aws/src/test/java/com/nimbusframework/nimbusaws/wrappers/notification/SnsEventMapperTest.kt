@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.events.SNSEvent
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
 import org.joda.time.DateTime
+import java.time.Instant
 
 class SnsEventMapperTest: AnnotationSpec() {
 
@@ -31,7 +32,7 @@ class SnsEventMapperTest: AnnotationSpec() {
         result.messageId shouldBe "messageId"
         result.subject shouldBe "subject"
         result.message shouldBe "message"
-        result.timestamp shouldBe time
+        result.timestamp shouldBe Instant.ofEpochMilli(time.toInstant().millis)
         result.requestId shouldBe "requestId"
         result.messageAttributes!!.getValue("Key").type shouldBe "stringValue"
         result.messageAttributes!!.getValue("Key").value shouldBe "strVal"

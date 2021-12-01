@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.wrappers.notification
 import com.amazonaws.services.lambda.runtime.events.SNSEvent
 import com.nimbusframework.nimbuscore.eventabstractions.NotificationEvent
 import com.nimbusframework.nimbuscore.eventabstractions.NotificationMessageAttribute
+import java.time.Instant
 
 object SnsEventMapper {
 
@@ -12,7 +13,7 @@ object SnsEventMapper {
                 sns.messageId,
                 sns.subject,
                 sns.message,
-                sns.timestamp,
+                Instant.ofEpochMilli(sns.timestamp.millis),
                 convertMap(sns.messageAttributes),
                 requestId)
     }
