@@ -1,11 +1,11 @@
 package com.nimbusframework.nimbusaws.wrappers.queue
 
 import com.amazonaws.services.lambda.runtime.events.SQSEvent
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbuscore.annotations.function.QueueServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.QueueEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -38,7 +38,7 @@ class QueueServerlessFunctionFileBuilder(
     override fun writeImports() {
         write()
 
-        write("import ${ObjectMapper::class.qualifiedName};")
+        write("import ${JacksonClient::class.qualifiedName};")
         write("import ${SqsEventMapper::class.qualifiedName};")
         write("import java.util.List;")
         write("import java.util.LinkedList;")
@@ -67,8 +67,6 @@ class QueueServerlessFunctionFileBuilder(
         }
 
 
-        write("ObjectMapper objectMapper = new ObjectMapper();")
-
         write("List<SQSEvent.SQSMessage> records = input.getRecords();")
 
         if (isAListFunction) {
@@ -79,10 +77,10 @@ class QueueServerlessFunctionFileBuilder(
         write("for (SQSEvent.SQSMessage message : records) {")
         if (isAListFunction) {
             write("parsedRecords.add(${SqsEventMapper::class.java.simpleName}.getQueueEvent(message, requestId));")
-            write("parsedTypes.add(objectMapper.readValue(message.getBody(), $inputString.class));")
+            write("parsedTypes.add(JacksonClient.readValue(message.getBody(), $inputString.class));")
         } else {
             write("$eventSimpleName event = ${SqsEventMapper::class.java.simpleName}.getQueueEvent(message, requestId);")
-            write("$inputString parsedType = objectMapper.readValue(message.getBody(), $inputString.class);")
+            write("$inputString parsedType = JacksonClient.readValue(message.getBody(), $inputString.class);")
             invokeHandler(inputParam, eventParam, "parsedType", "event")
         }
         write("}")

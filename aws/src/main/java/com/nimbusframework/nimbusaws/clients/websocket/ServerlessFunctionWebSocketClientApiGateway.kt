@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusaws.clients.websocket
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClientBuilder
@@ -14,8 +14,6 @@ internal class ServerlessFunctionWebSocketClientApiGateway(
 
     private val env = System.getenv()
     private val endpoint = if (env.containsKey("WEBSOCKET_ENDPOINT")) env["WEBSOCKET_ENDPOINT"]!! else ""
-
-    private val objectMapper = ObjectMapper()
 
     private val apiGatewayManagementApi by lazy {
         apiGatewayManagementApiBuilder.endpointOverride(URI.create(endpoint)).build()
@@ -31,7 +29,7 @@ internal class ServerlessFunctionWebSocketClientApiGateway(
     }
 
     override fun sendToConnectionConvertToJson(connectionId: String, data: Any) {
-        val json = objectMapper.writeValueAsBytes(data)
+        val json = JacksonClient.writeValueAsBytes(data)
 
         val postToConnectionRequest = PostToConnectionRequest.builder()
             .connectionId(connectionId)

@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.clients.function
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import software.amazon.awssdk.core.SdkBytes
@@ -18,8 +18,6 @@ internal class BasicServerlessFunctionClientLambda(
     private val lambdaClient: LambdaClient,
     private val environmentVariableClient: EnvironmentVariableClient
 ) : BasicServerlessFunctionClient {
-
-    private val objectMapper = ObjectMapper()
 
     private val projectName by lazy { environmentVariableClient.get("NIMBUS_PROJECT_NAME") ?: "" }
 
@@ -40,14 +38,14 @@ internal class BasicServerlessFunctionClientLambda(
     override fun <T> invoke(param: Any, responseType: Class<T>): T? {
         val invokeRequest = InvokeRequest.builder()
             .functionName(FunctionResource.functionName(projectName, handlerClass.simpleName, functionName, stage))
-            .payload(SdkBytes.fromByteArray(objectMapper.writeValueAsBytes(param)))
+            .payload(SdkBytes.fromByteArray(JacksonClient.writeValueAsBytes(param)))
             .invocationType(InvocationType.REQUEST_RESPONSE)
             .build()
         val result = lambdaClient.invoke(invokeRequest)
 
         return if (responseType != Unit.javaClass) {
             val converted = result.payload().asString(Charset.forName("UTF-8"))
-            objectMapper.readValue(converted, responseType)
+            JacksonClient.readValue(converted, responseType)
         } else {
             null
         }
@@ -60,7 +58,7 @@ internal class BasicServerlessFunctionClientLambda(
     override fun invokeAsync(param: Any) {
         val invokeRequest = InvokeRequest.builder()
             .functionName(FunctionResource.functionName(projectName, handlerClass.simpleName, functionName, stage))
-            .payload(SdkBytes.fromByteArray(objectMapper.writeValueAsBytes(param)))
+            .payload(SdkBytes.fromByteArray(JacksonClient.writeValueAsBytes(param)))
             .invocationType(InvocationType.EVENT)
             .build()
         lambdaClient.invoke(invokeRequest)

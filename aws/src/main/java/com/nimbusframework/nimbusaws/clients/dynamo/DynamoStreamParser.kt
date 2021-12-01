@@ -2,13 +2,11 @@ package com.nimbusframework.nimbusaws.clients.dynamo
 
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute
 import com.nimbusframework.nimbuscore.annotations.persistent.Key
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import java.lang.reflect.Field
 
 class DynamoStreamParser<T>(private val clazz: Class<T>, private val allAttributes: Map<String, Field>) {
-
-    private val objectMapper = ObjectMapper()
 
     fun <K> fromAttributeValue(value: AttributeValue, expectedType: Class<K>, fieldName: String): Any? {
         return when {
@@ -23,7 +21,7 @@ class DynamoStreamParser<T>(private val clazz: Class<T>, private val allAttribut
                 }
             }
             value.s() != null && expectedType == String::class.java -> value.s()
-            value.s() != null -> objectMapper.readValue(value.s(), expectedType)
+            value.s() != null -> JacksonClient.readValue(value.s(), expectedType)
             else -> throw MismatchedTypeException(expectedType.simpleName, fieldName)
         }
     }
@@ -41,7 +39,7 @@ class DynamoStreamParser<T>(private val clazz: Class<T>, private val allAttribut
                 }
             }
             value.s != null && expectedType == String::class.java -> value.s
-            value.s != null -> objectMapper.readValue(value.s, expectedType)
+            value.s != null -> JacksonClient.readValue(value.s, expectedType)
             else -> throw MismatchedTypeException(expectedType.simpleName, fieldName)
         }
     }
@@ -58,7 +56,7 @@ class DynamoStreamParser<T>(private val clazz: Class<T>, private val allAttribut
             }
         }
 
-        return objectMapper.convertValue(resultMap, clazz)
+        return JacksonClient.convertValue(resultMap, clazz)
     }
 
     fun toObjectFromLambda(obj: Map<String, com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue>?): T? {
@@ -73,7 +71,7 @@ class DynamoStreamParser<T>(private val clazz: Class<T>, private val allAttribut
             }
         }
 
-        return objectMapper.convertValue(resultMap, clazz)
+        return JacksonClient.convertValue(resultMap, clazz)
     }
 
     companion object {
