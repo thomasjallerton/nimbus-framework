@@ -26,6 +26,16 @@
         <awssdk.version>2.16.60</awssdk.version>
         <aws-lambda-java-core.version>1.2.1</aws-lambda-java-core.version>
         <aws-lambda-java-events.version>3.11.0</aws-lambda-java-events.version>
+        <auto-service.version>1.0-rc6</auto-service.version>
+        <aws.version>1.12.119</aws.version>
+        <mysql-connector-java.version>8.0.15</mysql-connector-java.version>
+        <postgresql.version>42.2.5</postgresql.version>
+        <mssql-jdbc.version>7.2.1.jre8</mssql-jdbc.version>
+        <mariadb-java-client.version>2.4.0</mariadb-java-client.version>
+        <junit.version>4.13-rc-1</junit.version>
+        <compile-testing.version>0.15</compile-testing.version>
+        <mockk.version>1.9.2</mockk.version>
+        <junit-jupiter-api.version>5.5.2</junit-jupiter-api.version>
     </properties>
 
     <dependencyManagement>
@@ -52,11 +62,6 @@
             <version>${auto-service.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-test</artifactId>
             <version>${kotlin.version}</version>
@@ -65,14 +70,44 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sns</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sqs</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -81,14 +116,44 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>lambda</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>dynamodb</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apigatewaymanagementapi</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -136,46 +201,6 @@
 
         <!-- For tests dependencies -->
         <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-api</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-server</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>${h2.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>${reflections.version}</version>
-        </dependency>
-
-        <!-- Test Dependencies-->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.testing.compile</groupId>
-            <artifactId>compile-testing</artifactId>
-            <version>${compile-testing.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>io.kotest</groupId>
             <artifactId>kotest-assertions-core-jvm</artifactId>
             <version>${kotest.version}</version>
@@ -197,6 +222,12 @@
             <groupId>io.mockk</groupId>
             <artifactId>mockk</artifactId>
             <version>${mockk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.testing.compile</groupId>
+            <artifactId>compile-testing</artifactId>
+            <version>${compile-testing.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

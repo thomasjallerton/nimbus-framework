@@ -34,7 +34,9 @@ import com.nimbusframework.nimbuscore.clients.queue.QueueIdAnnotationService
 import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
+import software.amazon.awssdk.core.SdkSystemSetting
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClient
 import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClientBuilder
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
@@ -156,6 +158,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
     private fun createDynamoDbClient(): DynamoDbClient {
         return DynamoDbClient.builder()
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
             .httpClient(UrlConnectionHttpClient.builder().build())
             .build()
     }
@@ -163,6 +166,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
     private fun createSnsClient(): SnsClient {
         return SnsClient.builder()
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
             .httpClient(UrlConnectionHttpClient.builder().build())
             .build()
     }
@@ -170,6 +174,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
     private fun createSqsClient(): SqsClient {
         return SqsClient.builder()
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
             .httpClient(UrlConnectionHttpClient.builder().build())
             .build()
     }
@@ -177,6 +182,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
     private fun createS3Client(): S3Client {
         return S3Client.builder()
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
             .httpClient(UrlConnectionHttpClient.builder().build())
             .build()
     }
@@ -184,6 +190,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
     private fun createLambdaClient(): LambdaClient {
         return LambdaClient.builder()
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
             .httpClient(UrlConnectionHttpClient.builder().build())
             .build()
     }
@@ -191,6 +198,7 @@ object AwsInternalClientBuilder: InternalClientBuilder {
     private fun createApiGatewayManagementApiClient(): ApiGatewayManagementApiClientBuilder {
         return ApiGatewayManagementApiClient.builder()
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
             .httpClient(UrlConnectionHttpClient.builder().build())
     }
 }

@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbuscore.eventabstractions
 
-import org.joda.time.DateTime
+import java.time.Instant
 import java.util.*
 
 data class NotificationEvent(
@@ -8,7 +8,7 @@ data class NotificationEvent(
         val messageId: String? = null,
         val subject: String? = null,
         val message: String? = null,
-        val timestamp: DateTime? = DateTime.now(),
+        val timestamp: Instant? = Instant.now(),
         val messageAttributes: Map<String, NotificationMessageAttribute>? = null,
         val requestId: String = UUID.randomUUID().toString()
 ) : ServerlessEvent
