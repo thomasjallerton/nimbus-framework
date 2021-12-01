@@ -4,6 +4,8 @@ import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoHelper.numAttribute
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoHelper.strAttribute
 import com.nimbusframework.nimbusaws.examples.document.DocumentStoreNoTableName
+import com.nimbusframework.nimbusaws.examples.document.KotlinDocumentStoreNoTableName
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
@@ -14,6 +16,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import java.lang.reflect.Field
 
 class DocumentStoreClientDynamoTest : AnnotationSpec() {
@@ -94,6 +97,21 @@ class DocumentStoreClientDynamoTest : AnnotationSpec() {
         every { dynamoClient.get(exampleKey) } returns exampleObj
 
         underTest.get("test") shouldBe obj
+    }
+
+    @Test
+    fun canGetKotlinItem() {
+        val underTest = DocumentStoreClientDynamo(KotlinDocumentStoreNoTableName::class.java, "tableName", "dev") { dynamoClient }
+        val kotlinObj = KotlinDocumentStoreNoTableName("test", listOf(obj))
+
+        val exampleObj = mutableMapOf(
+            Pair("string", strAttribute("test")),
+            Pair("documents", AttributeValue.builder().s(JacksonClient.writeValueAsString(listOf(obj))).build())
+        )
+
+        every { dynamoClient.get(exampleKey) } returns exampleObj
+
+        underTest.get("test") shouldBe kotlinObj
     }
 
     @Test

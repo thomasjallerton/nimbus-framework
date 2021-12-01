@@ -1,14 +1,13 @@
 package com.nimbusframework.nimbusaws.clients.dynamo
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbusaws.clients.dynamo.condition.DynamoConditionProcessor
 import com.nimbusframework.nimbusaws.wrappers.store.keyvalue.exceptions.ConditionFailedException
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
 import com.nimbusframework.nimbuscore.exceptions.RetryableException
-import software.amazon.awssdk.core.exception.SdkClientException
 import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.*
@@ -23,7 +22,6 @@ class DynamoClient (
 ) {
 
     private val conditionProcessor = DynamoConditionProcessor(this)
-    private val objectMapper = ObjectMapper()
 
     fun put(obj: Any?, allAttributes: Map<String, Field>, additionalEntries:Map<String, AttributeValue> = mapOf(), condition: Condition? = null) {
         val attributeMap = getItem(obj, allAttributes, additionalEntries)
@@ -37,6 +35,7 @@ class DynamoClient (
                     .expressionAttributeValues(valueMap)
         }
 
+        println(putItemRequest.build().item())
         executeDynamoRequest { client.putItem(putItemRequest.build()) }
     }
 
@@ -139,7 +138,7 @@ class DynamoClient (
             is String -> builder.s(value)
             is Number -> builder.n(value.toString())
             is Boolean -> builder.bool(value)
-            else -> builder.s(objectMapper.writeValueAsString(value))
+            else -> builder.s(JacksonClient.writeValueAsString(value))
         }.build()
     }
 
@@ -156,7 +155,7 @@ class DynamoClient (
         }
 
         attributeMap.putAll(additionalEntries)
-        return attributeMap;
+        return attributeMap
     }
 
     private fun <R> executeDynamoRequest(toExecute: () -> R): R {

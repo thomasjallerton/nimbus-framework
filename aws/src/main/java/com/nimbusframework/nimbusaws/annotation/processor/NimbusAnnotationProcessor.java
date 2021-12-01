@@ -1,7 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.processor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.jr.ob.JSON;
 import com.google.auto.service.AutoService;
 import com.nimbusframework.nimbusaws.annotation.services.CloudFormationWriter;
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService;
@@ -20,6 +19,7 @@ import com.nimbusframework.nimbuscore.persisted.UserConfig;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -174,10 +174,9 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                 cloudformationWriter.saveTemplate("cloudformation-stack-create-" + stage, cloudFormationFiles.getCreateTemplate());
             }
 
-            ObjectMapper mapper = new ObjectMapper();
             try {
-                cloudformationWriter.saveJsonFile("nimbus-state", mapper.writerWithDefaultPrettyPrinter().writeValueAsString(nimbusState));
-            } catch (JsonProcessingException e) {
+                cloudformationWriter.saveJsonFile("nimbus-state", JSON.std.with(JSON.Feature.PRETTY_PRINT_OUTPUT).asString(nimbusState));
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }

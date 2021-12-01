@@ -35,6 +35,7 @@ import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
 import software.amazon.awssdk.core.SdkSystemSetting
+import software.amazon.awssdk.http.SdkHttpClient
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClient
@@ -155,50 +156,62 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         return ServerlessFunctionWebSocketClientApiGateway(createApiGatewayManagementApiClient())
     }
 
+    private val environmentVariableCredentialsProvider: EnvironmentVariableCredentialsProvider by lazy {
+        EnvironmentVariableCredentialsProvider.create()
+    }
+
+    private val region: Region by lazy {
+        Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable()))
+    }
+
+    private val urlConnectionHttpClient: SdkHttpClient by lazy {
+        UrlConnectionHttpClient.builder().build()
+    }
+
     private fun createDynamoDbClient(): DynamoDbClient {
         return DynamoDbClient.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
-            .httpClient(UrlConnectionHttpClient.builder().build())
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
             .build()
     }
 
     private fun createSnsClient(): SnsClient {
         return SnsClient.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
-            .httpClient(UrlConnectionHttpClient.builder().build())
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
             .build()
     }
 
     private fun createSqsClient(): SqsClient {
         return SqsClient.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
-            .httpClient(UrlConnectionHttpClient.builder().build())
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
             .build()
     }
 
     private fun createS3Client(): S3Client {
         return S3Client.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
-            .httpClient(UrlConnectionHttpClient.builder().build())
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
             .build()
     }
 
     private fun createLambdaClient(): LambdaClient {
         return LambdaClient.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
-            .httpClient(UrlConnectionHttpClient.builder().build())
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
             .build()
     }
 
     private fun createApiGatewayManagementApiClient(): ApiGatewayManagementApiClientBuilder {
         return ApiGatewayManagementApiClient.builder()
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
-            .httpClient(UrlConnectionHttpClient.builder().build())
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
     }
 }

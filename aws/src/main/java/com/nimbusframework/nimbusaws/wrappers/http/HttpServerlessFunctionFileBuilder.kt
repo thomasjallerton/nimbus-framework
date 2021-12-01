@@ -6,6 +6,7 @@ import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunctio
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse
 import java.util.HashMap
@@ -35,7 +36,7 @@ class HttpServerlessFunctionFileBuilder(
     override fun writeImports() {
         write()
 
-        write("import com.fasterxml.jackson.databind.ObjectMapper;")
+        write("import ${JacksonClient::class.qualifiedName};")
         write("import ${HashMap::class.qualifiedName};")
         write("import ${HttpResponse::class.qualifiedName};")
         write("import ${RestApiGatewayEventMapper::class.qualifiedName};")
@@ -45,10 +46,9 @@ class HttpServerlessFunctionFileBuilder(
 
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {
-        write("ObjectMapper objectMapper = new ObjectMapper();")
         write("${HttpEvent::class.simpleName} event = ${RestApiGatewayEventMapper::class.simpleName}.getHttpEvent(input, requestId);")
         if (inputParam.exists()) {
-            write("${inputParam.simpleName()} parsedType = objectMapper.readValue(input.getBody(), ${inputParam.simpleName()}.class);")
+            write("${inputParam.simpleName()} parsedType = JacksonClient.readValue(input.getBody(), ${inputParam.simpleName()}.class);")
         }
 
         val callPrefix = if (voidMethodReturn) {
@@ -74,7 +74,7 @@ class HttpServerlessFunctionFileBuilder(
             write("responseEvent.setStatusCode(result.getStatusCode());")
             write("responseEvent.setIsBase64Encoded(result.isBase64Encoded());")
         } else if (!voidMethodReturn) {
-            write("String responseBody = objectMapper.writeValueAsString(result);")
+            write("String responseBody = JacksonClient.writeValueAsString(result);")
             write("responseEvent.setBody(responseBody);")
         }
         addCorsHeader("responseEvent")

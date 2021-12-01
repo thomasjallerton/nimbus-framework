@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbusaws.clients.websocket
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbusaws.examples.SimpleObject
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -45,10 +45,9 @@ class ServerlessFunctionWebSocketClientApiGatewayTest : AnnotationSpec() {
     fun canSendToConnectionJson() {
         val request = slot<PostToConnectionRequest>()
 
-        val objectMapper = ObjectMapper()
         val obj = SimpleObject("test")
 
-        val byteBuffer = ByteBuffer.wrap(objectMapper.writeValueAsBytes(obj))
+        val byteBuffer = ByteBuffer.wrap(JacksonClient.writeValueAsBytes(obj))
 
         every { managementApi.postToConnection(capture(request)) } returns PostToConnectionResponse.builder().build()
 

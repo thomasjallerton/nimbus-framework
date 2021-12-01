@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusaws.clients.notification
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
 import com.nimbusframework.nimbuscore.clients.notification.Protocol
@@ -17,8 +17,6 @@ internal class NotificationClientSNS(
 ): NotificationClient {
 
     private val topicArn: String by lazy {  environmentVariableClient.get("SNS_TOPIC_ARN_${topicName.toUpperCase()}") ?: "" }
-
-    private val objectMapper: ObjectMapper = ObjectMapper()
 
     override fun createSubscription(protocol: Protocol, endpoint: String): String {
         val subscribeRequest = SubscribeRequest.builder()
@@ -42,7 +40,7 @@ internal class NotificationClientSNS(
     override fun notifyJson(message: Any) {
         val publishRequest = PublishRequest.builder()
             .topicArn(topicArn)
-            .message(objectMapper.writeValueAsString(message))
+            .message(JacksonClient.writeValueAsString(message))
             .build()
 
         snsClient.publish(publishRequest)
