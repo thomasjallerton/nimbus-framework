@@ -1,7 +1,9 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
+import com.amazonaws.services.lambda.runtime.events.DynamodbEvent
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
@@ -9,6 +11,7 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResour
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.DynamoConfiguration
 import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
@@ -20,29 +23,29 @@ class KeyValueStoreFunctionResourceCreatorTest : AnnotationSpec() {
     private lateinit var keyValueStoreFunctionResourceCreator: KeyValueStoreFunctionResourceCreator
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
-    private lateinit var nimbusState: NimbusState
+    private lateinit var processingData: ProcessingData
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
     private lateinit var resourceFinder: ResourceFinder
     private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
-        nimbusState = NimbusState()
+        processingData = ProcessingData(NimbusState())
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         resourceFinder = mockk()
 
         compileStateService = CompileStateService("handlers/KeyValueStoreHandlers.java")
 
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
     }
 
     @Test
     fun correctlyProcessesKeyValueStoreFunctionAnnotation() {
         compileStateService.compileObjects {
-            keyValueStoreFunctionResourceCreator = KeyValueStoreFunctionResourceCreator(cfDocuments, nimbusState, it, setOf(), mockk(relaxed = true), resourceFinder)
+            keyValueStoreFunctionResourceCreator = KeyValueStoreFunctionResourceCreator(cfDocuments, processingData, it, setOf(), mockk(relaxed = true), resourceFinder)
 
-            every { resourceFinder.getKeyValueStoreResource(any(), any(), any()) } returns DynamoResource(DynamoConfiguration("table"), nimbusState, "dev")
+            every { resourceFinder.getKeyValueStoreResource(any(), any(), any()) } returns DynamoResource(DynamoConfiguration("table"), processingData.nimbusState, "dev")
             val classElem = it.elementUtils.getTypeElement("handlers.KeyValueStoreHandlers")
             val funcElem = classElem.enclosedElements[1]
             val results = keyValueStoreFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
@@ -52,6 +55,7 @@ class KeyValueStoreFunctionResourceCreatorTest : AnnotationSpec() {
             resources.size() shouldBe 5
 
             results.size shouldBe 1
+            processingData.classesForReflection shouldContain DynamodbEvent::class.qualifiedName
         }
     }
 

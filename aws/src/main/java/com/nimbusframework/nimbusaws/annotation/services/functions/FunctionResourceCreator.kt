@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.StageService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
@@ -23,7 +24,7 @@ import javax.tools.Diagnostic
 
 abstract class FunctionResourceCreator(
         protected val cfDocuments: MutableMap<String, CloudFormationFiles>,
-        protected val nimbusState: NimbusState,
+        protected val processingData: ProcessingData,
         protected val processingEnv: ProcessingEnvironment,
         private val decoratorHandlers: Set<FunctionDecoratorHandler>,
         protected val messager: Messager,
@@ -31,7 +32,9 @@ abstract class FunctionResourceCreator(
         private val repeatableClass: Class<out Annotation>
 ) {
 
-    protected val stageService = StageService(nimbusState.defaultStages)
+    protected val stageService = StageService(processingData.nimbusState.defaultStages)
+
+    protected val nimbusState = processingData.nimbusState
 
     fun handle(roundEnv: RoundEnvironment, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val annotatedElements = roundEnv.getElementsAnnotatedWithAny(setOf(singleClass, repeatableClass))

@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.wrappers.deployment
 
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployment
@@ -9,19 +10,19 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class DeploymentFunctionFileBuilder(
-        processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation,
-        compilingElement: Element,
-        nimbusState: NimbusState
+    processingEnv: ProcessingEnvironment,
+    methodInformation: MethodInformation,
+    compilingElement: Element,
+    processingData: ProcessingData
 ) : ServerlessFunctionFileBuilder(
-        processingEnv,
-        methodInformation,
-        AfterDeployment::class.java.simpleName,
-        BasicEvent::class.java,
-        compilingElement,
-        Void::class.java,
-        null,
-        nimbusState
+    processingEnv,
+    methodInformation,
+    AfterDeployment::class.java.simpleName,
+    BasicEvent::class.java,
+    compilingElement,
+    Void::class.java,
+    null,
+    processingData
 ) {
     override fun getGeneratedClassName(): String {
         return "AfterDeployment${methodInformation.className}${methodInformation.methodName}"

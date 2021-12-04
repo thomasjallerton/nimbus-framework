@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.annotation.services.useresources
 
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
 import com.nimbusframework.nimbusaws.annotation.services.resources.KeyValueStoreResourceCreator
@@ -25,6 +26,7 @@ class UsesKeyValueStoreProcessorTest: AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
+    private lateinit var processingData: ProcessingData
     private lateinit var iamRoleResource: IamRoleResource
     private lateinit var messager: Messager
     private lateinit var compileStateService: CompileStateService
@@ -32,6 +34,7 @@ class UsesKeyValueStoreProcessorTest: AnnotationSpec() {
     @BeforeEach
     fun setup() {
         nimbusState = NimbusState()
+        processingData = ProcessingData(nimbusState)
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)
@@ -42,10 +45,10 @@ class UsesKeyValueStoreProcessorTest: AnnotationSpec() {
 
     private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
         val elements = processingEnvironment.elementUtils
-        KeyValueStoreResourceCreator(roundEnvironment, cfDocuments, nimbusState, processingEnvironment).handleAgnosticType(elements.getTypeElement("models.KeyValue"))
+        KeyValueStoreResourceCreator(roundEnvironment, cfDocuments, processingData, processingEnvironment).handleAgnosticType(elements.getTypeElement("models.KeyValue"))
 
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState))
+        HttpFunctionResourceCreator(cfDocuments, processingData, processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
+        HttpFunctionResourceCreator(cfDocuments, processingData, processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState))
 
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRolealueStoreHandlerfunc") as IamRoleResource
         usesKeyValueStoreProcessor = UsesKeyValueStoreProcessor(cfDocuments, processingEnvironment, nimbusState, messager)

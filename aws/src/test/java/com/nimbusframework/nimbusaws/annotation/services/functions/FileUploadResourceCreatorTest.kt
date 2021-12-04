@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
@@ -21,7 +22,7 @@ class FileUploadResourceCreatorTest : AnnotationSpec() {
 
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
-    private lateinit var nimbusState: NimbusState
+    private lateinit var processingData: ProcessingData
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
     private lateinit var compileStateService: CompileStateService
     private lateinit var resourceFinder: ResourceFinder
@@ -29,29 +30,29 @@ class FileUploadResourceCreatorTest : AnnotationSpec() {
 
     @BeforeEach
     fun setup() {
-        nimbusState = NimbusState()
+        processingData = ProcessingData(NimbusState())
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         resourceFinder = mockk()
         messager = mockk(relaxed = true)
 
         compileStateService = CompileStateService("models/FileStorage.java")
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
     }
 
     @Test
     fun correctlyProcessesFileUploadAnnotation() {
         compileStateService.compileObjects {
-            every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns FileBucket(nimbusState, "ImageBucket", arrayOf(), "dev" )
+            every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns FileBucket(processingData.nimbusState, "ImageBucket", arrayOf(), "dev" )
 
-            val fileUploadResourceCreator = FileUploadResourceCreator(cfDocuments, nimbusState, it, setOf(), messager, resourceFinder)
+            val fileUploadResourceCreator = FileUploadResourceCreator(cfDocuments, processingData, it, setOf(), messager, resourceFinder)
             val classElem = it.elementUtils.getTypeElement("models.FileStorage")
             val results = fileUploadResourceCreator.handleElement(classElem, functionEnvironmentService)
             cfDocuments["dev"] shouldBe null
 
             results.size shouldBe 0
 
-            val fileUploadDescription = nimbusState.fileUploads["dev"]!!["imagebucketdev"]!![0]
+            val fileUploadDescription = processingData.nimbusState.fileUploads["dev"]!!["imagebucketdev"]!![0]
             fileUploadDescription.localFile shouldBe "test"
             fileUploadDescription.targetFile shouldBe "test"
             fileUploadDescription.substituteVariables shouldBe false
@@ -65,7 +66,7 @@ class FileUploadResourceCreatorTest : AnnotationSpec() {
         compileStateService.compileObjects {
             every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns null
 
-            val fileUploadResourceCreator = FileUploadResourceCreator(cfDocuments, nimbusState, it, setOf(), messager, resourceFinder)
+            val fileUploadResourceCreator = FileUploadResourceCreator(cfDocuments, processingData, it, setOf(), messager, resourceFinder)
             val classElem = it.elementUtils.getTypeElement("models.FileStorage")
             fileUploadResourceCreator.handleElement(classElem, functionEnvironmentService)
 

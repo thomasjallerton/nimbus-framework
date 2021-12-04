@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
@@ -9,20 +10,19 @@ import com.nimbusframework.nimbusaws.wrappers.http.HttpServerlessFunctionFileBui
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.HttpServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class HttpFunctionResourceCreator(
     cfDocuments: MutableMap<String, CloudFormationFiles>,
-    nimbusState: NimbusState,
+    processingData: ProcessingData,
     processingEnv: ProcessingEnvironment,
     decoratorHandlers: Set<FunctionDecoratorHandler>,
     messager: Messager
 ) : FunctionResourceCreator(
     cfDocuments,
-    nimbusState,
+    processingData,
     processingEnv,
     decoratorHandlers,
     messager,
@@ -40,7 +40,7 @@ class HttpFunctionResourceCreator(
             processingEnv,
             methodInformation,
             type,
-            nimbusState
+            processingData
         )
 
         fileBuilder.createClass()
@@ -54,7 +54,7 @@ class HttpFunctionResourceCreator(
                 replacementVariable = "\${${fileBuilder.handlerFile()}}",
                 stages = stages
             )
-            nimbusState.handlerFiles.add(handlerInformation)
+            processingData.nimbusState.handlerFiles.add(handlerInformation)
 
             for (stage in stages) {
                 val handler = fileBuilder.getHandler()

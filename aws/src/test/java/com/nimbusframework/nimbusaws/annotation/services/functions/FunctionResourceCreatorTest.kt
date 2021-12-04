@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.KeepWarmDecoratorHandler
@@ -25,12 +26,12 @@ class FunctionResourceCreatorTest : AnnotationSpec() {
 
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
-    private lateinit var nimbusState: NimbusState
+    private lateinit var processingData: ProcessingData
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
 
     @BeforeEach
     fun setup() {
-        nimbusState = NimbusState()
+        processingData = ProcessingData(NimbusState())
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         functionEnvironmentService = mockk(relaxed = true)
@@ -43,7 +44,7 @@ class FunctionResourceCreatorTest : AnnotationSpec() {
 
         val underTest = DummyFunctionResourceCreator(
             cfDocuments,
-            nimbusState,
+            processingData,
             mockk(),
             functionDecoratorHandler,
             mockk(relaxed = true),
@@ -63,14 +64,14 @@ class FunctionResourceCreatorTest : AnnotationSpec() {
 
     class DummyFunctionResourceCreator(
         cfDocuments: MutableMap<String, CloudFormationFiles>,
-        nimbusState: NimbusState,
+        processingData: ProcessingData,
         processingEnv: ProcessingEnvironment,
         decoratorHandler: FunctionDecoratorHandler,
         messager: Messager,
         private val returnedFunctionInformation: List<FunctionInformation>
     ) : FunctionResourceCreator(
         cfDocuments,
-        nimbusState,
+        processingData,
         processingEnv,
         setOf(decoratorHandler),
         messager,

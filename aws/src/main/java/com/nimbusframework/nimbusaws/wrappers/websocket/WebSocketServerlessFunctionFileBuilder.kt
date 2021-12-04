@@ -1,12 +1,12 @@
 package com.nimbusframework.nimbusaws.wrappers.websocket
 
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.clients.AwsInternalClientBuilder
 import com.nimbusframework.nimbuscore.annotations.function.WebSocketServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.clients.ClientBinder
 import com.nimbusframework.nimbuscore.clients.JacksonClient
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.eventabstractions.WebSocketEvent
 import com.nimbusframework.nimbuscore.eventabstractions.WebSocketResponse
 import java.io.PrintWriter
@@ -14,20 +14,25 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class WebSocketServerlessFunctionFileBuilder(
-        processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation,
-        compilingElement: Element,
-        nimbusState: NimbusState
-): ServerlessFunctionFileBuilder(
-        processingEnv,
-        methodInformation,
-        WebSocketServerlessFunction::class.java.simpleName,
-        WebSocketEvent::class.java,
-        compilingElement,
-        null,
-        null,
-        nimbusState
+    processingEnv: ProcessingEnvironment,
+    methodInformation: MethodInformation,
+    compilingElement: Element,
+    processingData: ProcessingData
+) : ServerlessFunctionFileBuilder(
+    processingEnv,
+    methodInformation,
+    WebSocketServerlessFunction::class.java.simpleName,
+    WebSocketEvent::class.java,
+    compilingElement,
+    null,
+    null,
+    processingData
 ) {
+
+    init {
+        processingData.classesForReflection.add(WebSocketEvent::class.qualifiedName!!)
+        processingData.classesForReflection.add(WebSocketResponse::class.qualifiedName!!)
+    }
 
     override fun getGeneratedClassName(): String {
         return "WebSocketServerlessFunction${methodInformation.className}${methodInformation.methodName}"

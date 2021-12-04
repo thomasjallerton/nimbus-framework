@@ -1,11 +1,11 @@
-package com.nimbusframework.nimbusaws.annotation.services
+package com.nimbusframework.nimbusaws.annotation.services.files
 
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationTemplate
 import java.io.IOException
 import javax.annotation.processing.Filer
 import javax.tools.StandardLocation
 
-class CloudFormationWriter(private val filer: Filer) {
+class FileWriter(private val filer: Filer) {
     fun saveTemplate(name: String, template: CloudFormationTemplate) {
         if (template.valid()) {
             saveJsonFile(name, template.toJson())

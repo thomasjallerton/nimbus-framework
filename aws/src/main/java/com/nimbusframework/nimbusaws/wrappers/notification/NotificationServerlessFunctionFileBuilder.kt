@@ -1,29 +1,29 @@
 package com.nimbusframework.nimbusaws.wrappers.notification
 
 import com.amazonaws.services.lambda.runtime.events.SNSEvent
-import com.nimbusframework.nimbuscore.annotations.function.NotificationServerlessFunction
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.function.NotificationServerlessFunction
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.NotificationEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class NotificationServerlessFunctionFileBuilder(
-        processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation,
-        compilingElement: Element,
-        nimbusState: NimbusState
-): ServerlessFunctionFileBuilder(
-        processingEnv,
-        methodInformation,
-        NotificationServerlessFunction::class.java.simpleName,
-        NotificationEvent::class.java,
-        compilingElement,
-        SNSEvent::class.java,
-        Void::class.java,
-        nimbusState
+    processingEnv: ProcessingEnvironment,
+    methodInformation: MethodInformation,
+    compilingElement: Element,
+    processingData: ProcessingData
+) : ServerlessFunctionFileBuilder(
+    processingEnv,
+    methodInformation,
+    NotificationServerlessFunction::class.java.simpleName,
+    NotificationEvent::class.java,
+    compilingElement,
+    SNSEvent::class.java,
+    Void::class.java,
+    processingData
 ) {
 
     override fun getGeneratedClassName(): String {
