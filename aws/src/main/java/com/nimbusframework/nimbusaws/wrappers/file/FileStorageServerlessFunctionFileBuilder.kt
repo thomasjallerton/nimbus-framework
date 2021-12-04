@@ -26,7 +26,7 @@ class FileStorageServerlessFunctionFileBuilder(
         processingData
 ) {
 
-    override fun getGeneratedClassName(): String {
+    override fun generateClassName(): String {
         return "FileStorageServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 

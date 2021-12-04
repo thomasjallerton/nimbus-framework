@@ -24,7 +24,7 @@ class BasicServerlessFunctionFileBuilder(
     null,
     processingData
 ) {
-    override fun getGeneratedClassName(): String {
+    override fun generateClassName(): String {
         return "BasicServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 

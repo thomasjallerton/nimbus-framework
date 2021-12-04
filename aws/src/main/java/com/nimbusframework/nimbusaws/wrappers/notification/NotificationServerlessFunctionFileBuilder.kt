@@ -26,7 +26,7 @@ class NotificationServerlessFunctionFileBuilder(
     processingData
 ) {
 
-    override fun getGeneratedClassName(): String {
+    override fun generateClassName(): String {
         return "NotificationServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 

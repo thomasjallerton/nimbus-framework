@@ -12,7 +12,6 @@ import com.nimbusframework.nimbusaws.wrappers.basic.BasicServerlessFunctionFileB
 import com.nimbusframework.nimbuscore.annotations.function.BasicServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.BasicServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -94,7 +93,7 @@ class BasicFunctionResourceCreator(
                     functionResource
                 )
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, fileBuilder.getGeneratedClassInformation()))
             }
         }
         return results

@@ -29,7 +29,7 @@ abstract class StoreServerlessFunctionFileBuilder(
     Void::class.java,
     processingData
 ) {
-    override fun getGeneratedClassName(): String {
+    override fun generateClassName(): String {
         return "$functionName${methodInformation.className}${methodInformation.methodName}"
     }
 

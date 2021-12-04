@@ -10,7 +10,6 @@ import com.nimbusframework.nimbusaws.wrappers.deployment.DeploymentFunctionFileB
 import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployment
 import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployments
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -76,7 +75,7 @@ class AfterDeploymentResourceCreator(
 
                 updateResources.addResource(functionResource)
 
-                results.add(FunctionInformation(type, functionResource, false))
+                results.add(FunctionInformation(type, functionResource, fileBuilder.getGeneratedClassInformation(), false))
             }
         }
         return results

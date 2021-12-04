@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
+import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
@@ -11,7 +12,6 @@ import com.nimbusframework.nimbusaws.wrappers.store.keyvalue.KeyValueStoreServer
 import com.nimbusframework.nimbuscore.annotations.function.KeyValueStoreServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.KeyValueStoreServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.KeyValueStoreServerlessFunctionAnnotation
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -45,7 +45,7 @@ class KeyValueStoreFunctionResourceCreator(
         var fileWritten = false
         var handler = ""
         var handlerInformation = HandlerInformation()
-
+        var awsMethodInformation = AwsMethodInformation("", "", "")
 
         for (keyValueStoreFunction in keyValueStoreFunctions) {
             val stages = stageService.determineStages(keyValueStoreFunction.stages)
@@ -72,7 +72,7 @@ class KeyValueStoreFunctionResourceCreator(
                     stages = stages
                 )
                 nimbusState.handlerFiles.add(handlerInformation)
-
+                awsMethodInformation = fileBuilder.getGeneratedClassInformation()
             }
 
             for (stage in stages) {
@@ -99,7 +99,7 @@ class KeyValueStoreFunctionResourceCreator(
 
                 functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, awsMethodInformation))
             }
         }
         return results

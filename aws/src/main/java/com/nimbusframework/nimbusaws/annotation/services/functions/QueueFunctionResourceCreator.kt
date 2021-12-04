@@ -12,7 +12,6 @@ import com.nimbusframework.nimbusaws.wrappers.queue.QueueServerlessFunctionFileB
 import com.nimbusframework.nimbuscore.annotations.function.QueueServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.QueueServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.QueueServerlessFunctionAnnotation
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -99,7 +98,7 @@ class QueueFunctionResourceCreator(
 
                 fileBuilder.createClass()
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, fileBuilder.getGeneratedClassInformation()))
             }
         }
         return results
