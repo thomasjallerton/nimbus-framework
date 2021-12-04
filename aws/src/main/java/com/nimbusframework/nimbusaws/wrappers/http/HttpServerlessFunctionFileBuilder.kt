@@ -2,9 +2,9 @@ package com.nimbusframework.nimbusaws.wrappers.http
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent
@@ -14,19 +14,19 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class HttpServerlessFunctionFileBuilder(
-        processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation,
-        compilingElement: Element,
-        nimbusState: NimbusState
+    processingEnv: ProcessingEnvironment,
+    methodInformation: MethodInformation,
+    compilingElement: Element,
+    processingData: ProcessingData
 ) : ServerlessFunctionFileBuilder(
-        processingEnv,
-        methodInformation,
-        HttpServerlessFunction::class.java.simpleName,
-        HttpEvent::class.java,
-        compilingElement,
-        APIGatewayProxyRequestEvent::class.java,
-        APIGatewayProxyResponseEvent::class.java,
-        nimbusState
+    processingEnv,
+    methodInformation,
+    HttpServerlessFunction::class.java.simpleName,
+    HttpEvent::class.java,
+    compilingElement,
+    APIGatewayProxyRequestEvent::class.java,
+    APIGatewayProxyResponseEvent::class.java,
+    processingData
 ) {
 
     override fun getGeneratedClassName(): String {

@@ -15,5 +15,6 @@ data class NimbusState(
         val fileUploads: MutableMap<String, MutableMap<String, MutableList<FileUploadDescription>>> = mutableMapOf(),
         val exports: MutableMap<String, MutableList<ExportInformation>> = mutableMapOf(),
         val handlerFiles: MutableSet<HandlerInformation> = mutableSetOf(),
-        val assemble: Boolean = false
+        val assemble: Boolean = false,
+        val nativeImage: Boolean = false
 )

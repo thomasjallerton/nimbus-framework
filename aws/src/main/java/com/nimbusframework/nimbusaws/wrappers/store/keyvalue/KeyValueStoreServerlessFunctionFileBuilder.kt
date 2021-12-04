@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.wrappers.store.keyvalue
 
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbuscore.annotations.function.KeyValueStoreServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.persistent.StoreEventType
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
@@ -10,18 +11,18 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
 
 class KeyValueStoreServerlessFunctionFileBuilder<T>(
-        processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation,
-        compilingElement: Element,
-        method: StoreEventType,
-        clazz: TypeElement,
-        nimbusState: NimbusState
+    processingEnv: ProcessingEnvironment,
+    methodInformation: MethodInformation,
+    compilingElement: Element,
+    method: StoreEventType,
+    clazz: TypeElement,
+    processingData: ProcessingData
 ) : StoreServerlessFunctionFileBuilder(
-        processingEnv,
-        methodInformation,
-        compilingElement,
-        method,
-        clazz,
-        KeyValueStoreServerlessFunction::class.java.simpleName,
-        nimbusState
+    processingEnv,
+    methodInformation,
+    compilingElement,
+    method,
+    clazz,
+    KeyValueStoreServerlessFunction::class.java.simpleName,
+    processingData
 )

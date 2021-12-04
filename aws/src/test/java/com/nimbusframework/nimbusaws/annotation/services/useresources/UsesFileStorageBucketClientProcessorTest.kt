@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.annotation.services.useresources
 
 import com.nimbusframework.nimbusaws.CompileStateService
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
@@ -26,7 +27,7 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
     private lateinit var usesFileStorageClientProcessor: UsesFileStorageClientProcessor
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
-    private lateinit var nimbusState: NimbusState
+    private lateinit var processingData: ProcessingData
     private lateinit var functionResource: FunctionResource
     private lateinit var iamRoleResource: IamRoleResource
     private lateinit var compileStateService: CompileStateService
@@ -35,7 +36,7 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
 
     @BeforeEach
     fun setup() {
-        nimbusState = NimbusState()
+        processingData = ProcessingData(NimbusState())
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)
@@ -47,11 +48,11 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
     private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
         val elements = processingEnvironment.elementUtils
 
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesFileStorageClientHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
+        HttpFunctionResourceCreator(cfDocuments, processingData, processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesFileStorageClientHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData.nimbusState))
 
         functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesFileStorageClientHandlerfuncFunction") as FunctionResource
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleageClientHandlerfunc") as IamRoleResource
-        usesFileStorageClientProcessor = UsesFileStorageClientProcessor(cfDocuments, messager, resourceFinder, nimbusState)
+        usesFileStorageClientProcessor = UsesFileStorageClientProcessor(cfDocuments, messager, resourceFinder, processingData.nimbusState)
 
         toRun()
     }
@@ -60,7 +61,7 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
     fun correctlySetsPermissions() {
         compileStateService.compileObjects {
             setup(it) {
-                val bucketResource = FileBucket(nimbusState, "ImageBucket", arrayOf(), "dev" )
+                val bucketResource = FileBucket(processingData.nimbusState, "ImageBucket", arrayOf(), "dev" )
                 every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns bucketResource
 
                 usesFileStorageClientProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesFileStorageClientHandler").enclosedElements[1], functionResource)

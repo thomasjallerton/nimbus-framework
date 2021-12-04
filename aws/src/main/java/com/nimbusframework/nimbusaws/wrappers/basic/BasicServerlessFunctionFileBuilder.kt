@@ -1,28 +1,28 @@
 package com.nimbusframework.nimbusaws.wrappers.basic
 
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbuscore.annotations.function.BasicServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.eventabstractions.BasicEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class BasicServerlessFunctionFileBuilder(
-        private val cron: Boolean,
-        processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation,
-        compilingElement: Element,
-        nimbusState: NimbusState
+    private val cron: Boolean,
+    processingEnv: ProcessingEnvironment,
+    methodInformation: MethodInformation,
+    compilingElement: Element,
+    processingData: ProcessingData
 ) : ServerlessFunctionFileBuilder(
-        processingEnv,
-        methodInformation,
-        BasicServerlessFunction::class.java.simpleName,
-        BasicEvent::class.java,
-        compilingElement,
-        null,
-        null,
-        nimbusState
+    processingEnv,
+    methodInformation,
+    BasicServerlessFunction::class.java.simpleName,
+    BasicEvent::class.java,
+    compilingElement,
+    null,
+    null,
+    processingData
 ) {
     override fun getGeneratedClassName(): String {
         return "BasicServerlessFunction${methodInformation.className}${methodInformation.methodName}"

@@ -1,11 +1,16 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
@@ -16,23 +21,23 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
     private lateinit var httpFunctionResourceCreator: HttpFunctionResourceCreator
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
-    private lateinit var nimbusState: NimbusState
+    private lateinit var processingData: ProcessingData
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
     private lateinit var compileStateService: CompileStateService
 
     @BeforeEach
     fun setup() {
-        nimbusState = NimbusState()
+        processingData = ProcessingData(NimbusState())
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         compileStateService = CompileStateService("handlers/HttpHandlers.java")
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
     }
 
     @Test
     fun correctlyProcessesHttpStoreFunctionAnnotation() {
         compileStateService.compileObjects {
-            httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, nimbusState, it, setOf(), mockk(relaxed = true))
+            httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, processingData, it, setOf(), mockk(relaxed = true))
 
             val classElem = it.elementUtils.getTypeElement("handlers.HttpHandlers")
             val funcElem = classElem.enclosedElements[1]
@@ -43,13 +48,16 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             resources.size() shouldBe 9
 
             results.size shouldBe 1
+            processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayProxyResponseEvent::class.qualifiedName
+            processingData.classesForReflection shouldNotContain "models.Person"
         }
     }
 
     @Test
     fun correctlyProcessesHttpStoreFunctionAnnotationWithLongerPath() {
         compileStateService.compileObjects {
-            httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, nimbusState, it, setOf(), mockk(relaxed = true))
+            httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, processingData, it, setOf(), mockk(relaxed = true))
             val classElem = it.elementUtils.getTypeElement("handlers.HttpHandlers")
             val funcElem = classElem.enclosedElements[2]
             val results = httpFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
@@ -59,6 +67,29 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             resources.size() shouldBe 10
 
             results.size shouldBe 1
+            processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayProxyResponseEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain "models.Person"
+        }
+    }
+
+    @Test
+    fun correctlyProcessesHttpStoreFunctionAnnotationComplexReturn() {
+        compileStateService.compileObjects {
+            httpFunctionResourceCreator = HttpFunctionResourceCreator(cfDocuments, processingData, it, setOf(), mockk(relaxed = true))
+
+            val classElem = it.elementUtils.getTypeElement("handlers.HttpHandlers")
+            val funcElem = classElem.enclosedElements[4]
+            val results = httpFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
+            cfDocuments["dev"] shouldNotBe null
+
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+            resources.size() shouldBe 11
+
+            results.size shouldBe 1
+            processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayProxyResponseEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain "models.Person"
         }
     }
 

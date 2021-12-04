@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
@@ -16,13 +17,13 @@ import javax.lang.model.element.Element
 
 class AfterDeploymentResourceCreator(
     cfDocuments: MutableMap<String, CloudFormationFiles>,
-    nimbusState: NimbusState,
+    processingData: ProcessingData,
     processingEnv: ProcessingEnvironment,
     decoratorHandlers: Set<FunctionDecoratorHandler>,
     messager: Messager
 ) : FunctionResourceCreator(
     cfDocuments,
-    nimbusState,
+    processingData,
     processingEnv,
     decoratorHandlers,
     messager,
@@ -39,7 +40,7 @@ class AfterDeploymentResourceCreator(
             processingEnv,
             methodInformation,
             type,
-            nimbusState
+            processingData
         )
 
         fileBuilder.createClass()

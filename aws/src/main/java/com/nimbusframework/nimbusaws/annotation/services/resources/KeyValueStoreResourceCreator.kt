@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.annotation.services.resources
 
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStores
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbusaws.wrappers.annotations.datamodel.DynamoDbKeyValueStoreAnnotation
@@ -16,18 +17,18 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 
 class KeyValueStoreResourceCreator(
-        roundEnvironment: RoundEnvironment,
-        cfDocuments: MutableMap<String, CloudFormationFiles>,
-        nimbusState: NimbusState,
-        private val processingEnvironment: ProcessingEnvironment
-): CloudResourceResourceCreator(
-        roundEnvironment,
-        cfDocuments,
-        nimbusState,
-        KeyValueStoreDefinition::class.java,
-        KeyValueStoreDefinitions::class.java,
-        DynamoDbKeyValueStore::class.java,
-        DynamoDbKeyValueStores::class.java
+    roundEnvironment: RoundEnvironment,
+    cfDocuments: MutableMap<String, CloudFormationFiles>,
+    private val processingData: ProcessingData,
+    private val processingEnvironment: ProcessingEnvironment
+) : CloudResourceResourceCreator(
+    roundEnvironment,
+    cfDocuments,
+    processingData.nimbusState,
+    KeyValueStoreDefinition::class.java,
+    KeyValueStoreDefinitions::class.java,
+    DynamoDbKeyValueStore::class.java,
+    DynamoDbKeyValueStores::class.java
 ) {
 
     override fun handleAgnosticType(type: Element) {
@@ -38,7 +39,7 @@ class KeyValueStoreResourceCreator(
                 val tableName = determineTableName(keyValueStore.tableName, type.simpleName.toString(), stage)
                 val dataModelAnnotation = KeyValueStoreAnnotation(keyValueStore)
                 val dynamoConfiguration = DynamoConfiguration(tableName)
-                handleDynamoDbConfiguration(keyValueStore.keyName, stage, dataModelAnnotation, dynamoConfiguration)
+                handleDynamoDbConfiguration(keyValueStore.keyName, stage, dataModelAnnotation, dynamoConfiguration, type)
             }
         }
     }
@@ -50,15 +51,29 @@ class KeyValueStoreResourceCreator(
             for (stage in stageService.determineStages(keyValueStore.stages)) {
                 val tableName = determineTableName(keyValueStore.tableName, type.simpleName.toString(), stage)
                 val dataModelAnnotation = DynamoDbKeyValueStoreAnnotation(keyValueStore)
-                val dynamoConfiguration = DynamoConfiguration(tableName, keyValueStore.readCapacityUnits, keyValueStore.writeCapacityUnits, keyValueStore.existingArn)
-                handleDynamoDbConfiguration(keyValueStore.keyName, stage, dataModelAnnotation, dynamoConfiguration)
+                val dynamoConfiguration = DynamoConfiguration(
+                    tableName,
+                    keyValueStore.readCapacityUnits,
+                    keyValueStore.writeCapacityUnits,
+                    keyValueStore.existingArn
+                )
+                handleDynamoDbConfiguration(keyValueStore.keyName, stage, dataModelAnnotation, dynamoConfiguration, type)
             }
         }
     }
 
-    private fun handleDynamoDbConfiguration(keyName: String, stage: String, dataModelAnnotation: DataModelAnnotation, dynamoConfiguration: DynamoConfiguration) {
+    private fun handleDynamoDbConfiguration(
+        keyName: String,
+        stage: String,
+        dataModelAnnotation: DataModelAnnotation,
+        dynamoConfiguration: DynamoConfiguration,
+        type: Element
+    ) {
         val cloudFormationDocuments = cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
         val updateResources = cloudFormationDocuments.updateTemplate.resources
+
+        // We need to use reflection on the model class so at runtime we can determine the key column and other columns.
+        processingData.classesForReflection.add(type.toString())
 
         if (dynamoConfiguration.existingArn == "") {
             val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)

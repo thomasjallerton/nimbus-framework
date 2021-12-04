@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
@@ -19,14 +20,14 @@ import javax.tools.Diagnostic
 
 class DocumentStoreFunctionResourceCreator(
     cfDocuments: MutableMap<String, CloudFormationFiles>,
-    nimbusState: NimbusState,
+    processingData: ProcessingData,
     processingEnv: ProcessingEnvironment,
     decoratorHandlers: Set<FunctionDecoratorHandler>,
     messager: Messager,
     private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
     cfDocuments,
-    nimbusState,
+    processingData,
     processingEnv,
     decoratorHandlers,
     messager,
@@ -57,7 +58,7 @@ class DocumentStoreFunctionResourceCreator(
                     type,
                     documentStoreFunction.method,
                     dataModelAnnotation.getTypeElement(processingEnv),
-                    nimbusState
+                    processingData
                 )
 
                 handler = fileBuilder.getHandler()

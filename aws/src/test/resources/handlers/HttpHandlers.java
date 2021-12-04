@@ -22,4 +22,10 @@ public class HttpHandlers {
   public void voidReturn() {
     System.out.println("LOGGED");
   }
+
+  @HttpServerlessFunction(method = HttpMethod.POST, path = "person/path/new")
+  public Person postPath(HttpEvent event) {
+    return new Person();
+  }
+
 }

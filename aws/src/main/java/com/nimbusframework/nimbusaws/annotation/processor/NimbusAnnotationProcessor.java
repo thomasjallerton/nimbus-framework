@@ -2,10 +2,11 @@ package com.nimbusframework.nimbusaws.annotation.processor;
 
 import com.fasterxml.jackson.jr.ob.JSON;
 import com.google.auto.service.AutoService;
-import com.nimbusframework.nimbusaws.annotation.services.CloudFormationWriter;
+import com.nimbusframework.nimbusaws.annotation.services.files.FileWriter;
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService;
 import com.nimbusframework.nimbusaws.annotation.services.ReadUserConfigService;
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder;
+import com.nimbusframework.nimbusaws.annotation.services.files.NativeImageReflectionWriter;
 import com.nimbusframework.nimbusaws.annotation.services.functions.*;
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler;
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.KeepWarmDecoratorHandler;
@@ -63,9 +64,11 @@ import java.util.*;
 @AutoService(Processor.class)
 public class NimbusAnnotationProcessor extends AbstractProcessor {
 
-    private NimbusState nimbusState = null;
+    private ProcessingData processingData = null;
 
-    private CloudFormationWriter cloudformationWriter;
+    private FileWriter fileWriter;
+
+    private NativeImageReflectionWriter nativeImageReflectionWriter;
 
     private UserConfig userConfig;
 
@@ -79,67 +82,72 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
         messager = processingEnv.getMessager();
 
-        cloudformationWriter = new CloudFormationWriter(processingEnv.getFiler());
+        fileWriter = new FileWriter(processingEnv.getFiler());
+        nativeImageReflectionWriter = new NativeImageReflectionWriter(fileWriter);
         userConfig = new ReadUserConfigService().readUserConfig();
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-        if (nimbusState == null) {
+        if (processingData == null) {
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat simpleDateFormat =
                     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSzzz", Locale.US);
 
             String compilationTime = simpleDateFormat.format(cal.getTime());
-            nimbusState = new NimbusState(
-                    userConfig.getProjectName(),
-                    CloudProvider.AWS,
-                    compilationTime,
-                    userConfig.getDefaultStages(),
-                    userConfig.getKeepWarmStages(),
-                    new HashMap<>(),
-                    new HashMap<>(),
-                    new HashMap<>(),
-                    new HashSet<>(),
-                    userConfig.getAssemble());
+            processingData = new ProcessingData(
+                    new NimbusState(
+                            userConfig.getProjectName(),
+                            CloudProvider.AWS,
+                            compilationTime,
+                            userConfig.getDefaultStages(),
+                            userConfig.getKeepWarmStages(),
+                            new HashMap<>(),
+                            new HashMap<>(),
+                            new HashMap<>(),
+                            new HashSet<>(),
+                            userConfig.getAssemble(),
+                            userConfig.getCustomRuntime()
+                    ),
+                    new HashSet<>()
+            );
         }
 
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(
                 cloudFormationFiles,
-                nimbusState
+                processingData.getNimbusState()
         );
 
-
         List<CloudResourceResourceCreator> resourceCreators = new LinkedList<>();
-        resourceCreators.add(new DocumentStoreResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
-        resourceCreators.add(new KeyValueStoreResourceCreator(roundEnv, cloudFormationFiles, nimbusState, processingEnv));
-        resourceCreators.add(new NotificationTopicResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
-        resourceCreators.add(new QueueResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
-        resourceCreators.add(new RelationalDatabaseResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
-        resourceCreators.add(new FileStorageBucketResourceCreator(roundEnv, cloudFormationFiles, nimbusState));
+        resourceCreators.add(new DocumentStoreResourceCreator(roundEnv, cloudFormationFiles, processingData));
+        resourceCreators.add(new KeyValueStoreResourceCreator(roundEnv, cloudFormationFiles, processingData, processingEnv));
+        resourceCreators.add(new NotificationTopicResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState()));
+        resourceCreators.add(new QueueResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState()));
+        resourceCreators.add(new RelationalDatabaseResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState()));
+        resourceCreators.add(new FileStorageBucketResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState()));
 
         for (CloudResourceResourceCreator creator : resourceCreators) {
             creator.create();
         }
 
         Set<FunctionDecoratorHandler> functionDecoratorHandlers = new HashSet<>();
-        functionDecoratorHandlers.add(new KeepWarmDecoratorHandler(nimbusState, functionEnvironmentService));
+        functionDecoratorHandlers.add(new KeepWarmDecoratorHandler(processingData.getNimbusState(), functionEnvironmentService));
 
-        ResourceFinder resourceFinder = new ResourceFinder(cloudFormationFiles, processingEnv, nimbusState);
+        ResourceFinder resourceFinder = new ResourceFinder(cloudFormationFiles, processingEnv, processingData.getNimbusState());
 
         List<FunctionResourceCreator> functionResourceCreators = new LinkedList<>();
-        functionResourceCreators.add(new DocumentStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
-        functionResourceCreators.add(new KeyValueStoreFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
-        functionResourceCreators.add(new HttpFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager));
-        functionResourceCreators.add(new NotificationFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
-        functionResourceCreators.add(new QueueFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
-        functionResourceCreators.add(new BasicFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager));
-        functionResourceCreators.add(new FileStorageResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
-        functionResourceCreators.add(new WebSocketFunctionResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager));
+        functionResourceCreators.add(new DocumentStoreFunctionResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new KeyValueStoreFunctionResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new HttpFunctionResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager));
+        functionResourceCreators.add(new NotificationFunctionResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new QueueFunctionResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new BasicFunctionResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager));
+        functionResourceCreators.add(new FileStorageResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new WebSocketFunctionResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager));
 
-        functionResourceCreators.add(new FileUploadResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
-        functionResourceCreators.add(new AfterDeploymentResourceCreator(cloudFormationFiles, nimbusState, processingEnv, functionDecoratorHandlers, messager));
+        functionResourceCreators.add(new FileUploadResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
+        functionResourceCreators.add(new AfterDeploymentResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager));
 
         List<FunctionInformation> allInformation = new LinkedList<>();
         for (FunctionResourceCreator creator : functionResourceCreators) {
@@ -147,16 +155,16 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         }
 
         List<UsesResourcesProcessor> usesResourcesProcessors = new LinkedList<>();
-        usesResourcesProcessors.add(new UsesBasicServerlessFunctionClientProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
-        usesResourcesProcessors.add(new UsesDocumentStoreProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
-        usesResourcesProcessors.add(new UsesFileStorageClientProcessor(cloudFormationFiles, messager, resourceFinder, nimbusState));
-        usesResourcesProcessors.add(new UsesKeyValueStoreProcessor(cloudFormationFiles, processingEnv, nimbusState, messager));
-        usesResourcesProcessors.add(new UsesNotificationTopicProcessor(cloudFormationFiles, messager, resourceFinder, nimbusState));
-        usesResourcesProcessors.add(new UsesQueueProcessor(cloudFormationFiles, messager, resourceFinder, nimbusState));
-        usesResourcesProcessors.add(new UsesRelationalDatabaseProcessor(cloudFormationFiles, processingEnv, nimbusState));
-        usesResourcesProcessors.add(new UsesServerlessFunctionWebSocketClientProcessor(cloudFormationFiles, nimbusState));
-        usesResourcesProcessors.add(new EnvironmentVariablesProcessor(nimbusState, messager));
-        usesResourcesProcessors.add(new ForceDependencyProcessor(nimbusState));
+        usesResourcesProcessors.add(new UsesBasicServerlessFunctionClientProcessor(cloudFormationFiles, processingEnv, processingData.getNimbusState(), messager));
+        usesResourcesProcessors.add(new UsesDocumentStoreProcessor(cloudFormationFiles, processingEnv, processingData.getNimbusState(), messager));
+        usesResourcesProcessors.add(new UsesFileStorageClientProcessor(cloudFormationFiles, messager, resourceFinder, processingData.getNimbusState()));
+        usesResourcesProcessors.add(new UsesKeyValueStoreProcessor(cloudFormationFiles, processingEnv, processingData.getNimbusState(), messager));
+        usesResourcesProcessors.add(new UsesNotificationTopicProcessor(cloudFormationFiles, messager, resourceFinder, processingData.getNimbusState()));
+        usesResourcesProcessors.add(new UsesQueueProcessor(cloudFormationFiles, messager, resourceFinder, processingData.getNimbusState()));
+        usesResourcesProcessors.add(new UsesRelationalDatabaseProcessor(cloudFormationFiles, processingEnv, processingData.getNimbusState()));
+        usesResourcesProcessors.add(new UsesServerlessFunctionWebSocketClientProcessor(cloudFormationFiles, processingData.getNimbusState()));
+        usesResourcesProcessors.add(new EnvironmentVariablesProcessor(processingData.getNimbusState(), messager));
+        usesResourcesProcessors.add(new ForceDependencyProcessor(processingData.getNimbusState()));
 
         for (FunctionInformation functionInformation : allInformation) {
             for (UsesResourcesProcessor handler : usesResourcesProcessors) {
@@ -168,14 +176,17 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
             for (Map.Entry<String, CloudFormationFiles> entry : cloudFormationFiles.entrySet()) {
                 String stage = entry.getKey();
-                CloudFormationFiles cloudFormationFiles= entry.getValue();
+                CloudFormationFiles cloudFormationFiles = entry.getValue();
 
-                cloudformationWriter.saveTemplate("cloudformation-stack-update-" + stage, cloudFormationFiles.getUpdateTemplate());
-                cloudformationWriter.saveTemplate("cloudformation-stack-create-" + stage, cloudFormationFiles.getCreateTemplate());
+                fileWriter.saveTemplate("cloudformation-stack-update-" + stage, cloudFormationFiles.getUpdateTemplate());
+                fileWriter.saveTemplate("cloudformation-stack-create-" + stage, cloudFormationFiles.getCreateTemplate());
             }
 
             try {
-                cloudformationWriter.saveJsonFile("nimbus-state", JSON.std.with(JSON.Feature.PRETTY_PRINT_OUTPUT).asString(nimbusState));
+                fileWriter.saveJsonFile("nimbus-state", JSON.std.with(JSON.Feature.PRETTY_PRINT_OUTPUT).asString(processingData.getNimbusState()));
+                if (userConfig.getCustomRuntime()) {
+                    nativeImageReflectionWriter.writeReflectionConfig(processingData.getClassesForReflection());
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

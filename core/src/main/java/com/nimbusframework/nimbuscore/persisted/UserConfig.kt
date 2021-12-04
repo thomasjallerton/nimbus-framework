@@ -8,6 +8,7 @@ import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 data class UserConfig(
         val projectName: String = "nimbus-project",
         val assemble: Boolean = false,
+        val customRuntime: Boolean = false,
         val defaultStages: List<String> = listOf(NimbusConstants.stage),
         val keepWarmStages: List<String> = listOf()
 )

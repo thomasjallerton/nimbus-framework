@@ -2,10 +2,14 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.eventabstractions.WebSocketEvent
+import com.nimbusframework.nimbuscore.eventabstractions.WebSocketResponse
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
@@ -17,20 +21,20 @@ class WebSocketFunctionResourceCreatorTest : AnnotationSpec() {
     private lateinit var webSocketFunctionResourceCreator: WebSocketFunctionResourceCreator
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
-    private lateinit var nimbusState: NimbusState
+    private lateinit var processingData: ProcessingData
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
     private lateinit var compileStateService: CompileStateService
     @BeforeEach
     fun setup() {
-        nimbusState = NimbusState()
+        processingData = ProcessingData(NimbusState())
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         compileStateService = CompileStateService("handlers/WebSocketHandlers.java")
     }
 
     private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
-        webSocketFunctionResourceCreator = WebSocketFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, setOf(), mockk(relaxed = true))
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
+        webSocketFunctionResourceCreator = WebSocketFunctionResourceCreator(cfDocuments, processingData, processingEnvironment, setOf(), mockk(relaxed = true))
         toRun()
     }
 
@@ -47,6 +51,8 @@ class WebSocketFunctionResourceCreatorTest : AnnotationSpec() {
                 resources.size() shouldBe 10
 
                 results.size shouldBe 1
+                processingData.classesForReflection shouldContain WebSocketEvent::class.qualifiedName
+                processingData.classesForReflection shouldContain WebSocketResponse::class.qualifiedName
             }
         }
     }

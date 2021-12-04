@@ -1,30 +1,29 @@
 package com.nimbusframework.nimbusaws.wrappers.queue
 
 import com.amazonaws.services.lambda.runtime.events.SQSEvent
-import com.nimbusframework.nimbuscore.annotations.function.QueueServerlessFunction
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.function.QueueServerlessFunction
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.QueueEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class QueueServerlessFunctionFileBuilder(
-        processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation,
-        compilingElement: Element,
-        nimbusState: NimbusState
-
+    processingEnv: ProcessingEnvironment,
+    methodInformation: MethodInformation,
+    compilingElement: Element,
+    processingData: ProcessingData
 ) : ServerlessFunctionFileBuilder(
-        processingEnv,
-        methodInformation,
-        QueueServerlessFunction::class.java.simpleName,
-        QueueEvent::class.java,
-        compilingElement,
-        SQSEvent::class.java,
-        Void::class.java,
-        nimbusState
+    processingEnv,
+    methodInformation,
+    QueueServerlessFunction::class.java.simpleName,
+    QueueEvent::class.java,
+    compilingElement,
+    SQSEvent::class.java,
+    Void::class.java,
+    processingData
 ) {
 
     override fun getGeneratedClassName(): String {
@@ -42,7 +41,6 @@ class QueueServerlessFunctionFileBuilder(
         write("import ${SqsEventMapper::class.qualifiedName};")
         write("import java.util.List;")
         write("import java.util.LinkedList;")
-
     }
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {

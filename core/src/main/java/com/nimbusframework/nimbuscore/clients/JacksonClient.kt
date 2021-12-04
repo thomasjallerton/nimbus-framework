@@ -1,35 +1,31 @@
 package com.nimbusframework.nimbuscore.clients
 
-import com.fasterxml.jackson.jr.ob.JSON
+import com.fasterxml.jackson.databind.ObjectMapper
 
 object JacksonClient {
 
     private val json by lazy {
-        JSON.std
+        ObjectMapper()
     }
 
     @JvmStatic
     fun writeValueAsString(any: Any?): String {
-        return json.asString(any)
+        return json.writeValueAsString(any)
     }
 
     @JvmStatic
     fun writeValueAsBytes(any: Any): ByteArray {
-        return json.asBytes(any)
+        return json.writeValueAsBytes(any)
     }
 
     @JvmStatic
     fun <T> readValue(text: String, expectedType: Class<T>): T {
-        return json.beanFrom(expectedType, text)
+        return json.readValue(text, expectedType)
     }
 
     @JvmStatic
     fun <T> convertValue(map: Map<String, Any?>, expectedType: Class<T>): T {
-        val composer = json.composeString().startObject()
-        map.forEach { composer.putObject(it.key, it.value) }
-
-        val jsonStr = composer.end().finish()
-        return json.beanFrom(expectedType, jsonStr)
+        return json.convertValue(map, expectedType)
     }
 
 }
