@@ -82,7 +82,7 @@ class HttpFunctionResourceCreator(
 
                 functionEnvironmentService.newHttpMethod(httpFunction, functionResource)
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, fileBuilder.getGeneratedClassInformation()))
             }
         }
         return results

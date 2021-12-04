@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
+import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
@@ -11,7 +12,6 @@ import com.nimbusframework.nimbusaws.wrappers.store.document.DocumentStoreServer
 import com.nimbusframework.nimbuscore.annotations.function.DocumentStoreServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.DocumentStoreServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.DocumentStoreServerlessFunctionAnnotation
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -44,7 +44,7 @@ class DocumentStoreFunctionResourceCreator(
         var fileWritten = false
         var handler = ""
         var handlerInformation = HandlerInformation()
-
+        var awsMethodInformation = AwsMethodInformation("", "", "")
 
         for (documentStoreFunction in documentStoreFunctions) {
             val stages = stageService.determineStages(documentStoreFunction.stages)
@@ -71,6 +71,7 @@ class DocumentStoreFunctionResourceCreator(
                     stages = stages
                 )
                 nimbusState.handlerFiles.add(handlerInformation)
+                awsMethodInformation = fileBuilder.getGeneratedClassInformation()
             }
 
             for (stage in stages) {
@@ -96,7 +97,7 @@ class DocumentStoreFunctionResourceCreator(
 
                 functionEnvironmentService.newStoreTrigger(dynamoResource, functionResource)
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, awsMethodInformation))
             }
         }
         return results

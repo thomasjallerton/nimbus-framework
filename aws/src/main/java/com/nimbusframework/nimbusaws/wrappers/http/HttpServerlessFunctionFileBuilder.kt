@@ -29,7 +29,7 @@ class HttpServerlessFunctionFileBuilder(
     processingData
 ) {
 
-    override fun getGeneratedClassName(): String {
+    override fun generateClassName(): String {
         return "HttpServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 
@@ -43,7 +43,6 @@ class HttpServerlessFunctionFileBuilder(
 
         write()
     }
-
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {
         write("${HttpEvent::class.simpleName} event = ${RestApiGatewayEventMapper::class.simpleName}.getHttpEvent(input, requestId);")

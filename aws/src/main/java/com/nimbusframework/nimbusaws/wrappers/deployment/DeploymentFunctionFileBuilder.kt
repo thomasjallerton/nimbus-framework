@@ -24,7 +24,7 @@ class DeploymentFunctionFileBuilder(
     null,
     processingData
 ) {
-    override fun getGeneratedClassName(): String {
+    override fun generateClassName(): String {
         return "AfterDeployment${methodInformation.className}${methodInformation.methodName}"
     }
 

@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.wrappers
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
+import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.clients.AwsInternalClientBuilder
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
@@ -110,7 +111,9 @@ abstract class ServerlessFunctionFileBuilder(
 
     protected val voidReturnType = returnTypeSimpleName == "Void"
 
-    protected abstract fun getGeneratedClassName(): String
+    protected abstract fun generateClassName(): String
+
+    val generatedClassName by lazy { generateClassName() }
 
     protected abstract fun writeImports()
 
@@ -122,8 +125,17 @@ abstract class ServerlessFunctionFileBuilder(
         return true
     }
 
+    fun getGeneratedClassInformation(): AwsMethodInformation {
+        return AwsMethodInformation(
+            methodInformation.packageName,
+            generatedClassName,
+            inputTypeCanonicalName,
+            returnTypeCanonicalName
+        )
+    }
+
     fun classFilePath(): String {
-        val className = getGeneratedClassName()
+        val className = generatedClassName
         val packageName = methodInformation.packageName
         val packagePath = packageName.replace(".", File.separator)
 
@@ -135,7 +147,7 @@ abstract class ServerlessFunctionFileBuilder(
     }
 
     fun handlerFile(): String {
-        return getGeneratedClassName() + ".jar"
+        return "$generatedClassName.jar"
     }
 
     open fun createClass() {
@@ -145,7 +157,7 @@ abstract class ServerlessFunctionFileBuilder(
 
                 isValidFunction(params)
 
-                val className = getGeneratedClassName()
+                val className = generatedClassName
                 val builderFile = processingEnv.filer.createSourceFile(className)
 
                 out = PrintWriter(builderFile.openWriter())
@@ -176,14 +188,14 @@ abstract class ServerlessFunctionFileBuilder(
                     write("import ${methodInformation.packageName}.${methodInformation.className};")
                 }
 
-                write("public class ${getGeneratedClassName()} implements RequestHandler<$inputTypeSimpleName, $returnTypeSimpleName>{")
+                write("public class $generatedClassName implements RequestHandler<$inputTypeSimpleName, $returnTypeSimpleName>{")
 
                 write()
 
                 write("private final ${methodInformation.className} handler;")
 
 
-                write("public ${getGeneratedClassName()}() {")
+                write("public ${generatedClassName}() {")
                 write("ClientBinder.INSTANCE.setInternalBuilder(AwsInternalClientBuilder.INSTANCE);")
                 if (methodInformation.customFactoryQualifiedName == null) {
                     write("handler = new ${methodInformation.className}();")
@@ -249,9 +261,9 @@ abstract class ServerlessFunctionFileBuilder(
             }
         } else {
             if (methodInformation.packageName == "") {
-                "${getGeneratedClassName()}::handleRequest"
+                "${generatedClassName}::handleRequest"
             } else {
-                methodInformation.packageName + ".${getGeneratedClassName()}::handleRequest"
+                methodInformation.packageName + ".${generatedClassName}::handleRequest"
             }
         }
     }

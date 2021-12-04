@@ -31,6 +31,10 @@ abstract class FileBuilder {
         write("import $toImport;")
     }
 
+    protected fun import(clazz: Class<*>) {
+        write("import ${clazz.canonicalName};")
+    }
+
     protected fun findParamIndexes(methodInformation: MethodInformation, eventCanonicalName: String): FunctionParams {
         val functionParams = FunctionParams()
         for ((paramIndex, param) in methodInformation.parameters.withIndex()) {

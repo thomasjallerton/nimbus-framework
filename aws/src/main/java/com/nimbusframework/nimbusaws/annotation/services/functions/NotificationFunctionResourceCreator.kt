@@ -12,7 +12,6 @@ import com.nimbusframework.nimbusaws.wrappers.notification.NotificationServerles
 import com.nimbusframework.nimbuscore.annotations.function.NotificationServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.NotificationServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.NotificationTopicServerlessFunctionAnnotation
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -89,7 +88,7 @@ class NotificationFunctionResourceCreator(
 
                 fileBuilder.createClass()
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, fileBuilder.getGeneratedClassInformation()))
             }
         }
         return results

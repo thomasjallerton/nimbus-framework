@@ -13,6 +13,7 @@ import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.Ke
 import com.nimbusframework.nimbusaws.annotation.services.resources.*;
 import com.nimbusframework.nimbusaws.annotation.services.useresources.*;
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles;
+import com.nimbusframework.nimbusaws.wrappers.customRuntimeEntry.CustomRuntimeEntryFileBuilder;
 import com.nimbusframework.nimbuscore.persisted.CloudProvider;
 import com.nimbusframework.nimbuscore.persisted.NimbusState;
 import com.nimbusframework.nimbuscore.persisted.UserConfig;
@@ -68,6 +69,8 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
     private FileWriter fileWriter;
 
+    private CustomRuntimeEntryFileBuilder customRuntimeEntryFileBuilder;
+
     private NativeImageReflectionWriter nativeImageReflectionWriter;
 
     private UserConfig userConfig;
@@ -85,6 +88,8 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         fileWriter = new FileWriter(processingEnv.getFiler());
         nativeImageReflectionWriter = new NativeImageReflectionWriter(fileWriter);
         userConfig = new ReadUserConfigService().readUserConfig();
+
+        customRuntimeEntryFileBuilder = new CustomRuntimeEntryFileBuilder(processingEnv);
     }
 
     @Override
@@ -170,6 +175,10 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
             for (UsesResourcesProcessor handler : usesResourcesProcessors) {
                 handler.handleUseResources(functionInformation.getElement(), functionInformation.getResource());
             }
+        }
+
+        if (userConfig.getCustomRuntime()) {
+            customRuntimeEntryFileBuilder.createCustomRuntimeEntryFunction(allInformation);
         }
 
         if (roundEnv.processingOver()) {

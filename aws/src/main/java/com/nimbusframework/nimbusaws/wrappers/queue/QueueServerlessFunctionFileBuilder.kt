@@ -26,7 +26,7 @@ class QueueServerlessFunctionFileBuilder(
     processingData
 ) {
 
-    override fun getGeneratedClassName(): String {
+    override fun generateClassName(): String {
         return "QueueServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 

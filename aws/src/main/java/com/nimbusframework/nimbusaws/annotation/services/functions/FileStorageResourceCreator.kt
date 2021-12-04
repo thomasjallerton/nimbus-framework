@@ -13,7 +13,6 @@ import com.nimbusframework.nimbusaws.wrappers.file.FileStorageServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.FileStorageServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.FileStorageServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.FileStorageBucketFunctionAnnotation
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -94,7 +93,7 @@ class FileStorageResourceCreator(
                 updateResources.addResource(permission)
                 bucket.addLambdaConfiguration(lambdaConfiguration)
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, fileStorageFileBuilder.getGeneratedClassInformation()))
             }
         }
         return results

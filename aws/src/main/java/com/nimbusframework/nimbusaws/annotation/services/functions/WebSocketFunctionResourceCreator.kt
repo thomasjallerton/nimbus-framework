@@ -10,7 +10,6 @@ import com.nimbusframework.nimbusaws.wrappers.websocket.WebSocketServerlessFunct
 import com.nimbusframework.nimbuscore.annotations.function.WebSocketServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.WebSocketServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -72,7 +71,7 @@ class WebSocketFunctionResourceCreator(
 
                 functionEnvironmentService.newWebSocketRoute(webSocketFunction.topic, functionResource)
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, fileBuilder.getGeneratedClassInformation()))
             }
         }
         return results

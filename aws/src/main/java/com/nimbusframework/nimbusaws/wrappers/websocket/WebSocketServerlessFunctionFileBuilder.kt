@@ -34,7 +34,7 @@ class WebSocketServerlessFunctionFileBuilder(
         processingData.classesForReflection.add(WebSocketResponse::class.qualifiedName!!)
     }
 
-    override fun getGeneratedClassName(): String {
+    override fun generateClassName(): String {
         return "WebSocketServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 
@@ -116,7 +116,7 @@ class WebSocketServerlessFunctionFileBuilder(
 
                 isValidFunction(params)
 
-                val className = getGeneratedClassName()
+                val className = generatedClassName
                 val builderFile = processingEnv.filer.createSourceFile(className)
 
                 out = PrintWriter(builderFile.openWriter())
@@ -127,7 +127,7 @@ class WebSocketServerlessFunctionFileBuilder(
 
                 writeImports()
 
-                write("public class ${getGeneratedClassName()} {")
+                write("public class ${generatedClassName} {")
                 write("public void handleRequest(InputStream input, OutputStream output, Context context) {")
 
                 write("try {")
