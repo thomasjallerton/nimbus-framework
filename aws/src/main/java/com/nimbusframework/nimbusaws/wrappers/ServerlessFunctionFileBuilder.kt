@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
 import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.clients.AwsInternalClientBuilder
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.clients.ClientBinder
@@ -24,7 +25,7 @@ abstract class ServerlessFunctionFileBuilder(
         private val compilingElement: Element,
         inputType: Class<*>?,
         returnType: Class<*>?,
-        private val processingData: ProcessingData
+        protected val classForReflectionService: ClassForReflectionService
 ): FileBuilder() {
 
     private val messager: Messager = processingEnv.messager
@@ -62,17 +63,13 @@ abstract class ServerlessFunctionFileBuilder(
             } else {
                 inputTypeCanonicalName = params.inputParam.canonicalName()
                 inputTypeSimpleName = params.inputParam.simpleName()
-
-                // If the input type isn't null we use reflection to serialise the class
-                processingData.classesForReflection.add(inputTypeCanonicalName)
             }
-
         } else {
             inputTypeCanonicalName = inputType.canonicalName
             inputTypeSimpleName = inputType.simpleName
 
             // If the input type isn't null we use reflection to deserialise the class from AWS (if using a custom runtime)
-            processingData.classesForReflection.add(inputType.canonicalName)
+            classForReflectionService.addClassForReflection(inputType)
         }
         if (returnType == null) {
             if (voidMethodReturn) {
@@ -93,7 +90,7 @@ abstract class ServerlessFunctionFileBuilder(
             returnTypeSimpleName = returnType.simpleName
 
             // If the return type isn't null we use reflection to serialise the class (if using a custom runtime)
-            processingData.classesForReflection.add(returnType.canonicalName)
+            classForReflectionService.addClassForReflection(returnType)
         }
 
         addPotentialReflectionTargets()
@@ -101,11 +98,11 @@ abstract class ServerlessFunctionFileBuilder(
 
     private fun addPotentialReflectionTargets() {
         if (params.inputParam.exists()) {
-            processingData.classesForReflection.add(params.inputParam.canonicalName())
+            classForReflectionService.addClassForReflection(params.inputParam.type)
         }
         val returnTypeString = methodInformation.returnType.toString()
         if (!primitiveToBoxedMap.containsKey(returnTypeString)) {
-            processingData.classesForReflection.add(returnTypeString)
+            classForReflectionService.addClassForReflection(methodInformation.returnType)
         }
     }
 

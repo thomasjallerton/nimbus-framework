@@ -5,6 +5,11 @@ import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunctio
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent;
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse;
 import models.Person;
+import models.NestedPerson;
+import models.People;
+
+
+import java.util.List;
 
 public class HttpHandlers {
 
@@ -26,6 +31,36 @@ public class HttpHandlers {
   @HttpServerlessFunction(method = HttpMethod.POST, path = "person/path/new")
   public Person postPath(HttpEvent event) {
     return new Person();
+  }
+
+  @HttpServerlessFunction(method = HttpMethod.GET, path = "person")
+  public List<Person> genericResponse(HttpEvent event) {
+    return List.of(new Person());
+  }
+
+  @HttpServerlessFunction(method = HttpMethod.PUT, path = "person")
+  public void genericInput(List<Person> people, HttpEvent event) {
+    return;
+  }
+
+  @HttpServerlessFunction(method = HttpMethod.PUT, path = "nestedperson")
+  public void nestedInput(NestedPerson nestedPerson, HttpEvent event) {
+    return;
+  }
+
+  @HttpServerlessFunction(method = HttpMethod.GET, path = "nestedperson")
+  public NestedPerson nestedResponse(HttpEvent event) {
+    return new NestedPerson();
+  }
+
+  @HttpServerlessFunction(method = HttpMethod.PUT, path = "listnestedperson")
+  public void listNestedInput(People people) {
+    return;
+  }
+
+  @HttpServerlessFunction(method = HttpMethod.GET, path = "listnestedperson")
+  public People listNestedResponse() {
+    return new People();
   }
 
 }

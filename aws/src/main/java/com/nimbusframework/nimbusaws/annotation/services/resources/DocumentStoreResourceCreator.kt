@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.annotation.services.resources
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStores
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefinition
@@ -17,7 +18,8 @@ import javax.lang.model.element.ElementKind
 class DocumentStoreResourceCreator(
     roundEnvironment: RoundEnvironment,
     cfDocuments: MutableMap<String, CloudFormationFiles>,
-    private val processingData: ProcessingData
+    processingData: ProcessingData,
+    private val classForReflectionService: ClassForReflectionService
 ) : CloudResourceResourceCreator(
     roundEnvironment,
     cfDocuments,
@@ -65,7 +67,7 @@ class DocumentStoreResourceCreator(
         val updateResources = cloudFormationDocuments.updateTemplate.resources
 
         // We need to use reflection on the model class so at runtime we can determine the key column and other columns.
-        processingData.classesForReflection.add(type.toString());
+        classForReflectionService.addClassForReflection(type.asType())
 
         if (dynamoConfiguration.existingArn == "") {
             for (enclosedElement in type.enclosedElements) {

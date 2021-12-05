@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.wrappers.basic
 
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.BasicServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
@@ -13,7 +14,7 @@ class BasicServerlessFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
     methodInformation: MethodInformation,
     compilingElement: Element,
-    processingData: ProcessingData
+    classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
     methodInformation,
@@ -22,7 +23,7 @@ class BasicServerlessFunctionFileBuilder(
     compilingElement,
     null,
     null,
-    processingData
+    classForReflectionService
 ) {
     override fun generateClassName(): String {
         return "BasicServerlessFunction${methodInformation.className}${methodInformation.methodName}"

@@ -6,6 +6,7 @@ import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.notification.SnsTopicResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -46,7 +47,8 @@ class NotificationFunctionResourceCreatorTest : AnnotationSpec() {
     fun correctlyProcessesNotificationFunctionAnnotation() {
         compileStateService.compileObjects {
             every { resourceFinder.getNotificationTopicResource(any(), any(), any()) } returns SnsTopicResource("notificationTopic", processingData.nimbusState, "dev")
-            notificationStoreFunctionResourceCreator = NotificationFunctionResourceCreator(cfDocuments, processingData, it, setOf(), messager, resourceFinder)
+            val classForReflectionService = ClassForReflectionService(processingData, it.typeUtils)
+            notificationStoreFunctionResourceCreator = NotificationFunctionResourceCreator(cfDocuments, processingData, classForReflectionService, it, setOf(), messager, resourceFinder)
             val classElem = it.elementUtils.getTypeElement("handlers.NotificationHandlers")
             val funcElem = classElem.enclosedElements[1]
             val results = notificationStoreFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)

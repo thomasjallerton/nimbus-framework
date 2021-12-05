@@ -30,7 +30,7 @@ class AfterDeploymentResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesAfterDeploymentFunctionAnnotation() {
         compileState.compileObjects { processingEnv ->
-            afterDeploymentFunctionResourceCreator = AfterDeploymentResourceCreator(cfDocuments, processingData, processingEnv, setOf(), mockk(relaxed = true))
+            afterDeploymentFunctionResourceCreator = AfterDeploymentResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnv, setOf(), mockk(relaxed = true))
 
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.AfterDeploymentHandlers")
             val funcElem = classElem.enclosedElements[1]

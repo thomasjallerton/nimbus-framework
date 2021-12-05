@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.wrappers.store
 
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoStreamParser
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
@@ -18,7 +19,7 @@ abstract class StoreServerlessFunctionFileBuilder(
     private val method: StoreEventType,
     private val clazz: TypeElement,
     private val functionName: String,
-    processingData: ProcessingData
+    classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
     methodInformation,
@@ -27,7 +28,7 @@ abstract class StoreServerlessFunctionFileBuilder(
     compilingElement,
     DynamodbEvent::class.java,
     Void::class.java,
-    processingData
+    classForReflectionService
 ) {
     override fun generateClassName(): String {
         return "$functionName${methodInformation.className}${methodInformation.methodName}"

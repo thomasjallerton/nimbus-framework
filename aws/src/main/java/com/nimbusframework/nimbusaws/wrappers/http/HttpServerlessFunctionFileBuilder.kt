@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.wrappers.http
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
@@ -17,7 +18,7 @@ class HttpServerlessFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
     methodInformation: MethodInformation,
     compilingElement: Element,
-    processingData: ProcessingData
+    classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
     methodInformation,
@@ -26,7 +27,7 @@ class HttpServerlessFunctionFileBuilder(
     compilingElement,
     APIGatewayProxyRequestEvent::class.java,
     APIGatewayProxyResponseEvent::class.java,
-    processingData
+    classForReflectionService
 ) {
 
     override fun generateClassName(): String {

@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.wrappers.deployment
 
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployment
@@ -13,7 +14,7 @@ class DeploymentFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
     methodInformation: MethodInformation,
     compilingElement: Element,
-    processingData: ProcessingData
+    classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
     methodInformation,
@@ -22,7 +23,7 @@ class DeploymentFunctionFileBuilder(
     compilingElement,
     Void::class.java,
     null,
-    processingData
+    classForReflectionService
 ) {
     override fun generateClassName(): String {
         return "AfterDeployment${methodInformation.className}${methodInformation.methodName}"

@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
@@ -20,6 +21,7 @@ import javax.lang.model.element.TypeElement
 class BasicFunctionResourceCreator(
     cfDocuments: MutableMap<String, CloudFormationFiles>,
     processingData: ProcessingData,
+    private val classForReflectionService: ClassForReflectionService,
     processingEnv: ProcessingEnvironment,
     decoratorHandlers: Set<FunctionDecoratorHandler>,
     messager: Messager
@@ -50,7 +52,7 @@ class BasicFunctionResourceCreator(
             processingEnv,
             methodInformation,
             type,
-            processingData
+            classForReflectionService
         )
 
         fileBuilder.createClass()

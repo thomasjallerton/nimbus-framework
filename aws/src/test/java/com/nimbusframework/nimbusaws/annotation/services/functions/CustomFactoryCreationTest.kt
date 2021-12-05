@@ -37,7 +37,7 @@ class CustomFactoryCreationTest: AnnotationSpec() {
     fun correctlyProcessesCustomFactory() {
         compileState = CompileStateService("handlers/CustomFactoryFactory.java", "handlers/CustomFactoryHandler.java")
         compileState.compileObjects { processingEnv ->
-            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, processingEnv, setOf(), mockk(relaxed = true))
+            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnv, setOf(), mockk(relaxed = true))
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandler")
             val funcElem = classElem.enclosedElements[3]
             val results = basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
@@ -56,7 +56,7 @@ class CustomFactoryCreationTest: AnnotationSpec() {
         compileState = CompileStateService("handlers/CustomFactoryHandlerWrongFactory.java", "handlers/CustomFactoryWrongFactory.java")
         val messager = mockk<Messager>(relaxed = true)
         compileState.compileObjects { processingEnv ->
-            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, processingEnv, setOf(), messager)
+            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnv, setOf(), messager)
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandlerWrongFactory")
             val funcElem = classElem.enclosedElements[2]
             basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)

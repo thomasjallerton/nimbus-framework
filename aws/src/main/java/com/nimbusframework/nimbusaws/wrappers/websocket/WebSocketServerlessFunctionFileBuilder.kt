@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.wrappers.websocket
 
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.clients.AwsInternalClientBuilder
 import com.nimbusframework.nimbuscore.annotations.function.WebSocketServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
@@ -17,7 +18,7 @@ class WebSocketServerlessFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
     methodInformation: MethodInformation,
     compilingElement: Element,
-    processingData: ProcessingData
+    classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
     methodInformation,
@@ -26,12 +27,12 @@ class WebSocketServerlessFunctionFileBuilder(
     compilingElement,
     null,
     null,
-    processingData
+    classForReflectionService
 ) {
 
     init {
-        processingData.classesForReflection.add(WebSocketEvent::class.qualifiedName!!)
-        processingData.classesForReflection.add(WebSocketResponse::class.qualifiedName!!)
+        classForReflectionService.addClassForReflection(WebSocketEvent::class.java)
+        classForReflectionService.addClassForReflection(WebSocketResponse::class.java)
     }
 
     override fun generateClassName(): String {

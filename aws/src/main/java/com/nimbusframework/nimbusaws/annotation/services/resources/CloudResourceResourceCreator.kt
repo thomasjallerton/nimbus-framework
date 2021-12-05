@@ -11,7 +11,7 @@ abstract class CloudResourceResourceCreator(
         protected val cfDocuments: MutableMap<String, CloudFormationFiles>,
         protected val nimbusState: NimbusState,
         private val singleAgnosticClass: Class<out Annotation>,
-        private val repeatableAgnosticClass: Class<out Annotation>,
+        private val repeatableAgnosticClass: Class<out Annotation>?,
         private val singleSpecificClass: Class<out Annotation>? = null,
         private val repeatableSpecificClass: Class<out Annotation>? = null
 ) {
@@ -20,11 +20,12 @@ abstract class CloudResourceResourceCreator(
 
     fun create() {
         val annotatedElements = roundEnvironment.getElementsAnnotatedWith(singleAgnosticClass)
-        val annotatedElementsRepeatable = roundEnvironment.getElementsAnnotatedWith(repeatableAgnosticClass)
-
         annotatedElements.forEach { type -> handleAgnosticType(type) }
-        annotatedElementsRepeatable.forEach { type -> handleAgnosticType(type) }
 
+        if (repeatableAgnosticClass != null) {
+            val annotatedElementsRepeatable = roundEnvironment.getElementsAnnotatedWith(repeatableAgnosticClass)
+            annotatedElementsRepeatable.forEach { type -> handleAgnosticType(type) }
+        }
         if (singleSpecificClass != null) {
             val specificAnnotatedElements = roundEnvironment.getElementsAnnotatedWith(singleSpecificClass)
             specificAnnotatedElements.forEach { type -> handleSpecificType(type) }

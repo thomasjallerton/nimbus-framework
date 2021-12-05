@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.wrappers.file
 import com.amazonaws.services.lambda.runtime.events.S3Event
 import com.amazonaws.services.lambda.runtime.events.models.s3.S3EventNotification
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.FileStorageServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
@@ -14,7 +15,7 @@ class FileStorageServerlessFunctionFileBuilder(
         processingEnv: ProcessingEnvironment,
         methodInformation: MethodInformation,
         compilingElement: Element,
-        processingData: ProcessingData
+        classForReflectionService: ClassForReflectionService
 ): ServerlessFunctionFileBuilder(
         processingEnv,
         methodInformation,
@@ -23,7 +24,7 @@ class FileStorageServerlessFunctionFileBuilder(
         compilingElement,
         S3Event::class.java,
         Void::class.java,
-        processingData
+        classForReflectionService
 ) {
 
     override fun generateClassName(): String {
