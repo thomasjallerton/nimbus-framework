@@ -4,6 +4,7 @@ import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbuscore.eventabstractions.WebSocketEvent
 import com.nimbusframework.nimbuscore.eventabstractions.WebSocketResponse
@@ -34,7 +35,8 @@ class WebSocketFunctionResourceCreatorTest : AnnotationSpec() {
 
     private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
         functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
-        webSocketFunctionResourceCreator = WebSocketFunctionResourceCreator(cfDocuments, processingData, processingEnvironment, setOf(), mockk(relaxed = true))
+        val classForReflectionService = ClassForReflectionService(processingData, processingEnvironment.typeUtils)
+        webSocketFunctionResourceCreator = WebSocketFunctionResourceCreator(cfDocuments, processingData, classForReflectionService, processingEnvironment, setOf(), mockk(relaxed = true))
         toRun()
     }
 

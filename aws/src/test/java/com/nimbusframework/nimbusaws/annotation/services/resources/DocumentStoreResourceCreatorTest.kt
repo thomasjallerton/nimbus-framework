@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.annotation.services.resources
 
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -15,7 +16,6 @@ import javax.annotation.processing.RoundEnvironment
 
 class DocumentStoreResourceCreatorTest : AnnotationSpec() {
 
-    private lateinit var documentStoreResourceCreator: DocumentStoreResourceCreator
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
@@ -29,13 +29,13 @@ class DocumentStoreResourceCreatorTest : AnnotationSpec() {
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         compileState = CompileStateService("models/Document.java", "models/DynamoDbDocument.java", "models/DocumentExistingArn.java")
-        documentStoreResourceCreator = DocumentStoreResourceCreator(roundEnvironment, cfDocuments, processingData)
     }
 
     @Test
     fun correctlyProcessesDocumentAnnotation() {
         compileState.compileObjects {
             val elements = it.elementUtils
+            val documentStoreResourceCreator = DocumentStoreResourceCreator(roundEnvironment, cfDocuments, processingData, ClassForReflectionService(processingData, it.typeUtils))
             documentStoreResourceCreator.handleAgnosticType(elements.getTypeElement("models.Document"))
             cfDocuments["dev"] shouldNotBe null
 
@@ -54,6 +54,7 @@ class DocumentStoreResourceCreatorTest : AnnotationSpec() {
     fun correctlyProcessesDynamoDbDocumentAnnotation() {
         compileState.compileObjects {
             val elements = it.elementUtils
+            val documentStoreResourceCreator = DocumentStoreResourceCreator(roundEnvironment, cfDocuments, processingData, ClassForReflectionService(processingData, it.typeUtils))
             documentStoreResourceCreator.handleSpecificType(elements.getTypeElement("models.DynamoDbDocument"))
             cfDocuments["dev"] shouldNotBe null
 
@@ -72,6 +73,7 @@ class DocumentStoreResourceCreatorTest : AnnotationSpec() {
     fun doesNotCreateResourceIfExistingArnSet() {
         compileState.compileObjects {
             val elements = it.elementUtils
+            val documentStoreResourceCreator = DocumentStoreResourceCreator(roundEnvironment, cfDocuments, processingData, ClassForReflectionService(processingData, it.typeUtils))
             documentStoreResourceCreator.handleSpecificType(elements.getTypeElement("models.DocumentExistingArn"))
             cfDocuments["dev"] shouldNotBe null
 

@@ -5,6 +5,7 @@ import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
@@ -21,6 +22,7 @@ import javax.tools.Diagnostic
 class KeyValueStoreFunctionResourceCreator(
     cfDocuments: MutableMap<String, CloudFormationFiles>,
     processingData: ProcessingData,
+    private val classForReflectionService: ClassForReflectionService,
     processingEnv: ProcessingEnvironment,
     decoratorHandlers: Set<FunctionDecoratorHandler>,
     messager: Messager,
@@ -59,7 +61,7 @@ class KeyValueStoreFunctionResourceCreator(
                     type,
                     keyValueStoreFunction.method,
                     dataModelAnnotation.getTypeElement(processingEnv),
-                    processingData
+                    classForReflectionService
                 )
 
                 handler = fileBuilder.getHandler()

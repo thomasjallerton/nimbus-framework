@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.wrappers.store.keyvalue
 
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.KeyValueStoreServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.persistent.StoreEventType
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
@@ -16,7 +17,7 @@ class KeyValueStoreServerlessFunctionFileBuilder<T>(
     compilingElement: Element,
     method: StoreEventType,
     clazz: TypeElement,
-    processingData: ProcessingData
+    classForReflectionService: ClassForReflectionService
 ) : StoreServerlessFunctionFileBuilder(
     processingEnv,
     methodInformation,
@@ -24,5 +25,5 @@ class KeyValueStoreServerlessFunctionFileBuilder<T>(
     method,
     clazz,
     KeyValueStoreServerlessFunction::class.java.simpleName,
-    processingData
+    classForReflectionService
 )

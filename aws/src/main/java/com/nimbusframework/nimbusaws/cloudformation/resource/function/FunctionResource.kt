@@ -90,15 +90,19 @@ class FunctionResource(
         code.add("S3Bucket", s3Bucket)
             code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${handlerInformation.replacementVariable}")
 
+        val (runtime, finalHandler) = if (nimbusState.customRuntime) {
+            Pair("provided", "provided")
+        } else {
+            Pair("java11", handler)
+        }
 
         properties.add("Code", code)
         properties.addProperty("FunctionName", functionName(nimbusState.projectName, methodInformation.className, methodInformation.methodName, functionConfig.stage))
-        properties.addProperty("Handler", handler)
+        properties.addProperty("Handler", finalHandler)
         properties.addProperty("MemorySize", functionConfig.memory)
 
         properties.add("Role", iamRoleResource.getArn())
-
-        properties.addProperty("Runtime", "java11")
+        properties.addProperty("Runtime", runtime)
         properties.addProperty("Timeout", functionConfig.timeout)
 
         val environment = JsonObject()

@@ -28,10 +28,10 @@ class CustomRuntimeHandler(
             )
         val requestId = response.headers()
             .firstValue(REQUEST_ID_HEADER).orElseThrow()
-        return InvocationResponse(requestId, response.body())
+        return InvocationResponse(requestId, response.body(), endpoint)
     }
 
-    fun sendResponse(response: Any?, endpoint: String, invocation: InvocationResponse) {
+    fun sendResponse(response: Any?, invocation: InvocationResponse) {
         // Post to Lambda success endpoint
         val responseString = if (response == null) {
             ""
@@ -43,7 +43,7 @@ class CustomRuntimeHandler(
                 HttpRequest.BodyPublishers.ofString(responseString)
             )
             .uri(
-                URI.create(String.format("http://%s/2018-06-01/runtime/invocation/%s/response", endpoint, invocation.requestId))
+                URI.create(String.format("http://%s/2018-06-01/runtime/invocation/%s/response", invocation.endpoint, invocation.requestId))
             )
             .build()
 
@@ -54,7 +54,7 @@ class CustomRuntimeHandler(
     }
 
     @Throws(IOException::class, InterruptedException::class)
-    fun handleException(endpoint: String, invocation: InvocationResponse, exception: Exception) {
+    fun handleException(invocation: InvocationResponse, exception: Exception) {
         val errorBody: String =
             objectMapper.writeValueAsString(
                 mapOf(Pair("error", exception.message))
@@ -76,7 +76,7 @@ class CustomRuntimeHandler(
                 URI.create(
                     java.lang.String.format(
                         "http://%s/2018-06-01/runtime/invocation/%s/error",
-                        endpoint,
+                        invocation.endpoint,
                         invocation.requestId
                     )
                 )

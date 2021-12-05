@@ -4,6 +4,7 @@ import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
@@ -22,6 +23,7 @@ class QueueFunctionResourceCreator(
     cfDocuments: MutableMap<String, CloudFormationFiles>,
     processingData: ProcessingData,
     processingEnv: ProcessingEnvironment,
+    private val classForReflectionService: ClassForReflectionService,
     decoratorHandlers: Set<FunctionDecoratorHandler>,
     messager: Messager,
     private val resourceFinder: ResourceFinder
@@ -45,7 +47,7 @@ class QueueFunctionResourceCreator(
             processingEnv,
             methodInformation,
             type,
-            processingData
+            classForReflectionService
         )
 
         for (queueFunction in queueFunctions) {

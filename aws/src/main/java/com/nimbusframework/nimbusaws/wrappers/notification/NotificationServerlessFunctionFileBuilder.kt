@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.wrappers.notification
 
 import com.amazonaws.services.lambda.runtime.events.SNSEvent
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.function.NotificationServerlessFunction
@@ -14,7 +15,7 @@ class NotificationServerlessFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
     methodInformation: MethodInformation,
     compilingElement: Element,
-    processingData: ProcessingData
+    classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
     methodInformation,
@@ -23,7 +24,7 @@ class NotificationServerlessFunctionFileBuilder(
     compilingElement,
     SNSEvent::class.java,
     Void::class.java,
-    processingData
+    classForReflectionService
 ) {
 
     override fun generateClassName(): String {

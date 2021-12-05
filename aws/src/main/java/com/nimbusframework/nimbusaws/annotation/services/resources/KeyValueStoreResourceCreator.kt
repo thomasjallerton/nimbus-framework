@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.annotation.services.resources
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStores
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbusaws.wrappers.annotations.datamodel.DynamoDbKeyValueStoreAnnotation
@@ -19,7 +20,8 @@ import javax.lang.model.element.Element
 class KeyValueStoreResourceCreator(
     roundEnvironment: RoundEnvironment,
     cfDocuments: MutableMap<String, CloudFormationFiles>,
-    private val processingData: ProcessingData,
+    processingData: ProcessingData,
+    private val classForReflectionService: ClassForReflectionService,
     private val processingEnvironment: ProcessingEnvironment
 ) : CloudResourceResourceCreator(
     roundEnvironment,
@@ -73,7 +75,7 @@ class KeyValueStoreResourceCreator(
         val updateResources = cloudFormationDocuments.updateTemplate.resources
 
         // We need to use reflection on the model class so at runtime we can determine the key column and other columns.
-        processingData.classesForReflection.add(type.toString())
+        classForReflectionService.addClassForReflection(type.asType())
 
         if (dynamoConfiguration.existingArn == "") {
             val dynamoResource = DynamoResource(dynamoConfiguration, nimbusState, stage)

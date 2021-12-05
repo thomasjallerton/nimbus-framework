@@ -43,7 +43,7 @@ class KeyValueStoreFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesKeyValueStoreFunctionAnnotation() {
         compileStateService.compileObjects {
-            keyValueStoreFunctionResourceCreator = KeyValueStoreFunctionResourceCreator(cfDocuments, processingData, it, setOf(), mockk(relaxed = true), resourceFinder)
+            keyValueStoreFunctionResourceCreator = KeyValueStoreFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), mockk(relaxed = true), resourceFinder)
 
             every { resourceFinder.getKeyValueStoreResource(any(), any(), any()) } returns DynamoResource(DynamoConfiguration("table"), processingData.nimbusState, "dev")
             val classElem = it.elementUtils.getTypeElement("handlers.KeyValueStoreHandlers")

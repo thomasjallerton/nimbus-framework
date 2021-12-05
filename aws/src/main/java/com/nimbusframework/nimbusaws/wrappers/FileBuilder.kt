@@ -16,7 +16,7 @@ abstract class FileBuilder {
     private var tabLevel: Int = 0
 
     protected fun write(toWrite: String = "") {
-        if (toWrite.startsWith("}")) tabLevel--
+        if (toWrite.trimStart().startsWith("}")) tabLevel--
 
         var tabs = ""
         for (i in 1..tabLevel) {

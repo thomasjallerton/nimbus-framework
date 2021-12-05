@@ -44,10 +44,10 @@ class UsesDocumentStoreProcessorTest : AnnotationSpec() {
 
     private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
         val elements = processingEnvironment.elementUtils
-        DocumentStoreResourceCreator(roundEnvironment, cfDocuments, processingData).handleAgnosticType(elements.getTypeElement("models.Document"))
+        DocumentStoreResourceCreator(roundEnvironment, cfDocuments, processingData, mockk(relaxed = true)).handleAgnosticType(elements.getTypeElement("models.Document"))
 
-        HttpFunctionResourceCreator(cfDocuments, processingData, processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesDocumentStoreHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
-        HttpFunctionResourceCreator(cfDocuments, processingData, processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesDocumentStoreHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState))
+        HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesDocumentStoreHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
+        HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesDocumentStoreHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, nimbusState))
 
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRolementStoreHandlerfunc") as IamRoleResource
         usesDocumentStoreProcessor = UsesDocumentStoreProcessor(cfDocuments, processingEnvironment, nimbusState, messager)

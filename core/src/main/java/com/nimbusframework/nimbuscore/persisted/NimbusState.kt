@@ -16,5 +16,5 @@ data class NimbusState(
         val exports: MutableMap<String, MutableList<ExportInformation>> = mutableMapOf(),
         val handlerFiles: MutableSet<HandlerInformation> = mutableSetOf(),
         val assemble: Boolean = false,
-        val nativeImage: Boolean = false
+        val customRuntime: Boolean = false
 )

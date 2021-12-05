@@ -6,6 +6,7 @@ import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.queue.QueueResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -48,8 +49,8 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
     fun correctlyProcessesQueueFunctionAnnotation() {
         compileStateService.compileObjects {
             every { resourceFinder.getQueueResource(any(), any(), any()) } returns QueueResource(processingData.nimbusState, "messageQueue", 10, "dev")
-
-            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, processingData, it, setOf(), messager, resourceFinder)
+            val classForReflectionService = ClassForReflectionService(processingData, it.typeUtils)
+            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, processingData, it, classForReflectionService, setOf(), messager, resourceFinder)
 
             val classElem = it.elementUtils.getTypeElement("handlers.QueueHandlers")
             val funcElem = classElem.enclosedElements[1]
@@ -72,8 +73,8 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
     fun logsErrorWhenCannotFindQueue() {
         compileStateService.compileObjects {
             every { resourceFinder.getQueueResource(any(), any(), any()) } returns null
-
-            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, processingData, it, setOf(), messager, resourceFinder)
+            val classForReflectionService = ClassForReflectionService(processingData, it.typeUtils)
+            queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, processingData, it, classForReflectionService, setOf(), messager, resourceFinder)
 
             val classElem = it.elementUtils.getTypeElement("handlers.QueueHandlers")
             val funcElem = classElem.enclosedElements[1]

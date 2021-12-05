@@ -5,6 +5,7 @@ import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
@@ -40,7 +41,8 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesBasicFunctionAnnotation() {
         compileState.compileObjects { processingEnv ->
-            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, processingEnv, setOf(), mockk(relaxed = true))
+            val classForReflectionService = ClassForReflectionService(processingData, processingEnv.typeUtils)
+            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, classForReflectionService, processingEnv, setOf(), mockk(relaxed = true))
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.BasicHandlers")
             val funcElem = classElem.enclosedElements[2]
             val results = basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
@@ -60,7 +62,8 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
         compileState = CompileStateService("handlers/CustomFactoryHandlerNoEmptyConstructor.java", "handlers/CustomFactoryFactoryNoEmptyConstructor.java")
         val messager = mockk<Messager>(relaxed = true)
         compileState.compileObjects { processingEnv ->
-            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, processingEnv, setOf(), messager)
+            val classForReflectionService = ClassForReflectionService(processingData, processingEnv.typeUtils)
+            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, classForReflectionService, processingEnv, setOf(), messager)
             every { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) } answers { processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, "") }
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandlerNoEmptyConstructor")
             val funcElem = classElem.enclosedElements[2]
@@ -74,7 +77,8 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesBasicFunctionCronAnnotation() {
         compileState.compileObjects { processingEnv ->
-            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, processingEnv, setOf(), mockk(relaxed = true))
+            val classForReflectionService = ClassForReflectionService(processingData, processingEnv.typeUtils)
+            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, classForReflectionService, processingEnv, setOf(), mockk(relaxed = true))
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.BasicHandlers")
             val funcElem = classElem.enclosedElements[1]
             val results = basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
@@ -91,7 +95,8 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesBasicFunctionJustReturn() {
         compileState.compileObjects { processingEnv ->
-            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, processingEnv, setOf(), mockk(relaxed = true))
+            val classForReflectionService = ClassForReflectionService(processingData, processingEnv.typeUtils)
+            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, classForReflectionService, processingEnv, setOf(), mockk(relaxed = true))
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.BasicHandlers")
             val funcElem = classElem.enclosedElements[4]
             val results = basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
@@ -109,7 +114,8 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesBasicFunctionJustInput() {
         compileState.compileObjects { processingEnv ->
-            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, processingEnv, setOf(), mockk(relaxed = true))
+            val classForReflectionService = ClassForReflectionService(processingData, processingEnv.typeUtils)
+            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, classForReflectionService, processingEnv, setOf(), mockk(relaxed = true))
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.BasicHandlers")
             val funcElem = classElem.enclosedElements[5]
             val results = basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
