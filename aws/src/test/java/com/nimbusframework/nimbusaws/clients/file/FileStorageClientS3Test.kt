@@ -1,126 +1,126 @@
 package com.nimbusframework.nimbusaws.clients.file
 
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.model.*
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
 import com.nimbusframework.nimbuscore.clients.file.FileInformation
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import io.mockk.verify
+import software.amazon.awssdk.core.ResponseInputStream
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.*
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
-import java.util.*
+import java.time.Instant
 
 class FileStorageClientS3Test : AnnotationSpec() {
 
     private lateinit var underTest: FileStorageClientS3
-    private lateinit var s3Client: AmazonS3
+    private lateinit var s3Client: S3Client
 
     private val bucketName = "bucketnamedev"
 
     @BeforeEach
     fun setup() {
-        underTest = FileStorageClientS3("BUCKETNAME", "dev")
         s3Client = mockk(relaxed = true)
-        val injector = Guice.createInjector(object: AbstractModule() {
-            override fun configure() {
-                bind(AmazonS3::class.java).toInstance(s3Client)
-            }
-        })
-        injector.injectMembers(underTest)
+        underTest = FileStorageClientS3("BUCKETNAME", "dev", s3Client)
     }
 
     @Test
     fun canSaveInputStream() {
         val inputStream: InputStream = mockk()
 
+        val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
+
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
+
         underTest.saveFile("path", inputStream)
 
-        verify(exactly = 1) { s3Client.putObject(bucketName, "path", inputStream, any()) }
+        putObjectRequest.captured.key() shouldBe "path"
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
     }
 
     @Test
     fun canSaveStringWithContentType() {
         val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
 
-        every { s3Client.putObject(capture(putObjectRequest)) } returns PutObjectResult()
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
 
         underTest.saveFileWithContentType("path", "content", "text/plain")
 
-        putObjectRequest.captured.bucketName shouldBe bucketName
-        putObjectRequest.captured.inputStream.bufferedReader().use(BufferedReader::readText) shouldBe "content"
-        putObjectRequest.captured.metadata.contentType shouldBe "text/plain"
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe "content"
+        requestBody.captured.contentType() shouldBe "text/plain"
     }
 
     @Test
     fun canSaveFileWithContentType() {
         val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
 
-        every { s3Client.putObject(capture(putObjectRequest)) } returns PutObjectResult()
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
 
         underTest.saveFileWithContentType("path", File.createTempFile("test", "test"), "text/plain")
 
-        putObjectRequest.captured.bucketName shouldBe bucketName
-        putObjectRequest.captured.inputStream.bufferedReader().use(BufferedReader::readText) shouldBe ""
-        putObjectRequest.captured.metadata.contentType shouldBe "text/plain"
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe ""
+        requestBody.captured.contentType() shouldBe "text/plain"
     }
 
     @Test
     fun canSaveInputStreamWithContentType() {
         val inputStream: InputStream = mockk()
         val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
 
-        every { s3Client.putObject(capture(putObjectRequest)) } returns PutObjectResult()
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
 
         underTest.saveFileWithContentType("path", inputStream, "text/plain")
 
-        putObjectRequest.captured.bucketName shouldBe bucketName
-        putObjectRequest.captured.inputStream shouldBe inputStream
-        putObjectRequest.captured.metadata.contentType shouldBe "text/plain"
+        putObjectRequest.captured.key() shouldBe "path"
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
+        requestBody.captured.contentType() shouldBe "text/plain"
     }
 
     @Test
     fun canGetFile() {
-        val inputStream: S3ObjectInputStream = mockk()
-        val mockObj: S3Object = mockk()
+        val inputStream: ResponseInputStream<GetObjectResponse> = mockk()
+        val getObjectRequest = slot<GetObjectRequest>()
 
-        every { s3Client.getObject(bucketName, "file") } returns mockObj
-        every { mockObj.objectContent } returns inputStream
+        every { s3Client.getObject(capture(getObjectRequest)) } returns inputStream
 
         underTest.getFile("file") shouldBe inputStream
     }
 
     @Test
     fun canListFiles() {
-        val firstObjectList: ObjectListing = mockk()
-        val secondObjectList: ObjectListing = mockk()
+        val listObjectsRequest = slot<ListObjectsRequest>()
 
-        val firstObject: S3ObjectSummary = mockk()
-        val secondObject: S3ObjectSummary = mockk()
+        val time = Instant.now()
 
-        val time = Date()
-        every { firstObjectList.objectSummaries } returns mutableListOf(firstObject)
-        every { firstObjectList.isTruncated } returns true
+        val firstObject: S3Object = mockk()
+        val secondObject: S3Object = mockk()
 
-        every { secondObjectList.objectSummaries } returns mutableListOf(secondObject)
-        every { secondObjectList.isTruncated } returns false
+        val listObjectsResponse: ListObjectsResponse = mockk()
 
-        every { firstObject.lastModified } returns time
-        every { firstObject.size } returns 100
-        every { firstObject.key } returns "file1"
+        every { s3Client.listObjects(capture(listObjectsRequest)) } returns listObjectsResponse
+        every { listObjectsResponse.contents() } returns listOf(firstObject, secondObject)
 
-        every { secondObject.lastModified } returns time
-        every { secondObject.size } returns 101
-        every { secondObject.key } returns "file2"
+        every { firstObject.lastModified() } returns time
+        every { firstObject.size() } returns 100
+        every { firstObject.key() } returns "file1"
 
-        every { s3Client.listObjects(bucketName) } returns firstObjectList
-        every { s3Client.listNextBatchOfObjects(firstObjectList) } returns secondObjectList
+        every { secondObject.lastModified() } returns time
+        every { secondObject.size() } returns 101
+        every { secondObject.key() } returns "file2"
 
         underTest.listFiles() shouldContainExactlyInAnyOrder listOf(
                 FileInformation(time, 100, "file1"),
@@ -129,24 +129,42 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
     @Test
     fun canSaveFile() {
-        val file: File = mockk()
+        val file: File = mockk(relaxed = true)
+        val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
+
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
 
         underTest.saveFile("path", file)
 
-        verify(exactly = 1) { s3Client.putObject(bucketName, "path", file) }
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.key() shouldBe "path"
+        requestBody.captured.contentType() shouldBe "application/octet-stream"
     }
 
     @Test
     fun canSaveString() {
+        val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
+
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
+
         underTest.saveFile("path", "test")
 
-        verify(exactly = 1) { s3Client.putObject(bucketName, "path", "test") }
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.key() shouldBe "path"
+        requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe "test"
+        requestBody.captured.contentType() shouldContain "text/plain"
     }
 
     @Test
     fun canDeleteFile() {
+        val deleteObjectRequest = slot<DeleteObjectRequest>()
+        every { s3Client.deleteObject(capture(deleteObjectRequest)) } returns mockk()
+
         underTest.deleteFile("path")
 
-        verify(exactly = 1) { s3Client.deleteObject(bucketName, "path") }
+        deleteObjectRequest.captured.bucket() shouldBe bucketName
+        deleteObjectRequest.captured.key() shouldBe "path"
     }
 }

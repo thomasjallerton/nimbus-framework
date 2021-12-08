@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.annotation.services
 
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbusaws.annotation.services.files.FileWriter
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationTemplate
 import com.nimbusframework.nimbusaws.cloudformation.resource.Resource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -17,12 +18,12 @@ import javax.tools.StandardLocation
 class CloudFormationWriterTest : AnnotationSpec() {
 
     private lateinit var filer: Filer
-    private lateinit var cloudFormationWriter: CloudFormationWriter
+    private lateinit var cloudFormationWriter: FileWriter
 
     @BeforeEach
     fun setUp() {
         filer = mockk()
-        cloudFormationWriter = CloudFormationWriter(filer)
+        cloudFormationWriter = FileWriter(filer)
     }
 
     @Test

@@ -1,8 +1,10 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.file.S3LambdaConfiguration
@@ -12,7 +14,6 @@ import com.nimbusframework.nimbusaws.wrappers.file.FileStorageServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.FileStorageServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.FileStorageServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.FileStorageBucketFunctionAnnotation
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -21,14 +22,15 @@ import javax.tools.Diagnostic
 
 class FileStorageResourceCreator(
     cfDocuments: MutableMap<String, CloudFormationFiles>,
-    nimbusState: NimbusState,
+    processingData: ProcessingData,
+    private val classForReflectionService: ClassForReflectionService,
     processingEnv: ProcessingEnvironment,
     decoratorHandlers: Set<FunctionDecoratorHandler>,
     messager: Messager,
     private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
     cfDocuments,
-    nimbusState,
+    processingData,
     processingEnv,
     decoratorHandlers,
     messager,
@@ -45,7 +47,7 @@ class FileStorageResourceCreator(
             processingEnv,
             methodInformation,
             type,
-            nimbusState
+            classForReflectionService
         )
 
         fileStorageFileBuilder.createClass()
@@ -93,7 +95,7 @@ class FileStorageResourceCreator(
                 updateResources.addResource(permission)
                 bucket.addLambdaConfiguration(lambdaConfiguration)
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, fileStorageFileBuilder.getGeneratedClassInformation()))
             }
         }
         return results

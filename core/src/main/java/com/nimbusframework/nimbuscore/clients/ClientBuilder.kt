@@ -18,7 +18,7 @@ import java.net.URLClassLoader
 
 object ClientBuilder {
 
-    private lateinit var internalClientBuilder: InternalClientBuilder
+    internal lateinit var internalClientBuilder: InternalClientBuilder
 
     @JvmStatic
     fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>): KeyValueStoreClient<K, V> {

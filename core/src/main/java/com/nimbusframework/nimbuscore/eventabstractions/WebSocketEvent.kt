@@ -1,9 +1,7 @@
 package com.nimbusframework.nimbuscore.eventabstractions
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class WebSocketEvent(
         val headers: Map<String, String> = mapOf(),
         val multiValueHeaders: Map<String, List<String>> = mapOf(),

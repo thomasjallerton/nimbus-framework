@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions.decorators
 
+import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.FunctionResourceCreator
@@ -39,7 +40,7 @@ class KeepWarmDecoratorHandlerTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesNoKeepWarmAnnotation() {
         val functionResource = mockk<FunctionResource>()
-        val functionInformation = FunctionInformation(mockk(), functionResource, true)
+        val functionInformation = FunctionInformation(mockk(), functionResource, AwsMethodInformation(), true)
 
         every { functionResource.stage } returns "not default"
 
@@ -57,7 +58,7 @@ class KeepWarmDecoratorHandlerTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesKeepWarmAnnotation() {
         val functionResource = mockk<FunctionResource>()
-        val functionInformation = FunctionInformation(mockk(), functionResource, true)
+        val functionInformation = FunctionInformation(mockk(), functionResource, AwsMethodInformation(), true)
 
         val typeMock = mockk<Element>()
         every { typeMock.getAnnotation(KeepWarm::class.java) } returns mockk()
@@ -71,7 +72,7 @@ class KeepWarmDecoratorHandlerTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesKeepWarmAnnotationButCannotBeKeptWarm() {
         val functionResource = mockk<FunctionResource>()
-        val functionInformation = FunctionInformation(mockk(), functionResource, false)
+        val functionInformation = FunctionInformation(mockk(), functionResource, AwsMethodInformation(), false)
 
         val typeMock = mockk<Element>()
         every { typeMock.getAnnotation(KeepWarm::class.java) } returns mockk()
@@ -85,7 +86,7 @@ class KeepWarmDecoratorHandlerTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesKeepWarmState() {
         val functionResource = mockk<FunctionResource>()
-        val functionInformation = FunctionInformation(mockk(), functionResource, true)
+        val functionInformation = FunctionInformation(mockk(), functionResource, AwsMethodInformation(), true)
 
         every { functionResource.stage } returns "test"
 
@@ -104,7 +105,7 @@ class KeepWarmDecoratorHandlerTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesKeepWarmStateButCannotBeKeptWarm() {
         val functionResource = mockk<FunctionResource>()
-        val functionInformation = FunctionInformation(mockk(), functionResource, false)
+        val functionInformation = FunctionInformation(mockk(), functionResource, AwsMethodInformation(), false)
 
         every { functionResource.stage } returns "test"
 

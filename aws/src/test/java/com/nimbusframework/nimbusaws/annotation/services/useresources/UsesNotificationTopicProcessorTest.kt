@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.annotation.services.useresources
 
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
@@ -24,7 +25,7 @@ class UsesNotificationTopicProcessorTest: AnnotationSpec() {
     private lateinit var usesNotificationTopicProcessor: UsesNotificationTopicProcessor
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
-    private lateinit var nimbusState: NimbusState
+    private lateinit var processingData: ProcessingData
     private lateinit var functionResource: FunctionResource
     private lateinit var iamRoleResource: IamRoleResource
     private lateinit var messager: Messager
@@ -32,7 +33,7 @@ class UsesNotificationTopicProcessorTest: AnnotationSpec() {
 
     @BeforeEach
     fun setup() {
-        nimbusState = NimbusState()
+        processingData = ProcessingData(NimbusState())
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         messager = mockk()
@@ -43,12 +44,12 @@ class UsesNotificationTopicProcessorTest: AnnotationSpec() {
     private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
         val elements = processingEnvironment.elementUtils
 
-        NotificationTopicResourceCreator(roundEnvironment, cfDocuments, nimbusState).handleAgnosticType(elements.getTypeElement("models.NotificationTopic"))
-        HttpFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesNotificationTopicHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
+        NotificationTopicResourceCreator(roundEnvironment, cfDocuments, processingData.nimbusState).handleAgnosticType(elements.getTypeElement("models.NotificationTopic"))
+        HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesNotificationTopicHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData.nimbusState))
 
         functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesNotificationTopicHandlerfuncFunction") as FunctionResource
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoletionTopicHandlerfunc") as IamRoleResource
-        usesNotificationTopicProcessor = UsesNotificationTopicProcessor(cfDocuments, messager, ResourceFinder(cfDocuments, processingEnvironment, nimbusState), nimbusState)
+        usesNotificationTopicProcessor = UsesNotificationTopicProcessor(cfDocuments, messager, ResourceFinder(cfDocuments, processingEnvironment, processingData.nimbusState), processingData.nimbusState)
 
         toRun()
     }

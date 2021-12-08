@@ -1,26 +1,23 @@
 package com.nimbusframework.nimbusaws.clients.document
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
-import com.google.inject.Inject
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoStreamParser
 import com.nimbusframework.nimbuscore.clients.document.AbstractDocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 internal class DocumentStoreClientDynamo<T>(
         clazz: Class<T>,
-        private val tableName: String,
-        stage: String
+        tableName: String,
+        stage: String,
+        dynamoClientFactory: (Map<String, String>) -> DynamoClient
 ): AbstractDocumentStoreClient<T>(clazz, tableName, stage) {
 
     private val dynamoStreamProcessor = DynamoStreamParser(clazz, allAttributes)
 
-    @Inject
-    private lateinit var dynamoClientFactory: DynamoClient.DynamoClientFactory
-
-    private val dynamoClient: DynamoClient by lazy { dynamoClientFactory.create(tableName, clazz.canonicalName, columnNames) }
+    private val dynamoClient = dynamoClientFactory(columnNames)
 
     override fun put(obj: T) {
         dynamoClient.put(obj, allAttributes)

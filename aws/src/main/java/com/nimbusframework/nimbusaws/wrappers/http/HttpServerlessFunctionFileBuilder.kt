@@ -2,10 +2,12 @@ package com.nimbusframework.nimbusaws.wrappers.http
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse
 import java.util.HashMap
@@ -13,29 +15,29 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class HttpServerlessFunctionFileBuilder(
-        processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation,
-        compilingElement: Element,
-        nimbusState: NimbusState
+    processingEnv: ProcessingEnvironment,
+    methodInformation: MethodInformation,
+    compilingElement: Element,
+    classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
-        processingEnv,
-        methodInformation,
-        HttpServerlessFunction::class.java.simpleName,
-        HttpEvent::class.java,
-        compilingElement,
-        APIGatewayProxyRequestEvent::class.java,
-        APIGatewayProxyResponseEvent::class.java,
-        nimbusState
+    processingEnv,
+    methodInformation,
+    HttpServerlessFunction::class.java.simpleName,
+    HttpEvent::class.java,
+    compilingElement,
+    APIGatewayProxyRequestEvent::class.java,
+    APIGatewayProxyResponseEvent::class.java,
+    classForReflectionService
 ) {
 
-    override fun getGeneratedClassName(): String {
+    override fun generateClassName(): String {
         return "HttpServerlessFunction${methodInformation.className}${methodInformation.methodName}"
     }
 
     override fun writeImports() {
         write()
 
-        write("import com.fasterxml.jackson.databind.ObjectMapper;")
+        write("import ${JacksonClient::class.qualifiedName};")
         write("import ${HashMap::class.qualifiedName};")
         write("import ${HttpResponse::class.qualifiedName};")
         write("import ${RestApiGatewayEventMapper::class.qualifiedName};")
@@ -43,12 +45,10 @@ class HttpServerlessFunctionFileBuilder(
         write()
     }
 
-
     override fun writeFunction(inputParam: Param, eventParam: Param) {
-        write("ObjectMapper objectMapper = new ObjectMapper();")
         write("${HttpEvent::class.simpleName} event = ${RestApiGatewayEventMapper::class.simpleName}.getHttpEvent(input, requestId);")
         if (inputParam.exists()) {
-            write("${inputParam.simpleName()} parsedType = objectMapper.readValue(input.getBody(), ${inputParam.simpleName()}.class);")
+            write("${inputParam.canonicalName()} parsedType = JacksonClient.readValue(input.getBody(), ${inputParam.simpleName()}.class);")
         }
 
         val callPrefix = if (voidMethodReturn) {
@@ -74,7 +74,7 @@ class HttpServerlessFunctionFileBuilder(
             write("responseEvent.setStatusCode(result.getStatusCode());")
             write("responseEvent.setIsBase64Encoded(result.isBase64Encoded());")
         } else if (!voidMethodReturn) {
-            write("String responseBody = objectMapper.writeValueAsString(result);")
+            write("String responseBody = JacksonClient.writeValueAsString(result);")
             write("responseEvent.setBody(responseBody);")
         }
         addCorsHeader("responseEvent")

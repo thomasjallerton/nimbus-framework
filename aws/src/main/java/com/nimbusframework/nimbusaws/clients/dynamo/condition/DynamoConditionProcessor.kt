@@ -1,6 +1,5 @@
 package com.nimbusframework.nimbusaws.clients.dynamo.condition
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
 import com.nimbusframework.nimbuscore.clients.store.conditions.BracketsCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
@@ -14,6 +13,7 @@ import com.nimbusframework.nimbuscore.clients.store.conditions.function.Attribut
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.FunctionCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.variable.ColumnVariable
 import com.nimbusframework.nimbuscore.clients.store.conditions.variable.ConditionVariable
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 class DynamoConditionProcessor(private val dynamoClient: DynamoClient) {
 

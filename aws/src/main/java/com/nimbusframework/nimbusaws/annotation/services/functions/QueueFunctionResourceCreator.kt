@@ -1,8 +1,10 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
@@ -11,7 +13,6 @@ import com.nimbusframework.nimbusaws.wrappers.queue.QueueServerlessFunctionFileB
 import com.nimbusframework.nimbuscore.annotations.function.QueueServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.QueueServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.QueueServerlessFunctionAnnotation
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -20,14 +21,15 @@ import javax.tools.Diagnostic
 
 class QueueFunctionResourceCreator(
     cfDocuments: MutableMap<String, CloudFormationFiles>,
-    nimbusState: NimbusState,
+    processingData: ProcessingData,
     processingEnv: ProcessingEnvironment,
+    private val classForReflectionService: ClassForReflectionService,
     decoratorHandlers: Set<FunctionDecoratorHandler>,
     messager: Messager,
     private val resourceFinder: ResourceFinder
 ) : FunctionResourceCreator(
     cfDocuments,
-    nimbusState,
+    processingData,
     processingEnv,
     decoratorHandlers,
     messager,
@@ -45,7 +47,7 @@ class QueueFunctionResourceCreator(
             processingEnv,
             methodInformation,
             type,
-            nimbusState
+            classForReflectionService
         )
 
         for (queueFunction in queueFunctions) {
@@ -98,7 +100,7 @@ class QueueFunctionResourceCreator(
 
                 fileBuilder.createClass()
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, fileBuilder.getGeneratedClassInformation()))
             }
         }
         return results

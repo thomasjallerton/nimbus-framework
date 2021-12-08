@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.annotation.services.useresources
 
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.WebSocketFunctionResourceCreator
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
@@ -23,6 +24,7 @@ class UsesServerlessFunctionWebSocketClientProcessorTest: AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
+    private lateinit var processingData: ProcessingData
     private lateinit var functionResource: FunctionResource
     private lateinit var iamRoleResource: IamRoleResource
     private lateinit var messager: Messager
@@ -31,6 +33,7 @@ class UsesServerlessFunctionWebSocketClientProcessorTest: AnnotationSpec() {
     @BeforeEach
     fun setup() {
         nimbusState = NimbusState()
+        processingData = ProcessingData(nimbusState)
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         messager = mockk()
@@ -40,7 +43,7 @@ class UsesServerlessFunctionWebSocketClientProcessorTest: AnnotationSpec() {
 
     private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
         val elements = processingEnvironment.elementUtils
-        WebSocketFunctionResourceCreator(cfDocuments, nimbusState, processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesWebSocketHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
+        WebSocketFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesWebSocketHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
 
         functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesWebSocketHandlerfuncFunction") as FunctionResource
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleWebSocketHandlerfunc") as IamRoleResource

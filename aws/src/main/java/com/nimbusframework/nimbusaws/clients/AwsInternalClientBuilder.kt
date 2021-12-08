@@ -1,11 +1,10 @@
 package com.nimbusframework.nimbusaws.clients
 
-import com.google.inject.Guice
-import com.nimbusframework.nimbusaws.AwsClientModule
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore
 import com.nimbusframework.nimbusaws.clients.document.DocumentStoreClientDynamo
 import com.nimbusframework.nimbusaws.clients.document.DynamoDbDocumentStoreAnnotationService
+import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoTransactionClient
 import com.nimbusframework.nimbusaws.clients.file.FileStorageClientS3
 import com.nimbusframework.nimbusaws.clients.function.BasicServerlessFunctionClientLambda
@@ -34,14 +33,23 @@ import com.nimbusframework.nimbuscore.clients.queue.QueueClient
 import com.nimbusframework.nimbuscore.clients.queue.QueueIdAnnotationService
 import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
+import software.amazon.awssdk.core.SdkSystemSetting
+import software.amazon.awssdk.http.SdkHttpClient
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClient
+import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClientBuilder
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.lambda.LambdaClient
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.sns.SnsClient
+import software.amazon.awssdk.services.sqs.SqsClient
 
 object AwsInternalClientBuilder: InternalClientBuilder {
 
-    private val injector = Guice.createInjector(AwsClientModule())
-
     override fun getTransactionalClient(): TransactionalClient {
-        val transactionalClient = DynamoTransactionClient()
-        injector.injectMembers(transactionalClient)
+        val transactionalClient = DynamoTransactionClient(createDynamoDbClient())
         return transactionalClient
     }
 
@@ -54,16 +62,29 @@ object AwsInternalClientBuilder: InternalClientBuilder {
             value.isAnnotationPresent(KeyValueStoreDefinition::class.java) -> {
                 val tableName = KeyValueStoreAnnotationService.getTableName(value, stage)
                 val keyNameAndType = KeyValueStoreAnnotationService.getKeyNameAndType(value, stage)
-                KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second)
+                KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second) { columnNameMap: Map<String, String> ->
+                    DynamoClient(
+                        tableName,
+                        value.canonicalName,
+                        columnNameMap,
+                        createDynamoDbClient()
+                    )
+                }
             }
             value.isAnnotationPresent(DynamoDbKeyValueStore::class.java) -> {
                 val tableName = DynamoDbKeyValueStoreAnnotationService.getTableName(value, stage)
                 val keyNameAndType = DynamoDbKeyValueStoreAnnotationService.getKeyNameAndType(value, stage)
-                KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second)
+                KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second) { columnNameMap: Map<String, String> ->
+                    DynamoClient(
+                        tableName,
+                        value.canonicalName,
+                        columnNameMap,
+                        createDynamoDbClient()
+                    )
+                }
             }
             else -> throw IllegalStateException("${value.simpleName} is not a known type of Key Value Store (KeyValueStore, DynamoDbKeyValueStore)")
         }
-        injector.injectMembers(keyValueStoreClient)
         return keyValueStoreClient
     }
 
@@ -71,29 +92,39 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         val documentStoreClient = when {
             document.isAnnotationPresent(DocumentStoreDefinition::class.java) -> {
                 val tableName = DocumentStoreAnnotationService.getTableName(document, stage)
-                DocumentStoreClientDynamo(document, tableName, stage)
+                DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String> ->
+                    DynamoClient(
+                        tableName,
+                        document.canonicalName,
+                        columnNameMap,
+                        createDynamoDbClient()
+                    )
+                }
             }
             document.isAnnotationPresent(DynamoDbDocumentStore::class.java) -> {
                 val tableName = DynamoDbDocumentStoreAnnotationService.getTableName(document, stage)
-                DocumentStoreClientDynamo(document, tableName, stage)
+                DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String> ->
+                    DynamoClient(
+                        tableName,
+                        document.canonicalName,
+                        columnNameMap,
+                        createDynamoDbClient()
+                    )
+                }
             }
             else -> throw IllegalStateException("${document.simpleName} is not a known type of Document Store (DocumentStore, DynamoDbDocumentStore)")
         }
-        injector.injectMembers(documentStoreClient)
         return documentStoreClient
     }
 
     override fun getQueueClient(queueClass: Class<*>, stage: String): QueueClient {
         val queueId = QueueIdAnnotationService.getQueueId(queueClass, stage)
-        val queueClient = QueueClientSQS(queueId)
-        injector.injectMembers(queueClient)
+        val queueClient = QueueClientSQS(queueId, createSqsClient(), getEnvironmentVariableClient())
         return queueClient
     }
 
     override fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient {
-        val databaseClient = DatabaseClientRds(databaseObject)
-        injector.injectMembers(databaseClient)
-        return databaseClient
+        return DatabaseClientRds(databaseObject, getEnvironmentVariableClient())
     }
 
     override fun getEnvironmentVariableClient(): EnvironmentVariableClient {
@@ -102,33 +133,85 @@ object AwsInternalClientBuilder: InternalClientBuilder {
 
     override fun getNotificationClient(topicClass: Class<*>, stage: String): NotificationClient {
         val topic = NotificationTopicAnnotationService.getTopicName(topicClass, stage)
-        val notificationClient = NotificationClientSNS(topic)
-        injector.injectMembers(notificationClient)
-        return notificationClient
+        return NotificationClientSNS(topic, createSnsClient(), getEnvironmentVariableClient())
     }
 
-    override fun getBasicServerlessFunctionClient(handlerClass: Class<*>, functionName: String): BasicServerlessFunctionClient {
-        val basicClient = BasicServerlessFunctionClientLambda(handlerClass, functionName)
-        injector.injectMembers(basicClient)
-        return basicClient
+    override fun getBasicServerlessFunctionClient(
+        handlerClass: Class<*>,
+        functionName: String
+    ): BasicServerlessFunctionClient {
+        return BasicServerlessFunctionClientLambda(handlerClass, functionName, createLambdaClient(), getEnvironmentVariableClient())
     }
 
     override fun getFileStorageClient(bucketClass: Class<*>, stage: String): FileStorageClient {
         if (bucketClass.isAnnotationPresent(FileStorageBucketDefinition::class.java)) {
             val bucketName = bucketClass.getAnnotation(FileStorageBucketDefinition::class.java).bucketName
-            val fileStorageClient = FileStorageClientS3(bucketName, stage)
-            injector.injectMembers(fileStorageClient)
-            return fileStorageClient
+            return FileStorageClientS3(bucketName, stage, createS3Client())
         } else {
             throw IllegalStateException("${bucketClass.simpleName} is not a known type of File Storage Bucket. (Probably not annotated with @FileStorageBucketDefinition)")
         }
     }
 
     override fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient {
-        val webSocketClientApi = ServerlessFunctionWebSocketClientApiGateway()
-        injector.injectMembers(webSocketClientApi)
-        return webSocketClientApi
+        return ServerlessFunctionWebSocketClientApiGateway(createApiGatewayManagementApiClient())
     }
 
+    private val environmentVariableCredentialsProvider: EnvironmentVariableCredentialsProvider by lazy {
+        EnvironmentVariableCredentialsProvider.create()
+    }
 
+    private val region: Region by lazy {
+        Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable()))
+    }
+
+    private val urlConnectionHttpClient: SdkHttpClient by lazy {
+        UrlConnectionHttpClient.builder().build()
+    }
+
+    private fun createDynamoDbClient(): DynamoDbClient {
+        return DynamoDbClient.builder()
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
+            .build()
+    }
+
+    private fun createSnsClient(): SnsClient {
+        return SnsClient.builder()
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
+            .build()
+    }
+
+    private fun createSqsClient(): SqsClient {
+        return SqsClient.builder()
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
+            .build()
+    }
+
+    private fun createS3Client(): S3Client {
+        return S3Client.builder()
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
+            .build()
+    }
+
+    private fun createLambdaClient(): LambdaClient {
+        return LambdaClient.builder()
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
+            .build()
+    }
+
+    private fun createApiGatewayManagementApiClient(): ApiGatewayManagementApiClientBuilder {
+        return ApiGatewayManagementApiClient.builder()
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
+    }
 }

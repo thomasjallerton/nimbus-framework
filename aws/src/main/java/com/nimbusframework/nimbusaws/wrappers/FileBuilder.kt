@@ -16,7 +16,7 @@ abstract class FileBuilder {
     private var tabLevel: Int = 0
 
     protected fun write(toWrite: String = "") {
-        if (toWrite.startsWith("}")) tabLevel--
+        if (toWrite.trimStart().startsWith("}")) tabLevel--
 
         var tabs = ""
         for (i in 1..tabLevel) {
@@ -29,6 +29,10 @@ abstract class FileBuilder {
 
     protected fun import(toImport: String) {
         write("import $toImport;")
+    }
+
+    protected fun import(clazz: Class<*>) {
+        write("import ${clazz.canonicalName};")
     }
 
     protected fun findParamIndexes(methodInformation: MethodInformation, eventCanonicalName: String): FunctionParams {
@@ -72,9 +76,16 @@ abstract class FileBuilder {
             return type?.toString() ?: "java.lang.Void"
         }
 
+        fun allReferencedClasses(): List<String> {
+            if (type?.kind == TypeKind.VOID || type == null) return listOf("java.lang.Void")
+            return type.toString()
+                .split("<")
+                .map { it.replace(">", "") }
+        }
+
         fun simpleName(): String {
             if (type?.kind == TypeKind.VOID) return "Void"
-            return type?.toString()?.substringAfterLast('.') ?: "Void"
+            return type?.toString()?.substringBefore("<")?.substringAfterLast('.') ?: "Void"
         }
     }
 

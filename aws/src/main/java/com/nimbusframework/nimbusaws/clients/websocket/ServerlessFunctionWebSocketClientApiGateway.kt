@@ -1,51 +1,40 @@
 package com.nimbusframework.nimbusaws.clients.websocket
 
-import com.amazonaws.client.builder.AwsClientBuilder
-import com.amazonaws.services.apigatewaymanagementapi.AmazonApiGatewayManagementApi
-import com.amazonaws.services.apigatewaymanagementapi.AmazonApiGatewayManagementApiClientBuilder
-import com.amazonaws.services.apigatewaymanagementapi.model.PostToConnectionRequest
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.inject.Inject
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
+import software.amazon.awssdk.core.SdkBytes
+import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClientBuilder
+import software.amazon.awssdk.services.apigatewaymanagementapi.model.PostToConnectionRequest
+import java.net.URI
 import java.nio.ByteBuffer
 
-internal class ServerlessFunctionWebSocketClientApiGateway: ServerlessFunctionWebSocketClient {
+internal class ServerlessFunctionWebSocketClientApiGateway(
+    private val apiGatewayManagementApiBuilder: ApiGatewayManagementApiClientBuilder
+): ServerlessFunctionWebSocketClient {
 
     private val env = System.getenv()
     private val endpoint = if (env.containsKey("WEBSOCKET_ENDPOINT")) env["WEBSOCKET_ENDPOINT"]!! else ""
-    private val region = if (env.containsKey("AWS_DEFAULT_REGION")) env["AWS_DEFAULT_REGION"]!! else ""
 
-    @Inject
-    private lateinit var clientBuilder: AmazonApiGatewayManagementApiClientBuilder
-
-    private val apiGatewayManagementApi: AmazonApiGatewayManagementApi by lazy {
-        clientBuilder
-            .withEndpointConfiguration(
-                    AwsClientBuilder.EndpointConfiguration(
-                            endpoint,
-                            region
-                    )
-            ).build()
+    private val apiGatewayManagementApi by lazy {
+        apiGatewayManagementApiBuilder.endpointOverride(URI.create(endpoint)).build()
     }
 
-    private val objectMapper = ObjectMapper()
-
     override fun sendToConnection(connectionId: String, data: ByteBuffer) {
-        val postToConnectionRequest = PostToConnectionRequest()
-                .withConnectionId(connectionId)
-                .withData(data)
+        val postToConnectionRequest = PostToConnectionRequest.builder()
+            .connectionId(connectionId)
+            .data(SdkBytes.fromByteBuffer(data))
+            .build()
 
         apiGatewayManagementApi.postToConnection(postToConnectionRequest)
     }
 
     override fun sendToConnectionConvertToJson(connectionId: String, data: Any) {
-        val json = objectMapper.writeValueAsBytes(data)
+        val json = JacksonClient.writeValueAsBytes(data)
 
-        val buffer = ByteBuffer.wrap(json)
-
-        val postToConnectionRequest = PostToConnectionRequest()
-                .withConnectionId(connectionId)
-                .withData(buffer)
+        val postToConnectionRequest = PostToConnectionRequest.builder()
+            .connectionId(connectionId)
+            .data(SdkBytes.fromByteArray(json))
+            .build()
         apiGatewayManagementApi.postToConnection(postToConnectionRequest)
     }
 }
