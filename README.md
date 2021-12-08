@@ -1,7 +1,7 @@
 Nimbus is a Java framework that allows for easy deployment and testing of serverless applications.
 
 
-## Installation
+## Installation test
 
 Nimbus is made available though maven and is hosted in the maven central repository.
 
