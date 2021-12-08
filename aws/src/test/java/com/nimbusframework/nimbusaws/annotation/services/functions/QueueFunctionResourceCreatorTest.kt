@@ -35,7 +35,7 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
 
     @BeforeEach
     fun setup() {
-        processingData = ProcessingData(NimbusState())
+        processingData = ProcessingData(NimbusState(customRuntime = true))
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)

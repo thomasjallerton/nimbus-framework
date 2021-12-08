@@ -34,7 +34,7 @@ class NotificationFunctionResourceCreatorTest : AnnotationSpec() {
 
     @BeforeEach
     fun setup() {
-        processingData = ProcessingData(NimbusState())
+        processingData = ProcessingData(NimbusState(customRuntime = true))
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         resourceFinder = mockk()

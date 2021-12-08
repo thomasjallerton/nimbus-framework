@@ -173,6 +173,7 @@ abstract class ServerlessFunctionFileBuilder(
 
                 if (params.inputParam.type != null && isAListType(params.inputParam.type!!)) {
                     write("import ${findListType(params.inputParam.type!!)};")
+                    write("import java.util.List;")
                 } else if (!primitiveToBoxedMap.containsKey(params.inputParam.canonicalName())) {
                     write("import ${params.inputParam.canonicalName()};")
                 }

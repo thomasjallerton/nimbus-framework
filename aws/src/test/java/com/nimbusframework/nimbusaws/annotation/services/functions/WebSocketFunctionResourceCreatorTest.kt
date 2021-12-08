@@ -27,7 +27,7 @@ class WebSocketFunctionResourceCreatorTest : AnnotationSpec() {
     private lateinit var compileStateService: CompileStateService
     @BeforeEach
     fun setup() {
-        processingData = ProcessingData(NimbusState())
+        processingData = ProcessingData(NimbusState(customRuntime = true))
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         compileStateService = CompileStateService("handlers/WebSocketHandlers.java")

@@ -7,6 +7,7 @@ import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileBucket
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -35,7 +36,7 @@ class FileStorageResourceCreatorTest : AnnotationSpec() {
 
     @BeforeEach
     fun setup() {
-        processingData = ProcessingData(NimbusState())
+        processingData = ProcessingData(NimbusState(customRuntime = true))
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)
@@ -50,8 +51,9 @@ class FileStorageResourceCreatorTest : AnnotationSpec() {
     fun correctlyProcessesFileStorageFunctionAnnotation() {
         compileStateService.compileObjects {
             every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns FileBucket(processingData.nimbusState, "ImageBucket", arrayOf(), "dev" )
+            val classForReflectionService = ClassForReflectionService(processingData, it.typeUtils)
 
-            fileStorageResourceCreator = FileStorageResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), messager, resourceFinder)
+            fileStorageResourceCreator = FileStorageResourceCreator(cfDocuments, processingData, classForReflectionService, it, setOf(), messager, resourceFinder)
 
             val classElem = it.elementUtils.getTypeElement("handlers.FileStorageHandlers")
             val funcElem = classElem.enclosedElements[1]
@@ -74,8 +76,9 @@ class FileStorageResourceCreatorTest : AnnotationSpec() {
     fun logsErrorIfCantFindFileStorageBucket() {
         compileStateService.compileObjects {
             every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns null
+            val classForReflectionService = ClassForReflectionService(processingData, it.typeUtils)
 
-            fileStorageResourceCreator = FileStorageResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), messager, resourceFinder)
+            fileStorageResourceCreator = FileStorageResourceCreator(cfDocuments, processingData, classForReflectionService, it, setOf(), messager, resourceFinder)
 
             val classElem = it.elementUtils.getTypeElement("handlers.FileStorageHandlers")
             val funcElem = classElem.enclosedElements[1]

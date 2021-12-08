@@ -29,7 +29,7 @@ public class HttpHandlers {
   }
 
   @HttpServerlessFunction(method = HttpMethod.POST, path = "person/path/new")
-  public Person postPath(HttpEvent event) {
+  public Person postNewPath(HttpEvent event) {
     return new Person();
   }
 

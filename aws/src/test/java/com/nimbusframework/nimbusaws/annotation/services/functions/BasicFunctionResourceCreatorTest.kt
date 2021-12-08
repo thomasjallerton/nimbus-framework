@@ -31,7 +31,7 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
 
     @BeforeEach
     fun setup() {
-        processingData = ProcessingData(NimbusState())
+        processingData = ProcessingData(NimbusState(customRuntime = true))
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         compileState = CompileStateService("handlers/BasicHandlers.java")

@@ -23,7 +23,7 @@ class KeyValueStoreResourceCreatorTest : AnnotationSpec() {
 
     @BeforeEach
     fun setup() {
-        nimbusState = NimbusState()
+        nimbusState = NimbusState(customRuntime = true)
         processingData = ProcessingData(nimbusState)
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
