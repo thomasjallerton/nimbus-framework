@@ -52,7 +52,7 @@
 
         <java.version>11</java.version>
 
-        <kotlin.version>1.3.70</kotlin.version>
+        <kotlin.version>1.5.32</kotlin.version>
         <kotest.version>4.2.6</kotest.version>
 
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
