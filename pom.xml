@@ -68,7 +68,8 @@
 
     <modules>
         <module>core</module>
-        <module>aws</module>
+        <module>cloud</module>
+        <module>local</module>
     </modules>
 
     <build>
