@@ -1,7 +1,9 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
@@ -9,20 +11,20 @@ import com.nimbusframework.nimbusaws.wrappers.deployment.DeploymentFunctionFileB
 import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployment
 import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployments
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class AfterDeploymentResourceCreator(
     cfDocuments: MutableMap<String, CloudFormationFiles>,
-    nimbusState: NimbusState,
+    processingData: ProcessingData,
+    private val classForReflectionService: ClassForReflectionService,
     processingEnv: ProcessingEnvironment,
     decoratorHandlers: Set<FunctionDecoratorHandler>,
     messager: Messager
 ) : FunctionResourceCreator(
     cfDocuments,
-    nimbusState,
+    processingData,
     processingEnv,
     decoratorHandlers,
     messager,
@@ -39,7 +41,7 @@ class AfterDeploymentResourceCreator(
             processingEnv,
             methodInformation,
             type,
-            nimbusState
+            classForReflectionService
         )
 
         fileBuilder.createClass()
@@ -75,7 +77,7 @@ class AfterDeploymentResourceCreator(
 
                 updateResources.addResource(functionResource)
 
-                results.add(FunctionInformation(type, functionResource, false))
+                results.add(FunctionInformation(type, functionResource, fileBuilder.getGeneratedClassInformation(), false))
             }
         }
         return results

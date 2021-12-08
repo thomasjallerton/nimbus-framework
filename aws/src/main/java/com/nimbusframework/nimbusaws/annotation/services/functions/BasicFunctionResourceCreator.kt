@@ -1,7 +1,9 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
@@ -11,7 +13,6 @@ import com.nimbusframework.nimbusaws.wrappers.basic.BasicServerlessFunctionFileB
 import com.nimbusframework.nimbuscore.annotations.function.BasicServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.BasicServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -19,13 +20,14 @@ import javax.lang.model.element.TypeElement
 
 class BasicFunctionResourceCreator(
     cfDocuments: MutableMap<String, CloudFormationFiles>,
-    nimbusState: NimbusState,
+    processingData: ProcessingData,
+    private val classForReflectionService: ClassForReflectionService,
     processingEnv: ProcessingEnvironment,
     decoratorHandlers: Set<FunctionDecoratorHandler>,
     messager: Messager
 ) : FunctionResourceCreator(
     cfDocuments,
-    nimbusState,
+    processingData,
     processingEnv,
     decoratorHandlers,
     messager,
@@ -50,7 +52,7 @@ class BasicFunctionResourceCreator(
             processingEnv,
             methodInformation,
             type,
-            nimbusState
+            classForReflectionService
         )
 
         fileBuilder.createClass()
@@ -93,7 +95,7 @@ class BasicFunctionResourceCreator(
                     functionResource
                 )
 
-                results.add(FunctionInformation(type, functionResource))
+                results.add(FunctionInformation(type, functionResource, fileBuilder.getGeneratedClassInformation()))
             }
         }
         return results

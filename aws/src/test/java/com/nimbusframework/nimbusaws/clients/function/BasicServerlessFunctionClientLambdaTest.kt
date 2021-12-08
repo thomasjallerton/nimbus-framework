@@ -1,11 +1,5 @@
 package com.nimbusframework.nimbusaws.clients.function
 
-import com.amazonaws.services.lambda.AWSLambda
-import com.amazonaws.services.lambda.model.InvocationType
-import com.amazonaws.services.lambda.model.InvokeRequest
-import com.amazonaws.services.lambda.model.InvokeResult
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbusaws.examples.BasicFunctionHandler
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
@@ -14,79 +8,76 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import java.nio.ByteBuffer
+import software.amazon.awssdk.core.SdkBytes
+import software.amazon.awssdk.services.lambda.LambdaClient
+import software.amazon.awssdk.services.lambda.model.InvocationType
+import software.amazon.awssdk.services.lambda.model.InvokeRequest
+import software.amazon.awssdk.services.lambda.model.InvokeResponse
 import java.nio.charset.StandardCharsets.UTF_8
 
 class BasicServerlessFunctionClientLambdaTest : AnnotationSpec() {
 
     private lateinit var underTest: BasicServerlessFunctionClientLambda
-    private lateinit var awsLambda: AWSLambda
+    private lateinit var awsLambda: LambdaClient
 
     private lateinit var environmentVariableClient: EnvironmentVariableClient
 
     @BeforeEach
     fun setup() {
-        underTest = BasicServerlessFunctionClientLambda(BasicFunctionHandler::class.java, "exampleFunc")
         awsLambda = mockk(relaxed = true)
         environmentVariableClient = mockk()
-        val injector = Guice.createInjector(object: AbstractModule() {
-            override fun configure() {
-                bind(AWSLambda::class.java).toInstance(awsLambda)
-                bind(EnvironmentVariableClient::class.java).toInstance(environmentVariableClient)
-            }
-        })
-        injector.injectMembers(underTest)
         every { environmentVariableClient.get("NIMBUS_PROJECT_NAME") } returns "PROJECT"
         every { environmentVariableClient.get("FUNCTION_STAGE") } returns "STAGE"
+        underTest = BasicServerlessFunctionClientLambda(BasicFunctionHandler::class.java, "exampleFunc", awsLambda, environmentVariableClient)
     }
 
     @Test
     fun canInvokeWithNoParamsAndNoResponse() {
         val invokeResult = slot<InvokeRequest>()
-        every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResult()
+        every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResponse.builder().build()
 
         underTest.invoke()
-        invokeResult.captured.functionName shouldBe FunctionResource.functionName("PROJECT", "BasicFunctionHandler", "exampleFunc", "STAGE")
-        UTF_8.decode(invokeResult.captured.payload).toString() shouldBe "\"\""
-        invokeResult.captured.invocationType shouldBe InvocationType.RequestResponse.toString()
+        invokeResult.captured.functionName() shouldBe FunctionResource.functionName("PROJECT", "BasicFunctionHandler", "exampleFunc", "STAGE")
+        UTF_8.decode(invokeResult.captured.payload().asByteBuffer()).toString() shouldBe "\"\""
+        invokeResult.captured.invocationType() shouldBe InvocationType.REQUEST_RESPONSE
     }
 
     @Test
     fun canInvokeWithParamsAndNoResponse() {
         val invokeResult = slot<InvokeRequest>()
-        every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResult()
+        every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResponse.builder().build()
 
         underTest.invoke("TEST")
-        UTF_8.decode(invokeResult.captured.payload).toString() shouldBe "\"TEST\""
+        UTF_8.decode(invokeResult.captured.payload().asByteBuffer()).toString() shouldBe "\"TEST\""
     }
 
     @Test
     fun canInvokeWithNoParamsAndResponse() {
         val invokeResult = slot<InvokeRequest>()
-        every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResult().withPayload(ByteBuffer.wrap("\"TEST\"".toByteArray()))
+        every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResponse.builder().payload(SdkBytes.fromByteArray("\"TEST\"".toByteArray())).build()
 
         underTest.invoke(String::class.java) shouldBe "TEST"
-        invokeResult.captured.functionName shouldBe FunctionResource.functionName("PROJECT", "BasicFunctionHandler", "exampleFunc", "STAGE")
+        invokeResult.captured.functionName() shouldBe FunctionResource.functionName("PROJECT", "BasicFunctionHandler", "exampleFunc", "STAGE")
     }
 
     @Test
     fun canInvokeAsyncWithParams() {
         val invokeResult = slot<InvokeRequest>()
-        every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResult()
+        every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResponse.builder().build()
 
         underTest.invokeAsync("TEST")
 
-        invokeResult.captured.invocationType shouldBe InvocationType.Event.toString()
-        UTF_8.decode(invokeResult.captured.payload).toString() shouldBe "\"TEST\""
+        invokeResult.captured.invocationType() shouldBe InvocationType.EVENT
+        UTF_8.decode(invokeResult.captured.payload().asByteBuffer()).toString() shouldBe "\"TEST\""
     }
 
     @Test
     fun canInvokeAsyncWithNoParams() {
         val invokeResult = slot<InvokeRequest>()
-        every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResult()
+        every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResponse.builder().build()
 
         underTest.invokeAsync()
 
-        invokeResult.captured.invocationType shouldBe InvocationType.Event.toString()
+        invokeResult.captured.invocationType() shouldBe InvocationType.EVENT
     }
 }

@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -20,23 +21,23 @@ class CustomFactoryCreationTest: AnnotationSpec() {
     private lateinit var basicFunctionResourceCreator: BasicFunctionResourceCreator
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
-    private lateinit var nimbusState: NimbusState
+    private lateinit var processingData: ProcessingData
     private lateinit var functionEnvironmentService: FunctionEnvironmentService
     private lateinit var compileState: CompileStateService
 
     @BeforeEach
     fun setup() {
-        nimbusState = NimbusState()
+        processingData = ProcessingData(NimbusState())
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
     }
 
     @Test
     fun correctlyProcessesCustomFactory() {
         compileState = CompileStateService("handlers/CustomFactoryFactory.java", "handlers/CustomFactoryHandler.java")
         compileState.compileObjects { processingEnv ->
-            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, setOf(), mockk(relaxed = true))
+            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnv, setOf(), mockk(relaxed = true))
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandler")
             val funcElem = classElem.enclosedElements[3]
             val results = basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)
@@ -55,7 +56,7 @@ class CustomFactoryCreationTest: AnnotationSpec() {
         compileState = CompileStateService("handlers/CustomFactoryHandlerWrongFactory.java", "handlers/CustomFactoryWrongFactory.java")
         val messager = mockk<Messager>(relaxed = true)
         compileState.compileObjects { processingEnv ->
-            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, nimbusState, processingEnv, setOf(), messager)
+            basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnv, setOf(), messager)
             val classElem = processingEnv.elementUtils.getTypeElement("handlers.CustomFactoryHandlerWrongFactory")
             val funcElem = classElem.enclosedElements[2]
             basicFunctionResourceCreator.handleElement(funcElem, functionEnvironmentService)

@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusaws.wrappers.file
 
-import com.amazonaws.services.s3.event.S3EventNotification
+import com.amazonaws.services.lambda.runtime.events.models.s3.S3EventNotification
 import com.nimbusframework.nimbuscore.eventabstractions.FileStorageEvent
 
 object S3EventMapper {

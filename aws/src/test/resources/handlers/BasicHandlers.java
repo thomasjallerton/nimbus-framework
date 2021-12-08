@@ -24,4 +24,14 @@ public class BasicHandlers {
     String requestId = event.getRequestId();
   }
 
+  @BasicServerlessFunction
+  public Person justReturn(BasicEvent event) {
+    return new Person();
+  }
+
+  @BasicServerlessFunction
+  public void justInput(Person person) {
+    return;
+  }
+
 }

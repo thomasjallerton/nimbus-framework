@@ -2,18 +2,19 @@ package com.nimbusframework.nimbusaws.wrappers
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
+import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.clients.AwsInternalClientBuilder
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.clients.ClientBinder
 import com.nimbusframework.nimbuscore.eventabstractions.ServerlessEvent
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import java.io.File
 import java.io.PrintWriter
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.type.TypeKind
-import javax.lang.model.type.TypeMirror
 import javax.tools.Diagnostic
 
 abstract class ServerlessFunctionFileBuilder(
@@ -24,7 +25,7 @@ abstract class ServerlessFunctionFileBuilder(
         private val compilingElement: Element,
         inputType: Class<*>?,
         returnType: Class<*>?,
-        private val nimbusState: NimbusState
+        protected val classForReflectionService: ClassForReflectionService
 ): FileBuilder() {
 
     private val messager: Messager = processingEnv.messager
@@ -66,6 +67,9 @@ abstract class ServerlessFunctionFileBuilder(
         } else {
             inputTypeCanonicalName = inputType.canonicalName
             inputTypeSimpleName = inputType.simpleName
+
+            // If the input type isn't null we use reflection to deserialise the class from AWS (if using a custom runtime)
+            classForReflectionService.addClassForReflection(inputType)
         }
         if (returnType == null) {
             if (voidMethodReturn) {
@@ -84,12 +88,29 @@ abstract class ServerlessFunctionFileBuilder(
         } else {
             returnTypeCanonicalName = returnType.canonicalName
             returnTypeSimpleName = returnType.simpleName
+
+            // If the return type isn't null we use reflection to serialise the class (if using a custom runtime)
+            classForReflectionService.addClassForReflection(returnType)
+        }
+
+        addPotentialReflectionTargets()
+    }
+
+    private fun addPotentialReflectionTargets() {
+        if (params.inputParam.exists()) {
+            classForReflectionService.addClassForReflection(params.inputParam.type)
+        }
+        val returnTypeString = methodInformation.returnType.toString()
+        if (!primitiveToBoxedMap.containsKey(returnTypeString)) {
+            classForReflectionService.addClassForReflection(methodInformation.returnType)
         }
     }
 
     protected val voidReturnType = returnTypeSimpleName == "Void"
 
-    protected abstract fun getGeneratedClassName(): String
+    protected abstract fun generateClassName(): String
+
+    val generatedClassName by lazy { generateClassName() }
 
     protected abstract fun writeImports()
 
@@ -101,8 +122,17 @@ abstract class ServerlessFunctionFileBuilder(
         return true
     }
 
+    fun getGeneratedClassInformation(): AwsMethodInformation {
+        return AwsMethodInformation(
+            methodInformation.packageName,
+            generatedClassName,
+            inputTypeCanonicalName,
+            returnTypeCanonicalName
+        )
+    }
+
     fun classFilePath(): String {
-        val className = getGeneratedClassName()
+        val className = generatedClassName
         val packageName = methodInformation.packageName
         val packagePath = packageName.replace(".", File.separator)
 
@@ -114,7 +144,7 @@ abstract class ServerlessFunctionFileBuilder(
     }
 
     fun handlerFile(): String {
-        return getGeneratedClassName() + ".jar"
+        return "$generatedClassName.jar"
     }
 
     open fun createClass() {
@@ -124,7 +154,7 @@ abstract class ServerlessFunctionFileBuilder(
 
                 isValidFunction(params)
 
-                val className = getGeneratedClassName()
+                val className = generatedClassName
                 val builderFile = processingEnv.filer.createSourceFile(className)
 
                 out = PrintWriter(builderFile.openWriter())
@@ -143,6 +173,7 @@ abstract class ServerlessFunctionFileBuilder(
 
                 if (params.inputParam.type != null && isAListType(params.inputParam.type!!)) {
                     write("import ${findListType(params.inputParam.type!!)};")
+                    write("import java.util.List;")
                 } else if (!primitiveToBoxedMap.containsKey(params.inputParam.canonicalName())) {
                     write("import ${params.inputParam.canonicalName()};")
                 }
@@ -155,14 +186,14 @@ abstract class ServerlessFunctionFileBuilder(
                     write("import ${methodInformation.packageName}.${methodInformation.className};")
                 }
 
-                write("public class ${getGeneratedClassName()} implements RequestHandler<$inputTypeSimpleName, $returnTypeSimpleName>{")
+                write("public class $generatedClassName implements RequestHandler<$inputTypeSimpleName, $returnTypeSimpleName>{")
 
                 write()
 
                 write("private final ${methodInformation.className} handler;")
 
 
-                write("public ${getGeneratedClassName()}() {")
+                write("public ${generatedClassName}() {")
                 write("ClientBinder.INSTANCE.setInternalBuilder(AwsInternalClientBuilder.INSTANCE);")
                 if (methodInformation.customFactoryQualifiedName == null) {
                     write("handler = new ${methodInformation.className}();")
@@ -228,9 +259,9 @@ abstract class ServerlessFunctionFileBuilder(
             }
         } else {
             if (methodInformation.packageName == "") {
-                "${getGeneratedClassName()}::handleRequest"
+                "${generatedClassName}::handleRequest"
             } else {
-                methodInformation.packageName + ".${getGeneratedClassName()}::handleRequest"
+                methodInformation.packageName + ".${generatedClassName}::handleRequest"
             }
         }
     }

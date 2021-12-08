@@ -2,6 +2,7 @@ package com.nimbusframework.nimbusaws.annotation.services.useresources
 
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
@@ -18,27 +19,27 @@ class ForceDependencyProcessorTest: AnnotationSpec() {
     private lateinit var forceDependencyProcessor: ForceDependencyProcessor
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
-    private lateinit var nimbusState: NimbusState
+    private lateinit var processingData: ProcessingData
     private lateinit var messager: Messager
     private lateinit var compileState: CompileStateService
 
     @BeforeEach
     fun setup() {
-        nimbusState = NimbusState()
+        processingData = ProcessingData(NimbusState())
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)
 
         compileState = CompileStateService("handlers/ForceDependencyHandler.java")
 
-        forceDependencyProcessor = ForceDependencyProcessor(nimbusState)
+        forceDependencyProcessor = ForceDependencyProcessor(processingData.nimbusState)
     }
 
     @Test
     fun correctlySetsVariableFromString() {
         compileState.compileObjects {
             val elements = it.elementUtils
-            HttpFunctionResourceCreator(cfDocuments, nimbusState, it, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.ForceDependencyHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
+            HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.ForceDependencyHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData.nimbusState))
 
             val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("ForceDependencyHandlerfuncFunction") as FunctionResource
 

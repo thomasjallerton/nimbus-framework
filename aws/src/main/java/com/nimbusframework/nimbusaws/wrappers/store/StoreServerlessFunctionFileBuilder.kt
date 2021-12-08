@@ -1,35 +1,36 @@
 package com.nimbusframework.nimbusaws.wrappers.store
 
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoStreamParser
-import com.nimbusframework.nimbuscore.annotations.persistent.StoreEventType
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.persistent.StoreEventType
 import com.nimbusframework.nimbuscore.eventabstractions.StoreEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
 
 abstract class StoreServerlessFunctionFileBuilder(
-        processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation,
-        compilingElement: Element,
-        private val method: StoreEventType,
-        private val clazz: TypeElement,
-        private val functionName: String,
-        nimbusState: NimbusState
+    processingEnv: ProcessingEnvironment,
+    methodInformation: MethodInformation,
+    compilingElement: Element,
+    private val method: StoreEventType,
+    private val clazz: TypeElement,
+    private val functionName: String,
+    classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
-        processingEnv,
-        methodInformation,
-        functionName,
-        StoreEvent::class.java,
-        compilingElement,
-        DynamodbEvent::class.java,
-        Void::class.java,
-        nimbusState
+    processingEnv,
+    methodInformation,
+    functionName,
+    StoreEvent::class.java,
+    compilingElement,
+    DynamodbEvent::class.java,
+    Void::class.java,
+    classForReflectionService
 ) {
-    override fun getGeneratedClassName(): String {
+    override fun generateClassName(): String {
         return "$functionName${methodInformation.className}${methodInformation.methodName}"
     }
 
@@ -58,8 +59,10 @@ abstract class StoreServerlessFunctionFileBuilder(
                 compilationError("$errorPrefix Too many arguments, can have at most three: T oldEvent, T newEvent, $eventSimpleName event.")
             } else if (methodInformation.parameters.size == 2) {
                 if (functionParams.eventParam.doesNotExist() && methodInformation.parameters[0] != methodInformation.parameters[1]) {
-                    compilationError("$errorPrefix Wrong input arguments, cannot have two different types of data inputs. " +
-                            "Can have at most three arguments: T oldEvent, T newEvent, $eventSimpleName event. (Your T's were not the same type)")
+                    compilationError(
+                        "$errorPrefix Wrong input arguments, cannot have two different types of data inputs. " +
+                                "Can have at most three arguments: T oldEvent, T newEvent, $eventSimpleName event. (Your T's were not the same type)"
+                    )
                 } else if (functionParams.inputParam.doesNotExist()) {
                     compilationError("$errorPrefix Can't have two event input types. Function can have at most three parameters: T oldEvent, T newEvent, $eventSimpleName event.")
                 }
@@ -71,8 +74,10 @@ abstract class StoreServerlessFunctionFileBuilder(
                 } else if (functionParams.eventParam.index != 2) {
                     compilationError("$errorPrefix If three parameters then event input needs to be the final one. Need exact order: T oldEvent, T newEvent, $eventSimpleName event.")
                 } else if (functionParams.eventParam.index == 2 && methodInformation.parameters[0] != methodInformation.parameters[1]) {
-                    compilationError("$errorPrefix Wrong input arguments, cannot have two different types of data inputs. " +
-                            "Can have at most three arguments: T oldEvent, T newEvent, $eventSimpleName event. (Your T's were not the same type)")
+                    compilationError(
+                        "$errorPrefix Wrong input arguments, cannot have two different types of data inputs. " +
+                                "Can have at most three arguments: T oldEvent, T newEvent, $eventSimpleName event. (Your T's were not the same type)"
+                    )
                 }
             }
         }
@@ -98,8 +103,8 @@ abstract class StoreServerlessFunctionFileBuilder(
             write("if (!\"${method.name}\".equals(event.getEventName())) return null;")
 
             write("DynamoStreamParser<${inputParam.type}> parser = DynamoStreamParser.of(${inputParam.type}.class);")
-            write("${inputParam.type} parsedNewItem = parser.toObject(record.getDynamodb().getNewImage());")
-            write("${inputParam.type} parsedOldItem = parser.toObject(record.getDynamodb().getOldImage());")
+            write("${inputParam.type} parsedNewItem = parser.toObjectFromLambda(record.getDynamodb().getNewImage());")
+            write("${inputParam.type} parsedOldItem = parser.toObjectFromLambda(record.getDynamodb().getOldImage());")
         }
 
         val methodName = methodInformation.methodName

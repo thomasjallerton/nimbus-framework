@@ -1,9 +1,7 @@
 package com.nimbusframework.nimbusaws.clients.keyvalue
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
+import com.nimbusframework.nimbusaws.clients.dynamo.DynamoHelper.strAttribute
 import com.nimbusframework.nimbusaws.examples.keyvalue.KeyValueStoreNoTableName
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
@@ -22,8 +20,8 @@ class KeyValueStoreClientDynamoTest : AnnotationSpec() {
     private lateinit var dynamoClient: DynamoClient
 
     private val attributes: Map<String, Field>
-    private val exampleObj = mutableMapOf(Pair("value", AttributeValue("test")))
-    private val exampleKey = mapOf(Pair("PrimaryKey", AttributeValue("key")))
+    private val exampleObj = mutableMapOf(Pair("value", strAttribute("test")))
+    private val exampleKey = mapOf(Pair("PrimaryKey", strAttribute("key")))
     private val obj = KeyValueStoreNoTableName("test")
 
     init {
@@ -34,19 +32,10 @@ class KeyValueStoreClientDynamoTest : AnnotationSpec() {
 
     @BeforeEach
     fun setUp() {
-        val dynamoFactory: DynamoClient.DynamoClientFactory = mockk()
         dynamoClient = mockk(relaxed = true)
-        every { dynamoClient.toAttributeValue("key") } returns AttributeValue("key")
+        every { dynamoClient.toAttributeValue("key") } returns strAttribute("key")
 
-        every { dynamoFactory.create("tableName", "com.nimbusframework.nimbusaws.examples.keyvalue.KeyValueStoreNoTableName", any()) } returns dynamoClient
-
-        underTest = KeyValueStoreClientDynamo(String::class.java, KeyValueStoreNoTableName::class.java, "dev", "PrimaryKey", "tableName", String::class.java)
-        val injector = Guice.createInjector(object: AbstractModule() {
-            override fun configure() {
-                bind(DynamoClient.DynamoClientFactory::class.java).toInstance(dynamoFactory)
-            }
-        })
-        injector.injectMembers(underTest)
+        underTest = KeyValueStoreClientDynamo(String::class.java, KeyValueStoreNoTableName::class.java, "dev", "PrimaryKey", "tableName", String::class.java) { dynamoClient }
     }
 
     @Test
@@ -80,7 +69,7 @@ class KeyValueStoreClientDynamoTest : AnnotationSpec() {
     @Test
     fun canGetAll() {
         val merged = exampleObj.toMutableMap();
-        merged["PrimaryKey"] = AttributeValue("key")
+        merged["PrimaryKey"] = strAttribute("key")
 
         every { dynamoClient.getAll() } returns listOf(merged)
 

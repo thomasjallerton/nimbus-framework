@@ -9,7 +9,7 @@ class RestApiResource(
         nimbusState: NimbusState
 ): AbstractRestResource(nimbusState, parent.stage) {
     override fun getPath(): String {
-        val fixedPathPart = pathPart.replace("[{}]".toRegex(), "")
+        val fixedPathPart = pathPart.replace("[{}]".toRegex(), "").replace("-", "")
         return parent.getPath() + fixedPathPart
     }
 

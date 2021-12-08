@@ -1,9 +1,5 @@
 package com.nimbusframework.nimbusaws.clients.dynamo
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-import com.amazonaws.services.dynamodbv2.model.*
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
 import com.nimbusframework.nimbuscore.exceptions.RetryableException
 import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
@@ -12,22 +8,18 @@ import io.kotest.matchers.collections.shouldContain
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.model.*
 
 class DynamoTransactionClientTest : AnnotationSpec() {
 
     private lateinit var underTest: DynamoTransactionClient
-    private lateinit var mockDynamoDb: AmazonDynamoDB
+    private lateinit var mockDynamoDb: DynamoDbClient
 
     @BeforeEach
     fun setup() {
         mockDynamoDb = mockk(relaxed = true)
-        val injector = Guice.createInjector(object: AbstractModule() {
-            override fun configure() {
-                bind(AmazonDynamoDB::class.java).toInstance(mockDynamoDb)
-            }
-        })
-        underTest = DynamoTransactionClient()
-        injector.injectMembers(underTest)
+        underTest = DynamoTransactionClient(mockDynamoDb)
     }
 
     @Test
@@ -41,7 +33,7 @@ class DynamoTransactionClientTest : AnnotationSpec() {
 
         underTest.executeWriteTransaction(writes)
 
-        request.captured.transactItems shouldContain transactWriteItem
+        request.captured.transactItems() shouldContain transactWriteItem
     }
 
     @Test
@@ -51,11 +43,11 @@ class DynamoTransactionClientTest : AnnotationSpec() {
 
         val request = slot<TransactGetItemsRequest>()
 
-        every { mockDynamoDb.transactGetItems(capture(request))} returns TransactGetItemsResult().withResponses(ItemResponse().withItem(mapOf()))
+        every { mockDynamoDb.transactGetItems(capture(request))} returns TransactGetItemsResponse.builder().responses(ItemResponse.builder().item(mapOf()).build()).build()
 
         underTest.executeReadTransaction(reads) shouldContain "Test"
 
-        request.captured.transactItems shouldContain transactGetItem
+        request.captured.transactItems() shouldContain transactGetItem
     }
 
     @Test(expected = RetryableException::class)
@@ -64,11 +56,11 @@ class DynamoTransactionClientTest : AnnotationSpec() {
         val writes = listOf(DynamoWriteTransactItemRequest(transactWriteItem))
 
         val exception = mockk<TransactionCanceledException>()
-        every { exception.cancellationReasons } returns listOf()
+        every { exception.cancellationReasons() } returns listOf()
         every { exception.localizedMessage } returns ""
-        every { exception.isRetryable } returns true
+        every { exception.retryable() } returns true
 
-        every { mockDynamoDb.transactWriteItems(any())} throws exception
+        every { mockDynamoDb.transactWriteItems(any<TransactWriteItemsRequest>())} throws exception
 
         underTest.executeWriteTransaction(writes)
     }
@@ -79,11 +71,11 @@ class DynamoTransactionClientTest : AnnotationSpec() {
         val writes = listOf(DynamoWriteTransactItemRequest(transactWriteItem))
 
         val exception = mockk<TransactionCanceledException>()
-        every { exception.cancellationReasons } returns listOf()
+        every { exception.cancellationReasons() } returns listOf()
         every { exception.localizedMessage } returns ""
-        every { exception.isRetryable } returns false
+        every { exception.retryable() } returns false
 
-        every { mockDynamoDb.transactWriteItems(any())} throws exception
+        every { mockDynamoDb.transactWriteItems(any<TransactWriteItemsRequest>())} throws exception
 
         underTest.executeWriteTransaction(writes)
     }
@@ -93,7 +85,7 @@ class DynamoTransactionClientTest : AnnotationSpec() {
         val transactWriteItem: TransactWriteItem = mockk(relaxed = true)
         val writes = listOf(DynamoWriteTransactItemRequest(transactWriteItem))
 
-        every { mockDynamoDb.transactWriteItems(any())} throws TransactionCanceledException("").withCancellationReasons(CancellationReason().withCode("ConditionalCheckFailed"))
+        every { mockDynamoDb.transactWriteItems(any<TransactWriteItemsRequest>())} throws TransactionCanceledException.builder().cancellationReasons(CancellationReason.builder().code("ConditionalCheckFailed").build()).build()
 
         underTest.executeWriteTransaction(writes)
     }
