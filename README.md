@@ -2,7 +2,7 @@ Nimbus is a Java framework that allows for easy deployment and testing of server
 
 
 ## Installation
-
+test actions
 Nimbus is made available though maven and is hosted in the maven central repository.
 
 First you need to add the nimbus-core dependency to your pom. This adds the annotation processor and local testing capabilities.
