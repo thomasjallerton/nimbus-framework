@@ -18,6 +18,14 @@
             <artifactId>nimbus-core</artifactId>
             <version>0.15.0-SNAPSHOT</version>
         </dependency>
+        <!-- We shouldn't need to depend on this in local
+         I think this is just because we need the annotation processor to generate basic function classes,
+         that should be extracted out into the core of nimbus -->
+        <dependency>
+            <groupId>com.nimbusframework</groupId>
+            <artifactId>nimbus-aws</artifactId>
+            <version>0.15.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <modules>
