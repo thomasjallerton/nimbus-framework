@@ -6,6 +6,7 @@ import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
+import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -30,7 +31,7 @@ class DocumentStoreFunctionResourceCreatorTest : AnnotationSpec() {
 
     @BeforeEach
     fun setup() {
-        processingData = ProcessingData(NimbusState())
+        processingData = ProcessingData(NimbusState(customRuntime = true))
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         resourceFinder = mockk()
@@ -43,7 +44,8 @@ class DocumentStoreFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesDocumentStoreFunctionAnnotation() {
         compileState.compileObjects {processingEnvironment ->
-            documentStoreFunctionResourceCreator = DocumentStoreFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true), resourceFinder)
+            val classForReflectionService = ClassForReflectionService(processingData, processingEnvironment.typeUtils)
+            documentStoreFunctionResourceCreator = DocumentStoreFunctionResourceCreator(cfDocuments, processingData, classForReflectionService, processingEnvironment, setOf(), mockk(relaxed = true), resourceFinder)
             every { resourceFinder.getDocumentStoreResource(any(), any(), any()) } returns DynamoResource(DynamoConfiguration("table"), processingData.nimbusState, "dev")
             val classElem = processingEnvironment.elementUtils.getTypeElement("handlers.DocumentStoreHandlers")
             val funcElem = classElem.enclosedElements[1]

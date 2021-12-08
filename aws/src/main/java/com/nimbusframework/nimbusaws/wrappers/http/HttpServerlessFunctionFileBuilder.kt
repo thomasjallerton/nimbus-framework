@@ -48,7 +48,7 @@ class HttpServerlessFunctionFileBuilder(
     override fun writeFunction(inputParam: Param, eventParam: Param) {
         write("${HttpEvent::class.simpleName} event = ${RestApiGatewayEventMapper::class.simpleName}.getHttpEvent(input, requestId);")
         if (inputParam.exists()) {
-            write("${inputParam.simpleName()} parsedType = JacksonClient.readValue(input.getBody(), ${inputParam.simpleName()}.class);")
+            write("${inputParam.canonicalName()} parsedType = JacksonClient.readValue(input.getBody(), ${inputParam.simpleName()}.class);")
         }
 
         val callPrefix = if (voidMethodReturn) {

@@ -76,9 +76,16 @@ abstract class FileBuilder {
             return type?.toString() ?: "java.lang.Void"
         }
 
+        fun allReferencedClasses(): List<String> {
+            if (type?.kind == TypeKind.VOID || type == null) return listOf("java.lang.Void")
+            return type.toString()
+                .split("<")
+                .map { it.replace(">", "") }
+        }
+
         fun simpleName(): String {
             if (type?.kind == TypeKind.VOID) return "Void"
-            return type?.toString()?.substringAfterLast('.') ?: "Void"
+            return type?.toString()?.substringBefore("<")?.substringAfterLast('.') ?: "Void"
         }
     }
 
