@@ -4,7 +4,7 @@
 
     <groupId>com.nimbusframework</groupId>
     <artifactId>nimbus-parent</artifactId>
-    <version>0.14.4-SNAPSHOT</version>
+    <version>0.15.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>nimbus-parent</name>
