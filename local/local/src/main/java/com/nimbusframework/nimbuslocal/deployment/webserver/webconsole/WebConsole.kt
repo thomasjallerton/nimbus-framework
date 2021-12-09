@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse.SC_NOT_FOUND
 import javax.servlet.http.HttpServletResponse.SC_OK
 
 
-class WebConsole(stage: String) : WebServerHandler("", "", "") {
+class WebConsole(stage: String) : WebServerHandler("", "") {
 
     private val apis: MutableMap<HttpMethodIdentifier, WebResource> = mutableMapOf()
 

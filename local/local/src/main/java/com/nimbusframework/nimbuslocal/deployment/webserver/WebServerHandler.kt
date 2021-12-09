@@ -12,9 +12,9 @@ import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-open class WebServerHandler(private val indexFile: String,
-                            private val errorFile: String,
-                            private val basePath: String
+open class WebServerHandler(
+    private val indexFile: String,
+    private val errorFile: String
 ): AbstractHandler() {
 
     private val resources: MutableMap<HttpMethodIdentifier, WebResource> = mutableMapOf()
@@ -81,11 +81,6 @@ open class WebServerHandler(private val indexFile: String,
         }
     }
 
-    fun addRedirectResource(path: String, httpMethod: HttpMethod, webResource: WebResource) {
-        val fixedPath = if (path.isNotEmpty()) "/$path" else path
-        resources[HttpMethodIdentifier(fixedPath, httpMethod)] = webResource
-    }
-
     private fun passesCors(webResource: WebResource, request: HttpServletRequest): Boolean {
         val headersToCheck = request.getHeader("Access-Control-Request-Headers")?.split(",")
         //Check Access-Control-Request-Headers headers
@@ -103,9 +98,8 @@ open class WebServerHandler(private val indexFile: String,
 
     private fun combinePaths(path: String): String {
         return when {
-            basePath.endsWith("/") and !path.startsWith("/") -> basePath + path
-            !basePath.endsWith("/") and path.startsWith("/") -> basePath + path
-            else -> "$basePath/$path"
+            path.startsWith("/") -> path
+            else -> "/$path"
         }
     }
 }

@@ -7,6 +7,8 @@ import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
 import com.nimbusframework.nimbuslocal.deployment.file.LocalFileStorage
 import com.nimbusframework.nimbuslocal.deployment.services.LocalResourceHolder
 import com.nimbusframework.nimbuslocal.deployment.services.StageService
+import com.nimbusframework.nimbuslocal.deployment.webserver.InternalPortCount
+import com.nimbusframework.nimbuslocal.deployment.webserver.LocalHttpServer
 import com.nimbusframework.nimbuslocal.deployment.webserver.WebServerHandler
 
 class LocalFileStorageCreator(
@@ -14,6 +16,7 @@ class LocalFileStorageCreator(
         private val httpPort: Int,
         private val variableSubstitution: MutableMap<String, String>,
         private val fileUploadDetails: MutableMap<Class<*>, MutableList<FileUploadDescription>>,
+        private val fileStorageBucketPorts: Map<Class<*>, Int>,
         private val stageService: StageService
 ) : LocalCreateResourcesHandler {
 
@@ -24,16 +27,17 @@ class LocalFileStorageCreator(
         val fileStorageBucket = stageService.annotationForStage(fileStorageBuckets) { annotation -> annotation.stages}
         if (fileStorageBucket != null) {
             if (fileStorageBucket.staticWebsite && !localWebservers.containsKey(fileStorageBucket.bucketName)) {
-                val localWebserver = WebServerHandler(fileStorageBucket.indexFile, fileStorageBucket.errorFile, "http://localhost:$httpPort/${fileStorageBucket.bucketName}/")
-                localWebservers[fileStorageBucket.bucketName] = localWebserver
-                variableSubstitution["\${${fileStorageBucket.bucketName.toUpperCase()}_URL}"] = "http://localhost:$httpPort/${fileStorageBucket.bucketName}"
+                val localWebserver = WebServerHandler(fileStorageBucket.indexFile, fileStorageBucket.errorFile)
+                val port = if (fileStorageBucketPorts.containsKey(clazz)) fileStorageBucketPorts[clazz]!! else InternalPortCount.currentPort++
+                localWebservers[fileStorageBucket.bucketName] = LocalHttpServer(port, localWebserver)
+                variableSubstitution["\${${fileStorageBucket.bucketName.toUpperCase()}_URL}"] = "http://localhost:$port"
             }
 
             val fileStorage = localResourceHolder.fileStorage
             if (!fileStorage.containsKey(fileStorageBucket.bucketName)) {
                 val allowedOrigins = fileStorageBucket.allowedCorsOrigins.map {
                     if (it == "#{NIMBUS_REST_API_URL}") {
-                        "http://localhost:$httpPort/function/"
+                        "http://localhost:$httpPort"
                     } else {
                         it
                     }

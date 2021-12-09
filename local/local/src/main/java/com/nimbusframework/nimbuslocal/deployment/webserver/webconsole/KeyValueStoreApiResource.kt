@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.webconsole
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.WebResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.webconsole.models.StoreInformation
@@ -12,8 +12,6 @@ import javax.servlet.http.HttpServletResponse
 
 
 class KeyValueStoreApiResource(private val httpMethod: HttpMethod, private val stage: String) : WebResource(arrayOf(), listOf(), "") {
-
-    private val objectMapper = ObjectMapper()
 
     override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
         val localNimbusDeployment = LocalNimbusDeployment.getInstance()
@@ -33,7 +31,7 @@ class KeyValueStoreApiResource(private val httpMethod: HttpMethod, private val s
                                     localBucket.size()
                             )
                         }
-                        val tablesJson = objectMapper.writeValueAsString(listOfTables)
+                        val tablesJson = JacksonClient.writeValueAsString(listOfTables)
                         response.outputStream.bufferedWriter().use {it.write(tablesJson) }
                     }
                     "listTableItems" -> {
@@ -42,13 +40,12 @@ class KeyValueStoreApiResource(private val httpMethod: HttpMethod, private val s
                         if (client != null) {
                             val itemDescription = client.getItemDescription()
                             val items = client.getAll()
-                            val objectMapper = ObjectMapper()
                             val itemList = items.map { (key, value) ->
-                                val jsonObject = objectMapper.readTree(objectMapper.writeValueAsString(value)) as ObjectNode
-                                jsonObject.put(itemDescription.key, objectMapper.writeValueAsString(key))
+                                val jsonObject = JacksonClient.readTree(JacksonClient.writeValueAsString(value)) as ObjectNode
+                                jsonObject.put(itemDescription.key, JacksonClient.writeValueAsString(key))
                                 jsonObject
                             }
-                            val tableItemsJson = objectMapper.writeValueAsString(TableItems(itemList, itemDescription))
+                            val tableItemsJson = JacksonClient.writeValueAsString(TableItems(itemList, itemDescription))
                             response.outputStream.bufferedWriter().use {it.write(tableItemsJson) }
                         } else {
                             println("CLIENT WAS NULL FOR $tableName$stage")

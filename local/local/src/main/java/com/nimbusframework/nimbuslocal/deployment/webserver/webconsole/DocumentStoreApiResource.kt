@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.webconsole
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.WebResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.webconsole.models.StoreInformation
@@ -11,8 +11,6 @@ import javax.servlet.http.HttpServletResponse
 
 
 class DocumentStoreApiResource(private val httpMethod: HttpMethod, private val stage: String) : WebResource(arrayOf(), listOf(), "") {
-
-    private val objectMapper = ObjectMapper()
 
     override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
         val localNimbusDeployment = LocalNimbusDeployment.getInstance()
@@ -32,7 +30,7 @@ class DocumentStoreApiResource(private val httpMethod: HttpMethod, private val s
                                     localBucket.size()
                             )
                         }
-                        val tablesJson = objectMapper.writeValueAsString(listOfTables)
+                        val tablesJson = JacksonClient.writeValueAsString(listOfTables)
                         response.outputStream.bufferedWriter().use {it.write(tablesJson) }
                     }
                     "listTableItems" -> {
@@ -41,7 +39,7 @@ class DocumentStoreApiResource(private val httpMethod: HttpMethod, private val s
                         if (client != null) {
                             val items = client.getAll()
                             val itemDescription = client.getItemDescription()
-                            val tableItemsJson = objectMapper.writeValueAsString(TableItems(items, itemDescription))
+                            val tableItemsJson = JacksonClient.writeValueAsString(TableItems(items, itemDescription))
                             response.outputStream.bufferedWriter().use {it.write(tableItemsJson) }
                         } else {
                             println("CLIENT WAS NULL FOR $tableName$stage")

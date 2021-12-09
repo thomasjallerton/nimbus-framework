@@ -1,8 +1,7 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.resources
 
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse
 import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuslocal.deployment.http.HttpRequest
@@ -20,12 +19,6 @@ class FunctionResource(
         allowedOrigin: String,
         baseRequest: String
 ): WebResource(allowedHeaders, listOf(allowedOrigin), baseRequest) {
-
-    private val objectMapper: ObjectMapper = ObjectMapper()
-
-    init {
-        objectMapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
-    }
 
     override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
         val strBody = request.inputStream.bufferedReader().use(BufferedReader::readText)
@@ -52,7 +45,7 @@ class FunctionResource(
 
                 response.writer.print(result.body)
             } else if (result !is Unit){
-                response.writer.print(objectMapper.writeValueAsString(result))
+                response.writer.print(JacksonClient.writeValueAsString(result))
             }
         } catch (e: Exception) {
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR

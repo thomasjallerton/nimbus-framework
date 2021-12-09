@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbuslocal.deployment.http
 
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent
 import com.nimbusframework.nimbuslocal.ServerlessMethod
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionType
@@ -37,11 +38,11 @@ class LocalHttpMethod(
             method.invoke(invokeOn)
         } else if (params.size == 2) {
             if (eventIndex == 0) {
-                val param = objectMapper.readValue(strParam, params[1].type)
+                val param = JacksonClient.readValue(strParam, params[1].type)
                 mostRecentInvokeArgument = param
                 method.invoke(invokeOn, httpEvent, param)
             } else {
-                val param = objectMapper.readValue(strParam, params[0].type)
+                val param = JacksonClient.readValue(strParam, params[0].type)
                 mostRecentInvokeArgument = param
                 method.invoke(invokeOn, param, httpEvent)
             }
@@ -49,7 +50,7 @@ class LocalHttpMethod(
             if (eventIndex == 0) {
                 method.invoke(invokeOn, httpEvent)
             } else {
-                val param = objectMapper.readValue(strParam, params[0].type)
+                val param = JacksonClient.readValue(strParam, params[0].type)
                 mostRecentInvokeArgument = param
                 method.invoke(invokeOn, param)
             }
