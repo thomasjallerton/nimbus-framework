@@ -7,9 +7,8 @@ import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.WebResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.webconsole.models.StoreInformation
 import com.nimbusframework.nimbuslocal.deployment.webserver.webconsole.models.TableItems
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 class KeyValueStoreApiResource(private val httpMethod: HttpMethod, private val stage: String) : WebResource(arrayOf(), listOf(), "") {
 
@@ -71,6 +70,7 @@ class KeyValueStoreApiResource(private val httpMethod: HttpMethod, private val s
                     }
                 }
             }
+            else -> {}
         }
     }
 }

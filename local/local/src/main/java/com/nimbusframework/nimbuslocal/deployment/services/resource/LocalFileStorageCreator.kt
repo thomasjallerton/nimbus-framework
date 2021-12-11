@@ -2,7 +2,6 @@ package com.nimbusframework.nimbuslocal.deployment.services.resource
 
 import com.nimbusframework.nimbuscore.annotations.deployment.FileUpload
 import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition
-import com.nimbusframework.nimbuscore.clients.file.FileStorageBucketNameAnnotationService
 import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
 import com.nimbusframework.nimbuslocal.deployment.file.LocalFileStorage
 import com.nimbusframework.nimbuslocal.deployment.services.LocalResourceHolder
@@ -30,7 +29,7 @@ class LocalFileStorageCreator(
                 val localWebserver = WebServerHandler(fileStorageBucket.indexFile, fileStorageBucket.errorFile)
                 val port = if (fileStorageBucketPorts.containsKey(clazz)) fileStorageBucketPorts[clazz]!! else InternalPortCount.currentPort++
                 localWebservers[fileStorageBucket.bucketName] = LocalHttpServer(port, localWebserver)
-                variableSubstitution["\${${fileStorageBucket.bucketName.toUpperCase()}_URL}"] = "http://localhost:$port"
+                variableSubstitution["\${${fileStorageBucket.bucketName.uppercase()}_URL}"] = "http://localhost:$port"
             }
 
             val fileStorage = localResourceHolder.fileStorage
@@ -50,7 +49,7 @@ class LocalFileStorageCreator(
         val fileUpload = stageService.annotationForStage(clazz.getAnnotationsByType(FileUpload::class.java)) { annotation -> annotation.stages}
         if (fileUpload != null) {
             val bucketFiles = fileUploadDetails.getOrPut(fileUpload.fileStorageBucket.java) { mutableListOf() }
-            val description = FileUploadDescription(fileUpload.localPath, fileUpload.targetPath, fileUpload.substituteNimbusVariables)
+            val description = FileUploadDescription(fileUpload.localPath, fileUpload.targetPath, fileUpload.substituteNimbusVariablesFileRegex)
             bucketFiles.add(description)
         }
     }

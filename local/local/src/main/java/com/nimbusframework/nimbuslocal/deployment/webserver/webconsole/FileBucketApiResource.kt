@@ -5,10 +5,10 @@ import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.WebResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.webconsole.models.FileBucketInformation
+import jakarta.servlet.MultipartConfigElement
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.Request.__MULTIPART_CONFIG_ELEMENT
-import javax.servlet.MultipartConfigElement
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 
 class FileBucketApiResource(private val httpMethod: HttpMethod) : WebResource(arrayOf(), listOf(), "") {
@@ -73,6 +73,7 @@ class FileBucketApiResource(private val httpMethod: HttpMethod) : WebResource(ar
                 }
 
             }
+            else -> {}
         }
     }
 }

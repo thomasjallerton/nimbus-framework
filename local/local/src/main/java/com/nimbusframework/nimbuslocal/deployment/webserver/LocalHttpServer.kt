@@ -1,6 +1,11 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver
 
+import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
+
+
+
 
 class LocalHttpServer(val port: Int, handler: WebServerHandler) {
 
@@ -9,6 +14,9 @@ class LocalHttpServer(val port: Int, handler: WebServerHandler) {
 
     fun startServer() {
         val localServer = Server(port)
+        val connector: Connector = ServerConnector(localServer)
+        localServer.addConnector(connector)
+
         server = localServer
 
         localServer.handler = handler

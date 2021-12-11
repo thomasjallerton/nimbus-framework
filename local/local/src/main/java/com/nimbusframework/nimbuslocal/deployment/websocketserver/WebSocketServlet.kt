@@ -1,9 +1,9 @@
 package com.nimbusframework.nimbuslocal.deployment.websocketserver
 
 import org.eclipse.jetty.websocket.api.Session
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import com.nimbusframework.nimbuslocal.deployment.websocket.LocalWebsocketMethod
+import org.eclipse.jetty.websocket.server.JettyWebSocketServlet
+import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
 
 class WebSocketServlet(
         private var connectMethod: LocalWebsocketMethod?,
@@ -11,9 +11,9 @@ class WebSocketServlet(
         private var defaultMethod: LocalWebsocketMethod?,
         private val topics: Map<String, LocalWebsocketMethod>,
         private val sessions: MutableMap<String, Session>
-) : WebSocketServlet() {
+) : JettyWebSocketServlet() {
 
-    override fun configure(factory: WebSocketServletFactory) {
-        factory.creator = LocalWebSocketCreator(connectMethod, disconnectMethod, defaultMethod, topics, sessions)
+    override fun configure(factory: JettyWebSocketServletFactory) {
+        factory.setCreator(LocalWebSocketCreator(connectMethod, disconnectMethod, defaultMethod, topics, sessions))
     }
 }

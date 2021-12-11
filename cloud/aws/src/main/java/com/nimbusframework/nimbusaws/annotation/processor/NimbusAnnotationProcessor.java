@@ -117,7 +117,6 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                         new HashMap<>(),
                         new HashMap<>(),
                         new HashSet<>(),
-                        userConfig.getAssemble(),
                         userConfig.getCustomRuntime()
                 ),
                 new HashSet<>()

@@ -6,14 +6,13 @@ import com.nimbusframework.nimbuslocal.deployment.webserver.WebServerHandler
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.InputStreamResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.RedirectResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.WebResource
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND
+import jakarta.servlet.http.HttpServletResponse.SC_OK
 import org.eclipse.jetty.server.Request
 import java.lang.Exception
 import java.util.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-import javax.servlet.http.HttpServletResponse.SC_NOT_FOUND
-import javax.servlet.http.HttpServletResponse.SC_OK
-
 
 class WebConsole(stage: String) : WebServerHandler("", "") {
 
@@ -44,10 +43,10 @@ class WebConsole(stage: String) : WebServerHandler("", "") {
     }
 
     override fun handle(
-            target: String,
-            baseRequest: Request,
-            request: HttpServletRequest,
-            response: HttpServletResponse
+        target: String,
+        baseRequest: Request,
+        request: HttpServletRequest,
+        response: HttpServletResponse
     ) {
         val method = HttpMethod.valueOf(request.method)
         val handler = apis[HttpMethodIdentifier(target, method)]
@@ -88,7 +87,7 @@ class WebConsole(stage: String) : WebServerHandler("", "") {
 
         return try {
             val inputStream = javaClass.getResourceAsStream("/com/nimbusframework/nimbuslocal/webconsole/build$path")
-            Optional.of(InputStreamResource(inputStream, contentType, listOf(), ""))
+            Optional.of(InputStreamResource(inputStream!!, contentType, listOf(), ""))
         } catch (e: Exception) {
             e.printStackTrace()
             Optional.empty()

@@ -13,7 +13,6 @@ import com.nimbusframework.nimbuslocal.deployment.keyvalue.LocalKeyValueStore
 import com.nimbusframework.nimbuslocal.deployment.notification.LocalNotificationTopic
 import com.nimbusframework.nimbuslocal.deployment.queue.LocalQueue
 import com.nimbusframework.nimbuslocal.deployment.webserver.LocalHttpServer
-import com.nimbusframework.nimbuslocal.deployment.webserver.WebServerHandler
 import com.nimbusframework.nimbuslocal.deployment.websocket.LocalWebsocketMethod
 import com.nimbusframework.nimbuslocal.deployment.websocketserver.LocalWebSocketServer
 import org.eclipse.jetty.websocket.api.Session

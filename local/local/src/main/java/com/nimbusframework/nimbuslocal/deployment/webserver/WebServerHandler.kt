@@ -4,13 +4,13 @@ import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
 import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.FileResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.FunctionResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.WebResource
 import java.io.File
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 open class WebServerHandler(
     private val indexFile: String,

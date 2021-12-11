@@ -7,9 +7,8 @@ import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuslocal.deployment.http.HttpRequest
 import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
 import java.io.BufferedReader
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 class FunctionResource(
         private val path: String,

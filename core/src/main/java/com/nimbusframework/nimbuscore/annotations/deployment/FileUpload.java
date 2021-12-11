@@ -9,6 +9,6 @@ public @interface FileUpload {
     Class<?> fileStorageBucket();
     String localPath();
     String targetPath();
-    boolean substituteNimbusVariables() default false;
+    String substituteNimbusVariablesFileRegex() default "";
     String[] stages() default {};
 }
