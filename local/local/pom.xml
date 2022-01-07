@@ -22,7 +22,7 @@
     <org.reflections.version>0.9.11</org.reflections.version>
     <tika.version>1.23</tika.version>
     <jetty.version>9.4.17.v20190418</jetty.version>
-    <h2.version>1.4.198</h2.version>
+    <h2.version>2.0.206</h2.version>
   </properties>
 
   <dependencies>
