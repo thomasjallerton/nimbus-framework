@@ -2,6 +2,7 @@ package com.nimbusframework.nimbuscore.persisted
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
+import kotlin.reflect.jvm.internal.impl.types.DelegatedTypeSubstitution
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class NimbusState(
@@ -15,6 +16,5 @@ data class NimbusState(
         val fileUploads: MutableMap<String, MutableMap<String, MutableList<FileUploadDescription>>> = mutableMapOf(),
         val exports: MutableMap<String, MutableList<ExportInformation>> = mutableMapOf(),
         val handlerFiles: MutableSet<HandlerInformation> = mutableSetOf(),
-        val assemble: Boolean = false,
         val customRuntime: Boolean = false
 )

@@ -1,8 +1,9 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.resources
 
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import java.io.File
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import java.nio.file.Files
 
 class FileResource(
         private val file: File,
@@ -19,11 +20,10 @@ class FileResource(
         response.contentType = contentType
         response.status = HttpServletResponse.SC_OK
 
-        val initialStream = file.inputStream()
-        val buffer = ByteArray(initialStream.available())
-        initialStream.read(buffer)
+        val contentLength = Files.size(file.toPath())
+        response.setHeader("Content-Length", contentLength.toString())
 
-        response.outputStream.write(buffer)
+        Files.copy(file.toPath(), response.outputStream)
         response.outputStream.close()
     }
 

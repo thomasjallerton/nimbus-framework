@@ -55,7 +55,7 @@ class FileUploadResourceCreator(
                     FileUploadDescription(
                         fileUpload.localPath,
                         fileUpload.targetPath,
-                        fileUpload.substituteNimbusVariables
+                        fileUpload.substituteNimbusVariablesFileRegex
                     )
                 )
             }

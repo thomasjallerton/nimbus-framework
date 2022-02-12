@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbuslocal.deployment.websocket
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.RequestContext
 
 
@@ -12,8 +12,7 @@ data class WebSocketRequest(
         var requestContext: RequestContext = RequestContext()
 ) {
     fun getTopic(): String {
-        val objectMapper = ObjectMapper()
-        val tree = objectMapper.readTree(body)
+        val tree = JacksonClient.readTree(body)
 
         val topic = tree["topic"]
         if (topic.isTextual) return topic.asText()
@@ -22,11 +21,10 @@ data class WebSocketRequest(
     }
 
     fun setBodyWithTopic(obj: Any, topic: String) {
-        val objectMapper = ObjectMapper()
-        val node: ObjectNode = objectMapper.valueToTree(obj)
+        val node: ObjectNode = JacksonClient.valueToTree(obj)
         node.put("topic", topic)
 
-        body = objectMapper.writeValueAsString(node)
+        body = JacksonClient.writeValueAsString(node)
     }
 
     constructor(body: String,

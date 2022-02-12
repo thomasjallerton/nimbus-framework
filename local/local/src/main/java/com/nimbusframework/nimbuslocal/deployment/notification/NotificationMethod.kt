@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbuslocal.deployment.notification
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.NotificationEvent
 import com.nimbusframework.nimbuslocal.ServerlessMethod
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionType
@@ -30,7 +30,7 @@ class NotificationMethod(
         val inputIndex = inputIndex()
         val param = if (inputIndex != -1) {
             val clazz = method.parameterTypes[inputIndex]
-            ObjectMapper().readValue(strParam, clazz)
+            JacksonClient.readValue(strParam, clazz)
         } else {
             null
         }

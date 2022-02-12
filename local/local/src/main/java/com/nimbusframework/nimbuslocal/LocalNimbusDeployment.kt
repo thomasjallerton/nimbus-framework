@@ -24,6 +24,7 @@ import com.nimbusframework.nimbuslocal.deployment.services.StageService
 import com.nimbusframework.nimbuslocal.deployment.services.function.*
 import com.nimbusframework.nimbuslocal.deployment.services.resource.*
 import com.nimbusframework.nimbuslocal.deployment.services.usesresources.*
+import com.nimbusframework.nimbuslocal.deployment.webserver.InternalPortCount
 import com.nimbusframework.nimbuslocal.deployment.webserver.WebServerHandler
 import com.nimbusframework.nimbuslocal.deployment.websocket.WebSocketRequest
 import org.eclipse.jetty.websocket.api.Session
@@ -34,10 +35,13 @@ import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
 import java.lang.reflect.InvocationTargetException
 
-class LocalNimbusDeployment {
-
-    private val httpPort: Int
-    private val webSocketPort: Int
+class LocalNimbusDeployment private constructor(
+    private val stage: String,
+    private val httpPort: Int = 8080,
+    private val webSocketPort: Int = 8079,
+    private val fileStorageBucketPorts: Map<Class<*>, Int>,
+    classes: Collection<Class<*>>
+) {
 
     internal val localResourceHolder: LocalResourceHolder
 
@@ -74,7 +78,7 @@ class LocalNimbusDeployment {
 
     private fun initialiseResourceCreators(stageService: StageService) {
         localCreateResourcesHandlers.add(LocalDocumentStoreCreator(localResourceHolder, stageService))
-        localCreateResourcesHandlers.add(LocalFileStorageCreator(localResourceHolder, httpPort, variableSubstitution, fileUploadDetails, stageService))
+        localCreateResourcesHandlers.add(LocalFileStorageCreator(localResourceHolder, httpPort, variableSubstitution, fileUploadDetails, fileStorageBucketPorts, stageService))
         localCreateResourcesHandlers.add(LocalKeyValueStoreCreator(localResourceHolder, stageService))
         localCreateResourcesHandlers.add(LocalNotificationTopicCreator(localResourceHolder, stageService))
         localCreateResourcesHandlers.add(LocalQueueCreator(localResourceHolder, stageService))
@@ -99,95 +103,22 @@ class LocalNimbusDeployment {
         localUseResourceHandlers.add(LocalUsesWebSocketHandler(localResourceHolder, stageService))
     }
 
-    private constructor(stageParam: String = NimbusConstants.stage, httpPort: Int = 8080, webSocketPort: Int = 8081, classes: Array<out Class<out Any>>) {
+    init {
         instance = this
-        stage = stageParam
-        localResourceHolder = LocalResourceHolder(stage)
-        this.httpPort = httpPort
-        this.webSocketPort = webSocketPort
-
-        val stageService = StageService(stageParam, userConfig.defaultStages.contains(stage))
-
+        Companion.stage = stage
+        InternalPortCount.currentPort = httpPort + 1
+        localResourceHolder = LocalResourceHolder()
+        val stageService = StageService(stage, userConfig.defaultStages.contains(stage))
         initialiseFunctionHandlers(stageService)
         initialiseResourceCreators(stageService)
         initialiseUseResourceHandlers(stageService)
-
-        val allClasses = mutableListOf<Class<*>>()
-        allClasses.addAll(classes)
-
-        for (clazz in classes) {
-            allClasses.addAll(getNestedClasses(clazz))
-        }
-
-        //Handle Resources that need to exist for handlers to work
-        allClasses.forEach { clazz -> createResources(clazz) }
-
-        //Handle function handlers
-        allClasses.forEach { clazz -> createHandlers(clazz) }
-
-        //Handle use resources
-        allClasses.forEach { clazz -> handleUseResources(clazz) }
-
+        classes.forEach { clazz -> createResources(clazz) }
+        classes.forEach { clazz -> createHandlers(clazz) }
+        classes.forEach { clazz -> handleUseResources(clazz) }
         val fileService = FileService(variableSubstitution)
-
         fileService.handleUploadingFile(fileUploadDetails)
-
         localResourceHolder.afterDeployments.forEach { method -> method.invoke() }
     }
-
-    private fun getNestedClasses(clazz: Class<out Any>): List<Class<*>> {
-        val result = mutableListOf<Class<*>>()
-        result.addAll(clazz.classes)
-        clazz.classes.forEach { result.addAll(getNestedClasses(it)) }
-
-        return result
-    }
-
-
-    private constructor(packageName: String, stageParam: String = NimbusConstants.stage, httpPort: Int = 8080, webSocketPort: Int = 8081) {
-        instance = this
-        stage = stageParam
-        localResourceHolder = LocalResourceHolder(stage)
-
-        this.httpPort = httpPort
-        this.webSocketPort = webSocketPort
-
-        val stageService = StageService(stageParam, userConfig.defaultStages.contains(stage))
-
-        initialiseFunctionHandlers(stageService)
-        initialiseResourceCreators(stageService)
-        initialiseUseResourceHandlers(stageService)
-
-        val reflections = Reflections(ConfigurationBuilder()
-                .setScanners(SubTypesScanner(false))
-                .addUrls(ClasspathHelper.forJavaClassPath())
-                .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix(packageName))))
-
-        val allClasses = reflections.getSubTypesOf(Any::class.java).distinct().filter {clazz ->
-            try {
-                clazz.declaredMethods
-                true
-            } catch (e: NoClassDefFoundError) {
-                false
-            }
-        }
-
-        //Handle Resources that need to exist for handlers to work
-        allClasses.forEach { clazz -> createResources(clazz) }
-
-        //Handle function handlers
-        allClasses.forEach { clazz -> createHandlers(clazz) }
-
-        //Handle use resources
-        allClasses.forEach { clazz -> handleUseResources(clazz) }
-
-        val fileService = FileService(variableSubstitution)
-
-        fileService.handleUploadingFile(fileUploadDetails)
-
-        localResourceHolder.afterDeployments.forEach { method -> method.invoke() }
-    }
-
 
     private fun createResources(clazz: Class<out Any>) {
         localCreateResourcesHandlers.forEach { handler -> handler.createResource(clazz) }
@@ -212,7 +143,7 @@ class LocalNimbusDeployment {
 
 
     internal fun getLocalHandler(bucketName: String): WebServerHandler? {
-        return localResourceHolder.httpServers[bucketName]
+        return localResourceHolder.httpServers[bucketName]?.handler?.handler
     }
 
     internal fun getWebSocketSessions(): Map<String, Session> {
@@ -255,17 +186,15 @@ class LocalNimbusDeployment {
 
     fun stopAllServers() {
         localResourceHolder.webSocketServer.stop()
-        localResourceHolder.httpServer.stopServer()
+        localResourceHolder.httpServers.forEach { it.value.stopServer() }
     }
 
     fun startFileBucketHttpServer(bucketName: String) {
         val localHttpServers = localResourceHolder.httpServers
         if (localHttpServers.containsKey(bucketName)) {
-            println("HTTP Server at: http://localhost:$httpPort/$bucketName")
-            val handler = localHttpServers[bucketName]!!
-            val httpServer = localResourceHolder.httpServer
-            httpServer.handler.addResource(bucketName, handler)
-            httpServer.startServer(httpPort)
+            val httpServer = localHttpServers[bucketName]!!
+            println("HTTP Server at: http://localhost:${httpServer.port}")
+            httpServer.startServer()
         } else {
             throw ResourceNotFoundException()
         }
@@ -274,11 +203,9 @@ class LocalNimbusDeployment {
     fun startServerlessFunctionWebserver() {
         val localHttpServers = localResourceHolder.httpServers
         if (localHttpServers.containsKey(functionWebserverIdentifier)) {
-            println("HTTP Server at: http://localhost:$httpPort/$functionWebserverIdentifier")
-            val handler = localHttpServers[functionWebserverIdentifier]!!
-            val httpServer = localResourceHolder.httpServer
-            httpServer.handler.addResource(functionWebserverIdentifier, handler)
-            httpServer.startServer(httpPort)
+            val httpServer = localHttpServers[functionWebserverIdentifier]!!
+            println("HTTP Server at: http://localhost:${httpServer.port}")
+            httpServer.startServer()
         } else {
             throw ResourceNotFoundException()
         }
@@ -289,15 +216,18 @@ class LocalNimbusDeployment {
     }
 
     private fun startAllHttpServers(async: Boolean) {
-        val allResourcesHttpServer = localResourceHolder.httpServer
-        for ((identifier, handler) in localResourceHolder.httpServers) {
-            println("HTTP Server at: http://localhost:$httpPort/$identifier")
-            allResourcesHttpServer.handler.addResource(identifier, handler)
+        val allServers = localResourceHolder.httpServers.entries.toList()
+        val asyncServers = allServers.drop(1)
+        val (finalIdentifier, finalServer) = allServers.first()
+        for ((identifier, server) in asyncServers) {
+            println("HTTP Server for $identifier at: http://localhost:${server.port}/")
+            server.startServerWithoutJoin()
         }
+        println("HTTP Server for $finalIdentifier at: http://localhost:${finalServer.port}/")
         if (async) {
-            allResourcesHttpServer.startServerWithoutJoin(httpPort)
+            finalServer.startServerWithoutJoin()
         } else {
-            allResourcesHttpServer.startServer(httpPort)
+            finalServer.startServer()
         }
     }
 
@@ -430,9 +360,79 @@ class LocalNimbusDeployment {
         }
     }
 
+    class Builder {
+        private var stage: String = NimbusConstants.stage
+        private var classes: List<Class<*>> = listOf()
+        private var httpApiPort: Int = 8080
+        private var webSocketApiPort: Int = 8081
+        private val fileStorageBucketPorts: MutableMap<Class<*>, Int> = mutableMapOf()
+
+        fun withStage(stage: String): Builder {
+            this.stage = stage
+            return this
+        }
+
+        fun withHttpApiPort(port: Int): Builder {
+            httpApiPort = port
+            return this
+        }
+
+        fun withWebSocketApiPort(port: Int): Builder {
+            webSocketApiPort = port
+            return this
+        }
+
+        fun withFileStorageBucketPort(bucketClass: Class<*>, port: Int): Builder {
+            fileStorageBucketPorts[bucketClass] = port
+            return this
+        }
+
+        fun withClasses(vararg classes: Class<*>): Builder {
+            if (this.classes.isNotEmpty()) {
+                throw IllegalArgumentException("Classes has already been set")
+            }
+            this.classes = classes.toList()
+            return this
+        }
+
+        fun withClasses(classes: Collection<Class<*>>): Builder {
+            if (this.classes.isNotEmpty()) {
+                throw IllegalArgumentException("Classes has already been set")
+            }
+            this.classes = classes.toList()
+            return this
+        }
+
+        fun withClassesInPackage(packageName: String): Builder {
+            if (this.classes.isNotEmpty()) {
+                throw IllegalArgumentException("Classes has already been set")
+            }
+            val reflections = Reflections(ConfigurationBuilder()
+                .setScanners(SubTypesScanner(false))
+                .addUrls(ClasspathHelper.forJavaClassPath())
+                .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix(packageName))))
+
+            this.classes = reflections.getSubTypesOf(Any::class.java).distinct().filter {clazz ->
+                try {
+                    clazz.declaredMethods
+                    true
+                } catch (e: NoClassDefFoundError) {
+                    false
+                }
+            }
+            return this
+        }
+
+        fun build(): LocalNimbusDeployment {
+            return LocalNimbusDeployment(
+                stage, httpApiPort, webSocketApiPort, fileStorageBucketPorts, classes
+            )
+        }
+    }
+
     companion object {
         private lateinit var instance: LocalNimbusDeployment
-        internal lateinit var stage: String
+        lateinit var stage: String
 
         @JvmStatic
         fun getInstance(): LocalNimbusDeployment {
@@ -443,22 +443,29 @@ class LocalNimbusDeployment {
         @JvmStatic
         fun getNewInstance(packageName: String): LocalNimbusDeployment {
             ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
-            LocalNimbusDeployment(packageName)
+            Builder().withClassesInPackage(packageName).build()
             return instance
         }
 
         @JvmStatic
         fun getNewInstance(packageName: String, stage: String, httpPort: Int, webSocketPort: Int): LocalNimbusDeployment {
             ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
-            LocalNimbusDeployment(packageName, stage, httpPort, webSocketPort)
+            Builder()
+                .withClassesInPackage(packageName)
+                .withStage(stage)
+                .withHttpApiPort(httpPort)
+                .withWebSocketApiPort(webSocketPort)
+                .build()
             return instance
         }
 
         @JvmStatic
         @SafeVarargs
-        fun getNewInstance(vararg clazz: Class<out Any>): LocalNimbusDeployment {
+        fun getNewInstance(vararg clazz: Class<*>): LocalNimbusDeployment {
             ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
-            LocalNimbusDeployment(classes = clazz)
+            Builder()
+                .withClasses(clazz.toList())
+                .build()
             return instance
         }
 
@@ -466,7 +473,30 @@ class LocalNimbusDeployment {
         @SafeVarargs
         fun getNewInstance(stage: String, port: Int, webSocketPort: Int, vararg clazz: Class<out Any>): LocalNimbusDeployment {
             ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
-            LocalNimbusDeployment(stage, port, webSocketPort, clazz)
+            Builder()
+                .withClasses(clazz.toList())
+                .withStage(stage)
+                .withHttpApiPort(port)
+                .withWebSocketApiPort(webSocketPort)
+                .build()
+            return instance
+        }
+
+        @JvmStatic
+        @SafeVarargs
+        fun getNewInstance(builder: Builder): LocalNimbusDeployment {
+            ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
+            builder.build()
+            return instance
+        }
+
+        @JvmStatic
+        @SafeVarargs
+        fun getNewInstance(consumeBuilder: (Builder) -> Unit): LocalNimbusDeployment {
+            ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
+            val builder = Builder()
+            consumeBuilder(builder)
+            builder.build()
             return instance
         }
 

@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbuslocal.deployment.http
 
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 
 data class HttpRequest(
         var path: String,
@@ -13,11 +13,11 @@ data class HttpRequest(
     constructor(path: String, method: HttpMethod, body: String): this(path, method, body, mapOf())
 
     fun setBodyFromObject(body: Any) {
-        this.body = ObjectMapper().writeValueAsString(body)
+        this.body = JacksonClient.writeValueAsString(body)
     }
 
     fun withBodyFromObject(body: Any): HttpRequest {
-        this.body = ObjectMapper().writeValueAsString(body)
+        this.body = JacksonClient.writeValueAsString(body)
         return this
     }
 }

@@ -1,6 +1,5 @@
 package com.nimbusframework.nimbuslocal
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionType
 import java.lang.reflect.Method
 
@@ -15,9 +14,6 @@ abstract class ServerlessMethod(
         protected set
     var mostRecentValueReturned: Any? = null
         protected set
-
-    protected val objectMapper = ObjectMapper()
-
 
     protected fun eventIndex(): Int {
         for ((index, param) in method.parameterTypes.withIndex()) {

@@ -4,17 +4,17 @@ import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
 import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.FileResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.FunctionResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.WebResource
 import java.io.File
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
-open class WebServerHandler(private val indexFile: String,
-                            private val errorFile: String,
-                            private val basePath: String
+open class WebServerHandler(
+    private val indexFile: String,
+    private val errorFile: String
 ): AbstractHandler() {
 
     private val resources: MutableMap<HttpMethodIdentifier, WebResource> = mutableMapOf()
@@ -81,11 +81,6 @@ open class WebServerHandler(private val indexFile: String,
         }
     }
 
-    fun addRedirectResource(path: String, httpMethod: HttpMethod, webResource: WebResource) {
-        val fixedPath = if (path.isNotEmpty()) "/$path" else path
-        resources[HttpMethodIdentifier(fixedPath, httpMethod)] = webResource
-    }
-
     private fun passesCors(webResource: WebResource, request: HttpServletRequest): Boolean {
         val headersToCheck = request.getHeader("Access-Control-Request-Headers")?.split(",")
         //Check Access-Control-Request-Headers headers
@@ -103,9 +98,8 @@ open class WebServerHandler(private val indexFile: String,
 
     private fun combinePaths(path: String): String {
         return when {
-            basePath.endsWith("/") and !path.startsWith("/") -> basePath + path
-            !basePath.endsWith("/") and path.startsWith("/") -> basePath + path
-            else -> "$basePath/$path"
+            path.startsWith("/") -> path
+            else -> "/$path"
         }
     }
 }

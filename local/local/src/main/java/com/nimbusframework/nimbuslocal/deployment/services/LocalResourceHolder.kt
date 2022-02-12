@@ -13,13 +13,12 @@ import com.nimbusframework.nimbuslocal.deployment.keyvalue.LocalKeyValueStore
 import com.nimbusframework.nimbuslocal.deployment.notification.LocalNotificationTopic
 import com.nimbusframework.nimbuslocal.deployment.queue.LocalQueue
 import com.nimbusframework.nimbuslocal.deployment.webserver.LocalHttpServer
-import com.nimbusframework.nimbuslocal.deployment.webserver.WebServerHandler
 import com.nimbusframework.nimbuslocal.deployment.websocket.LocalWebsocketMethod
 import com.nimbusframework.nimbuslocal.deployment.websocketserver.LocalWebSocketServer
 import org.eclipse.jetty.websocket.api.Session
 import java.util.*
 
-class LocalResourceHolder(stage: String) {
+class LocalResourceHolder() {
     val functions: MutableMap<FunctionIdentifier, ServerlessFunction> = mutableMapOf()
 
     val queues: MutableMap<String, LocalQueue> = mutableMapOf()
@@ -37,9 +36,8 @@ class LocalResourceHolder(stage: String) {
     val webKeyValueStores: MutableMap<String, LocalKeyValueStore<out Any, out Any>> = mutableMapOf()
     val webDocumentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
 
-    val httpServers: MutableMap<String, WebServerHandler> = mutableMapOf()
+    val httpServers: MutableMap<String, LocalHttpServer> = mutableMapOf()
     val webSocketSessions: MutableMap<String, Session> = mutableMapOf()
     val webSocketServer = LocalWebSocketServer(webSocketSessions)
-    val httpServer = LocalHttpServer(stage)
 
 }

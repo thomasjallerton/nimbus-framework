@@ -20,8 +20,8 @@
     <junit-jupiter-api.version>5.5.2</junit-jupiter-api.version>
     <jackson.version>2.13.0</jackson.version>
     <org.reflections.version>0.9.11</org.reflections.version>
-    <tika.version>1.23</tika.version>
-    <jetty.version>9.4.17.v20190418</jetty.version>
+    <tika.version>2.1.0</tika.version>
+    <jetty-server.version>11.0.7</jetty-server.version>
     <h2.version>1.4.198</h2.version>
   </properties>
 
@@ -34,6 +34,11 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
       <version>${jackson.version}</version>
     </dependency>
     <dependency>
@@ -56,18 +61,23 @@
     <!-- For tests dependencies -->
     <dependency>
       <groupId>org.eclipse.jetty.websocket</groupId>
-      <artifactId>websocket-api</artifactId>
-      <version>${jetty.version}</version>
+      <artifactId>websocket-jetty-api</artifactId>
+      <version>${jetty-server.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty.websocket</groupId>
-      <artifactId>websocket-server</artifactId>
-      <version>${jetty.version}</version>
+      <artifactId>websocket-jetty-server</artifactId>
+      <version>${jetty-server.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
-      <version>${jetty.version}</version>
+      <version>${jetty-server.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>${jetty-server.version}</version>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>

@@ -1,21 +1,18 @@
 package com.nimbusframework.nimbuslocal.deployment.keyvalue
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.AbstractKeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
-import com.nimbusframework.nimbuslocal.deployment.store.*
+import com.nimbusframework.nimbuslocal.deployment.store.LocalStore
+import com.nimbusframework.nimbuslocal.deployment.store.LocalStoreTransactions
 import java.util.*
 
 class LocalKeyValueStore<K, V>(private val keyClass: Class<K>, private val valueClass: Class<V>, keyType: Class<*>, keyName: String, tableName: String, stage: String)
     : AbstractKeyValueStoreClient<K, V>(keyClass, valueClass, keyType, keyName, tableName, stage), LocalStoreTransactions {
 
     private var keyValueStore = LocalStore(keyClass, valueClass, keyName, attributes)
-
-
-    private val objectMapper = ObjectMapper()
 
     internal val internalTableName = userTableName
 
@@ -28,17 +25,16 @@ class LocalKeyValueStore<K, V>(private val keyClass: Class<K>, private val value
     }
 
     internal fun putJson(obj: String) {
-        val objMapper = ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        val root = objMapper.readTree(obj)
-        val key = objMapper.readValue(root[keyName].toString(), keyClass)
-        val objVal = objMapper.readValue(obj, valueClass)
+        val root = JacksonClient.readTree(obj)
+        val key = JacksonClient.readValue(root[keyName].toString(), keyClass)
+        val objVal = JacksonClient.readValue(obj, valueClass)
 
         put(key, objVal)
     }
 
     internal fun deleteJson(obj: String) {
-        val root = objectMapper.readTree(obj)
-        val key = objectMapper.readValue(root[keyName].toString(), keyClass)
+        val root = JacksonClient.readTree(obj)
+        val key = JacksonClient.readValue(root[keyName].toString(), keyClass)
 
         delete(key)
     }

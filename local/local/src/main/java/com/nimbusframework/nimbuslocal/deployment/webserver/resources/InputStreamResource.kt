@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.resources
 
 import java.io.InputStream
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 class InputStreamResource(
         private val inputStream: InputStream,
