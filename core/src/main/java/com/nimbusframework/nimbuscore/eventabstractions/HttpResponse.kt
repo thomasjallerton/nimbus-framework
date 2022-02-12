@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbuscore.eventabstractions
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 
 data class HttpResponse(
         var statusCode: Int = 200,
@@ -14,7 +14,7 @@ data class HttpResponse(
     }
 
     fun withJsonBody(body: Any): HttpResponse {
-        this.body = ObjectMapper().writeValueAsString(body)
+        this.body = JacksonClient.writeValueAsString(body)
         return this
     }
 
