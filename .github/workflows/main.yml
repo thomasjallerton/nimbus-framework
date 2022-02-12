@@ -24,17 +24,17 @@ jobs:
       with:
         ref: ${{ github.head_ref }}
         fetch-depth: 0
-      
+
     - name: Setup Java JDK
       uses: actions/setup-java@v1.3.0
       with:
         # The Java version to make available on the path. Takes a whole or semver Java version, or 1.x syntax (e.g. 1.8 => Java 8.x)
         java-version: 1.11
-      
+
     - name: Get Snapshot Version
       id: snapshotversion
       run: echo ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-    
+
     - name: Get release version
       id: version
       uses: actions/github-script@0.9.0
@@ -45,15 +45,15 @@ jobs:
 
     - name: Set release version
       run: echo $(mvn versions:set -DnewVersion=${{ steps.version.outputs.version }})
-    
+
     - name: Commit release version
       uses: stefanzweifel/git-auto-commit-action@v4.3.0
       with:
         branch: master
-        file_pattern: pom.xml aws/pom.xml core/pom.xml
+        file_pattern: pom.xml cloud/pom.xml cloud/aws/pom.xml core/pom.xml local/pom.xml local/local/pom.xml local/local-aws/pom.xml
         tagging_message: '${{ steps.version.outputs.version }}'
         commit_message: release version
-    
+
     - name: Release Maven package
       uses: samuelmeuli/action-maven-publish@v1
       with:
@@ -61,13 +61,17 @@ jobs:
         gpg_passphrase: ${{ secrets.GPG_PASSWORD }}
         nexus_username: thomasjallerton
         nexus_password: ${{ secrets.REPO_PASSWORD }}
-        
+
+    - name: Rollback release
+      if: ${{ failure() }}
+      run: echo $(mvn release:rollback)
+
     - name: Move to new snapshot version
       run: echo $(mvn -B release:update-versions )
-      
+
     - name: Commit release version
       uses: stefanzweifel/git-auto-commit-action@v4.3.0
       with:
         branch: master
-        file_pattern: pom.xml aws/pom.xml core/pom.xml
+        file_pattern: pom.xml cloud/pom.xml cloud/aws/pom.xml core/pom.xml local/pom.xml local/local/pom.xml local/local-aws/pom.xml
         commit_message: prepare for next development cycle
