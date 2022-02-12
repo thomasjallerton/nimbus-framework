@@ -131,7 +131,7 @@
                 <annotationProcessorPath>
                   <groupId>com.nimbusframework</groupId>
                   <artifactId>nimbus-aws</artifactId>
-                  <version>0.15.0-SNAPSHOT</version>
+                  <version>${version}</version>
                 </annotationProcessorPath>
               </annotationProcessorPaths>
             </configuration>
@@ -163,7 +163,7 @@
                 <annotationProcessorPath>
                   <groupId>com.nimbusframework</groupId>
                   <artifactId>nimbus-aws</artifactId>
-                  <version>0.15.0-SNAPSHOT</version>
+                  <version>${version}</version>
                 </annotationProcessorPath>
               </annotationProcessorPaths>
             </configuration>
