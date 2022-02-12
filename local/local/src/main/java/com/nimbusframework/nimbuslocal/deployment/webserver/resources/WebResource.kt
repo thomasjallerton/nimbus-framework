@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.resources
 
 import com.nimbusframework.nimbuslocal.deployment.webserver.CorsInformation
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 abstract class WebResource(
         headers: Array<String>,
@@ -14,7 +14,7 @@ abstract class WebResource(
 
     init {
         val allowedHeadersTmp = CorsInformation.allowedHeaders.toMutableSet()
-        headers.forEach { allowedHeadersTmp.add(it.toLowerCase()) }
+        headers.forEach { allowedHeadersTmp.add(it.lowercase()) }
         allowedHeaders = allowedHeadersTmp
     }
 

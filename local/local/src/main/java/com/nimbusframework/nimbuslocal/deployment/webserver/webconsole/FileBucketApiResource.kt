@@ -1,20 +1,17 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.webconsole
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.WebResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.webconsole.models.FileBucketInformation
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.MultipartConfigElement
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.Request.__MULTIPART_CONFIG_ELEMENT
-import javax.servlet.MultipartConfigElement
-
 
 
 class FileBucketApiResource(private val httpMethod: HttpMethod) : WebResource(arrayOf(), listOf(), "") {
-
-    private val objectMapper = ObjectMapper()
 
     override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
         val localNimbusDeployment = LocalNimbusDeployment.getInstance()
@@ -35,7 +32,7 @@ class FileBucketApiResource(private val httpMethod: HttpMethod) : WebResource(ar
                                     localBucket.configuredAsStaticWebsite
                             )
                         }
-                        val bucketsJson = objectMapper.writeValueAsString(listOfBuckets)
+                        val bucketsJson = JacksonClient.writeValueAsString(listOfBuckets)
                         response.outputStream.bufferedWriter().use {it.write(bucketsJson) }
                     }
                     "getFile" -> {
@@ -51,7 +48,7 @@ class FileBucketApiResource(private val httpMethod: HttpMethod) : WebResource(ar
                         val bucketName = request.getParameter("bucketName")
                         val client = localNimbusDeployment.getLocalFileStorage(bucketName)
                         val files = client.listFiles()
-                        val filesJson = objectMapper.writeValueAsString(files)
+                        val filesJson = JacksonClient.writeValueAsString(files)
                         response.outputStream.bufferedWriter().use { it.write(filesJson) }
                     }
                 }
@@ -76,6 +73,7 @@ class FileBucketApiResource(private val httpMethod: HttpMethod) : WebResource(ar
                 }
 
             }
+            else -> {}
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbuslocal.deployment.queue
 
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.QueueEvent
 import com.nimbusframework.nimbuslocal.ServerlessMethod
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionType
@@ -29,7 +30,7 @@ class QueueMethod(
     }
 
     internal fun invokeJson(json: String, messageId: Int): Any {
-        val obj = objectMapper.readValue(json, paramType)
+        val obj = JacksonClient.readValue(json, paramType!!)
         invoke(obj, messageId)
         return obj
     }
@@ -40,7 +41,7 @@ class QueueMethod(
         if (obj is List<*>) {
             val parsedList = obj.map {
                 if (paramType != null) {
-                    objectMapper.readValue(objectMapper.writeValueAsString(it), paramType)
+                    JacksonClient.readValue(JacksonClient.writeValueAsString(it), paramType)
                 } else {
                     obj
                 }
@@ -56,7 +57,7 @@ class QueueMethod(
             }
         } else {
 
-            val parsedObject = objectMapper.readValue(objectMapper.writeValueAsString(obj), paramType)
+            val parsedObject = JacksonClient.readValue(JacksonClient.writeValueAsString(obj), paramType!!)
             val requestId = UUID.randomUUID().toString()
             val event = QueueEvent(messageId = messageId.toString(), requestId = requestId)
 

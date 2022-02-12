@@ -1,21 +1,18 @@
 package com.nimbusframework.nimbuslocal.deployment.document
 
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.document.AbstractDocumentStoreClient
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
-import com.nimbusframework.nimbuscore.exceptions.RetryableException
-import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
-import com.nimbusframework.nimbuslocal.deployment.store.*
+import com.nimbusframework.nimbuslocal.deployment.store.LocalStore
+import com.nimbusframework.nimbuslocal.deployment.store.LocalStoreTransactions
 import java.util.*
 
 class LocalDocumentStore<T>(private val clazz: Class<T>, tableName: String, stage: String)
     : AbstractDocumentStoreClient<T>(clazz, tableName, stage), LocalStoreTransactions {
 
     private var documentStore = LocalStore(Any::class.java, clazz, keys.keys.first(), allAttributes)
-
-    private val objectMapper = ObjectMapper()
 
     internal val internalTableName = userTableName
 
@@ -89,11 +86,11 @@ class LocalDocumentStore<T>(private val clazz: Class<T>, tableName: String, stag
     }
 
     internal fun putJson(obj: String) {
-        put(objectMapper.readValue(obj, clazz))
+        put(JacksonClient.readValue(obj, clazz))
     }
 
     internal fun deleteJson(obj: String) {
-        delete(objectMapper.readValue(obj, clazz))
+        delete(JacksonClient.readValue(obj, clazz))
     }
 
     override fun delete(obj: T) {

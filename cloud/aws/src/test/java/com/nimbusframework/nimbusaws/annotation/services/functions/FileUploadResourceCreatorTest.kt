@@ -54,7 +54,7 @@ class FileUploadResourceCreatorTest : AnnotationSpec() {
             val fileUploadDescription = processingData.nimbusState.fileUploads["dev"]!!["imagebucketdev"]!![0]
             fileUploadDescription.localFile shouldBe "test"
             fileUploadDescription.targetFile shouldBe "test"
-            fileUploadDescription.substituteVariables shouldBe false
+            fileUploadDescription.fileUploadVariableSubstitutionFileRegex shouldBe ""
 
             verify { messager wasNot Called }
         }

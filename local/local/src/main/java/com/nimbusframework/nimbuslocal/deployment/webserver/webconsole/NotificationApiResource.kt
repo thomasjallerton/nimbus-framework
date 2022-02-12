@@ -1,17 +1,14 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.webconsole
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.WebResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.webconsole.models.NotificationInformation
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 class NotificationApiResource(private val httpMethod: HttpMethod) : WebResource(arrayOf(), listOf(), "") {
-
-    val objectMapper = ObjectMapper()
-
 
     override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
         val localNimbusDeployment = LocalNimbusDeployment.getInstance()
@@ -34,7 +31,7 @@ class NotificationApiResource(private val httpMethod: HttpMethod) : WebResource(
                                     topic.getTotalNumberOfNotifications()
                             )
                         }
-                        val tablesJson = objectMapper.writeValueAsString(listOfNotificationTopics)
+                        val tablesJson = JacksonClient.writeValueAsString(listOfNotificationTopics)
                         response.outputStream.bufferedWriter().use { it.write(tablesJson) }
                     }
                 }

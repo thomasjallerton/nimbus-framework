@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbuslocal.deployment.store
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
@@ -20,7 +20,6 @@ class LocalStore<K, V>(
     private var originalTransactionStore: MutableMap<K, String> = mutableMapOf()
     private var currentTransaction: UUID? = null
 
-    private val objectMapper = ObjectMapper()
     private val methods: MutableList<StoreMethod> = mutableListOf()
 
     private val conditionProcessor = ConditionProcessor(valueClass, primaryKeyColumn)
@@ -94,7 +93,7 @@ class LocalStore<K, V>(
         val value = allAttributesToJson(valueObj)
 
         if (localStore.containsKey(key)) {
-            val oldItem = objectMapper.readValue(localStore[key], valueClass)
+            val oldItem = JacksonClient.readValue(localStore[key], valueClass)
             localStore[key] = value
             methods.forEach { method -> method.invokeModify(oldItem, valueObj) }
 
@@ -107,20 +106,20 @@ class LocalStore<K, V>(
     fun delete(key: K) {
         if (localStore.containsKey(key)) {
             val removedItemStr = localStore.remove(key)
-            val oldItem = objectMapper.readValue(removedItemStr, valueClass)
+            val oldItem = JacksonClient.readValue(removedItemStr, valueClass)
             methods.forEach { method -> method.invokeRemove(oldItem) }
         }
     }
 
 
     fun getAll(): Map<K, V> {
-        return localStore.mapValues { entry -> objectMapper.readValue(entry.value, valueClass)}
+        return localStore.mapValues { entry -> JacksonClient.readValue(entry.value, valueClass)}
     }
 
     fun get(key: K): V? {
         val strValue = localStore[key]
         return if (strValue != null) {
-            objectMapper.readValue(strValue, valueClass)
+            JacksonClient.readValue(strValue, valueClass)
         } else {
             null
         }
@@ -134,14 +133,14 @@ class LocalStore<K, V>(
             attributeMap[fieldName] = field.get(obj)
         }
 
-        return objectMapper.writeValueAsString(attributeMap)
+        return JacksonClient.writeValueAsString(attributeMap)
     }
 
 
     private fun checkCondition(key: K, condition: Condition) {
         val existingItemStr = localStore[key]
         val existingItem = try {
-            objectMapper.readValue(existingItemStr, valueClass)
+            JacksonClient.readValue(existingItemStr, valueClass)
         } catch (e: Exception) {
             null
         }

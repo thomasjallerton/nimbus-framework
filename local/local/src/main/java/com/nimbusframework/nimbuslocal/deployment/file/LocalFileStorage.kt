@@ -5,14 +5,14 @@ import com.nimbusframework.nimbuscore.clients.file.FileInformation
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.deployment.webserver.WebServerHandler
+import org.apache.tika.Tika
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.nio.file.Files
-import java.util.*
-import org.apache.tika.Tika
+import java.net.URLConnection
 import java.time.Instant
+import java.util.*
 
 
 class LocalFileStorage(bucketName: String, private val allowedOrigins: List<String>) : FileStorageClient {
@@ -24,9 +24,13 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
 
     val configuredAsStaticWebsite = handler != null
 
+    init {
+        System.setProperty("content.types.user.table","mimetypes/content-types.properties")
+    }
+
     override fun saveFile(path: String, inputStream: InputStream) {
         val outputFile = saveInputStreamToFile(path, inputStream)
-        addNewWebHandler(path, outputFile)
+        addNewWebHandler(path, outputFile, determineContentType(outputFile))
     }
 
     override fun saveFile(path: String, file: File) {
@@ -36,7 +40,7 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
 
     override fun saveFile(path: String, content: String) {
         val outputFile = saveStringToFile(path, content)
-        addNewWebHandler(path, outputFile)
+        addNewWebHandler(path, outputFile, determineContentType(outputFile))
     }
 
     override fun saveFileWithContentType(path: String, content: String, contentType: String) {
@@ -166,7 +170,8 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
         return f
     }
 
-    private fun determineContentType(file: File): String {
-        return Tika().detect(file)
+    fun determineContentType(file: File): String {
+        val mimeType: String? = MimeTypeDetector.guessMimeTypeByExtension(file.name)
+        return mimeType ?: Tika().detect(file)
     }
 }

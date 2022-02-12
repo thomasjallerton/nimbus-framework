@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.resources
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 class RedirectResource(private val redirectTarget: String): WebResource(arrayOf(), listOf("*"), "") {
 

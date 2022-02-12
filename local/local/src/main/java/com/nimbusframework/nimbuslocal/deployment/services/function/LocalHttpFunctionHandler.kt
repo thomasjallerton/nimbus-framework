@@ -10,6 +10,7 @@ import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
 import com.nimbusframework.nimbuslocal.deployment.services.LocalResourceHolder
 import com.nimbusframework.nimbuslocal.deployment.services.StageService
+import com.nimbusframework.nimbuslocal.deployment.webserver.LocalHttpServer
 import com.nimbusframework.nimbuslocal.deployment.webserver.WebServerHandler
 import java.lang.reflect.Method
 
@@ -44,16 +45,16 @@ class LocalHttpFunctionHandler(
             }
             localResourceHolder.functions[functionIdentifier] = ServerlessFunction(httpMethod, functionInformation)
 
-            val lambdaWebserver = localResourceHolder.httpServers.getOrPut(functionWebserverIdentifier) {
-                variableSubstitution["\${NIMBUS_REST_API_URL}"] = "http://localhost:$httpPort/$functionWebserverIdentifier"
-                WebServerHandler("", "", "http://localhost:$httpPort/$functionWebserverIdentifier/")
+            val functionApiServer = localResourceHolder.httpServers.getOrPut(functionWebserverIdentifier) {
+                variableSubstitution["\${NIMBUS_REST_API_URL}"] = "http://localhost:$httpPort"
+                LocalHttpServer(httpPort, WebServerHandler("", ""))
             }
             val allowedOrigin = if (variableSubstitution.containsKey(annotation.allowedCorsOrigin)) {
                 variableSubstitution[annotation.allowedCorsOrigin]!!
             } else {
                 annotation.allowedCorsOrigin
             }
-            lambdaWebserver.addWebResource(
+            functionApiServer.handler.handler.addWebResource(
                     annotation.path,
                     annotation.method,
                     httpMethod,

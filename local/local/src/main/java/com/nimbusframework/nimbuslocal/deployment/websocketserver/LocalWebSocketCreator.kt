@@ -1,10 +1,10 @@
 package com.nimbusframework.nimbuslocal.deployment.websocketserver
 
-import org.eclipse.jetty.websocket.api.Session
-import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
-import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse
-import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import com.nimbusframework.nimbuslocal.deployment.websocket.LocalWebsocketMethod
+import org.eclipse.jetty.websocket.api.Session
+import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest
+import org.eclipse.jetty.websocket.server.JettyServerUpgradeResponse
+import org.eclipse.jetty.websocket.server.JettyWebSocketCreator
 
 class LocalWebSocketCreator(
         private var connectMethod: LocalWebsocketMethod?,
@@ -12,9 +12,9 @@ class LocalWebSocketCreator(
         private var defaultMethod: LocalWebsocketMethod?,
         private val topics: Map<String, LocalWebsocketMethod>,
         private val sessions: MutableMap<String, Session>
-): WebSocketCreator {
+): JettyWebSocketCreator {
 
-    override fun createWebSocket(req: ServletUpgradeRequest?, resp: ServletUpgradeResponse?): Any? {
+    override fun createWebSocket(req: JettyServerUpgradeRequest?, resp: JettyServerUpgradeResponse?): Any? {
         if (req != null) {
             val headers = req.headers.mapValues {
                 (_, values) -> values.joinToString(", ")

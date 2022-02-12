@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbuslocal.deployment.notification
 
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.notification.Protocol
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbuslocal.deployment.webserver.webconsole.models.FunctionSubscriberInformation
 import java.util.*
 
@@ -39,8 +39,7 @@ class LocalNotificationTopic {
         totalNotifications++
         generalSubscribers.forEach { subscriberInformation -> notifiedEndpoints[subscriberInformation.value]!!.add(json) }
 
-        val objectMapper = ObjectMapper()
-        methodSubscribers.forEach { subscriber -> subscriber.invoke(objectMapper.writeValueAsString(json)) }
+        methodSubscribers.forEach { subscriber -> subscriber.invoke(JacksonClient.writeValueAsString(json)) }
     }
 
     fun getTotalNumberOfNotifications(): Int {return totalNotifications}

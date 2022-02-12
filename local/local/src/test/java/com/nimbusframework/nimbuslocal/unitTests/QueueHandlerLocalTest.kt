@@ -14,7 +14,8 @@ class QueueHandlerLocalTest: AnnotationSpec() {
 
     @Test
     fun addingOneItemToQueueTriggersFunction() {
-        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java)
+        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java, ExampleQueueHandler.BatchSize1Queue::class.java,
+            ExampleQueueHandler.BatchSize2BatchQueue::class.java, ExampleQueueHandler.BatchSize2IndividualQueue::class.java)
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize1Queue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handle")
@@ -29,7 +30,8 @@ class QueueHandlerLocalTest: AnnotationSpec() {
 
     @Test
     fun addingTwoItemsToQueueTriggersFunctionTwice() {
-        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java)
+        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java, ExampleQueueHandler.BatchSize1Queue::class.java,
+            ExampleQueueHandler.BatchSize2BatchQueue::class.java, ExampleQueueHandler.BatchSize2IndividualQueue::class.java)
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize1Queue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handle")
@@ -43,7 +45,8 @@ class QueueHandlerLocalTest: AnnotationSpec() {
 
     @Test
     fun addingOneItemToQueueTriggersFunctionOnceLargerBatchsize() {
-        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java)
+        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java, ExampleQueueHandler.BatchSize1Queue::class.java,
+            ExampleQueueHandler.BatchSize2BatchQueue::class.java, ExampleQueueHandler.BatchSize2IndividualQueue::class.java)
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize2BatchQueue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Batched")
@@ -56,7 +59,8 @@ class QueueHandlerLocalTest: AnnotationSpec() {
 
     @Test
     fun addingTwoItemsToQueueTriggersFunctionOnceLargerBatchsize() {
-        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java)
+        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java, ExampleQueueHandler.BatchSize1Queue::class.java,
+            ExampleQueueHandler.BatchSize2BatchQueue::class.java, ExampleQueueHandler.BatchSize2IndividualQueue::class.java)
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize2BatchQueue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Batched")
@@ -69,7 +73,8 @@ class QueueHandlerLocalTest: AnnotationSpec() {
 
     @Test
     fun addingOneItemToQueueTriggersIndividualFunctionOnceLargerBatchsize() {
-        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java)
+        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java, ExampleQueueHandler.BatchSize1Queue::class.java,
+            ExampleQueueHandler.BatchSize2BatchQueue::class.java, ExampleQueueHandler.BatchSize2IndividualQueue::class.java)
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize2IndividualQueue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Individual")
@@ -82,7 +87,8 @@ class QueueHandlerLocalTest: AnnotationSpec() {
 
     @Test
     fun addingTwoItemsToQueueTriggersIndividualFunctionOnceLargerBatchsize() {
-        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java)
+        val localDeployment = LocalNimbusDeployment.getNewInstance(ExampleQueueHandler::class.java, ExampleQueueHandler.BatchSize1Queue::class.java,
+            ExampleQueueHandler.BatchSize2BatchQueue::class.java, ExampleQueueHandler.BatchSize2IndividualQueue::class.java)
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize2IndividualQueue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Individual")

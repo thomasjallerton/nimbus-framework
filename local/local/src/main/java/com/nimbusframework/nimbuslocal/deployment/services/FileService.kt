@@ -5,6 +5,7 @@ import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
 import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.util.regex.Pattern
 
 class FileService(
         private val variableSubstitution: Map<String, String>
@@ -21,11 +22,17 @@ class FileService(
         for ((bucketClass, fileUploads) in bucketUploads) {
             val fileStorageClient = ClientBuilder.getFileStorageClient(bucketClass)
 
-            for ((localFile, targetFile, substituteVariables) in fileUploads) {
+            for ((localFile, targetFile, substituteVariablesFileRegex) in fileUploads) {
                 val file = File(localFile)
+                val compiledPattern = Pattern.compile(substituteVariablesFileRegex)
+                val matcher: (String) -> Boolean = if (substituteVariablesFileRegex.isNotEmpty()) {
+                    { compiledPattern.matcher(it).matches() }
+                } else {
+                    { false }
+                }
 
                 if (file.isFile) {
-                    if (substituteVariables) {
+                    if (matcher(file.name)) {
                         fileStorageClient.saveFile(targetFile, substituteVariables(file))
                     } else {
                         fileStorageClient.saveFile(targetFile, file)
@@ -36,7 +43,7 @@ class FileService(
                     } else {
                         "$targetFile/"
                     }
-                    uploadDirectory(fileStorageClient, file, newPath, substituteVariables)
+                    uploadDirectory(fileStorageClient, file, newPath, matcher)
                 } else {
                     throw IllegalArgumentException("$localFile is not file or directory on the system")
                 }
@@ -44,7 +51,7 @@ class FileService(
         }
     }
 
-    private fun uploadDirectory(fileStorageClient: FileStorageClient, directory: File, s3Path: String, substituteVariables: Boolean) {
+    private fun uploadDirectory(fileStorageClient: FileStorageClient, directory: File, s3Path: String, matcher: (String) -> Boolean) {
         for (file in directory.listFiles()) {
             val newPath = if (s3Path.isEmpty()) {
                 file.name
@@ -53,13 +60,13 @@ class FileService(
             }
 
             if (file.isFile) {
-                if (substituteVariables) {
+                if (matcher(file.name)) {
                     fileStorageClient.saveFile(newPath, substituteVariables(file))
                 } else {
                     fileStorageClient.saveFile(newPath, file)
                 }
             } else if (file.isDirectory){
-                uploadDirectory(fileStorageClient, file, newPath, substituteVariables)
+                uploadDirectory(fileStorageClient, file, newPath, matcher)
             }
         }
     }

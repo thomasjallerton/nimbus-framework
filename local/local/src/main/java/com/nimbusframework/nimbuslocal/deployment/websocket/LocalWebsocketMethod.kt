@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbuslocal.deployment.websocket
 
-import com.fasterxml.jackson.databind.DeserializationFeature
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.WebSocketEvent
 import com.nimbusframework.nimbuslocal.ServerlessMethod
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionType
@@ -10,10 +10,6 @@ class LocalWebsocketMethod(
         private val method: Method,
         private val invokeOn: Any
 ) : ServerlessMethod(method, WebSocketEvent::class.java, FunctionType.WEBSOCKET) {
-
-    init {
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    }
 
     fun invoke(request: WebSocketRequest): Any? {
         timesInvoked++
@@ -32,11 +28,11 @@ class LocalWebsocketMethod(
             method.invoke(invokeOn)
         } else if (params.size == 2) {
             if (eventIndex == 0) {
-                val param = objectMapper.readValue(strParam, params[1].type)
+                val param = JacksonClient.readValue(strParam, params[1].type)
                 mostRecentInvokeArgument = param
                 method.invoke(invokeOn, webSocketEvent, param)
             } else {
-                val param = objectMapper.readValue(strParam, params[0].type)
+                val param = JacksonClient.readValue(strParam, params[0].type)
                 mostRecentInvokeArgument = param
                 method.invoke(invokeOn, param, webSocketEvent)
             }
@@ -44,7 +40,7 @@ class LocalWebsocketMethod(
             if (eventIndex == 0) {
                 method.invoke(invokeOn, webSocketEvent)
             } else {
-                val param = objectMapper.readValue(strParam, params[0].type)
+                val param = JacksonClient.readValue(strParam, params[0].type)
                 mostRecentInvokeArgument = param
                 method.invoke(invokeOn, param)
             }
