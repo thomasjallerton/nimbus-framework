@@ -29,7 +29,7 @@
         <auto-service.version>1.0-rc6</auto-service.version>
         <aws.version>1.12.119</aws.version>
         <mysql-connector-java.version>8.0.16</mysql-connector-java.version>
-        <postgresql.version>42.2.5</postgresql.version>
+        <postgresql.version>42.3.3</postgresql.version>
         <mssql-jdbc.version>7.2.1.jre8</mssql-jdbc.version>
         <mariadb-java-client.version>2.4.0</mariadb-java-client.version>
         <junit.version>4.13-rc-1</junit.version>
