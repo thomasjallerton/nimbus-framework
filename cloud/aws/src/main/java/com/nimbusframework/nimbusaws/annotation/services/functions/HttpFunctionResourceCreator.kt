@@ -8,9 +8,11 @@ import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.Fu
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.http.HttpServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.NimbusConstants.allowedOriginEnvVariable
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.HttpServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
+import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -75,11 +77,11 @@ class HttpFunctionResourceCreator(
 
                 if (referencedWebsite != null) {
                     functionResource.addEnvVariable(
-                        "NIMBUS_ALLOWED_CORS_ORIGIN",
+                        allowedOriginEnvVariable,
                         referencedWebsite.getAttr("WebsiteURL")
                     )
                 } else {
-                    functionResource.addEnvVariable("NIMBUS_ALLOWED_CORS_ORIGIN", annotationCorsOrigin)
+                    functionResource.addEnvVariable(allowedOriginEnvVariable, getAllowedOrigins(stage, processingData.nimbusState, httpFunction))
                 }
 
                 functionEnvironmentService.newHttpMethod(httpFunction, functionResource)
@@ -88,5 +90,29 @@ class HttpFunctionResourceCreator(
             }
         }
         return results
+    }
+
+    companion object {
+
+        fun getAllowedOrigins(stage: String, nimbusState: NimbusState, httpServerlessFunction: HttpServerlessFunction): String  {
+            if (httpServerlessFunction.allowedCorsOrigin.isNotBlank()) {
+                return httpServerlessFunction.allowedCorsOrigin
+            }
+            if (nimbusState.defaultAllowedOrigin[stage] != null) {
+                return nimbusState.defaultAllowedOrigin[stage]!!
+            }
+            return ""
+        }
+
+        fun getAllowedHeaders(stage: String, nimbusState: NimbusState, httpServerlessFunction: HttpServerlessFunction): Array<String>  {
+            if (httpServerlessFunction.allowedCorsHeaders.isNotEmpty()) {
+                return httpServerlessFunction.allowedCorsHeaders
+            }
+            if (nimbusState.defaultRequestHeaders[stage] != null) {
+                return nimbusState.defaultRequestHeaders[stage]!!.toTypedArray()
+            }
+            return Array(0) { "" }
+        }
+
     }
 }

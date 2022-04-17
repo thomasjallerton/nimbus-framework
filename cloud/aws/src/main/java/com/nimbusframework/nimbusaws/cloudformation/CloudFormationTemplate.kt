@@ -12,6 +12,7 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.http.RestApi
 import com.nimbusframework.nimbusaws.cloudformation.resource.websocket.WebSocketApi
 import com.nimbusframework.nimbusaws.cloudformation.resource.websocket.WebSocketDeployment
 import com.nimbusframework.nimbuscore.persisted.NimbusState
+import java.util.*
 
 data class CloudFormationTemplate(
         private val nimbusState: NimbusState,
@@ -40,7 +41,7 @@ data class CloudFormationTemplate(
     fun referencedFileStorageBucket(origin: String): FileBucket? {
         if (origin == "") return null
         for (website in fileBucketWebsites) {
-            val websiteSubstitution = "\${${website.annotationBucketName.toUpperCase()}_URL}"
+            val websiteSubstitution = "\${${website.annotationBucketName.uppercase(Locale.getDefault())}_URL}"
             if (origin == websiteSubstitution) {
                 return website
             }

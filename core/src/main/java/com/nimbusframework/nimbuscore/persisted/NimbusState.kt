@@ -10,6 +10,8 @@ data class NimbusState(
         val cloudProvider: CloudProvider = CloudProvider.AWS,
         val compilationTimeStamp: String = "",
         val defaultStages: List<String> = listOf(NimbusConstants.stage),
+        val defaultRequestHeaders: Map<String, List<String>> = mapOf(),
+        val defaultAllowedOrigin: Map<String, String> = mapOf(),
         val keepWarmStages: List<String> = listOf(),
         val afterDeployments: MutableMap<String, MutableList<String>> = mutableMapOf(),
         //Stage -> Bucket -> LocalFile -> RemoteFile

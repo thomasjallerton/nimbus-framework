@@ -17,6 +17,8 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionRe
 import com.nimbusframework.nimbusaws.cloudformation.resource.http.*
 import com.nimbusframework.nimbusaws.cloudformation.resource.websocket.*
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator.Companion.getAllowedHeaders
+import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator.Companion.getAllowedOrigins
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbuscore.persisted.ExportInformation
@@ -127,16 +129,16 @@ class FunctionEnvironmentService(
                 } else {
                     existingCorsMethod as CorsRestMethod
                 }
-                corsMethod.addHeaders(httpFunction.allowedCorsHeaders)
-                corsMethod.addOrigin(httpFunction.allowedCorsOrigin)
+                corsMethod.addHeaders(getAllowedHeaders(function.stage, nimbusState, httpFunction))
+                corsMethod.addOrigin(getAllowedOrigins(function.stage, nimbusState, httpFunction))
                 corsMethod.addMethod(httpFunction.method)
             }
         }
 
         val permission = FunctionPermissionResource(function, restApi, nimbusState)
         updateResources.addResource(permission)
-
     }
+
 
     fun newStoreTrigger(store: Resource, function: FunctionResource) {
         val cfDocuments = cloudFormationFiles[function.stage]!!

@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbuscore.services
 
-import com.nimbusframework.nimbuscore.persisted.UserConfig
+import com.nimbusframework.nimbuscore.persisted.userconfig.UserConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.nimbusframework.nimbusaws.annotation.services.FileReader

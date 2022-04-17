@@ -6,6 +6,7 @@ import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForRe
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
+import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse
@@ -45,6 +46,7 @@ class HttpServerlessFunctionFileBuilder(
     }
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {
+        write("System.out.println(input);")
         write("${HttpEvent::class.simpleName} event = ${RestApiGatewayEventMapper::class.simpleName}.getHttpEvent(input, requestId);")
         if (inputParam.exists()) {
             write("${inputParam.canonicalName()} parsedType = JacksonClient.readValue(input.getBody(), ${inputParam.simpleName()}.class);")
@@ -91,8 +93,8 @@ class HttpServerlessFunctionFileBuilder(
         write("if ($variableName.getHeaders() == null) {")
         write("$variableName.setHeaders(new HashMap<>());")
         write("}")
-        write("if (!$variableName.getHeaders() .containsKey(\"Access-Control-Allow-Origin\")) {")
-        write("String allowedCorsOrigin = System.getenv(\"NIMBUS_ALLOWED_CORS_ORIGIN\");")
+        write("if (!$variableName.getHeaders().containsKey(\"Access-Control-Allow-Origin\")) {")
+        write("String allowedCorsOrigin = System.getenv(\"${NimbusConstants.allowedOriginEnvVariable}\");")
         write("if (allowedCorsOrigin != null && !allowedCorsOrigin.equals(\"\")) {")
         write("$variableName.getHeaders().put(\"Access-Control-Allow-Origin\", allowedCorsOrigin);")
         write("}")

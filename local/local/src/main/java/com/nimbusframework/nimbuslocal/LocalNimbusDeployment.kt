@@ -108,7 +108,7 @@ class LocalNimbusDeployment private constructor(
         Companion.stage = stage
         InternalPortCount.currentPort = httpPort + 1
         localResourceHolder = LocalResourceHolder()
-        val stageService = StageService(stage, userConfig.defaultStages.contains(stage))
+        val stageService = StageService(stage, userConfig.defaultStages.contains(stage), userConfig.getAllowedOrigins(), userConfig.getAllowedHeaders())
         initialiseFunctionHandlers(stageService)
         initialiseResourceCreators(stageService)
         initialiseUseResourceHandlers(stageService)

@@ -17,7 +17,7 @@ import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles;
 import com.nimbusframework.nimbusaws.wrappers.customRuntimeEntry.CustomRuntimeEntryFileBuilder;
 import com.nimbusframework.nimbuscore.persisted.CloudProvider;
 import com.nimbusframework.nimbuscore.persisted.NimbusState;
-import com.nimbusframework.nimbuscore.persisted.UserConfig;
+import com.nimbusframework.nimbuscore.persisted.userconfig.UserConfig;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -112,6 +112,8 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                         CloudProvider.AWS,
                         compilationTime,
                         userConfig.getDefaultStages(),
+                        userConfig.getAllowedHeaders(),
+                        userConfig.getAllowedOrigins(),
                         userConfig.getKeepWarmStages(),
                         new HashMap<>(),
                         new HashMap<>(),
