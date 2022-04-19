@@ -11,7 +11,6 @@ import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.queue.QueueResource
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -71,7 +70,6 @@ class UsesQueueProcessorTest: AnnotationSpec() {
                 usesQueueProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesQueueHandler").enclosedElements[1], functionResource)
                 val queueResource = cfDocuments["dev"]!!.updateTemplate.resources.get("SQSQueuemessageQueue")!!
 
-                functionResource.usesClient(ClientType.Queue) shouldBe true
                 functionResource.getStrEnvValue("NIMBUS_STAGE") shouldBe "dev"
                 functionResource.getJsonEnvValue("NIMBUS_QUEUE_URL_ID_MESSAGEQUEUE") shouldNotBe null
 

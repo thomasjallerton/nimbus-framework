@@ -6,7 +6,6 @@ import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage
 import com.nimbusframework.nimbuscore.annotations.database.UsesRelationalDatabase
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.UsesRelationalDatabaseAnnotation
 import javax.annotation.processing.ProcessingEnvironment
@@ -22,7 +21,6 @@ class UsesRelationalDatabaseProcessor(
         val resourceFinder = ResourceFinder(cfDocuments, processingEnv, nimbusState)
 
         for (usesRelationalDatabase in serverlessMethod.getAnnotationsByType(UsesRelationalDatabase::class.java)) {
-            functionResource.addClient(ClientType.Database)
 
             for (stage in stageService.determineStages(usesRelationalDatabase.stages)) {
                 if (stage == functionResource.stage) {

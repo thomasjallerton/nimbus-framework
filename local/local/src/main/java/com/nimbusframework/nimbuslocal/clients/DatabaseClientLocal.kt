@@ -6,10 +6,10 @@ import com.nimbusframework.nimbuscore.permissions.PermissionType
 import java.sql.Connection
 import java.sql.DriverManager
 
-internal class DatabaseClientLocal<T>(private val databaseObject: Class<T>): DatabaseClient, LocalClient() {
+internal class DatabaseClientLocal<T>(private val databaseObject: Class<T>): DatabaseClient, LocalClient(PermissionType.RELATIONAL_DATABASE) {
 
-    override fun canUse(): Boolean {
-        return checkPermissions(PermissionType.RELATIONAL_DATABASE, databaseObject.canonicalName)
+    override fun canUse(permissionType: PermissionType): Boolean {
+        return checkPermissions(permissionType, databaseObject.canonicalName)
     }
 
     override val clientName: String = DatabaseClient::class.java.simpleName

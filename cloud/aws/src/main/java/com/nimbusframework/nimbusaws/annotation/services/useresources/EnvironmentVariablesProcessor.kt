@@ -2,7 +2,6 @@ package com.nimbusframework.nimbusaws.annotation.services.useresources
 
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.annotations.function.EnvironmentVariable
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import javax.annotation.processing.Messager
 import javax.lang.model.element.Element
@@ -15,7 +14,6 @@ class EnvironmentVariablesProcessor(
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
         for (environmentVariable in serverlessMethod.getAnnotationsByType(EnvironmentVariable::class.java)) {
-            functionResource.addClient(ClientType.EnvironmentVariable)
 
             for (stage in stageService.determineStages(environmentVariable.stages)) {
                 if (stage == functionResource.stage) {

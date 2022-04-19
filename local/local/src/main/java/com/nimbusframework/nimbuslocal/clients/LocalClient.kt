@@ -7,16 +7,15 @@ import com.nimbusframework.nimbuslocal.deployment.function.FunctionEnvironment
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionIdentifier
 
 
-abstract class LocalClient {
+abstract class LocalClient(private val defaultPermissionType: PermissionType) {
 
     protected var functionEnvironment: FunctionEnvironment? = null
     protected val localNimbusDeployment = LocalNimbusDeployment.getInstance()
 
     protected abstract val clientName: String
-    protected abstract fun canUse(): Boolean
+    protected abstract fun canUse(permissionType: PermissionType): Boolean
 
-    private var checkedCanUse: Boolean = false
-
+    private var checkedPermissions: MutableSet<String> = mutableSetOf()
 
     protected fun getCallingServerlessMethod(): FunctionEnvironment? {
         val functionEnvironments = localNimbusDeployment.getFunctionEnvironments()
@@ -45,12 +44,12 @@ abstract class LocalClient {
         }
     }
 
-    protected fun checkClientUse() {
-        if (!checkedCanUse) {
-            if (!canUse()) {
+    protected fun checkClientUse(permissionType: PermissionType = defaultPermissionType) {
+        if (!checkedPermissions.contains(permissionType.getKey())) {
+            if (!canUse(permissionType)) {
                 throw PermissionException(clientName)
             }
-            checkedCanUse = true
+            checkedPermissions.add(permissionType.getKey())
         }
     }
 

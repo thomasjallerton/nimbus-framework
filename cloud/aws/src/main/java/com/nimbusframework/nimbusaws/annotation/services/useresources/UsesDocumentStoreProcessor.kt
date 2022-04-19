@@ -4,7 +4,6 @@ import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.annotations.document.UsesDocumentStore
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.UsesDocumentStoreAnnotation
 import javax.annotation.processing.Messager
@@ -23,7 +22,6 @@ class UsesDocumentStoreProcessor(
         val iamRoleResource = functionResource.getIamRoleResource()
         val resourceFinder = ResourceFinder(cfDocuments, processingEnv, nimbusState)
         for (usesDocumentStore in serverlessMethod.getAnnotationsByType(UsesDocumentStore::class.java)) {
-            functionResource.addClient(ClientType.DocumentStore)
 
             for (stage in stageService.determineStages(usesDocumentStore.stages)) {
                 if (stage == functionResource.stage) {

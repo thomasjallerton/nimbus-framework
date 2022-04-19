@@ -6,7 +6,7 @@ import com.nimbusframework.nimbuslocal.deployment.services.LocalResourceHolder
 import java.lang.reflect.Method
 
 abstract class LocalUsesResourcesHandler(
-        private val localResourceHolder: LocalResourceHolder
+    private val localResourceHolder: LocalResourceHolder
 ) {
 
     protected abstract fun handleUsesResources(clazz: Class<out Any>, method: Method, functionEnvironment: FunctionEnvironment)

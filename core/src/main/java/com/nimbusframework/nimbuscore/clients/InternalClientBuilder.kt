@@ -1,5 +1,6 @@
-package com.nimbusframework.nimbuscore.clients.database
+package com.nimbusframework.nimbuscore.clients
 
+import com.nimbusframework.nimbuscore.clients.database.DatabaseClient
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
 import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient

@@ -144,6 +144,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         resourceCreators.add(new QueueResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState()));
         resourceCreators.add(new RelationalDatabaseResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState()));
         resourceCreators.add(new FileStorageBucketResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState()));
+        resourceCreators.add(new ExistingCognitoResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState()));
         resourceCreators.add(new RegisterForReflectionResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState(), classForReflectionService));
 
         for (CloudResourceResourceCreator creator : resourceCreators) {
@@ -181,6 +182,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         usesResourcesProcessors.add(new UsesKeyValueStoreProcessor(cloudFormationFiles, processingEnv, processingData.getNimbusState(), messager));
         usesResourcesProcessors.add(new UsesNotificationTopicProcessor(cloudFormationFiles, messager, resourceFinder, processingData.getNimbusState()));
         usesResourcesProcessors.add(new UsesQueueProcessor(cloudFormationFiles, messager, resourceFinder, processingData.getNimbusState()));
+        usesResourcesProcessors.add(new UsesCognitoProcessor(cloudFormationFiles, processingEnv, messager, processingData.getNimbusState()));
         usesResourcesProcessors.add(new UsesRelationalDatabaseProcessor(cloudFormationFiles, processingEnv, processingData.getNimbusState()));
         usesResourcesProcessors.add(new UsesServerlessFunctionWebSocketClientProcessor(cloudFormationFiles, processingData.getNimbusState()));
         usesResourcesProcessors.add(new EnvironmentVariablesProcessor(processingData.getNimbusState(), messager));

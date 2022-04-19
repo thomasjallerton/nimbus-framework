@@ -2,7 +2,6 @@ package com.nimbusframework.nimbuscore.clients
 
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 import com.nimbusframework.nimbuscore.clients.database.DatabaseClient
-import com.nimbusframework.nimbuscore.clients.database.InternalClientBuilder
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.empty.*
 import com.nimbusframework.nimbuscore.clients.empty.EmptyDocumentStoreClient
@@ -14,7 +13,6 @@ import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
 import com.nimbusframework.nimbuscore.clients.queue.QueueClient
 import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
-import java.net.URLClassLoader
 
 object ClientBuilder {
 
@@ -135,7 +133,7 @@ object ClientBuilder {
         }
     }
 
-    private fun getStage(): String {
+    fun getStage(): String {
         return if (System.getenv().containsKey("NIMBUS_STAGE")) {
             System.getenv("NIMBUS_STAGE")
         } else {

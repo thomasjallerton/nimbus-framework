@@ -3,7 +3,6 @@ package com.nimbusframework.nimbusaws.annotation.services.useresources
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.annotations.function.UsesBasicServerlessFunction
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.UsesBasicServerlessFunctionAnnotation
 import javax.annotation.processing.Messager
@@ -21,7 +20,6 @@ class UsesBasicServerlessFunctionClientProcessor(
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
 
         for (usesBasicServerlessFunctionClient in serverlessMethod.getAnnotationsByType(UsesBasicServerlessFunction::class.java)) {
-            functionResource.addClient(ClientType.BasicFunction)
 
             val targetElem = UsesBasicServerlessFunctionAnnotation(usesBasicServerlessFunctionClient).getTypeElement(processingEnv)
 

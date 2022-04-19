@@ -9,7 +9,6 @@ import com.nimbusframework.nimbusaws.annotation.services.resources.KeyValueStore
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -64,7 +63,6 @@ class UsesKeyValueStoreProcessorTest: AnnotationSpec() {
                 usesKeyValueStoreProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[1], functionResource)
                 val dynamoResource = cfDocuments["dev"]!!.updateTemplate.resources.get("KeyValuedev")!!
 
-                functionResource.usesClient(ClientType.KeyValueStore) shouldBe true
                 iamRoleResource.allows("dynamodb:*", dynamoResource) shouldBe true
             }
         }

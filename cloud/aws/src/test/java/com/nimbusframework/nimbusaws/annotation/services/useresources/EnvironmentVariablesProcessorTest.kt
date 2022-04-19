@@ -7,7 +7,6 @@ import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentServ
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.extensions.system.withEnvironment
@@ -52,7 +51,6 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
 
             environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], functionResource)
 
-            functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
             functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_VALUE"
         }
         compileState.status shouldBe Compilation.Status.SUCCESS
@@ -70,7 +68,6 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
 
             verify { messager.printMessage(Diagnostic.Kind.ERROR, any()) }
 
-            functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
             functionResource.getStrEnvValue("TEST_KEY") shouldBe "\${TEST_VALUE}"
         }
         compileState.status shouldBe Compilation.Status.SUCCESS
@@ -88,7 +85,6 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
 
                 environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], functionResource)
 
-                functionResource.usesClient(ClientType.EnvironmentVariable) shouldBe true
                 functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_ENV_VAL"
             }
         }

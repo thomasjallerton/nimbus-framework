@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
 import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
 import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
+import com.nimbusframework.nimbusaws.clients.AwsClientBinder
 import com.nimbusframework.nimbusaws.clients.AwsInternalClientBuilder
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbuscore.clients.ClientBinder
@@ -167,6 +168,7 @@ abstract class ServerlessFunctionFileBuilder(
                 write("import ${Context::class.qualifiedName};")
                 write("import ${AwsInternalClientBuilder::class.qualifiedName};")
                 write("import ${ClientBinder::class.qualifiedName};")
+                write("import ${AwsClientBinder::class.qualifiedName};")
                 write("import $inputTypeCanonicalName;")
                 write("import $returnTypeCanonicalName; ")
 
@@ -194,6 +196,7 @@ abstract class ServerlessFunctionFileBuilder(
 
                 write("public ${generatedClassName}() {")
                 write("ClientBinder.INSTANCE.setInternalBuilder(AwsInternalClientBuilder.INSTANCE);")
+                write("AwsClientBinder.INSTANCE.setInternalBuilder(AwsInternalClientBuilder.INSTANCE);")
                 if (methodInformation.customFactoryQualifiedName == null) {
                     write("handler = new ${methodInformation.className}();")
                 } else {

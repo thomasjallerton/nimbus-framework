@@ -9,6 +9,7 @@ import com.nimbusframework.nimbuscore.clients.queue.QueueIdAnnotationService
 import com.nimbusframework.nimbuscore.eventabstractions.RequestContext
 import com.nimbusframework.nimbuscore.persisted.FileUploadDescription
 import com.nimbusframework.nimbuslocal.clients.LocalInternalClientBuilder
+import com.nimbusframework.nimbuslocal.deployment.CloudSpecificLocalDeployment
 import com.nimbusframework.nimbuslocal.deployment.basic.BasicFunction
 import com.nimbusframework.nimbuslocal.deployment.document.LocalDocumentStore
 import com.nimbusframework.nimbuslocal.deployment.file.LocalFileStorage
@@ -40,7 +41,8 @@ class LocalNimbusDeployment private constructor(
     private val httpPort: Int = 8080,
     private val webSocketPort: Int = 8079,
     private val fileStorageBucketPorts: Map<Class<*>, Int>,
-    classes: Collection<Class<*>>
+    classes: Collection<Class<*>>,
+    private val specificLocalDeployment: CloudSpecificLocalDeployment? = null
 ) {
 
     internal val localResourceHolder: LocalResourceHolder
@@ -53,16 +55,6 @@ class LocalNimbusDeployment private constructor(
     private val fileUploadDetails: MutableMap<Class<*>, MutableList<FileUploadDescription>> = mutableMapOf()
 
     private val userConfig = ReadUserConfigService().readUserConfig()
-
-    private val serviceScanner: Reflections = Reflections(ConfigurationBuilder()
-            .setScanners(SubTypesScanner(false))
-            .addUrls(ClasspathHelper.forJavaClassPath())
-            .filterInputsBy(
-                    FilterBuilder()
-                            .includePackage("com.nimbusframework")
-                            .excludePackage("com.nimbusframework.nimbuslocal")
-            ))
-
 
     private fun initialiseFunctionHandlers(stageService: StageService) {
         localFunctionHandlers.add(LocalAfterDeploymentHandler(localResourceHolder, stageService))
@@ -83,12 +75,9 @@ class LocalNimbusDeployment private constructor(
         localCreateResourcesHandlers.add(LocalNotificationTopicCreator(localResourceHolder, stageService))
         localCreateResourcesHandlers.add(LocalQueueCreator(localResourceHolder, stageService))
 
-        val classes = serviceScanner.getSubTypesOf(LocalCreateResourcesHandler::class.java)
-        val handlers = classes.map { clazz ->
-            val constructor = clazz.getConstructor(LocalResourceHolder::class.java, StageService::class.java)
-            constructor.newInstance(localResourceHolder, stageService)
+        if (specificLocalDeployment != null) {
+            localCreateResourcesHandlers.addAll(specificLocalDeployment.getLocalCreateResourcesHandlers(localResourceHolder, stageService))
         }
-        localCreateResourcesHandlers.addAll(handlers)
     }
 
     private fun initialiseUseResourceHandlers(stageService: StageService) {
@@ -104,6 +93,8 @@ class LocalNimbusDeployment private constructor(
     }
 
     init {
+        ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
+
         instance = this
         Companion.stage = stage
         InternalPortCount.currentPort = httpPort + 1
@@ -366,6 +357,7 @@ class LocalNimbusDeployment private constructor(
         private var httpApiPort: Int = 8080
         private var webSocketApiPort: Int = 8081
         private val fileStorageBucketPorts: MutableMap<Class<*>, Int> = mutableMapOf()
+        private var specificLocalDeployment: CloudSpecificLocalDeployment? = null
 
         fun withStage(stage: String): Builder {
             this.stage = stage
@@ -403,6 +395,11 @@ class LocalNimbusDeployment private constructor(
             return this
         }
 
+        fun withSpecificLocalDeployment(specificLocalDeployment: CloudSpecificLocalDeployment): Builder {
+            this.specificLocalDeployment = specificLocalDeployment
+            return this
+        }
+
         fun withClassesInPackage(packageName: String): Builder {
             if (this.classes.isNotEmpty()) {
                 throw IllegalArgumentException("Classes has already been set")
@@ -425,7 +422,7 @@ class LocalNimbusDeployment private constructor(
 
         fun build(): LocalNimbusDeployment {
             return LocalNimbusDeployment(
-                stage, httpApiPort, webSocketApiPort, fileStorageBucketPorts, classes
+                stage, httpApiPort, webSocketApiPort, fileStorageBucketPorts, classes, specificLocalDeployment
             )
         }
     }
@@ -436,20 +433,26 @@ class LocalNimbusDeployment private constructor(
 
         @JvmStatic
         fun getInstance(): LocalNimbusDeployment {
-            ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
             return instance
         }
 
         @JvmStatic
         fun getNewInstance(packageName: String): LocalNimbusDeployment {
-            ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
             Builder().withClassesInPackage(packageName).build()
             return instance
         }
 
         @JvmStatic
+        fun getNewInstance(packageName: String, specificLocalDeployment: CloudSpecificLocalDeployment): LocalNimbusDeployment {
+            Builder()
+                .withClassesInPackage(packageName)
+                .withSpecificLocalDeployment(specificLocalDeployment)
+                .build()
+            return instance
+        }
+
+        @JvmStatic
         fun getNewInstance(packageName: String, stage: String, httpPort: Int, webSocketPort: Int): LocalNimbusDeployment {
-            ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
             Builder()
                 .withClassesInPackage(packageName)
                 .withStage(stage)
@@ -460,9 +463,20 @@ class LocalNimbusDeployment private constructor(
         }
 
         @JvmStatic
+        fun getNewInstance(packageName: String, stage: String, httpPort: Int, webSocketPort: Int, specificLocalDeployment: CloudSpecificLocalDeployment): LocalNimbusDeployment {
+            Builder()
+                .withClassesInPackage(packageName)
+                .withStage(stage)
+                .withHttpApiPort(httpPort)
+                .withWebSocketApiPort(webSocketPort)
+                .withSpecificLocalDeployment(specificLocalDeployment)
+                .build()
+            return instance
+        }
+
+        @JvmStatic
         @SafeVarargs
         fun getNewInstance(vararg clazz: Class<*>): LocalNimbusDeployment {
-            ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
             Builder()
                 .withClasses(clazz.toList())
                 .build()
@@ -471,8 +485,17 @@ class LocalNimbusDeployment private constructor(
 
         @JvmStatic
         @SafeVarargs
+        fun getNewInstance(vararg clazz: Class<*>, specificLocalDeployment: CloudSpecificLocalDeployment): LocalNimbusDeployment {
+            Builder()
+                .withClasses(clazz.toList())
+                .withSpecificLocalDeployment(specificLocalDeployment)
+                .build()
+            return instance
+        }
+
+        @JvmStatic
+        @SafeVarargs
         fun getNewInstance(stage: String, port: Int, webSocketPort: Int, vararg clazz: Class<out Any>): LocalNimbusDeployment {
-            ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
             Builder()
                 .withClasses(clazz.toList())
                 .withStage(stage)
@@ -484,8 +507,20 @@ class LocalNimbusDeployment private constructor(
 
         @JvmStatic
         @SafeVarargs
+        fun getNewInstance(stage: String, port: Int, webSocketPort: Int, vararg clazz: Class<out Any>, specificLocalDeployment: CloudSpecificLocalDeployment): LocalNimbusDeployment {
+            Builder()
+                .withClasses(clazz.toList())
+                .withStage(stage)
+                .withHttpApiPort(port)
+                .withWebSocketApiPort(webSocketPort)
+                .withSpecificLocalDeployment(specificLocalDeployment)
+                .build()
+            return instance
+        }
+
+        @JvmStatic
+        @SafeVarargs
         fun getNewInstance(builder: Builder): LocalNimbusDeployment {
-            ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
             builder.build()
             return instance
         }
@@ -493,7 +528,6 @@ class LocalNimbusDeployment private constructor(
         @JvmStatic
         @SafeVarargs
         fun getNewInstance(consumeBuilder: (Builder) -> Unit): LocalNimbusDeployment {
-            ClientBinder.setInternalBuilder(LocalInternalClientBuilder)
             val builder = Builder()
             consumeBuilder(builder)
             builder.build()

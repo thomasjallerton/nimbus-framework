@@ -9,7 +9,6 @@ import com.nimbusframework.nimbusaws.annotation.services.resources.DocumentStore
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -62,8 +61,6 @@ class UsesDocumentStoreProcessorTest : AnnotationSpec() {
                 val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesDocumentStoreHandlerfuncFunction") as FunctionResource
                 usesDocumentStoreProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesDocumentStoreHandler").enclosedElements[1], functionResource)
                 val dynamoResource = cfDocuments["dev"]!!.updateTemplate.resources.get("Documentdev")!!
-
-                functionResource.usesClient(ClientType.DocumentStore) shouldBe true
 
                 iamRoleResource.allows("dynamodb:*", dynamoResource) shouldBe true
             }

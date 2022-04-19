@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbusawslocal.deployment.services.resource
 
+import com.nimbusframework.nimbusawslocal.aws.AwsSpecificLocalDeployment
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import exampleresources.DynamoDbDocument
 import io.kotest.core.spec.style.AnnotationSpec
@@ -9,7 +10,7 @@ internal class LocalDynamoDbDocumentStoreCreatorTest: AnnotationSpec() {
 
     @Test
     fun canCorrectlyDetectAnnotation() {
-        val localNimbusDeployment = LocalNimbusDeployment.getNewInstance("exampleresources")
+        val localNimbusDeployment = LocalNimbusDeployment.getNewInstance("exampleresources", AwsSpecificLocalDeployment.newInstance())
         val document = localNimbusDeployment.getDocumentStore(DynamoDbDocument::class.java);
         document shouldNotBe null
     }

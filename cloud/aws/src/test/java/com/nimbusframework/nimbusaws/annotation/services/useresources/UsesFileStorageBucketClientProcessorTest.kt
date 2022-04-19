@@ -9,7 +9,6 @@ import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileBucket
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -66,7 +65,6 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
 
                 usesFileStorageClientProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesFileStorageClientHandler").enclosedElements[1], functionResource)
 
-                functionResource.usesClient(ClientType.FileStorage) shouldBe true
                 functionResource.getStrEnvValue("NIMBUS_STAGE") shouldBe "dev"
 
                 iamRoleResource.allows("s3:GetObject", bucketResource, "") shouldBe true

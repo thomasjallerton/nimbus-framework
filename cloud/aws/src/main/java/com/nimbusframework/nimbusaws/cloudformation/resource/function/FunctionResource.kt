@@ -5,7 +5,6 @@ import com.google.gson.JsonObject
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.Resource
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 
@@ -32,14 +31,6 @@ class FunctionResource(
 
     fun getIamRoleResource(): IamRoleResource {
         return iamRoleResource
-    }
-
-    fun addClient(client: ClientType) {
-        handlerInformation.usesClients.add(client)
-    }
-
-    fun usesClient(client: ClientType): Boolean {
-        return handlerInformation.usesClients.contains(client)
     }
 
     fun addExtraDependency(classPath: String) {

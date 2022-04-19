@@ -10,7 +10,6 @@ import com.nimbusframework.nimbusaws.annotation.services.resources.NotificationT
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -61,7 +60,6 @@ class UsesNotificationTopicProcessorTest: AnnotationSpec() {
                 usesNotificationTopicProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesNotificationTopicHandler").enclosedElements[1], functionResource)
                 val notificationTopicResource = cfDocuments["dev"]!!.updateTemplate.resources.get("SNSTopicnotificationTopic")!!
 
-                functionResource.usesClient(ClientType.Notification) shouldBe true
                 functionResource.getStrEnvValue("NIMBUS_STAGE") shouldBe "dev"
                 functionResource.getJsonEnvValue("SNS_TOPIC_ARN_NOTIFICATIONTOPIC") shouldNotBe null
 

@@ -8,7 +8,6 @@ import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionR
 import com.nimbusframework.nimbusaws.annotation.services.resources.RelationalDatabaseResourceCreator
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -57,7 +56,6 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
 
                 usesRelationalDatabaseProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], functionResource)
 
-                functionResource.usesClient(ClientType.Database) shouldBe true
                 functionResource.getJsonEnvValue("RdsInstancetestRelationalDatabase_CONNECTION_URL") shouldNotBe null
                 functionResource.getStrEnvValue("RdsInstancetestRelationalDatabase_USERNAME") shouldBe "username"
                 functionResource.getStrEnvValue("RdsInstancetestRelationalDatabase_PASSWORD") shouldBe "password"

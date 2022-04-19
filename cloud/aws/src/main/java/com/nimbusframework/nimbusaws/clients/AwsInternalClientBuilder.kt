@@ -1,7 +1,10 @@
 package com.nimbusframework.nimbusaws.clients
 
+import com.nimbusframework.nimbusaws.annotation.annotations.cognito.ExistingCognitoUserPool
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore
+import com.nimbusframework.nimbusaws.clients.cognito.AwsCognitoClient
+import com.nimbusframework.nimbusaws.clients.cognito.CognitoClient
 import com.nimbusframework.nimbusaws.clients.document.DocumentStoreClientDynamo
 import com.nimbusframework.nimbusaws.clients.document.DynamoDbDocumentStoreAnnotationService
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
@@ -19,7 +22,7 @@ import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefiniti
 import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition
 import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefinition
 import com.nimbusframework.nimbuscore.clients.database.DatabaseClient
-import com.nimbusframework.nimbuscore.clients.database.InternalClientBuilder
+import com.nimbusframework.nimbuscore.clients.InternalClientBuilder
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreAnnotationService
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
@@ -40,13 +43,14 @@ import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClient
 import software.amazon.awssdk.services.apigatewaymanagementapi.ApiGatewayManagementApiClientBuilder
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.lambda.LambdaClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsClient
 import software.amazon.awssdk.services.sqs.SqsClient
 
-object AwsInternalClientBuilder: InternalClientBuilder {
+object AwsInternalClientBuilder: InternalClientBuilder, InternalAwsClientBuilder {
 
     override fun getTransactionalClient(): TransactionalClient {
         val transactionalClient = DynamoTransactionClient(createDynamoDbClient())
@@ -152,6 +156,15 @@ object AwsInternalClientBuilder: InternalClientBuilder {
         }
     }
 
+    override fun getCognitoClient(userPool: Class<*>, stage: String): CognitoClient {
+        if (userPool.isAnnotationPresent(ExistingCognitoUserPool::class.java)) {
+            val userPoolId = userPool.getAnnotationsByType(ExistingCognitoUserPool::class.java).first { it.stages.contains(stage) }.userPoolId
+            return AwsCognitoClient(userPoolId, createCognitoClient())
+        } else {
+            throw IllegalStateException("${userPool.simpleName} is not a known type of Cognito. (Probably not annotated with @ExistingCognitoUserPool)")
+        }
+    }
+
     override fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient {
         return ServerlessFunctionWebSocketClientApiGateway(createApiGatewayManagementApiClient())
     }
@@ -208,10 +221,19 @@ object AwsInternalClientBuilder: InternalClientBuilder {
             .build()
     }
 
+    private fun createCognitoClient(): CognitoIdentityProviderClient {
+        return CognitoIdentityProviderClient.builder()
+            .credentialsProvider(environmentVariableCredentialsProvider)
+            .region(region)
+            .httpClient(urlConnectionHttpClient)
+            .build()
+    }
+
     private fun createApiGatewayManagementApiClient(): ApiGatewayManagementApiClientBuilder {
         return ApiGatewayManagementApiClient.builder()
             .credentialsProvider(environmentVariableCredentialsProvider)
             .region(region)
             .httpClient(urlConnectionHttpClient)
     }
+
 }

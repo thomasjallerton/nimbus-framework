@@ -6,18 +6,18 @@ import com.nimbusframework.nimbuslocal.deployment.function.permissions.Permissio
 class FunctionEnvironment {
 
     private val environmentVariables: MutableMap<String, String> = mutableMapOf()
-    private val permissions: MutableMap<PermissionType, MutableList<Permission>> = mutableMapOf()
+    private val permissions: MutableMap<String, MutableList<Permission>> = mutableMapOf()
 
     fun addPermission(permissionType: PermissionType, permission: Permission) {
-        if (permissions.containsKey(permissionType)) {
-            permissions[permissionType]!!.add(permission)
+        if (permissions.containsKey(permissionType.getKey())) {
+            permissions[permissionType.getKey()]!!.add(permission)
         } else {
-            permissions[permissionType] = mutableListOf(permission)
+            permissions[permissionType.getKey()] = mutableListOf(permission)
         }
     }
 
     fun getPermissions(permissionType: PermissionType): List<Permission> {
-        return if (permissions[permissionType] != null) permissions[permissionType]!! else listOf()
+        return if (permissions[permissionType.getKey()] != null) permissions[permissionType.getKey()]!! else listOf()
     }
 
     fun addEnvironmentVariable(key: String, value: String) {

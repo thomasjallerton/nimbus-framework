@@ -8,7 +8,6 @@ import com.nimbusframework.nimbusaws.annotation.services.functions.WebSocketFunc
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -58,7 +57,6 @@ class UsesServerlessFunctionWebSocketClientProcessorTest: AnnotationSpec() {
                 usesServerlessFunctionWebSocketClientProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesWebSocketHandler").enclosedElements[1], functionResource)
                 val webSocketApi = cfDocuments["dev"]!!.updateTemplate.rootWebSocketApi!!
 
-                functionResource.usesClient(ClientType.WebSocket) shouldBe true
                 functionResource.getJsonEnvValue("WEBSOCKET_ENDPOINT") shouldNotBe null
 
                 iamRoleResource.allows("execute-api:ManageConnections", webSocketApi, "/*") shouldBe true

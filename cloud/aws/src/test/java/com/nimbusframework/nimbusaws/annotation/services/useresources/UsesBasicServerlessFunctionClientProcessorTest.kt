@@ -9,7 +9,6 @@ import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionR
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
-import com.nimbusframework.nimbuscore.persisted.ClientType
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -68,7 +67,6 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
 
                 iamRoleResource.allows("lambda:*", basicFunctionResource) shouldBe true
 
-                functionResource.usesClient(ClientType.BasicFunction) shouldBe true
                 functionResource.getStrEnvValue("NIMBUS_PROJECT_NAME") shouldBe ""
                 functionResource.getStrEnvValue("FUNCTION_STAGE") shouldBe "dev"
             }
