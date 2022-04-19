@@ -49,6 +49,7 @@ import software.amazon.awssdk.services.lambda.LambdaClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsClient
 import software.amazon.awssdk.services.sqs.SqsClient
+import kotlin.reflect.KClass
 
 object AwsInternalClientBuilder: InternalClientBuilder, InternalAwsClientBuilder {
 
@@ -62,61 +63,62 @@ object AwsInternalClientBuilder: InternalClientBuilder, InternalAwsClientBuilder
     }
 
     override fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>, stage: String): KeyValueStoreClient<K, V> {
-        val keyValueStoreClient = when {
-            value.isAnnotationPresent(KeyValueStoreDefinition::class.java) -> {
-                val tableName = KeyValueStoreAnnotationService.getTableName(value, stage)
-                val keyNameAndType = KeyValueStoreAnnotationService.getKeyNameAndType(value, stage)
-                KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second) { columnNameMap: Map<String, String> ->
-                    DynamoClient(
-                        tableName,
-                        value.canonicalName,
-                        columnNameMap,
-                        createDynamoDbClient()
-                    )
-                }
+        val agnosticAnnotation = getAnnotationForStage(value, KeyValueStoreDefinition::class, stage) { it.stages }
+        val specificAnnotation = getAnnotationForStage(value, DynamoDbKeyValueStore::class, stage) { it.stages }
+        val keyValueStoreClient = if (agnosticAnnotation != null) {
+            val tableName = KeyValueStoreAnnotationService.getTableName(value, stage)
+            val keyNameAndType = KeyValueStoreAnnotationService.getKeyNameAndType(value, stage)
+            KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second) { columnNameMap: Map<String, String> ->
+                DynamoClient(
+                    tableName,
+                    value.canonicalName,
+                    columnNameMap,
+                    createDynamoDbClient()
+                )
             }
-            value.isAnnotationPresent(DynamoDbKeyValueStore::class.java) -> {
-                val tableName = DynamoDbKeyValueStoreAnnotationService.getTableName(value, stage)
-                val keyNameAndType = DynamoDbKeyValueStoreAnnotationService.getKeyNameAndType(value, stage)
-                KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second) { columnNameMap: Map<String, String> ->
-                    DynamoClient(
-                        tableName,
-                        value.canonicalName,
-                        columnNameMap,
-                        createDynamoDbClient()
-                    )
-                }
+        } else if (specificAnnotation != null) {
+            val tableName = DynamoDbKeyValueStoreAnnotationService.getTableName(value, stage)
+            val keyNameAndType = DynamoDbKeyValueStoreAnnotationService.getKeyNameAndType(value, stage)
+            KeyValueStoreClientDynamo(key, value, stage, keyNameAndType.first, tableName, keyNameAndType.second) { columnNameMap: Map<String, String> ->
+                DynamoClient(
+                    tableName,
+                    value.canonicalName,
+                    columnNameMap,
+                    createDynamoDbClient()
+                )
             }
-            else -> throw IllegalStateException("${value.simpleName} is not a known type of Key Value Store (KeyValueStore, DynamoDbKeyValueStore)")
+        } else {
+                throw IllegalStateException("${value.simpleName} is not a known type of Key Value Store (KeyValueStore, DynamoDbKeyValueStore)")
         }
         return keyValueStoreClient
     }
 
     override fun <T> getDocumentStoreClient(document: Class<T>, stage: String): DocumentStoreClient<T> {
-        val documentStoreClient = when {
-            document.isAnnotationPresent(DocumentStoreDefinition::class.java) -> {
-                val tableName = DocumentStoreAnnotationService.getTableName(document, stage)
-                DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String> ->
-                    DynamoClient(
-                        tableName,
-                        document.canonicalName,
-                        columnNameMap,
-                        createDynamoDbClient()
-                    )
-                }
+        val agnosticAnnotation = getAnnotationForStage(document, DocumentStoreDefinition::class, stage) { it.stages }
+        val specificAnnotation = getAnnotationForStage(document, DynamoDbDocumentStore::class, stage) { it.stages }
+
+        val documentStoreClient = if (agnosticAnnotation != null) {
+            val tableName = DocumentStoreAnnotationService.getTableName(document, stage)
+            DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String> ->
+                DynamoClient(
+                    tableName,
+                    document.canonicalName,
+                    columnNameMap,
+                    createDynamoDbClient()
+                )
             }
-            document.isAnnotationPresent(DynamoDbDocumentStore::class.java) -> {
-                val tableName = DynamoDbDocumentStoreAnnotationService.getTableName(document, stage)
-                DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String> ->
-                    DynamoClient(
-                        tableName,
-                        document.canonicalName,
-                        columnNameMap,
-                        createDynamoDbClient()
-                    )
-                }
+        } else if (specificAnnotation != null) {
+            val tableName = DynamoDbDocumentStoreAnnotationService.getTableName(document, stage)
+            DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String> ->
+                DynamoClient(
+                    tableName,
+                    document.canonicalName,
+                    columnNameMap,
+                    createDynamoDbClient()
+                )
             }
-            else -> throw IllegalStateException("${document.simpleName} is not a known type of Document Store (DocumentStore, DynamoDbDocumentStore)")
+        } else {
+            throw IllegalStateException("${document.simpleName} is not a known type of Document Store (DocumentStore, DynamoDbDocumentStore)")
         }
         return documentStoreClient
     }
@@ -148,21 +150,27 @@ object AwsInternalClientBuilder: InternalClientBuilder, InternalAwsClientBuilder
     }
 
     override fun getFileStorageClient(bucketClass: Class<*>, stage: String): FileStorageClient {
-        if (bucketClass.isAnnotationPresent(FileStorageBucketDefinition::class.java)) {
-            val bucketName = bucketClass.getAnnotation(FileStorageBucketDefinition::class.java).bucketName
-            return FileStorageClientS3(bucketName, stage, createS3Client())
+        val annotation = getAnnotationForStage(bucketClass, FileStorageBucketDefinition::class, stage) { it.stages }
+        if (annotation != null) {
+            return FileStorageClientS3(annotation.bucketName, stage, createS3Client())
         } else {
             throw IllegalStateException("${bucketClass.simpleName} is not a known type of File Storage Bucket. (Probably not annotated with @FileStorageBucketDefinition)")
         }
     }
 
     override fun getCognitoClient(userPool: Class<*>, stage: String): CognitoClient {
-        if (userPool.isAnnotationPresent(ExistingCognitoUserPool::class.java)) {
-            val userPoolId = userPool.getAnnotationsByType(ExistingCognitoUserPool::class.java).first { it.stages.contains(stage) }.userPoolId
-            return AwsCognitoClient(userPoolId, createCognitoClient())
+        val annotation = getAnnotationForStage(userPool, ExistingCognitoUserPool::class, stage) { it.stages }
+        if (annotation != null) {
+            return AwsCognitoClient(annotation.userPoolId, createCognitoClient())
         } else {
             throw IllegalStateException("${userPool.simpleName} is not a known type of Cognito. (Probably not annotated with @ExistingCognitoUserPool)")
         }
+    }
+
+    private fun <T: Annotation> getAnnotationForStage(userPool: Class<*>, annotation: KClass<T>, stage: String, getStages: (T) -> Array<String>): T? {
+        val allAnnotations = userPool.getAnnotationsByType(annotation.java)
+        return allAnnotations.firstOrNull { getStages(it).contains(stage) }
+            ?: allAnnotations.firstOrNull { getStages(it).isEmpty() }
     }
 
     override fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient {

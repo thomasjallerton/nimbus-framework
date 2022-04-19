@@ -7,6 +7,7 @@ object AwsClientBuilder {
 
     internal lateinit var internalClientBuilder: InternalAwsClientBuilder
 
+    @JvmStatic
     fun getCognitoClient(cognitoClient: Class<*>): CognitoClient {
         return internalClientBuilder.getCognitoClient(cognitoClient, ClientBuilder.getStage())
     }
