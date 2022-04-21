@@ -181,8 +181,15 @@ object AwsInternalClientBuilder: InternalClientBuilder, InternalAwsClientBuilder
         EnvironmentVariableCredentialsProvider.create()
     }
 
+    private var internalRegion: Region? = null
     private val region: Region by lazy {
-        Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable()))
+        internalRegion ?: Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable()))
+    }
+
+    // Exposed for testing
+    internal fun setRegion(region: Region): AwsInternalClientBuilder {
+        internalRegion = region
+        return this
     }
 
     private val urlConnectionHttpClient: SdkHttpClient by lazy {
