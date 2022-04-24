@@ -4,6 +4,7 @@ import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent
 import com.nimbusframework.nimbuslocal.ServerlessMethod
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionType
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.net.URLDecoder
 
@@ -34,30 +35,34 @@ class LocalHttpMethod(
         val strParam = request.body
         val eventIndex = eventIndex()
         val params = method.parameters
-        mostRecentValueReturned = if (params.isEmpty()) {
-            method.invoke(invokeOn)
-        } else if (params.size == 2) {
-            if (eventIndex == 0) {
-                val param = JacksonClient.readValue(strParam, params[1].type)
-                mostRecentInvokeArgument = param
-                method.invoke(invokeOn, httpEvent, param)
+        try {
+            mostRecentValueReturned = if (params.isEmpty()) {
+                method.invoke(invokeOn)
+            } else if (params.size == 2) {
+                if (eventIndex == 0) {
+                    val param = JacksonClient.readValue(strParam, params[1].type)
+                    mostRecentInvokeArgument = param
+                    method.invoke(invokeOn, httpEvent, param)
+                } else {
+                    val param = JacksonClient.readValue(strParam, params[0].type)
+                    mostRecentInvokeArgument = param
+                    method.invoke(invokeOn, param, httpEvent)
+                }
+            } else if (params.size == 1) {
+                if (eventIndex == 0) {
+                    method.invoke(invokeOn, httpEvent)
+                } else {
+                    val param = JacksonClient.readValue(strParam, params[0].type)
+                    mostRecentInvokeArgument = param
+                    method.invoke(invokeOn, param)
+                }
             } else {
-                val param = JacksonClient.readValue(strParam, params[0].type)
-                mostRecentInvokeArgument = param
-                method.invoke(invokeOn, param, httpEvent)
+                throw Exception("Wrong number of params, shouldn't have compiled")
             }
-        } else if (params.size == 1) {
-            if (eventIndex == 0) {
-                method.invoke(invokeOn, httpEvent)
-            } else {
-                val param = JacksonClient.readValue(strParam, params[0].type)
-                mostRecentInvokeArgument = param
-                method.invoke(invokeOn, param)
-            }
-        } else {
-            throw Exception("Wrong number of params, shouldn't have compiled")
+            return mostRecentValueReturned
+        } catch (exception: InvocationTargetException) {
+            throw exception.targetException
         }
-        return mostRecentValueReturned
     }
 
     private fun extractMultiValueQueryStringParameters(path: String): Map<String, List<String>> {

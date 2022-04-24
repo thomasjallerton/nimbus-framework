@@ -118,6 +118,9 @@ abstract class ServerlessFunctionFileBuilder(
 
     protected abstract fun writeHandleError()
 
+    protected open fun writeCustomExceptionHandler() {}
+
+
     open fun eventCannotBeList(): Boolean {
         return true
     }
@@ -211,6 +214,8 @@ abstract class ServerlessFunctionFileBuilder(
                 write("String requestId = context.getAwsRequestId();")
 
                 writeFunction(params.inputParam, params.eventParam)
+
+                writeCustomExceptionHandler()
 
                 write("} catch (Exception e) {")
 

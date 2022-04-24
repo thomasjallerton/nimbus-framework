@@ -7,6 +7,7 @@ import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunctio
 import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
+import com.nimbusframework.nimbuscore.annotations.function.HttpException
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse
@@ -41,6 +42,7 @@ class HttpServerlessFunctionFileBuilder(
         write("import ${HashMap::class.qualifiedName};")
         write("import ${HttpResponse::class.qualifiedName};")
         write("import ${RestApiGatewayEventMapper::class.qualifiedName};")
+        write("import ${HttpException::class.qualifiedName};")
 
         write()
     }
@@ -80,6 +82,15 @@ class HttpServerlessFunctionFileBuilder(
         }
         addCorsHeader("responseEvent")
         write("return responseEvent;")
+    }
+
+    override fun writeCustomExceptionHandler() {
+        write("} catch (HttpException e) {")
+        write("APIGatewayProxyResponseEvent errorResponse = new APIGatewayProxyResponseEvent()")
+        write("\t.withStatusCode(e.getStatusCode())")
+        write("\t.withBody(e.getMessage());")
+        addCorsHeader("errorResponse")
+        write("return errorResponse;")
     }
 
     override fun writeHandleError() {
