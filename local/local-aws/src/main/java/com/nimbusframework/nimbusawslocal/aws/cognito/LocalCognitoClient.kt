@@ -28,6 +28,10 @@ class LocalCognitoClient(
         return localCognito.getUser(accessToken)
     }
 
+    override fun listGroupsForUserAsAdmin(username: String): List<String> {
+        return localCognito.getGroupsForUser(username)
+    }
+
     override fun searchUsers(
         filterAttribute: SearchableCognitoAttribute,
         value: String,
@@ -45,6 +49,10 @@ class LocalCognitoClient(
     override fun removeUserFromGroupAsAdmin(username: String, groupName: String) {
         checkClientUse(AwsPermissionTypes.COGNITO_ADMIN)
         return localCognito.removeUserFromGroupAsAdmin(username, groupName)
+    }
+
+    override fun setAttributeAsAdmin(username: String, attribute: String, value: String) {
+        localCognito.setAttribute(username, attribute, value)
     }
 
 }

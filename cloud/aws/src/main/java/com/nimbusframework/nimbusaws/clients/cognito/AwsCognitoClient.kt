@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.clients.cognito
 
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminListGroupsForUserResponse
 
 class AwsCognitoClient(
     private val userPoolId: String,
@@ -13,6 +14,24 @@ class AwsCognitoClient(
             response.username(),
             response.userAttributes().associate { Pair(it.name(), it.value()) }
         )
+    }
+
+    override fun listGroupsForUserAsAdmin(username: String): List<String> {
+        var currentResponse: AdminListGroupsForUserResponse? = null
+        var nextToken: String? = null
+        val result = mutableListOf<String>()
+        while (currentResponse == null || currentResponse.hasGroups()) {
+            currentResponse = cognitoClient.adminListGroupsForUser {
+                it
+                    .userPoolId(userPoolId)
+                    .username(username)
+                    .nextToken(nextToken)
+                    .limit(10)
+            }
+            nextToken = currentResponse!!.nextToken()
+            result.addAll(currentResponse.groups().map { it.groupName() })
+        }
+        return result
     }
 
     override fun searchUsers(filterAttribute: SearchableCognitoAttribute, value: String, searchType: SearchType): List<CognitoUser> {
@@ -38,6 +57,17 @@ class AwsCognitoClient(
             .userPoolId(userPoolId)
             .groupName(groupName)
             .username(username)
+        }
+    }
+
+    override fun setAttributeAsAdmin(username: String, attribute: String, value: String) {
+        cognitoClient.adminUpdateUserAttributes { it
+            .userPoolId(userPoolId)
+            .username(username)
+            .userAttributes({ builder -> builder
+                .value(attribute)
+                .name(value)
+            })
         }
     }
 
