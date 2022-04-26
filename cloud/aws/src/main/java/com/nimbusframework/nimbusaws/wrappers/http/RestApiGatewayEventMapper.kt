@@ -7,18 +7,20 @@ object RestApiGatewayEventMapper {
 
     @JvmStatic
     fun getHttpEvent(request: APIGatewayProxyRequestEvent, requestId: String): HttpEvent {
-        return HttpEvent(request.resource,
-                request.path,
-                request.httpMethod,
-                request.headers,
-                request.multiValueHeaders,
-                request.queryStringParameters,
-                request.multiValueQueryStringParameters,
-                request.pathParameters,
-                request.stageVariables,
-                request.body,
-                request.isBase64Encoded,
-                requestId
+        return HttpEvent(
+            request.resource,
+            request.path,
+            request.httpMethod,
+            request.headers,
+            request.multiValueHeaders,
+            request.queryStringParameters,
+            request.multiValueQueryStringParameters,
+            request.pathParameters,
+            request.stageVariables,
+            request.requestContext?.authorizer,
+            request.body,
+            request.isBase64Encoded,
+            requestId
         )
     }
 }

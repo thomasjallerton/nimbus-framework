@@ -48,7 +48,6 @@ class HttpServerlessFunctionFileBuilder(
     }
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {
-        write("System.out.println(input);")
         write("${HttpEvent::class.simpleName} event = ${RestApiGatewayEventMapper::class.simpleName}.getHttpEvent(input, requestId);")
         if (inputParam.exists()) {
             write("${inputParam.canonicalName()} parsedType = JacksonClient.readValue(input.getBody(), ${inputParam.simpleName()}.class);")
