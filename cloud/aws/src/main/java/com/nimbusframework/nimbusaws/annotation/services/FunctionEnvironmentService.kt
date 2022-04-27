@@ -21,6 +21,7 @@ import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionR
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator.Companion.getAllowedOrigins
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 import com.nimbusframework.nimbuscore.persisted.ExportInformation
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -114,8 +115,10 @@ class FunctionEnvironmentService(
         updateResources.addResource(restMethod)
 
         if (httpFunction.method != HttpMethod.OPTIONS && httpFunction.method != HttpMethod.ANY) {
-            if (httpFunction.allowedCorsOrigin.isNotEmpty()) {
+            val allowedHeaders = getAllowedHeaders(function.stage, nimbusState, httpFunction)
+            val allowedOrigin = getAllowedOrigins(function.stage, nimbusState, httpFunction)
 
+            if (allowedHeaders.isNotEmpty() || allowedOrigin.isNotBlank()) {
                 val newCorsMethod = CorsRestMethod(
                         resource,
                         updateTemplate,
@@ -129,8 +132,8 @@ class FunctionEnvironmentService(
                 } else {
                     existingCorsMethod as CorsRestMethod
                 }
-                corsMethod.addHeaders(getAllowedHeaders(function.stage, nimbusState, httpFunction))
-                corsMethod.addOrigin(getAllowedOrigins(function.stage, nimbusState, httpFunction))
+                corsMethod.addHeaders(allowedHeaders)
+                corsMethod.addOrigin(allowedOrigin)
                 corsMethod.addMethod(httpFunction.method)
             }
         }
