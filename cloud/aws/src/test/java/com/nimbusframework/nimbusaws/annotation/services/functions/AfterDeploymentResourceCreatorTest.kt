@@ -23,7 +23,7 @@ class AfterDeploymentResourceCreatorTest : AnnotationSpec() {
         processingData = ProcessingData(NimbusState())
         cfDocuments = mutableMapOf()
         compileState = CompileStateService("handlers/AfterDeploymentHandlers.java")
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData)
     }
 
     @Test

@@ -36,7 +36,7 @@ class FileUploadResourceCreatorTest : AnnotationSpec() {
         messager = mockk(relaxed = true)
 
         compileStateService = CompileStateService("models/FileStorage.java")
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData)
     }
 
     @Test

@@ -39,7 +39,7 @@ class NotificationFunctionResourceCreatorTest : AnnotationSpec() {
         resourceFinder = mockk()
         messager = mockk(relaxed = true)
         compileStateService = CompileStateService("models/NotificationTopic.java", "handlers/NotificationHandlers.java")
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData)
     }
 
     @Test

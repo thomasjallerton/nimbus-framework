@@ -4,20 +4,20 @@ import com.amazonaws.services.lambda.runtime.events.S3Event
 import com.amazonaws.services.lambda.runtime.events.models.s3.S3EventNotification
 import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.FileStorageServerlessFunction
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.eventabstractions.FileStorageEvent
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class FileStorageServerlessFunctionFileBuilder(
-        processingEnv: ProcessingEnvironment,
-        methodInformation: MethodInformation,
-        compilingElement: Element,
-        classForReflectionService: ClassForReflectionService
+    processingEnv: ProcessingEnvironment,
+    fileBuilderMethodInformation: FileBuilderMethodInformation,
+    compilingElement: Element,
+    classForReflectionService: ClassForReflectionService
 ): ServerlessFunctionFileBuilder(
         processingEnv,
-        methodInformation,
+        fileBuilderMethodInformation,
         FileStorageServerlessFunction::class.java.simpleName,
         FileStorageEvent::class.java,
         compilingElement,
@@ -27,7 +27,7 @@ class FileStorageServerlessFunctionFileBuilder(
 ) {
 
     override fun generateClassName(): String {
-        return "FileStorageServerlessFunction${methodInformation.className}${methodInformation.methodName}"
+        return "FileStorageServerlessFunction${fileBuilderMethodInformation.className}${fileBuilderMethodInformation.methodName}"
     }
 
     override fun writeImports() {
@@ -42,7 +42,7 @@ class FileStorageServerlessFunctionFileBuilder(
             write("$eventSimpleName event = ${S3EventMapper::class.java.simpleName}.getFileStorageEvent(objectEntity, requestId);")
         }
 
-        val methodName = methodInformation.methodName
+        val methodName = fileBuilderMethodInformation.methodName
         when {
             eventParam.doesNotExist() -> write("handler.$methodName();")
             else -> write("handler.$methodName(event);")

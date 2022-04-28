@@ -66,8 +66,6 @@ class CorsRestMethod (
 
         var strAllowedHeaders = "origin,content-type"
         this.allowedHeaders.forEach { strAllowedHeaders += ",$it" }
-        println(strAllowedHeaders)
-        println(allowedHeaders)
 
         responseParameters.addProperty("method.response.header.Access-Control-Allow-Headers", "'$strAllowedHeaders'")
 

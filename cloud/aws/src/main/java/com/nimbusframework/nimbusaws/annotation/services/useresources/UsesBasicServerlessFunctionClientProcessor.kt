@@ -23,8 +23,6 @@ class UsesBasicServerlessFunctionClientProcessor(
 
             val targetElem = UsesBasicServerlessFunctionAnnotation(usesBasicServerlessFunctionClient).getTypeElement(processingEnv)
 
-            functionResource.addExtraDependency(targetElem.qualifiedName.toString() + "Serverless")
-
             for (stage in stageService.determineStages(usesBasicServerlessFunctionClient.stages)) {
                 if (stage == functionResource.stage) {
 

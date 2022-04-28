@@ -32,7 +32,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         compileStateService = CompileStateService("handlers/HttpHandlers.java")
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData)
     }
 
     @Test

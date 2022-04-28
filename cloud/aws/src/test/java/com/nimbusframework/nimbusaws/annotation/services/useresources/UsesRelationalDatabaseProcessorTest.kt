@@ -42,7 +42,7 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
         val elements = processingEnvironment.elementUtils
         RelationalDatabaseResourceCreator(roundEnvironment, cfDocuments, nimbusState).handleAgnosticType(elements.getTypeElement("models.RelationalDatabaseModel"))
 
-        HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, nimbusState))
+        HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
 
         usesRelationalDatabaseProcessor = UsesRelationalDatabaseProcessor(cfDocuments, processingEnvironment, nimbusState)
         toRun()
@@ -59,8 +59,6 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
                 functionResource.getJsonEnvValue("RdsInstancetestRelationalDatabase_CONNECTION_URL") shouldNotBe null
                 functionResource.getStrEnvValue("RdsInstancetestRelationalDatabase_USERNAME") shouldBe "username"
                 functionResource.getStrEnvValue("RdsInstancetestRelationalDatabase_PASSWORD") shouldBe "password"
-
-                functionResource.containsDependency(com.mysql.cj.jdbc.Driver::class.java.canonicalName) shouldBe true
             }
         }
         compileStateService.status shouldBe Compilation.Status.SUCCESS

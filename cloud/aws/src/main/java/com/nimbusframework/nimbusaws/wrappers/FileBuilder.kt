@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusaws.wrappers
 
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
 import java.io.PrintWriter
 import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror
@@ -31,9 +31,9 @@ abstract class FileBuilder {
         write("import ${clazz.canonicalName};")
     }
 
-    protected fun findParamIndexes(methodInformation: MethodInformation, eventCanonicalName: String): FunctionParams {
+    protected fun findParamIndexes(fileBuilderMethodInformation: FileBuilderMethodInformation, eventCanonicalName: String): FunctionParams {
         val functionParams = FunctionParams()
-        for ((paramIndex, param) in methodInformation.parameters.withIndex()) {
+        for ((paramIndex, param) in fileBuilderMethodInformation.parameters.withIndex()) {
             if (param.toString() == eventCanonicalName) {
                 functionParams.eventParam = Param(param, paramIndex)
             } else if (isAListType(param) && param.toString().contains(eventCanonicalName)) {

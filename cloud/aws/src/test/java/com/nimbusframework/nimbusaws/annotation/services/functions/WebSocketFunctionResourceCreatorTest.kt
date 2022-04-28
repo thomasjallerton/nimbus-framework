@@ -33,7 +33,7 @@ class WebSocketFunctionResourceCreatorTest : AnnotationSpec() {
     }
 
     private fun setup(processingEnvironment: ProcessingEnvironment, toRun: () -> Unit ) {
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData)
         val classForReflectionService = ClassForReflectionService(processingData, processingEnvironment.typeUtils)
         webSocketFunctionResourceCreator = WebSocketFunctionResourceCreator(cfDocuments, processingData, classForReflectionService, processingEnvironment, setOf(), mockk(relaxed = true))
         toRun()

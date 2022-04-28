@@ -1,13 +1,16 @@
 package com.nimbusframework.nimbusaws.annotation.services.functions
 
+import com.nimbusframework.nimbusaws.annotation.annotations.lambda.CustomLambdaFunctionHandler
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.StageService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.lambda.handlers.HandlerInformationProvider
 import com.nimbusframework.nimbuscore.annotations.deployment.CustomFactory
+import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.CustomFactoryAnnotation
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
@@ -21,13 +24,13 @@ import javax.lang.model.type.ExecutableType
 import javax.tools.Diagnostic
 
 abstract class FunctionResourceCreator(
-        protected val cfDocuments: MutableMap<String, CloudFormationFiles>,
-        protected val processingData: ProcessingData,
-        protected val processingEnv: ProcessingEnvironment,
-        private val decoratorHandlers: Set<FunctionDecoratorHandler>,
-        protected val messager: Messager,
-        private val singleClass: Class<out Annotation>,
-        private val repeatableClass: Class<out Annotation>
+    protected val cfDocuments: MutableMap<String, CloudFormationFiles>,
+    protected val processingData: ProcessingData,
+    protected val processingEnv: ProcessingEnvironment,
+    private val decoratorHandlers: Set<FunctionDecoratorHandler>,
+    protected val messager: Messager,
+    private val singleClass: Class<out Annotation>,
+    private val repeatableClass: Class<out Annotation>
 ) {
 
     protected val stageService = StageService(processingData.nimbusState.defaultStages)
@@ -44,7 +47,6 @@ abstract class FunctionResourceCreator(
             functionInformation
         }
 
-
         afterAllElements()
 
         return results
@@ -52,48 +54,99 @@ abstract class FunctionResourceCreator(
 
     abstract fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation>
 
-    protected fun extractMethodInformation(type: Element): MethodInformation {
-        val methodName = type.simpleName.toString()
-        val enclosing = type.enclosingElement
-        val className = enclosing.simpleName.toString()
-        val customFactory = extractCustomFactory(enclosing)
-
-        val executableType = type.asType() as ExecutableType
-        val parameters = executableType.parameterTypes
-        val returnType = executableType.returnType
-
-        val packageElem = enclosing.enclosingElement as PackageElement
-        val qualifiedName = packageElem.qualifiedName.toString()
-
-        return MethodInformation(className, customFactory, methodName, qualifiedName, parameters, returnType)
+    fun extractMethodInformation(type: Element): FileBuilderMethodInformation {
+        return Companion.extractMethodInformation(type, processingEnv, messager)
     }
 
-    private fun extractCustomFactory(clazz: Element): String? {
-        val customFactoryType = (clazz.getAnnotation(CustomFactory::class.java) ?: return null)
-        val customFactory = CustomFactoryAnnotation(customFactoryType).getTypeElement(processingEnv)
-        if (customFactory.interfaces.size > 1) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "${customFactory.qualifiedName} must only implement CustomFactoryInterface", clazz)
-        }
-        val typeParameter = (customFactory.interfaces.first() as DeclaredType).typeArguments[0]
-        if (typeParameter.toString() != clazz.toString()) {
-            messager.printMessage(Diagnostic.Kind.ERROR,
-                "Custom factory ${customFactory.qualifiedName} does not implement CustomFactory<${clazz.simpleName}>"
-                , clazz)
-            return null
-        }
-        hasEmptyConstructor(customFactory)
-        return customFactory.qualifiedName.toString()
-    }
-
-    protected fun hasEmptyConstructor(element: TypeElement) {
-        val hasEmpty = element.enclosedElements.filter { it.kind == ElementKind.CONSTRUCTOR }
-            .map { it.asType() as ExecutableType }
-            .any { it.parameterTypes.isEmpty() }
-
-        if (!hasEmpty) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "${element.qualifiedName} must have a non-parameterized constructor", element)
-        }
+    fun hasEmptyConstructor(element: TypeElement) {
+        return hasEmptyConstructor(element, messager)
     }
 
     open fun afterAllElements() {}
+
+    companion object {
+
+        fun extractMethodInformation(type: Element, processingEnv: ProcessingEnvironment, messager: Messager): FileBuilderMethodInformation {
+            val methodName = type.simpleName.toString()
+            val enclosing = type.enclosingElement
+            val className = enclosing.simpleName.toString()
+            val customFactory = extractCustomFactory(enclosing, processingEnv, messager)
+
+            val executableType = type.asType() as ExecutableType
+            val parameters = executableType.parameterTypes
+            val returnType = executableType.returnType
+
+            val packageElem = enclosing.enclosingElement as PackageElement
+            val qualifiedName = packageElem.qualifiedName.toString()
+
+            return FileBuilderMethodInformation(className, customFactory, methodName, qualifiedName, parameters, returnType)
+        }
+
+        fun extractReplacementVariable(type: Element): String {
+            val methodName = type.simpleName.toString()
+            val enclosing = type.enclosingElement
+            val packageElem = enclosing.enclosingElement as PackageElement
+            val qualifiedName = packageElem.qualifiedName.toString()
+
+            return "\${${qualifiedName.replace(".", "_")}_${enclosing.simpleName}_$methodName}"
+        }
+
+        private fun extractCustomFactory(clazz: Element, processingEnv: ProcessingEnvironment, messager: Messager): String? {
+            val customFactoryType = (clazz.getAnnotation(CustomFactory::class.java) ?: return null)
+            val customFactory = CustomFactoryAnnotation(customFactoryType).getTypeElement(processingEnv)
+            if (customFactory.interfaces.size > 1) {
+                messager.printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "${customFactory.qualifiedName} must only implement CustomFactoryInterface",
+                    clazz
+                )
+            }
+            val typeParameter = (customFactory.interfaces.first() as DeclaredType).typeArguments[0]
+            if (typeParameter.toString() != clazz.toString()) {
+                messager.printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "Custom factory ${customFactory.qualifiedName} does not implement CustomFactory<${clazz.simpleName}>",
+                    clazz
+                )
+                return null
+            }
+            hasEmptyConstructor(customFactory, messager)
+            return customFactory.qualifiedName.toString()
+        }
+
+        protected fun hasEmptyConstructor(element: TypeElement, messager: Messager) {
+            val hasEmpty = element.enclosedElements.filter { it.kind == ElementKind.CONSTRUCTOR }
+                .map { it.asType() as ExecutableType }
+                .any { it.parameterTypes.isEmpty() }
+
+            if (!hasEmpty) {
+                messager.printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "${element.qualifiedName} must have a non-parameterized constructor",
+                    element
+                )
+            }
+        }
+
+        fun createHandlerInformation(type: Element, handlerInformationProvider: HandlerInformationProvider): HandlerInformation {
+            val customHandlerAnnotation = type.getAnnotationsByType(CustomLambdaFunctionHandler::class.java)
+
+            if (customHandlerAnnotation.isNotEmpty()) {
+                val annotation = customHandlerAnnotation.first()
+                return HandlerInformation(
+                    "",
+                    annotation.handler,
+                    extractReplacementVariable(type),
+                    annotation.file,
+                    annotation.runtime
+                )
+            }
+
+            return HandlerInformation(
+                handlerInformationProvider.getClassFilePath(),
+                handlerInformationProvider.getHandler(),
+                extractReplacementVariable(type)
+            )
+        }
+    }
 }

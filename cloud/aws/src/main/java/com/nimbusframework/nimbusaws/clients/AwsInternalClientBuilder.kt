@@ -18,6 +18,7 @@ import com.nimbusframework.nimbusaws.clients.notification.NotificationClientSNS
 import com.nimbusframework.nimbusaws.clients.queue.QueueClientSQS
 import com.nimbusframework.nimbusaws.clients.rdbms.DatabaseClientRds
 import com.nimbusframework.nimbusaws.clients.websocket.ServerlessFunctionWebSocketClientApiGateway
+import com.nimbusframework.nimbuscore.annotations.AnnotationHelper.getAnnotationForStage
 import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefinition
 import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition
 import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefinition
@@ -49,7 +50,6 @@ import software.amazon.awssdk.services.lambda.LambdaClient
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sns.SnsClient
 import software.amazon.awssdk.services.sqs.SqsClient
-import kotlin.reflect.KClass
 
 object AwsInternalClientBuilder: InternalClientBuilder, InternalAwsClientBuilder {
 
@@ -165,12 +165,6 @@ object AwsInternalClientBuilder: InternalClientBuilder, InternalAwsClientBuilder
         } else {
             throw IllegalStateException("${userPool.simpleName} is not a known type of Cognito. (Probably not annotated with @ExistingCognitoUserPool)")
         }
-    }
-
-    private fun <T: Annotation> getAnnotationForStage(userPool: Class<*>, annotation: KClass<T>, stage: String, getStages: (T) -> Array<String>): T? {
-        val allAnnotations = userPool.getAnnotationsByType(annotation.java)
-        return allAnnotations.firstOrNull { getStages(it).contains(stage) }
-            ?: allAnnotations.firstOrNull { getStages(it).isEmpty() }
     }
 
     override fun getServerlessFunctionWebSocketClient(): ServerlessFunctionWebSocketClient {

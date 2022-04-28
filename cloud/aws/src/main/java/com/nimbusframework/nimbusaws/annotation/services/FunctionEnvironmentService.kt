@@ -1,9 +1,8 @@
 package com.nimbusframework.nimbusaws.annotation.services
 
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
-import com.nimbusframework.nimbusaws.cloudformation.outputs.RestApiOutput
 import com.nimbusframework.nimbusaws.cloudformation.outputs.WebSocketApiOutput
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.LogGroupResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.NimbusBucketResource
@@ -17,27 +16,25 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionRe
 import com.nimbusframework.nimbusaws.cloudformation.resource.http.*
 import com.nimbusframework.nimbusaws.cloudformation.resource.websocket.*
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator.Companion.getAllowedHeaders
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator.Companion.getAllowedOrigin
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbuscore.persisted.ExportInformation
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 
 class FunctionEnvironmentService(
         private val cloudFormationFiles: MutableMap<String, CloudFormationFiles>,
-        private val nimbusState: NimbusState
+        private val processingData: ProcessingData
 ) {
 
+    private val nimbusState = processingData.nimbusState
 
-    fun newFunction(handler: String, methodInformation: MethodInformation, handlerInformation: HandlerInformation, functionConfig: FunctionConfig): FunctionResource {
-        val function = FunctionResource(handler, methodInformation, functionConfig, handlerInformation, nimbusState)
+    fun newFunction(fileBuilderMethodInformation: FileBuilderMethodInformation, handlerInformation: HandlerInformation, functionConfig: FunctionConfig): FunctionResource {
+        val function = FunctionResource(fileBuilderMethodInformation, functionConfig, handlerInformation, nimbusState)
 
-        //AWS Functions require org.joda.time.DateTime internally https://github.com/aws/aws-lambda-java-libs/issues/72
-        function.addExtraDependency("org.joda.time.DateTime")
-
-        val logGroup = LogGroupResource(methodInformation.className, methodInformation.methodName, function, nimbusState, functionConfig.stage)
+        val logGroup = LogGroupResource(fileBuilderMethodInformation.className, fileBuilderMethodInformation.methodName, function, nimbusState, functionConfig.stage)
         val bucket = NimbusBucketResource(nimbusState, functionConfig.stage)
 
         val iamRoleResource = IamRoleResource(function.getShortName(), nimbusState, functionConfig.stage)
@@ -68,36 +65,10 @@ class FunctionEnvironmentService(
 
         val updateTemplate = cloudFormationFiles[function.stage]!!.updateTemplate
         val updateResources = updateTemplate.resources
-        val updateOutputs = updateTemplate.outputs
 
-        val restApi = if (updateTemplate.rootRestApi == null) {
-            val restApi = RestApi(nimbusState, function.stage)
-            updateTemplate.rootRestApi = restApi
-            updateResources.addResource(restApi)
-            val httpApiOutput = RestApiOutput(restApi, nimbusState)
-            updateOutputs.addOutput(httpApiOutput)
+        val restApi = updateTemplate.getOrCreateRootRestApi()
 
-            val exportInformation = ExportInformation(
-                    httpApiOutput.getExportName(),
-                    "Created REST API. Base URL is ",
-                    "\${NIMBUS_REST_API_URL}")
-
-            val exports = nimbusState.exports.getOrPut(function.stage) { mutableListOf()}
-            exports.add(exportInformation)
-
-            restApi
-        } else {
-            updateTemplate.rootRestApi!!
-        }
-
-        val apiGatewayDeployment = if (updateTemplate.apiGatewayDeployment == null) {
-            val apiGatewayDeployment = ApiGatewayDeployment(restApi, nimbusState)
-            updateTemplate.apiGatewayDeployment = apiGatewayDeployment
-            updateResources.addResource(apiGatewayDeployment)
-            apiGatewayDeployment
-        } else {
-            updateTemplate.apiGatewayDeployment!!
-        }
+        val apiGatewayDeployment = updateTemplate.getOrCreateRootRestApiDeployment()
 
         var resource: AbstractRestResource = restApi
 
@@ -109,13 +80,13 @@ class FunctionEnvironmentService(
         }
 
         val method = httpFunction.method.name
-        val restMethod = RestMethod(resource, method, mapOf(), function, nimbusState)
+        val restMethod = RestMethod(resource, method, mapOf(), function, updateTemplate.getRestApiAuthorizer(), nimbusState)
         apiGatewayDeployment.addDependsOn(restMethod)
         updateResources.addResource(restMethod)
 
         if (httpFunction.method != HttpMethod.OPTIONS && httpFunction.method != HttpMethod.ANY) {
-            val allowedHeaders = getAllowedHeaders(function.stage, nimbusState, httpFunction)
-            val allowedOrigin = getAllowedOrigin(function.stage, nimbusState, httpFunction)
+            val allowedHeaders = getAllowedHeaders(function.stage, processingData, httpFunction)
+            val allowedOrigin = getAllowedOrigin(function.stage, processingData, httpFunction)
 
             if (allowedHeaders.isNotEmpty() || allowedOrigin.isNotBlank()) {
                 val newCorsMethod = CorsRestMethod(

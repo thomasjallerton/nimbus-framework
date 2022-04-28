@@ -53,19 +53,13 @@ class NotificationFunctionResourceCreator(
         for (notificationFunction in notificationFunctions) {
             val stages = stageService.determineStages(notificationFunction.stages)
 
-            val handlerInformation = HandlerInformation(
-                handlerClassPath = fileBuilder.classFilePath(),
-                handlerFile = fileBuilder.handlerFile(),
-                replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                stages = stages
-            )
+            val handlerInformation = createHandlerInformation(type, fileBuilder)
             nimbusState.handlerFiles.add(handlerInformation)
 
             for (stage in stages) {
                 val config = FunctionConfig(notificationFunction.timeout, notificationFunction.memory, stage)
 
                 val functionResource = functionEnvironmentService.newFunction(
-                    fileBuilder.getHandler(),
                     methodInformation,
                     handlerInformation,
                     config

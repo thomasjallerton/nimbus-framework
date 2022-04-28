@@ -6,7 +6,7 @@ import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentServ
 import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.basic.BasicFunctionClientBuilder
 import com.nimbusframework.nimbusaws.wrappers.basic.BasicServerlessFunctionFileBuilder
@@ -35,7 +35,7 @@ class BasicFunctionResourceCreator(
     BasicServerlessFunctions::class.java
 ) {
 
-    private val methodsToProcess: MutableMap<Pair<String, String>, MutableSet<MethodInformation>> = mutableMapOf()
+    private val methodsToProcess: MutableMap<Pair<String, String>, MutableSet<FileBuilderMethodInformation>> = mutableMapOf()
 
     override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val basicFunctions = type.getAnnotationsByType(BasicServerlessFunction::class.java)
@@ -60,17 +60,11 @@ class BasicFunctionResourceCreator(
         methodsToProcess.getOrPut(Pair(methodInformation.className, methodInformation.packageName)) { mutableSetOf() }
             .add(methodInformation)
 
-        val handler = fileBuilder.getHandler()
-
         for (basicFunction in basicFunctions) {
             val stages = stageService.determineStages(basicFunction.stages)
 
-            val handlerInformation = HandlerInformation(
-                handlerClassPath = fileBuilder.classFilePath(),
-                handlerFile = fileBuilder.handlerFile(),
-                replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                stages = stages
-            )
+            val handlerInformation = createHandlerInformation(type, fileBuilder)
+
             nimbusState.handlerFiles.add(handlerInformation)
 
             for (stage in stages) {
@@ -79,7 +73,6 @@ class BasicFunctionResourceCreator(
 
                 val config = FunctionConfig(basicFunction.timeout, basicFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(
-                    handler,
                     methodInformation,
                     handlerInformation,
                     config

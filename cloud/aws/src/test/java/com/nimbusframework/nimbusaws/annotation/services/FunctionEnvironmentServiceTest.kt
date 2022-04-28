@@ -1,7 +1,8 @@
 package com.nimbusframework.nimbusaws.annotation.services
 
+import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.cloudformation.resource.ResourceCollection
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
@@ -25,16 +26,16 @@ class FunctionEnvironmentServiceTest : AnnotationSpec() {
         cloudFormationFiles = mutableMapOf(Pair("dev", CloudFormationFiles(nimbusState, "dev")))
         createResources = cloudFormationFiles["dev"]!!.createTemplate.resources
         updateResources = cloudFormationFiles["dev"]!!.updateTemplate.resources
-        underTest = FunctionEnvironmentService(cloudFormationFiles, nimbusState)
+        underTest = FunctionEnvironmentService(cloudFormationFiles, ProcessingData(nimbusState))
     }
 
     @Test
     fun correctlyCreatesAFunction() {
-        val methodInformation = MethodInformation("Test", null, "testMethod", "com.test", listOf(), mockk())
-        val handlerInformation = HandlerInformation()
+        val fileBuilderMethodInformation = FileBuilderMethodInformation("Test", null, "testMethod", "com.test", listOf(), mockk())
+        val handlerInformation = HandlerInformation("", "testHandler", "")
         val functionConfig = FunctionConfig(10, 2000, "dev")
 
-        underTest.newFunction("testHandler", methodInformation, handlerInformation, functionConfig)
+        underTest.newFunction(fileBuilderMethodInformation, handlerInformation, functionConfig)
 
         createResources.size() shouldBe 1
         updateResources.size() shouldBe 4

@@ -42,7 +42,7 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
         resourceFinder = mockk()
 
         compileStateService = CompileStateService("handlers/QueueHandlers.java")
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData)
     }
 
     @Test

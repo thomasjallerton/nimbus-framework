@@ -53,19 +53,14 @@ class QueueFunctionResourceCreator(
         for (queueFunction in queueFunctions) {
             val stages = stageService.determineStages(queueFunction.stages)
 
-            val handlerInformation = HandlerInformation(
-                handlerClassPath = fileBuilder.classFilePath(),
-                handlerFile = fileBuilder.handlerFile(),
-                replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                stages = stages
-            )
+            val handlerInformation = createHandlerInformation(type, fileBuilder)
+
             nimbusState.handlerFiles.add(handlerInformation)
 
             for (stage in stages) {
                 val config = FunctionConfig(queueFunction.timeout, queueFunction.memory, stage)
 
                 val functionResource = functionEnvironmentService.newFunction(
-                    fileBuilder.getHandler(),
                     methodInformation,
                     handlerInformation,
                     config

@@ -46,17 +46,10 @@ class AfterDeploymentResourceCreator(
 
         fileBuilder.createClass()
 
-        val handler = fileBuilder.getHandler()
-
         for (afterDeployment in afterDeployments) {
             val stages = stageService.determineStages(afterDeployment.stages)
 
-            val handlerInformation = HandlerInformation(
-                handlerClassPath = fileBuilder.classFilePath(),
-                handlerFile = fileBuilder.handlerFile(),
-                replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                stages = stages
-            )
+            val handlerInformation = createHandlerInformation(type, fileBuilder)
             nimbusState.handlerFiles.add(handlerInformation)
 
             for (stage in stages) {
@@ -66,7 +59,6 @@ class AfterDeploymentResourceCreator(
                 val config = FunctionConfig(300, 1024, stage)
 
                 val functionResource = functionEnvironmentService.newFunction(
-                    handler,
                     methodInformation,
                     handlerInformation,
                     config

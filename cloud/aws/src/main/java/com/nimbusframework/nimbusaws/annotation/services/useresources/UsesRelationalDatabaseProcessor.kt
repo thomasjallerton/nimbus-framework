@@ -33,15 +33,6 @@ class UsesRelationalDatabaseProcessor(
                         functionResource.addEnvVariable(resource.getName() + "_PASSWORD", resource.rdsConfiguration.password)
                         functionResource.addEnvVariable(resource.getName() + "_USERNAME", resource.rdsConfiguration.username)
                         functionResource.addDependsOn(resource)
-
-                        val dependency = when(resource.rdsConfiguration.databaseLanguage) {
-                            DatabaseLanguage.MYSQL -> com.mysql.cj.jdbc.Driver::class.java.canonicalName
-                            DatabaseLanguage.ORACLE -> "oracle.jdbc.driver.OracleDriver"
-                            DatabaseLanguage.MARIADB -> org.mariadb.jdbc.Driver::class.java.canonicalName
-                            DatabaseLanguage.SQLSERVER -> SQLServerDriver::class.java.canonicalName
-                            DatabaseLanguage.POSTGRESQL -> org.postgresql.Driver::class.java.canonicalName
-                        }
-                        functionResource.addExtraDependency(dependency)
                     }
 
                 }

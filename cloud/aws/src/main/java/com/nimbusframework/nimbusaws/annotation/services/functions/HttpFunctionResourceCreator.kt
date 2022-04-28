@@ -52,20 +52,13 @@ class HttpFunctionResourceCreator(
         for (httpFunction in httpFunctions) {
             val stages = stageService.determineStages(httpFunction.stages)
 
-            val handlerInformation = HandlerInformation(
-                handlerClassPath = fileBuilder.classFilePath(),
-                handlerFile = fileBuilder.handlerFile(),
-                replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                stages = stages
-            )
+            val handlerInformation = createHandlerInformation(type, fileBuilder)
             processingData.nimbusState.handlerFiles.add(handlerInformation)
 
             for (stage in stages) {
-                val handler = fileBuilder.getHandler()
 
                 val config = FunctionConfig(httpFunction.timeout, httpFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(
-                    handler,
                     methodInformation,
                     handlerInformation,
                     config
@@ -81,7 +74,7 @@ class HttpFunctionResourceCreator(
                         referencedWebsite.getAttr("WebsiteURL")
                     )
                 } else {
-                    functionResource.addEnvVariable(allowedOriginEnvVariable, getAllowedOrigin(stage, processingData.nimbusState, httpFunction))
+                    functionResource.addEnvVariable(allowedOriginEnvVariable, getAllowedOrigin(stage, processingData, httpFunction))
                 }
 
                 functionEnvironmentService.newHttpMethod(httpFunction, functionResource)
@@ -94,22 +87,22 @@ class HttpFunctionResourceCreator(
 
     companion object {
 
-        fun getAllowedOrigin(stage: String, nimbusState: NimbusState, httpServerlessFunction: HttpServerlessFunction): String  {
+        fun getAllowedOrigin(stage: String, processingData: ProcessingData, httpServerlessFunction: HttpServerlessFunction): String  {
             if (httpServerlessFunction.allowedCorsOrigin.isNotBlank()) {
                 return httpServerlessFunction.allowedCorsOrigin
             }
-            if (nimbusState.defaultAllowedOrigin[stage] != null) {
-                return nimbusState.defaultAllowedOrigin[stage]!!
+            if (processingData.defaultAllowedOrigin[stage] != null) {
+                return processingData.defaultAllowedOrigin[stage]!!
             }
             return ""
         }
 
-        fun getAllowedHeaders(stage: String, nimbusState: NimbusState, httpServerlessFunction: HttpServerlessFunction): Array<String>  {
+        fun getAllowedHeaders(stage: String, processingData: ProcessingData, httpServerlessFunction: HttpServerlessFunction): Array<String>  {
             if (httpServerlessFunction.allowedCorsHeaders.isNotEmpty()) {
                 return httpServerlessFunction.allowedCorsHeaders
             }
-            if (nimbusState.defaultRequestHeaders[stage] != null) {
-                return nimbusState.defaultRequestHeaders[stage]!!.toTypedArray()
+            if (processingData.defaultRequestHeaders[stage] != null) {
+                return processingData.defaultRequestHeaders[stage]!!.toTypedArray()
             }
             return Array(0) { "" }
         }

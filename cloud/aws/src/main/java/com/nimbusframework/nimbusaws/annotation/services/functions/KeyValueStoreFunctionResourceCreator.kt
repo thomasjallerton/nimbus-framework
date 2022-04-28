@@ -45,8 +45,7 @@ class KeyValueStoreFunctionResourceCreator(
         val methodInformation = extractMethodInformation(type)
 
         var fileWritten = false
-        var handler = ""
-        var handlerInformation = HandlerInformation()
+        var handlerInformation = HandlerInformation("", "", "")
         var awsMethodInformation = AwsMethodInformation("", "", "")
 
         for (keyValueStoreFunction in keyValueStoreFunctions) {
@@ -64,15 +63,9 @@ class KeyValueStoreFunctionResourceCreator(
                     classForReflectionService
                 )
 
-                handler = fileBuilder.getHandler()
                 fileBuilder.createClass()
                 fileWritten = true
-                handlerInformation = HandlerInformation(
-                    handlerClassPath = fileBuilder.classFilePath(),
-                    handlerFile = fileBuilder.handlerFile(),
-                    replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                    stages = stages
-                )
+                handlerInformation = createHandlerInformation(type, fileBuilder)
                 nimbusState.handlerFiles.add(handlerInformation)
                 awsMethodInformation = fileBuilder.getGeneratedClassInformation()
             }
@@ -81,7 +74,6 @@ class KeyValueStoreFunctionResourceCreator(
                 val config = FunctionConfig(keyValueStoreFunction.timeout, keyValueStoreFunction.memory, stage)
 
                 val functionResource = functionEnvironmentService.newFunction(
-                    handler,
                     methodInformation,
                     handlerInformation,
                     config

@@ -112,8 +112,6 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                         CloudProvider.AWS,
                         compilationTime,
                         userConfig.getDefaultStages(),
-                        userConfig.getAllowedHeaders(),
-                        userConfig.getAllowedOrigins(),
                         userConfig.getKeepWarmStages(),
                         new HashMap<>(),
                         new HashMap<>(),
@@ -121,7 +119,9 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                         new HashSet<>(),
                         userConfig.getCustomRuntime()
                 ),
-                new HashSet<>()
+                new HashSet<>(),
+                userConfig.getAllowedHeaders(),
+                userConfig.getAllowedOrigins()
         );
 
         classForReflectionService = new ClassForReflectionService(processingData, processingEnv.getTypeUtils());
@@ -134,7 +134,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
         FunctionEnvironmentService functionEnvironmentService = new FunctionEnvironmentService(
                 cloudFormationFiles,
-                processingData.getNimbusState()
+                processingData
         );
 
         List<CloudResourceResourceCreator> resourceCreators = new LinkedList<>();
@@ -146,6 +146,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         resourceCreators.add(new FileStorageBucketResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState()));
         resourceCreators.add(new ExistingCognitoResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState()));
         resourceCreators.add(new RegisterForReflectionResourceCreator(roundEnv, cloudFormationFiles, processingData.getNimbusState(), classForReflectionService));
+        resourceCreators.add(new ApiGatewayConfigResourceCreator(roundEnv, cloudFormationFiles, processingData, processingEnv, messager, functionEnvironmentService));
 
         for (CloudResourceResourceCreator creator : resourceCreators) {
             creator.create();
@@ -186,7 +187,6 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         usesResourcesProcessors.add(new UsesRelationalDatabaseProcessor(cloudFormationFiles, processingEnv, processingData.getNimbusState()));
         usesResourcesProcessors.add(new UsesServerlessFunctionWebSocketClientProcessor(cloudFormationFiles, processingData.getNimbusState()));
         usesResourcesProcessors.add(new EnvironmentVariablesProcessor(processingData.getNimbusState(), messager));
-        usesResourcesProcessors.add(new ForceDependencyProcessor(processingData.getNimbusState()));
 
         for (FunctionInformation functionInformation : allInformation) {
             for (UsesResourcesProcessor handler : usesResourcesProcessors) {

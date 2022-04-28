@@ -4,7 +4,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 import com.nimbusframework.nimbuscore.annotations.function.HttpException
@@ -17,12 +17,12 @@ import javax.lang.model.element.Element
 
 class HttpServerlessFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
-    methodInformation: MethodInformation,
+    fileBuilderMethodInformation: FileBuilderMethodInformation,
     compilingElement: Element,
     classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
-    methodInformation,
+    fileBuilderMethodInformation,
     HttpServerlessFunction::class.java.simpleName,
     HttpEvent::class.java,
     compilingElement,
@@ -32,7 +32,7 @@ class HttpServerlessFunctionFileBuilder(
 ) {
 
     override fun generateClassName(): String {
-        return "HttpServerlessFunction${methodInformation.className}${methodInformation.methodName}"
+        return "HttpServerlessFunction${fileBuilderMethodInformation.className}${fileBuilderMethodInformation.methodName}"
     }
 
     override fun writeImports() {
@@ -56,10 +56,10 @@ class HttpServerlessFunctionFileBuilder(
         val callPrefix = if (voidMethodReturn) {
             ""
         } else {
-            "${methodInformation.returnType} result = "
+            "${fileBuilderMethodInformation.returnType} result = "
         }
 
-        val methodName = methodInformation.methodName
+        val methodName = fileBuilderMethodInformation.methodName
         when {
             inputParam.doesNotExist() && eventParam.doesNotExist() -> write("${callPrefix}handler.$methodName();")
             inputParam.doesNotExist() -> write("${callPrefix}handler.$methodName(event);")
@@ -70,7 +70,7 @@ class HttpServerlessFunctionFileBuilder(
 
         write("APIGatewayProxyResponseEvent responseEvent = new APIGatewayProxyResponseEvent().withStatusCode(200);")
 
-        if (methodInformation.returnType.toString() == HttpResponse::class.qualifiedName) {
+        if (fileBuilderMethodInformation.returnType.toString() == HttpResponse::class.qualifiedName) {
             write("responseEvent.setBody(result.getBody());")
             write("responseEvent.setHeaders(result.getHeaders());")
             write("responseEvent.setStatusCode(result.getStatusCode());")

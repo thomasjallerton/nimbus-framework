@@ -33,7 +33,7 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         compileState = CompileStateService("handlers/BasicHandlers.java")
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData)
     }
 
     @Test

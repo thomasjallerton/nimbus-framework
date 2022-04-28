@@ -43,7 +43,7 @@ class FileStorageResourceCreatorTest : AnnotationSpec() {
 
         compileStateService = CompileStateService("handlers/FileStorageHandlers.java")
 
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData)
     }
 
     @Test

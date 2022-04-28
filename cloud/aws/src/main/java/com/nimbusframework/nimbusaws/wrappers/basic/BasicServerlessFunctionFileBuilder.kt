@@ -2,7 +2,7 @@ package com.nimbusframework.nimbusaws.wrappers.basic
 
 import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.BasicServerlessFunction
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.eventabstractions.BasicEvent
 import javax.annotation.processing.ProcessingEnvironment
@@ -11,12 +11,12 @@ import javax.lang.model.element.Element
 class BasicServerlessFunctionFileBuilder(
     private val cron: Boolean,
     processingEnv: ProcessingEnvironment,
-    methodInformation: MethodInformation,
+    fileBuilderMethodInformation: FileBuilderMethodInformation,
     compilingElement: Element,
     classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
-    methodInformation,
+    fileBuilderMethodInformation,
     BasicServerlessFunction::class.java.simpleName,
     BasicEvent::class.java,
     compilingElement,
@@ -25,7 +25,7 @@ class BasicServerlessFunctionFileBuilder(
     classForReflectionService
 ) {
     override fun generateClassName(): String {
-        return "BasicServerlessFunction${methodInformation.className}${methodInformation.methodName}"
+        return "BasicServerlessFunction${fileBuilderMethodInformation.className}${fileBuilderMethodInformation.methodName}"
     }
 
     override fun writeImports() {}
@@ -39,10 +39,10 @@ class BasicServerlessFunctionFileBuilder(
         val callPrefix = if (voidMethodReturn) {
             ""
         } else {
-            "${methodInformation.returnType} result = "
+            "${fileBuilderMethodInformation.returnType} result = "
         }
 
-        val methodName = methodInformation.methodName
+        val methodName = fileBuilderMethodInformation.methodName
         when {
             inputParam.doesNotExist() && eventParam.doesNotExist() -> write("${callPrefix}handler.$methodName();")
             inputParam.doesNotExist() -> write("${callPrefix}handler.$methodName(event);")
@@ -67,7 +67,7 @@ class BasicServerlessFunctionFileBuilder(
     override fun isValidFunction(functionParams: FunctionParams) {
         if (cron && !functionParams.inputParam.doesNotExist()) {
             compilationError("Cannot have a custom user type parameter in a BasicServerlessFunction")
-        } else if (methodInformation.parameters.size > 2) {
+        } else if (fileBuilderMethodInformation.parameters.size > 2) {
             compilationError("Too many parameters for BasicServerlessFunction, maximum 2 of type T, and BasicEvent")
         }
     }

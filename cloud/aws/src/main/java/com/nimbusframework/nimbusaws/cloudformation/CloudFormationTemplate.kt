@@ -4,13 +4,16 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbusaws.cloudformation.outputs.BucketNameOutput
 import com.nimbusframework.nimbusaws.cloudformation.outputs.OutputCollection
+import com.nimbusframework.nimbusaws.cloudformation.outputs.RestApiOutput
 import com.nimbusframework.nimbusaws.cloudformation.resource.NimbusBucketResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.ResourceCollection
 import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileBucket
 import com.nimbusframework.nimbusaws.cloudformation.resource.http.ApiGatewayDeployment
 import com.nimbusframework.nimbusaws.cloudformation.resource.http.RestApi
+import com.nimbusframework.nimbusaws.cloudformation.resource.http.authorizer.RestApiAuthorizer
 import com.nimbusframework.nimbusaws.cloudformation.resource.websocket.WebSocketApi
 import com.nimbusframework.nimbusaws.cloudformation.resource.websocket.WebSocketDeployment
+import com.nimbusframework.nimbuscore.persisted.ExportInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import java.util.*
 
@@ -22,13 +25,13 @@ data class CloudFormationTemplate(
         val outputs: OutputCollection = OutputCollection(),
 
         val fileBucketWebsites: MutableList<FileBucket> = mutableListOf(),
-        var rootRestApi: RestApi? = null,
-        var apiGatewayDeployment: ApiGatewayDeployment? = null,
+        private var rootRestApi: RestApi? = null,
+        private var restApiAuthorizer: RestApiAuthorizer? = null,
+        private var apiGatewayDeployment: ApiGatewayDeployment? = null,
         var rootWebSocketApi: WebSocketApi? = null,
         var webSocketDeployment: WebSocketDeployment? = null
 
 ) {
-
 
     init {
         val bucket = NimbusBucketResource(nimbusState, stage)
@@ -37,6 +40,14 @@ data class CloudFormationTemplate(
         outputs.addOutput(bucketNameOutput)
     }
 
+    fun addRestApiAuthorizer(authorizer: RestApiAuthorizer) {
+        restApiAuthorizer = authorizer
+        resources.addResource(authorizer)
+    }
+
+    fun getRestApiAuthorizer(): RestApiAuthorizer? {
+        return restApiAuthorizer
+    }
 
     fun referencedFileStorageBucket(origin: String): FileBucket? {
         if (origin == "") return null
@@ -47,6 +58,35 @@ data class CloudFormationTemplate(
             }
         }
         return null
+    }
+
+    fun getOrCreateRootRestApi(): RestApi {
+        if (rootRestApi == null) {
+            val restApi = RestApi(nimbusState, stage)
+            resources.addResource(restApi)
+
+            val httpApiOutput = RestApiOutput(restApi, nimbusState)
+            outputs.addOutput(httpApiOutput)
+
+            val exportInformation = ExportInformation(
+                httpApiOutput.getExportName(),
+                "Created REST API. Base URL is ",
+                "\${NIMBUS_REST_API_URL}")
+
+            val exports = nimbusState.exports.getOrPut(stage) { mutableListOf()}
+            exports.add(exportInformation)
+            rootRestApi = restApi
+        }
+        return rootRestApi!!
+    }
+
+    fun getOrCreateRootRestApiDeployment(): ApiGatewayDeployment {
+        if (apiGatewayDeployment == null) {
+            apiGatewayDeployment = ApiGatewayDeployment(getOrCreateRootRestApi(), nimbusState)
+            resources.addResource(apiGatewayDeployment!!)
+            apiGatewayDeployment
+        }
+        return apiGatewayDeployment!!
     }
 
     fun valid(): Boolean {

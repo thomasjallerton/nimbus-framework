@@ -37,7 +37,7 @@ class KeyValueStoreFunctionResourceCreatorTest : AnnotationSpec() {
 
         compileStateService = CompileStateService("handlers/KeyValueStoreHandlers.java")
 
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData)
     }
 
     @Test

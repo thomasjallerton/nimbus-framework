@@ -37,7 +37,7 @@ class DocumentStoreFunctionResourceCreatorTest : AnnotationSpec() {
 
         compileState = CompileStateService("handlers/DocumentStoreHandlers.java")
 
-        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData.nimbusState)
+        functionEnvironmentService = FunctionEnvironmentService(cfDocuments, processingData)
     }
 
     @Test

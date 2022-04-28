@@ -3,7 +3,7 @@ package com.nimbusframework.nimbusaws.wrappers.websocket
 import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
 import com.nimbusframework.nimbusaws.clients.AwsInternalClientBuilder
 import com.nimbusframework.nimbuscore.annotations.function.WebSocketServerlessFunction
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.clients.ClientBinder
 import com.nimbusframework.nimbuscore.clients.JacksonClient
@@ -15,12 +15,12 @@ import javax.lang.model.element.Element
 
 class WebSocketServerlessFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
-    methodInformation: MethodInformation,
+    fileBuilderMethodInformation: FileBuilderMethodInformation,
     compilingElement: Element,
     classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
-    methodInformation,
+    fileBuilderMethodInformation,
     WebSocketServerlessFunction::class.java.simpleName,
     WebSocketEvent::class.java,
     compilingElement,
@@ -35,7 +35,7 @@ class WebSocketServerlessFunctionFileBuilder(
     }
 
     override fun generateClassName(): String {
-        return "WebSocketServerlessFunction${methodInformation.className}${methodInformation.methodName}"
+        return "WebSocketServerlessFunction${fileBuilderMethodInformation.className}${fileBuilderMethodInformation.methodName}"
     }
 
     override fun writeImports() {
@@ -50,8 +50,8 @@ class WebSocketServerlessFunctionFileBuilder(
         write("import ${WebSocketEvent::class.qualifiedName};")
         write("import ${WebSocketResponse::class.qualifiedName};")
 
-        if (methodInformation.packageName.isNotBlank()) {
-            write("import ${methodInformation.packageName}.${methodInformation.className};")
+        if (fileBuilderMethodInformation.packageName.isNotBlank()) {
+            write("import ${fileBuilderMethodInformation.packageName}.${fileBuilderMethodInformation.className};")
         }
     }
 
@@ -80,13 +80,13 @@ class WebSocketServerlessFunctionFileBuilder(
     }
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {
-        val callPrefix = if (methodInformation.returnType.toString() == "void") {
+        val callPrefix = if (fileBuilderMethodInformation.returnType.toString() == "void") {
             ""
         } else {
-            "${methodInformation.returnType} result = "
+            "${fileBuilderMethodInformation.returnType} result = "
         }
 
-        val methodName = methodInformation.methodName
+        val methodName = fileBuilderMethodInformation.methodName
         when {
             inputParam.doesNotExist() && eventParam.doesNotExist() -> write("${callPrefix}handler.$methodName();")
             inputParam.type == null -> write("${callPrefix}handler.$methodName(event);")
@@ -121,7 +121,7 @@ class WebSocketServerlessFunctionFileBuilder(
 
                 out = PrintWriter(builderFile.openWriter())
 
-                val packageName = methodInformation.packageName
+                val packageName = fileBuilderMethodInformation.packageName
 
                 if (packageName != "") write("package $packageName;")
 
@@ -136,7 +136,7 @@ class WebSocketServerlessFunctionFileBuilder(
 
                 writeInputs(params.inputParam)
 
-                write("${methodInformation.className} handler = new ${methodInformation.className}();")
+                write("${fileBuilderMethodInformation.className} handler = new ${fileBuilderMethodInformation.className}();")
 
                 writeFunction(params.inputParam, params.eventParam)
 

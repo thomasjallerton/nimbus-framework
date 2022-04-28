@@ -55,12 +55,7 @@ class FileStorageResourceCreator(
         for (fileStorageFunction in fileStorageFunctions) {
             val stages = stageService.determineStages(fileStorageFunction.stages)
 
-            val handlerInformation = HandlerInformation(
-                handlerClassPath = fileStorageFileBuilder.classFilePath(),
-                handlerFile = fileStorageFileBuilder.handlerFile(),
-                replacementVariable = "\${${fileStorageFileBuilder.handlerFile()}}",
-                stages = stages
-            )
+            val handlerInformation = createHandlerInformation(type, fileStorageFileBuilder)
             nimbusState.handlerFiles.add(handlerInformation)
 
             for (stage in stages) {
@@ -68,7 +63,6 @@ class FileStorageResourceCreator(
 
 
                 val functionResource = functionEnvironmentService.newFunction(
-                    fileStorageFileBuilder.getHandler(),
                     methodInformation,
                     handlerInformation,
                     config

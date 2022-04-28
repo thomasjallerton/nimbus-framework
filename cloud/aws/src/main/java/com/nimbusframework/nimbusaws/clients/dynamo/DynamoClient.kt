@@ -35,7 +35,6 @@ class DynamoClient (
                     .expressionAttributeValues(valueMap)
         }
 
-        println(putItemRequest.build().item())
         executeDynamoRequest { client.putItem(putItemRequest.build()) }
     }
 

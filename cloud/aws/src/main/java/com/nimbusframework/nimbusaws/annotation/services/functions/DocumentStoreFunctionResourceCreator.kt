@@ -44,8 +44,7 @@ class DocumentStoreFunctionResourceCreator(
         val methodInformation = extractMethodInformation(type)
 
         var fileWritten = false
-        var handler = ""
-        var handlerInformation = HandlerInformation()
+        var handlerInformation = HandlerInformation("", "", "")
         var awsMethodInformation = AwsMethodInformation("", "", "")
 
         for (documentStoreFunction in documentStoreFunctions) {
@@ -63,15 +62,9 @@ class DocumentStoreFunctionResourceCreator(
                     classForReflectionService
                 )
 
-                handler = fileBuilder.getHandler()
                 fileBuilder.createClass()
                 fileWritten = true
-                handlerInformation = HandlerInformation(
-                    handlerClassPath = fileBuilder.classFilePath(),
-                    handlerFile = fileBuilder.handlerFile(),
-                    replacementVariable = "\${${fileBuilder.handlerFile()}}",
-                    stages = stages
-                )
+                handlerInformation = createHandlerInformation(type, fileBuilder)
                 nimbusState.handlerFiles.add(handlerInformation)
                 awsMethodInformation = fileBuilder.getGeneratedClassInformation()
             }
@@ -79,7 +72,6 @@ class DocumentStoreFunctionResourceCreator(
             for (stage in stages) {
                 val config = FunctionConfig(documentStoreFunction.timeout, documentStoreFunction.memory, stage)
                 val functionResource = functionEnvironmentService.newFunction(
-                    handler,
                     methodInformation,
                     handlerInformation,
                     config

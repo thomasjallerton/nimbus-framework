@@ -5,12 +5,14 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.Resource
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbusaws.cloudformation.resource.http.authorizer.RestApiAuthorizer
 
 class RestMethod (
         private val parent: AbstractRestResource,
         private val method: String,
         private val requestParams: Map<String, String>,
         private val function: FunctionResource,
+        private val authorizer: RestApiAuthorizer?,
         nimbusState: NimbusState
 ): Resource(nimbusState, function.stage){
 
@@ -38,7 +40,12 @@ class RestMethod (
         properties.add("ResourceId", parent.getId())
         properties.add("RestApiId", parent.getRootId())
         properties.addProperty("ApiKeyRequired", false)
-        properties.addProperty("AuthorizationType", "NONE")
+
+        if (authorizer != null) {
+            authorizer.applyToRestMethodProperties(properties)
+        } else {
+            properties.addProperty("AuthorizationType", "NONE")
+        }
 
         val integration = JsonObject()
         integration.addProperty("IntegrationHttpMethod", "POST")
