@@ -18,10 +18,9 @@ import com.nimbusframework.nimbusaws.cloudformation.resource.http.*
 import com.nimbusframework.nimbusaws.cloudformation.resource.websocket.*
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator.Companion.getAllowedHeaders
-import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator.Companion.getAllowedOrigins
+import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator.Companion.getAllowedOrigin
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 import com.nimbusframework.nimbuscore.persisted.ExportInformation
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -116,7 +115,7 @@ class FunctionEnvironmentService(
 
         if (httpFunction.method != HttpMethod.OPTIONS && httpFunction.method != HttpMethod.ANY) {
             val allowedHeaders = getAllowedHeaders(function.stage, nimbusState, httpFunction)
-            val allowedOrigin = getAllowedOrigins(function.stage, nimbusState, httpFunction)
+            val allowedOrigin = getAllowedOrigin(function.stage, nimbusState, httpFunction)
 
             if (allowedHeaders.isNotEmpty() || allowedOrigin.isNotBlank()) {
                 val newCorsMethod = CorsRestMethod(

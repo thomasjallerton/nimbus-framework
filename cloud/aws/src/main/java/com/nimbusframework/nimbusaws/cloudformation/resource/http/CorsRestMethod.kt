@@ -13,9 +13,9 @@ class CorsRestMethod (
         nimbusState: NimbusState
 ): Resource(nimbusState, parent.stage){
 
-    private val allowedHeaders: MutableList<String> = mutableListOf()
-    private val allowedOrigins: MutableList<String> = mutableListOf()
-    private val allowedMethods: MutableList<String> = mutableListOf()
+    private val allowedHeaders: MutableSet<String> = mutableSetOf()
+    private val allowedOrigins: MutableSet<String> = mutableSetOf()
+    private val allowedMethods: MutableSet<String> = mutableSetOf()
 
     fun addMethod(method: HttpMethod) {
         allowedMethods.add(method.name)
@@ -66,11 +66,13 @@ class CorsRestMethod (
 
         var strAllowedHeaders = "origin,content-type"
         this.allowedHeaders.forEach { strAllowedHeaders += ",$it" }
+        println(strAllowedHeaders)
+        println(allowedHeaders)
 
         responseParameters.addProperty("method.response.header.Access-Control-Allow-Headers", "'$strAllowedHeaders'")
 
         val origin = if (allowedOrigins.size == 1) {
-            allowedOrigins[0]
+            allowedOrigins.first()
         } else {
             "*"
         }

@@ -81,7 +81,7 @@ class HttpFunctionResourceCreator(
                         referencedWebsite.getAttr("WebsiteURL")
                     )
                 } else {
-                    functionResource.addEnvVariable(allowedOriginEnvVariable, getAllowedOrigins(stage, processingData.nimbusState, httpFunction))
+                    functionResource.addEnvVariable(allowedOriginEnvVariable, getAllowedOrigin(stage, processingData.nimbusState, httpFunction))
                 }
 
                 functionEnvironmentService.newHttpMethod(httpFunction, functionResource)
@@ -94,7 +94,7 @@ class HttpFunctionResourceCreator(
 
     companion object {
 
-        fun getAllowedOrigins(stage: String, nimbusState: NimbusState, httpServerlessFunction: HttpServerlessFunction): String  {
+        fun getAllowedOrigin(stage: String, nimbusState: NimbusState, httpServerlessFunction: HttpServerlessFunction): String  {
             if (httpServerlessFunction.allowedCorsOrigin.isNotBlank()) {
                 return httpServerlessFunction.allowedCorsOrigin
             }
