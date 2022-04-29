@@ -5,10 +5,9 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbusaws.cloudformation.resource.Resource
 import com.nimbusframework.nimbusaws.cloudformation.resource.http.RestApi
-import com.nimbusframework.nimbusaws.cloudformation.resource.http.RestMethod
 
 abstract class RestApiAuthorizer(
-    private val restApi: RestApi,
+    protected val restApi: RestApi,
     private val ttlSeconds: Int = 300,
     nimbusState: NimbusState,
     stage: String
@@ -17,12 +16,12 @@ abstract class RestApiAuthorizer(
     private val name = "ApiGatewayRestApiAuthorizer"
 
     fun getId(): JsonObject {
-        val parentId = JsonObject()
+        val id = JsonObject()
         val getAttr = JsonArray()
         getAttr.add(name)
         getAttr.add("AuthorizerId")
-        parentId.add("Fn::GetAtt", getAttr)
-        return parentId
+        id.add("Fn::GetAtt", getAttr)
+        return id
     }
 
     abstract fun addSpecificProperties(properties: JsonObject)
@@ -36,11 +35,9 @@ abstract class RestApiAuthorizer(
         val properties = getProperties()
         properties.addProperty("AuthorizerResultTtlInSeconds", ttlSeconds)
         properties.addProperty("Name", getName())
-        properties.add("RestApiId", restApi.getId())
+        properties.add("RestApiId", restApi.getRootId())
 
         addSpecificProperties(properties)
-
-
 
         restApiAuthorizer.add("Properties", properties)
 

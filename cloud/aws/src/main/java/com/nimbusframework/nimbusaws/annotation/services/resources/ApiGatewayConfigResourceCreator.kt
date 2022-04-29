@@ -9,6 +9,7 @@ import com.nimbusframework.nimbusaws.annotation.services.functions.FunctionResou
 import com.nimbusframework.nimbusaws.annotation.services.resources.annotations.ApiGatewayRestConfigAnnotation
 import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
+import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionPermissionResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
 import com.nimbusframework.nimbusaws.cloudformation.resource.http.authorizer.CognitoRestApiAuthorizer
 import com.nimbusframework.nimbusaws.cloudformation.resource.http.authorizer.TokenRestApiAuthorizer
@@ -88,13 +89,18 @@ class ApiGatewayConfigResourceCreator(
         val methodInformation = FunctionResourceCreator.extractMethodInformation(function, processingEnvironment, messager)
         val handlerInformation = FunctionResourceCreator.createHandlerInformation(function, HandlerProvider(
             authorizerClass.qualifiedName.toString(),
-            function.toString()
+            authorizerClass.qualifiedName.toString() + "::" + function.simpleName.toString()
         ))
 
         val functionResource = functionEnvironmentService.newFunction(methodInformation, handlerInformation, FunctionConfig(10, 1024, restApi.stage))
+
         nimbusState.handlerFiles.add(handlerInformation)
 
         val authorizer = TokenRestApiAuthorizer(functionResource, config.authorizationHeader, restApi, config.authorizationCacheTtl, nimbusState, restApi.stage)
+
+        val permission = FunctionPermissionResource(functionResource, authorizer, nimbusState)
+
         cloudFormationDocuments.updateTemplate.addRestApiAuthorizer(authorizer)
+        cloudFormationDocuments.updateTemplate.resources.addResource(permission)
     }
 }
