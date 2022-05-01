@@ -18,7 +18,7 @@ class CustomRuntimeEntryFileBuilder(
     fun createCustomRuntimeEntryFunction(initialFunctions: List<FunctionInformation>) {
 
         // Add the env variable to all functions, and then only process once of each in the file.
-        val functions = initialFunctions.groupBy { it.awsMethodInformation.packageName + it.awsMethodInformation.generatedClassName }.map { (identifier, functions) ->
+        val functions = initialFunctions.filter { it.awsMethodInformation != null }.groupBy { it.awsMethodInformation!!.packageName + it.awsMethodInformation.generatedClassName }.map { (identifier, functions) ->
             functions.forEach {
                 it.resource.addEnvVariable(CUSTOM_RUNTIME_FUNCTION_IDENTIFIER_ENV_KEY, identifier)
             }
@@ -30,7 +30,7 @@ class CustomRuntimeEntryFileBuilder(
 
         import(CustomRuntimeHandler::class.java)
         for ((_, function) in functions) {
-            if (function.awsMethodInformation.packageName != "") {
+            if (function.awsMethodInformation!!.packageName != "") {
                 import(function.awsMethodInformation.packageName + "." + function.awsMethodInformation.generatedClassName)
             }
         }
@@ -69,7 +69,7 @@ class CustomRuntimeEntryFileBuilder(
     private fun handleFunction(functionInformation: FunctionInformation, identifier: String) {
 
         write("case \"$identifier\":")
-        val (_, className, inputType, returnType) = functionInformation.awsMethodInformation
+        val (_, className, inputType, returnType) = functionInformation.awsMethodInformation!!
         write("\t$className ${className.toLowerCase()} = new ${className}();")
 
         write("\treturn (invocation, context) -> {")

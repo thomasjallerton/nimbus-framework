@@ -1,5 +1,7 @@
 package com.nimbusframework.nimbuscore.persisted
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+
 data class HandlerInformation(
         /**
          * The deployment plugin uses this to determine if the class has changed
@@ -23,4 +25,9 @@ data class HandlerInformation(
         val runtime: String = "java11"
 ) {
         constructor(): this("", "", "")
+
+        @JsonIgnore
+        fun isCustomFunction(): Boolean {
+                return overrideFileName != null
+        }
 }

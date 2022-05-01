@@ -120,6 +120,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                         userConfig.getCustomRuntime()
                 ),
                 new HashSet<>(),
+                new HashSet<>(),
                 userConfig.getAllowedHeaders(),
                 userConfig.getAllowedOrigins()
         );
@@ -170,7 +171,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         functionResourceCreators.add(new FileUploadResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
         functionResourceCreators.add(new AfterDeploymentResourceCreator(cloudFormationFiles, processingData, classForReflectionService, processingEnv, functionDecoratorHandlers, messager));
 
-        List<FunctionInformation> allInformation = new LinkedList<>();
+        List<FunctionInformation> allInformation = new LinkedList<>(processingData.getFunctions());
         for (FunctionResourceCreator creator : functionResourceCreators) {
             allInformation.addAll(creator.handle(roundEnv, functionEnvironmentService));
         }

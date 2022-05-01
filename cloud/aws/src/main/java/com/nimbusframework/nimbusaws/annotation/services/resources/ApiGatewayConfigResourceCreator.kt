@@ -1,8 +1,12 @@
 package com.nimbusframework.nimbusaws.annotation.services.resources
 
+import com.amazonaws.services.lambda.runtime.events.APIGatewayCustomAuthorizerEvent
+import com.amazonaws.services.lambda.runtime.events.IamPolicyResponse
 import com.nimbusframework.nimbusaws.annotation.annotations.apigateway.ApiGatewayRestConfig
 import com.nimbusframework.nimbusaws.annotation.annotations.apigateway.ApiGatewayRestConfigs
 import com.nimbusframework.nimbusaws.annotation.annotations.cognito.ExistingCognitoUserPool
+import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
+import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.annotation.services.functions.FunctionResourceCreator
@@ -28,7 +32,7 @@ import javax.tools.Diagnostic
 class ApiGatewayConfigResourceCreator(
     roundEnvironment: RoundEnvironment,
     cfDocuments: MutableMap<String, CloudFormationFiles>,
-    processingData: ProcessingData,
+    private val processingData: ProcessingData,
     private val processingEnvironment: ProcessingEnvironment,
     private val messager: Messager,
     private val functionEnvironmentService: FunctionEnvironmentService
@@ -102,5 +106,18 @@ class ApiGatewayConfigResourceCreator(
 
         cloudFormationDocuments.updateTemplate.addRestApiAuthorizer(authorizer)
         cloudFormationDocuments.updateTemplate.resources.addResource(permission)
+
+        val awsFunctionInformation = if (handlerInformation.isCustomFunction()) {
+            null
+        } else {
+            AwsMethodInformation(
+                methodInformation.packageName,
+                authorizerClass.simpleName.toString(),
+                APIGatewayCustomAuthorizerEvent::class.qualifiedName!!,
+                IamPolicyResponse::class.qualifiedName!!
+            )
+        }
+        val functionInformation = FunctionInformation(function, functionResource, awsFunctionInformation, false)
+        processingData.functions.add(functionInformation)
     }
 }
