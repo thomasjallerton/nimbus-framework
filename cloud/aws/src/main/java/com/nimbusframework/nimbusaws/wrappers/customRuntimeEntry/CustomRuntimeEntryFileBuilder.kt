@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.wrappers.customRuntimeEntry
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.environment.ConstantEnvironmentVariable
 import com.nimbusframework.nimbusaws.wrappers.FileBuilder
 import java.io.IOException
 import java.io.PrintWriter
@@ -13,14 +14,13 @@ class CustomRuntimeEntryFileBuilder(
 ): FileBuilder() {
 
     private val CUSTOM_RUNTIME_ENTRY_CLASS_NAME: String = "CustomLambdaRuntimeEntry"
-    private val CUSTOM_RUNTIME_FUNCTION_IDENTIFIER_ENV_KEY = "NIMBUS_CUSTOM_RUNTIME_FUNCTION_IDENTIFIER"
 
     fun createCustomRuntimeEntryFunction(initialFunctions: List<FunctionInformation>) {
 
         // Add the env variable to all functions, and then only process once of each in the file.
         val functions = initialFunctions.filter { it.awsMethodInformation != null }.groupBy { it.awsMethodInformation!!.packageName + it.awsMethodInformation.generatedClassName }.map { (identifier, functions) ->
             functions.forEach {
-                it.resource.addEnvVariable(CUSTOM_RUNTIME_FUNCTION_IDENTIFIER_ENV_KEY, identifier)
+                it.resource.addEnvVariable(ConstantEnvironmentVariable.NIMBUS_CUSTOM_RUNTIME_FUNCTION_IDENTIFIER, identifier)
             }
             Pair(identifier, functions.first())
         }
@@ -47,7 +47,7 @@ class CustomRuntimeEntryFileBuilder(
         write("public static void main(String[] args) throws IOException, InterruptedException {")
         write("ObjectMapper objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);")
         write("CustomRuntimeHandler customRuntimeHandler = new CustomRuntimeHandler(objectMapper);")
-        write("String endpointIdentifier = System.getenv(\"${CUSTOM_RUNTIME_FUNCTION_IDENTIFIER_ENV_KEY}\");")
+        write("String endpointIdentifier = System.getenv(\"${ConstantEnvironmentVariable.NIMBUS_CUSTOM_RUNTIME_FUNCTION_IDENTIFIER.name}\");")
         write("LambdaExecutionFunction handler = getConsumer(endpointIdentifier, objectMapper, customRuntimeHandler);")
         write("while (true) {")
         write("String endpoint = System.getenv(\"AWS_LAMBDA_RUNTIME_API\");")

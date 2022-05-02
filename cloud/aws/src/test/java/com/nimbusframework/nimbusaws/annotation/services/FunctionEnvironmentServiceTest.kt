@@ -1,10 +1,11 @@
 package com.nimbusframework.nimbusaws.annotation.services
 
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
-import com.nimbusframework.nimbusaws.cloudformation.resource.ResourceCollection
-import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionConfig
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.ResourceCollection
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionConfig
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec

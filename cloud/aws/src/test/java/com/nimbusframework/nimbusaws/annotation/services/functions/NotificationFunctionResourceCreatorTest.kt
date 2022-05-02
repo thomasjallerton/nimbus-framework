@@ -2,12 +2,14 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.amazonaws.services.lambda.runtime.events.SNSEvent
 import com.nimbusframework.nimbusaws.CompileStateService
+import com.nimbusframework.nimbusaws.annotation.annotations.parsed.ParsedNotificationTopic
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.resource.notification.SnsTopicResource
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ResourceFinder
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.notification.NotificationFunctionResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.notification.SnsTopicResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.collections.shouldContain
@@ -45,7 +47,7 @@ class NotificationFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesNotificationFunctionAnnotation() {
         compileStateService.compileObjects {
-            every { resourceFinder.getNotificationTopicResource(any(), any(), any()) } returns SnsTopicResource("notificationTopic", processingData.nimbusState, "dev")
+            every { resourceFinder.getNotificationTopicResource(any(), any(), any()) } returns SnsTopicResource(ParsedNotificationTopic("notificationtopic"), processingData.nimbusState, "dev")
             val classForReflectionService = ClassForReflectionService(processingData, it.typeUtils)
             notificationStoreFunctionResourceCreator = NotificationFunctionResourceCreator(cfDocuments, processingData, classForReflectionService, it, setOf(), messager, resourceFinder)
             val classElem = it.elementUtils.getTypeElement("handlers.NotificationHandlers")
@@ -54,7 +56,7 @@ class NotificationFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 6
+            resources.size() shouldBe 5
 
             results.size shouldBe 1
 

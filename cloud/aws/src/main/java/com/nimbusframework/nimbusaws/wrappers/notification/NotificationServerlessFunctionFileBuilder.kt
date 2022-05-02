@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.wrappers.notification
 
 import com.amazonaws.services.lambda.runtime.events.SNSEvent
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.function.NotificationServerlessFunction
 import com.nimbusframework.nimbuscore.clients.JacksonClient

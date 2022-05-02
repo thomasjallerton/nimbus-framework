@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusaws.clients.function
 
-import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient

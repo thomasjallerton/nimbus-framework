@@ -3,10 +3,10 @@ package com.nimbusframework.nimbusaws.wrappers
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
 import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
 import com.nimbusframework.nimbusaws.clients.AwsClientBinder
 import com.nimbusframework.nimbusaws.clients.AwsInternalClientBuilder
-import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.lambda.handlers.HandlerInformationProvider
 import com.nimbusframework.nimbuscore.clients.ClientBinder
 import com.nimbusframework.nimbuscore.eventabstractions.ServerlessEvent
@@ -26,7 +26,8 @@ abstract class ServerlessFunctionFileBuilder(
     private val compilingElement: Element,
     inputType: Class<*>?,
     returnType: Class<*>?,
-    protected val classForReflectionService: ClassForReflectionService
+    protected val classForReflectionService: ClassForReflectionService,
+    private val catchExceptions: Boolean = true
 ): FileBuilder(), HandlerInformationProvider {
 
     private val messager: Messager = processingEnv.messager
@@ -206,7 +207,9 @@ abstract class ServerlessFunctionFileBuilder(
 
                 write("public $returnTypeSimpleName handleRequest($inputTypeSimpleName input, Context context) {")
 
-                write("try {")
+                if (catchExceptions) {
+                    write("try {")
+                }
 
                 write("String requestId = context.getAwsRequestId();")
 
@@ -214,11 +217,13 @@ abstract class ServerlessFunctionFileBuilder(
 
                 writeCustomExceptionHandler()
 
-                write("} catch (Exception e) {")
+                if (catchExceptions) {
+                    write("} catch (Exception e) {")
 
-                writeHandleError()
+                    writeHandleError()
 
-                write("}")
+                    write("}")
+                }
 
                 write("}")
 

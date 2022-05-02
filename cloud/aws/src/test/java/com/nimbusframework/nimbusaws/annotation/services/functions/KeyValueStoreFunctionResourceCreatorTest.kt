@@ -3,11 +3,12 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResource
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ResourceFinder
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.dynamo.KeyValueStoreFunctionResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.DynamoConfiguration
 import io.kotest.core.spec.style.AnnotationSpec

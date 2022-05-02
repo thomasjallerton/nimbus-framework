@@ -2,9 +2,10 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.apigateway.WebSocketFunctionResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
 import com.nimbusframework.nimbuscore.eventabstractions.WebSocketEvent
 import com.nimbusframework.nimbuscore.eventabstractions.WebSocketResponse
 import com.nimbusframework.nimbuscore.persisted.NimbusState

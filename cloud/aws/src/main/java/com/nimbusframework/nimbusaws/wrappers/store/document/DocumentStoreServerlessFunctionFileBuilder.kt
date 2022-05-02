@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbusaws.wrappers.store.document
 
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.store.StoreServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.function.DocumentStoreServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.persistent.StoreEventType

@@ -4,11 +4,12 @@ import com.amazonaws.services.lambda.runtime.events.S3Event
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileBucket
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ResourceFinder
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.filestoragebucket.FileStorageResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.file.FileBucketResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.collections.shouldContain
@@ -49,7 +50,7 @@ class FileStorageResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesFileStorageFunctionAnnotation() {
         compileStateService.compileObjects {
-            every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns FileBucket(processingData.nimbusState, "ImageBucket", arrayOf(), "dev" )
+            every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns FileBucketResource(processingData.nimbusState, "ImageBucket", arrayOf(), "dev" )
             val classForReflectionService = ClassForReflectionService(processingData, it.typeUtils)
 
             fileStorageResourceCreator = FileStorageResourceCreator(cfDocuments, processingData, classForReflectionService, it, setOf(), messager, resourceFinder)

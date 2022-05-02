@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.wrappers.queue
 
 import com.amazonaws.services.lambda.runtime.events.SQSEvent
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.function.QueueServerlessFunction
 import com.nimbusframework.nimbuscore.clients.JacksonClient
@@ -23,7 +23,8 @@ class QueueServerlessFunctionFileBuilder(
     compilingElement,
     SQSEvent::class.java,
     Void::class.java,
-    classForReflectionService
+    classForReflectionService,
+    false
 ) {
 
     override fun generateClassName(): String {

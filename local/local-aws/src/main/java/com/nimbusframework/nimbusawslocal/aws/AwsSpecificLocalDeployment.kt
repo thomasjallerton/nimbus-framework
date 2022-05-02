@@ -4,6 +4,8 @@ import com.nimbusframework.nimbusaws.clients.AwsClientBinder
 import com.nimbusframework.nimbusawslocal.aws.cognito.LocalCognito
 import com.nimbusframework.nimbusawslocal.aws.cognito.LocalCognitoResourceCreator
 import com.nimbusframework.nimbusawslocal.aws.cognito.LocalUsesCognitoHandler
+import com.nimbusframework.nimbusawslocal.aws.secretsmanager.LocalSecrets
+import com.nimbusframework.nimbusawslocal.aws.secretsmanager.LocalUsesSecretManagerHandler
 import com.nimbusframework.nimbusawslocal.deployment.services.resource.LocalDynamoDbDocumentStoreCreator
 import com.nimbusframework.nimbusawslocal.deployment.services.resource.LocalDynamoDbKeyValueStoreCreator
 import com.nimbusframework.nimbuslocal.deployment.CloudSpecificLocalDeployment
@@ -30,12 +32,17 @@ class AwsSpecificLocalDeployment private constructor(): CloudSpecificLocalDeploy
 
     override fun getLocalUsesResourcesHandlers(localResourceHolder: LocalResourceHolder, stageService: StageService): List<LocalUsesResourcesHandler> {
         return listOf(
-            LocalUsesCognitoHandler(localResourceHolder, stageService)
+            LocalUsesCognitoHandler(localResourceHolder, stageService),
+            LocalUsesSecretManagerHandler(localResourceHolder, stageService)
         )
     }
 
     fun getUserPool(userPool: Class<*>): LocalCognito {
         return resourceHolder.cognitoUserPools[userPool] ?: throw IllegalArgumentException("User pool ${userPool.name} not found")
+    }
+
+    fun getLocalSecrets(): LocalSecrets {
+        return resourceHolder.localSecrets
     }
 
     companion object {

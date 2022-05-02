@@ -1,9 +1,9 @@
 package com.nimbusframework.nimbusaws.wrappers.store
 
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoStreamParser
-import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.persistent.StoreEventType
 import com.nimbusframework.nimbuscore.eventabstractions.StoreEvent

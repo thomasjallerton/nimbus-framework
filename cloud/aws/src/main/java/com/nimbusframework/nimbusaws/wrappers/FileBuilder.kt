@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusaws.wrappers
 
-import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import java.io.PrintWriter
 import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror

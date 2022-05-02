@@ -16,4 +16,10 @@ object AwsPermissionTypes {
         }
     }
 
+    val SECRETS_MANAGER: PermissionType = object: PermissionType {
+        override fun getKey(): String {
+            return "SECRETS_MANAGER"
+        }
+    }
+
 }

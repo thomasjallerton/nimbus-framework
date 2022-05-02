@@ -1,9 +1,10 @@
 package com.nimbusframework.nimbusaws.annotation.services.resources
 
 import com.nimbusframework.nimbusaws.CompileStateService
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.resource.database.RdsConfiguration
-import com.nimbusframework.nimbusaws.cloudformation.resource.database.RdsResource
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.database.RelationalDatabaseResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
+import com.nimbusframework.nimbusaws.annotation.annotations.database.ParsedDatabaseConfig
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.database.RdsResource
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseSize
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -43,8 +44,8 @@ internal class RelationalDatabaseDefinitionResourceCreatorTest: AnnotationSpec()
             val rdsResource = resources.get("RdsInstancetestRelationalDatabase") as RdsResource
             rdsResource shouldNotBe null
 
-            val config = rdsResource.rdsConfiguration
-            config.awsDatabaseInstance shouldBe RdsConfiguration.toInstanceType(DatabaseSize.FREE)
+            val config = rdsResource.parsedDatabaseConfig
+            config.awsDatabaseInstance shouldBe ParsedDatabaseConfig.toInstanceType(DatabaseSize.FREE)
             config.databaseLanguage shouldBe DatabaseLanguage.MYSQL
             config.name shouldBe "testRelationalDatabase"
             config.username shouldBe "username"
@@ -67,7 +68,7 @@ internal class RelationalDatabaseDefinitionResourceCreatorTest: AnnotationSpec()
 
             rdsResource shouldNotBe null
 
-            val config = rdsResource.rdsConfiguration
+            val config = rdsResource.parsedDatabaseConfig
             config.awsDatabaseInstance shouldBe "micro"
             config.databaseLanguage shouldBe DatabaseLanguage.MYSQL
             config.name shouldBe "testRdsDatabase"

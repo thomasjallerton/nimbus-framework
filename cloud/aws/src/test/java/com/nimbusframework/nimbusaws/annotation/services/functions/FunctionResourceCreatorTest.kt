@@ -2,9 +2,10 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbusaws.annotation.services.functions.decorators.FunctionDecoratorHandler
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionDecoratorHandler
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.HttpServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.NimbusState

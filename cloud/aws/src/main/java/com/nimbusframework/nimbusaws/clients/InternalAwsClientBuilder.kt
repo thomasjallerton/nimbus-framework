@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.clients
 
 import com.nimbusframework.nimbusaws.clients.cognito.CognitoClient
+import com.nimbusframework.nimbusaws.clients.secretmanager.SecretManagerClient
 import com.nimbusframework.nimbuscore.clients.database.DatabaseClient
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
@@ -15,5 +16,7 @@ import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSoc
 interface InternalAwsClientBuilder {
 
     fun getCognitoClient(userPool: Class<*>, stage: String): CognitoClient
+
+    fun getSecretClient(): SecretManagerClient
 
 }

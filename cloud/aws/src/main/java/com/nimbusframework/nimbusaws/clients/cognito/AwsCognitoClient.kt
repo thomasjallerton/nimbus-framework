@@ -35,7 +35,11 @@ class AwsCognitoClient(
     }
 
     override fun searchUsers(filterAttribute: SearchableCognitoAttribute, value: String, searchType: SearchType): List<CognitoUser> {
-        val response = cognitoClient.listUsers { it.filter("${filterAttribute.searchTerm} ${searchType.formatted} \\\"$value\\\"") }
+        val searchTerm = "${filterAttribute.searchTerm} ${searchType.formatted} \"$value\""
+        val response = cognitoClient.listUsers { it
+            .userPoolId(userPoolId)
+            .filter(searchTerm)
+        }
         return response.users().map { user ->
             CognitoUser(
                 user.username(),

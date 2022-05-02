@@ -2,9 +2,9 @@ package com.nimbusframework.nimbusaws.wrappers.http
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
-import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 import com.nimbusframework.nimbuscore.annotations.function.HttpException

@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusaws.wrappers.basic
 
-import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.FileBuilder
 import com.nimbusframework.nimbuscore.clients.ClientBuilder
 import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient

@@ -3,12 +3,14 @@ package com.nimbusframework.nimbusaws.annotation.services.functions
 import com.amazonaws.services.lambda.runtime.events.SQSEvent
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
+import com.nimbusframework.nimbusaws.annotation.annotations.parsed.ParsedQueueDefinition
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.resource.queue.QueueResource
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ResourceFinder
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.queue.QueueFunctionResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.queue.QueueResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.collections.shouldContain
@@ -48,7 +50,7 @@ class QueueFunctionResourceCreatorTest : AnnotationSpec() {
     @Test
     fun correctlyProcessesQueueFunctionAnnotation() {
         compileStateService.compileObjects {
-            every { resourceFinder.getQueueResource(any(), any(), any()) } returns QueueResource(processingData.nimbusState, "messageQueue", 10, "dev")
+            every { resourceFinder.getQueueResource(any(), any(), any()) } returns QueueResource(ParsedQueueDefinition("messageQueue", 10), processingData.nimbusState, "dev")
             val classForReflectionService = ClassForReflectionService(processingData, it.typeUtils)
             queueFunctionResourceCreator = QueueFunctionResourceCreator(cfDocuments, processingData, it, classForReflectionService, setOf(), messager, resourceFinder)
 

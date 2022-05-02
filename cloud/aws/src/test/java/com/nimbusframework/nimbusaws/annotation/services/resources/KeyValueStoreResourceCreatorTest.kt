@@ -2,9 +2,10 @@ package com.nimbusframework.nimbusaws.annotation.services.resources
 
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.resource.dynamo.DynamoResource
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.dynamo.KeyValueStoreResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.collections.shouldContain
@@ -27,7 +28,7 @@ class KeyValueStoreResourceCreatorTest : AnnotationSpec() {
         processingData = ProcessingData(nimbusState)
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
-        compileStateService = CompileStateService("models/KeyValue.java", "models/DynamoDbKeyValue.java", "models/KeyValueExistingArn.java")
+        compileStateService = CompileStateService("models/KeyValue.java", "models/DynamoDbKeyValue.java")
     }
 
     @Test
@@ -64,18 +65,4 @@ class KeyValueStoreResourceCreatorTest : AnnotationSpec() {
         }
     }
 
-    @Test
-    fun doesNotCreateResourceIfExistingArnSet() {
-        compileStateService.compileObjects {
-            val keyValueStoreResourceCreator = KeyValueStoreResourceCreator(roundEnvironment, cfDocuments, processingData, ClassForReflectionService(processingData, it.typeUtils), it)
-            keyValueStoreResourceCreator.handleSpecificType(it.elementUtils.getTypeElement("models.KeyValueExistingArn"))
-            cfDocuments["dev"] shouldNotBe null
-
-            val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 1
-
-            resources.get("KeyValueExistingArndev") shouldBe null
-            processingData.classesForReflection shouldContain "models.KeyValueExistingArn"
-        }
-    }
 }

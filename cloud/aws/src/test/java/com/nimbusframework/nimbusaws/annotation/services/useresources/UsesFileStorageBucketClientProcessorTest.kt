@@ -2,13 +2,14 @@ package com.nimbusframework.nimbusaws.annotation.services.useresources
 
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
-import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
-import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileBucket
-import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ResourceFinder
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.apigateway.HttpFunctionResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.filestoragebucket.UsesFileStorageClientProcessor
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.IamRoleResource
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.file.FileBucketResource
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -51,7 +52,7 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
 
         functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesFileStorageClientHandlerfuncFunction") as FunctionResource
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleageClientHandlerfunc") as IamRoleResource
-        usesFileStorageClientProcessor = UsesFileStorageClientProcessor(cfDocuments, messager, resourceFinder, processingData.nimbusState)
+        usesFileStorageClientProcessor = UsesFileStorageClientProcessor(messager, resourceFinder, processingData.nimbusState)
 
         toRun()
     }
@@ -60,7 +61,7 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
     fun correctlySetsPermissions() {
         compileStateService.compileObjects {
             setup(it) {
-                val bucketResource = FileBucket(processingData.nimbusState, "ImageBucket", arrayOf(), "dev" )
+                val bucketResource = FileBucketResource(processingData.nimbusState, "ImageBucket", arrayOf(), "dev" )
                 every { resourceFinder.getFileStorageBucketResource(any(), any(), any()) } returns bucketResource
 
                 usesFileStorageClientProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesFileStorageClientHandler").enclosedElements[1], functionResource)

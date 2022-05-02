@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusaws.clients.function
 
-import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
 import com.nimbusframework.nimbusaws.examples.BasicFunctionHandler
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import io.kotest.core.spec.style.AnnotationSpec

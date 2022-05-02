@@ -1,9 +1,9 @@
 package com.nimbusframework.nimbusaws.wrappers.websocket
 
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
 import com.nimbusframework.nimbusaws.clients.AwsInternalClientBuilder
 import com.nimbusframework.nimbuscore.annotations.function.WebSocketServerlessFunction
-import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.clients.ClientBinder
 import com.nimbusframework.nimbuscore.clients.JacksonClient

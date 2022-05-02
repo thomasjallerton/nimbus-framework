@@ -2,15 +2,17 @@ package com.nimbusframework.nimbusaws.annotation.services.useresources
 
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
+import com.nimbusframework.nimbusaws.annotation.annotations.parsed.ParsedQueueDefinition
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbusaws.annotation.services.ResourceFinder
-import com.nimbusframework.nimbusaws.annotation.services.functions.HttpFunctionResourceCreator
-import com.nimbusframework.nimbusaws.annotation.services.resources.QueueResourceCreator
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.resource.IamRoleResource
-import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
-import com.nimbusframework.nimbusaws.cloudformation.resource.queue.QueueResource
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ResourceFinder
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.apigateway.HttpFunctionResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.queue.QueueResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.queue.UsesQueueProcessor
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.IamRoleResource
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.queue.QueueResource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -40,7 +42,6 @@ class UsesQueueProcessorTest: AnnotationSpec() {
         cfDocuments = mutableMapOf()
         roundEnvironment = mockk()
         messager = mockk(relaxed = true)
-        resourceFinder = mockk()
 
         compileStateService = CompileStateService("models/Queue.java", "handlers/UsesQueueHandler.java")
     }
@@ -53,8 +54,9 @@ class UsesQueueProcessorTest: AnnotationSpec() {
         HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
         HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, processingData))
 
+        resourceFinder = ResourceFinder(cfDocuments, processingEnvironment, processingData.nimbusState)
         iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleUsesQueueHandlerfunc") as IamRoleResource
-        usesQueueProcessor = UsesQueueProcessor(cfDocuments, messager, resourceFinder, processingData.nimbusState)
+        usesQueueProcessor = UsesQueueProcessor(messager, resourceFinder, processingData.nimbusState)
 
         toRun()
     }
@@ -63,8 +65,6 @@ class UsesQueueProcessorTest: AnnotationSpec() {
     fun correctlySetsPermissions() {
         compileStateService.compileObjects {
             setup(it) {
-                every { resourceFinder.getQueueResource(any(), any(), any()) } returns QueueResource(processingData.nimbusState, "messageQueue", 10, "dev")
-
                 val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesQueueHandlerfuncFunction") as FunctionResource
 
                 usesQueueProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesQueueHandler").enclosedElements[1], functionResource)
@@ -84,8 +84,6 @@ class UsesQueueProcessorTest: AnnotationSpec() {
     fun throwsErrorIfQueueDoesNotExist() {
         compileStateService.compileObjects {
             setup(it) {
-                every { resourceFinder.getQueueResource(any(), any(), any()) } returns null
-
                 val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesQueueHandlerfunc2Function") as FunctionResource
 
                 usesQueueProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesQueueHandler").enclosedElements[2], functionResource)

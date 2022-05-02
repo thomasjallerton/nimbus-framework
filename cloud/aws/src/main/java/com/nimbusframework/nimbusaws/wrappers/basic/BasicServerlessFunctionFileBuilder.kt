@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.wrappers.basic
 
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.BasicServerlessFunction
-import com.nimbusframework.nimbusaws.cloudformation.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.eventabstractions.BasicEvent
 import javax.annotation.processing.ProcessingEnvironment

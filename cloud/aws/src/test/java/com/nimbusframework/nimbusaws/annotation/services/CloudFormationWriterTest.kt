@@ -1,9 +1,9 @@
 package com.nimbusframework.nimbusaws.annotation.services
 
 import com.google.gson.JsonObject
-import com.nimbusframework.nimbusaws.annotation.services.files.FileWriter
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationTemplate
-import com.nimbusframework.nimbusaws.cloudformation.resource.Resource
+import com.nimbusframework.nimbusaws.cloudformation.generation.files.FileWriter
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationTemplate
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.Resource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.mockk.called

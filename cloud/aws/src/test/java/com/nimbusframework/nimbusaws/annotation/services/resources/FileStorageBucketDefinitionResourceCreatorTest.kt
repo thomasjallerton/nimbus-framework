@@ -1,10 +1,11 @@
 package com.nimbusframework.nimbusaws.annotation.services.resources
 
 import com.nimbusframework.nimbusaws.CompileStateService
-import com.nimbusframework.nimbusaws.cloudformation.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.outputs.BucketWebsiteUrlOutput
-import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileBucket
-import com.nimbusframework.nimbusaws.cloudformation.resource.file.FileStorageBucketPolicy
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.filestoragebucket.FileStorageBucketResourceCreator
+import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.model.outputs.BucketWebsiteUrlOutput
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.file.FileBucketResource
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.file.FileStorageBucketPolicy
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -39,7 +40,7 @@ class FileStorageBucketDefinitionResourceCreatorTest : AnnotationSpec() {
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
             resources.size() shouldBe 2
 
-            val fileBucket = resources.get("ImageBucketFileBucket") as FileBucket
+            val fileBucket = resources.get("ImageBucketFileBucket") as FileBucketResource
 
             fileBucket shouldNotBe null
 
@@ -58,7 +59,7 @@ class FileStorageBucketDefinitionResourceCreatorTest : AnnotationSpec() {
             val outputs = cfDocuments["dev"]!!.updateTemplate.outputs
             resources.size() shouldBe 3
 
-            val fileBucket = resources.get("websiteFileBucket") as FileBucket
+            val fileBucket = resources.get("websiteFileBucket") as FileBucketResource
             val fileBucketPolicy = resources.get("PolicywebsiteFileBucket") as FileStorageBucketPolicy
             val websiteUrlOutput = outputs.get("websiteFileBucketWebsiteUrl") as BucketWebsiteUrlOutput
 

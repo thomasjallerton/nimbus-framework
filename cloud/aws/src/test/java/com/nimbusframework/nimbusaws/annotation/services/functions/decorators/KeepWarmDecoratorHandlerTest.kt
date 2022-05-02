@@ -2,8 +2,9 @@ package com.nimbusframework.nimbusaws.annotation.services.functions.decorators
 
 import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
-import com.nimbusframework.nimbusaws.annotation.services.FunctionEnvironmentService
-import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionEnvironmentService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.KeepWarmDecoratorHandler
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.annotations.function.decorator.KeepWarm
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
