@@ -1,8 +1,11 @@
 package com.nimbusframework.nimbusaws.clients
 
 import com.nimbusframework.nimbusaws.annotation.annotations.cognito.ExistingCognitoUserPool
+import com.nimbusframework.nimbusaws.annotation.annotations.database.ParsedDatabaseConfig
+import com.nimbusframework.nimbusaws.annotation.annotations.database.RdsDatabase
 import com.nimbusframework.nimbusaws.annotation.annotations.document.DynamoDbDocumentStore
 import com.nimbusframework.nimbusaws.annotation.annotations.keyvalue.DynamoDbKeyValueStore
+import com.nimbusframework.nimbusaws.annotation.annotations.parsed.ParsedNotificationTopic
 import com.nimbusframework.nimbusaws.annotation.annotations.parsed.ParsedQueueDefinition
 import com.nimbusframework.nimbusaws.clients.cognito.AwsCognitoClient
 import com.nimbusframework.nimbusaws.clients.cognito.CognitoClient
@@ -22,9 +25,11 @@ import com.nimbusframework.nimbusaws.clients.secretmanager.AwsSecretManagerClien
 import com.nimbusframework.nimbusaws.clients.secretmanager.SecretManagerClient
 import com.nimbusframework.nimbusaws.clients.websocket.ServerlessFunctionWebSocketClientApiGateway
 import com.nimbusframework.nimbuscore.annotations.AnnotationHelper.getAnnotationForStage
+import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabaseDefinition
 import com.nimbusframework.nimbuscore.annotations.document.DocumentStoreDefinition
 import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition
 import com.nimbusframework.nimbuscore.annotations.keyvalue.KeyValueStoreDefinition
+import com.nimbusframework.nimbuscore.annotations.notification.NotificationTopicDefinition
 import com.nimbusframework.nimbuscore.annotations.queue.QueueDefinition
 import com.nimbusframework.nimbuscore.clients.AnnotationForStageService
 import com.nimbusframework.nimbuscore.clients.InternalClientBuilder
@@ -37,7 +42,6 @@ import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreAnnotationService
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
-import com.nimbusframework.nimbuscore.clients.notification.NotificationTopicAnnotationService
 import com.nimbusframework.nimbuscore.clients.queue.QueueClient
 import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
@@ -137,8 +141,16 @@ object AwsInternalClientBuilder : InternalClientBuilder, InternalAwsClientBuilde
         return QueueClientSQS(parsed, createSqsClient(), internalEnvironmentVariableClient)
     }
 
-    override fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient {
-        return DatabaseClientRds(databaseObject, getEnvironmentVariableClient())
+    override fun <T> getDatabaseClient(databaseObject: Class<T>, stage: String): DatabaseClient {
+        val agnosticAnnotation = getAnnotationForStage(databaseObject, RelationalDatabaseDefinition::class, stage) { it.stages }
+        if (agnosticAnnotation != null) {
+            val parsedDatabaseConfig = ParsedDatabaseConfig.fromRelationDatabase(agnosticAnnotation)
+            return DatabaseClientRds(parsedDatabaseConfig, internalEnvironmentVariableClient)
+        }
+        val specificAnnotation = getAnnotationForStage(databaseObject, RdsDatabase::class, stage) { it.stages }
+            ?: throw IllegalStateException("${databaseObject.simpleName} is not a known type of Relational Database (RelationalDatabaseDefinition, RdsDatabase)")
+        val parsedDatabaseConfig = ParsedDatabaseConfig.fromRdsDatabase(specificAnnotation)
+        return DatabaseClientRds(parsedDatabaseConfig, internalEnvironmentVariableClient)
     }
 
     override fun getEnvironmentVariableClient(): EnvironmentVariableClient {
@@ -146,15 +158,15 @@ object AwsInternalClientBuilder : InternalClientBuilder, InternalAwsClientBuilde
     }
 
     override fun getNotificationClient(topicClass: Class<*>, stage: String): NotificationClient {
-        val topic = NotificationTopicAnnotationService.getTopicName(topicClass, stage)
-        return NotificationClientSNS(topic, createSnsClient(), getEnvironmentVariableClient())
+        val topicAnnotation = annotationForStageService.getAnnotation(topicClass, NotificationTopicDefinition::class.java, stage) { it.stages }
+        return NotificationClientSNS(ParsedNotificationTopic(topicAnnotation), createSnsClient(), internalEnvironmentVariableClient)
     }
 
     override fun getBasicServerlessFunctionClient(
         handlerClass: Class<*>,
         functionName: String
     ): BasicServerlessFunctionClient {
-        return BasicServerlessFunctionClientLambda(handlerClass, functionName, createLambdaClient(), getEnvironmentVariableClient())
+        return BasicServerlessFunctionClientLambda(handlerClass, functionName, createLambdaClient(), internalEnvironmentVariableClient)
     }
 
     override fun getFileStorageClient(bucketClass: Class<*>, stage: String): FileStorageClient {

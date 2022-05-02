@@ -1,5 +1,8 @@
 package com.nimbusframework.nimbusaws.clients.notification
 
+import com.nimbusframework.nimbusaws.annotation.annotations.parsed.ParsedNotificationTopic
+import com.nimbusframework.nimbusaws.clients.InternalEnvironmentVariableClient
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.notification.NotificationTopicEnvironmentVariable
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import com.nimbusframework.nimbuscore.clients.notification.NotificationClient
@@ -10,13 +13,13 @@ import software.amazon.awssdk.services.sns.model.SubscribeRequest
 import software.amazon.awssdk.services.sns.model.UnsubscribeRequest
 
 internal class NotificationClientSNS(
-    topicName: String,
+    private val parsedNotificationTopic: ParsedNotificationTopic,
     private val snsClient: SnsClient,
-    private val environmentVariableClient: EnvironmentVariableClient
+    private val internalEnvironmentVariableClient: InternalEnvironmentVariableClient
 
 ): NotificationClient {
 
-    private val topicArn: String by lazy {  environmentVariableClient.get("SNS_TOPIC_ARN_${topicName.toUpperCase()}") ?: "" }
+    private val topicArn: String by lazy {  internalEnvironmentVariableClient.get(NotificationTopicEnvironmentVariable(parsedNotificationTopic)) ?: "" }
 
     override fun createSubscription(protocol: Protocol, endpoint: String): String {
         val subscribeRequest = SubscribeRequest.builder()

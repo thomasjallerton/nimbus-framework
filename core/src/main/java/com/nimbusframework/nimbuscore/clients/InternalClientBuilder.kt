@@ -19,7 +19,7 @@ interface InternalClientBuilder {
 
     fun getQueueClient(queueClass: Class<*>, stage: String): QueueClient
 
-    fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient
+    fun <T> getDatabaseClient(databaseObject: Class<T>, stage: String): DatabaseClient
 
     fun getEnvironmentVariableClient(): EnvironmentVariableClient
 

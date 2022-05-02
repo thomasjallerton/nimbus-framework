@@ -54,7 +54,7 @@ object ClientBuilder {
     @JvmStatic
     fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient {
         return try {
-            internalClientBuilder.getDatabaseClient(databaseObject)
+            internalClientBuilder.getDatabaseClient(databaseObject, getStage())
         } catch (e: ClassNotFoundException) {
             EmptyDatabaseClient()
         } catch (e: NoClassDefFoundError) {

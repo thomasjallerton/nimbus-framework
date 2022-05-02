@@ -11,4 +11,15 @@ class DatabaseConnectionUrlEnvironmentVariable(
         return annotation.name + "_CONNECTION_URL"
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is DatabaseConnectionUrlEnvironmentVariable) return false
+        return getKey() == other.getKey()
+    }
+
+    override fun hashCode(): Int {
+        return javaClass.hashCode()
+    }
+
+
 }

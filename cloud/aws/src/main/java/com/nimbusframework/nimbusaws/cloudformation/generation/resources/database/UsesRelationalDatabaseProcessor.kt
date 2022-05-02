@@ -2,12 +2,10 @@ package com.nimbusframework.nimbusaws.cloudformation.generation.resources.databa
 
 import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ResourceFinder
 import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.UsesResourcesProcessor
-import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.annotations.database.UsesRelationalDatabase
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.wrappers.annotations.datamodel.UsesRelationalDatabaseAnnotation
-import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
 
 class UsesRelationalDatabaseProcessor(
@@ -27,8 +25,8 @@ class UsesRelationalDatabaseProcessor(
 
                     if (resource != null) {
                         functionResource.addEnvVariable(DatabaseConnectionUrlEnvironmentVariable(resource.parsedDatabaseConfig), resource.getAttribute("Endpoint.Address"))
-                        functionResource.addEnvVariable(DatabasePasswordUrlEnvironmentVariable(resource.parsedDatabaseConfig), resource.parsedDatabaseConfig.password)
-                        functionResource.addEnvVariable(DatabaseUsernameUrlEnvironmentVariable(resource.parsedDatabaseConfig), resource.parsedDatabaseConfig.username)
+                        functionResource.addEnvVariable(DatabasePasswordEnvironmentVariable(resource.parsedDatabaseConfig), resource.parsedDatabaseConfig.password)
+                        functionResource.addEnvVariable(DatabaseUsernameEnvironmentVariable(resource.parsedDatabaseConfig), resource.parsedDatabaseConfig.username)
                         functionResource.addDependsOn(resource)
                     }
 
