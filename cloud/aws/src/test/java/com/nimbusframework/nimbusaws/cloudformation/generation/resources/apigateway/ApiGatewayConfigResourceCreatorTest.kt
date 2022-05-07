@@ -35,12 +35,12 @@ internal class ApiGatewayConfigResourceCreatorTest: AnnotationSpec() {
     }
 
     @Test
-    fun correctlySetsUpCustomAuthorizer() {
-        val compileStateService = CompileStateService("models/apigateway/ConfiguredApiGatewayCustomHandler.java", "handlers/apigateway/Authorizer.java")
+    fun correctlySetsUpLambdaAuthorizer() {
+        val compileStateService = CompileStateService("models/apigateway/ConfiguredApiGatewayLambdaHandler.java", "handlers/apigateway/Authorizer.java")
         compileStateService.compileObjects {
             val apiGatewayConfigResourceCreator = ApiGatewayConfigResourceCreator(roundEnvironment, cfDocuments, processingData, it, it.messager, functionEnvironmentService)
 
-            val restApiTypeElem = it.elementUtils.getTypeElement("models.apigateway.ConfiguredApiGatewayCustomHandler")
+            val restApiTypeElem = it.elementUtils.getTypeElement("models.apigateway.ConfiguredApiGatewayLambdaHandler")
             apiGatewayConfigResourceCreator.handleAgnosticType(restApiTypeElem)
 
             cfDocuments["dev"] shouldNotBe null
@@ -71,6 +71,40 @@ internal class ApiGatewayConfigResourceCreatorTest: AnnotationSpec() {
                 IamPolicyResponse::class.qualifiedName!!
             )
 
+        }
+    }
+
+    @Test
+    fun correctlySetsUpCustomLambdaAuthorizer() {
+        val compileStateService = CompileStateService("models/apigateway/ConfiguredApiGatewayCustomHandler.java", "handlers/apigateway/CustomAuthorizer.java")
+        compileStateService.compileObjects {
+            val apiGatewayConfigResourceCreator = ApiGatewayConfigResourceCreator(roundEnvironment, cfDocuments, processingData, it, it.messager, functionEnvironmentService)
+
+            val restApiTypeElem = it.elementUtils.getTypeElement("models.apigateway.ConfiguredApiGatewayCustomHandler")
+            apiGatewayConfigResourceCreator.handleAgnosticType(restApiTypeElem)
+
+            cfDocuments["dev"] shouldNotBe null
+            val resources = cfDocuments["dev"]!!.updateTemplate.resources
+
+            // then
+            // ... created function
+            val functionTypeElem = it.elementUtils.getTypeElement("handlers.apigateway.Authorizer").enclosedElements[1]
+            val functionResource = resources.getFunction("handlers.apigateway.Authorizer", "handleRequest")!!
+
+            functionShouldBeSetUpCorrectly(functionResource, functionTypeElem, processingData)
+
+            // ... created authorizer and permission
+            val authorizer = cfDocuments["dev"]!!.updateTemplate.getRestApiAuthorizer()!!
+            authorizer.shouldBeInstanceOf<TokenRestApiAuthorizer>()
+            authorizer.function shouldBe functionResource
+            authorizer.identityHeader shouldBe "Bearer"
+            authorizer.ttlSeconds shouldBe 100
+
+            val permission = resources.get("LambdaPermRestAuth" + functionResource.getShortName())!! as FunctionPermissionResource
+            permission.trigger shouldBe authorizer
+
+            val functionInformation = processingData.functions.first { it.resource == functionResource }
+            functionInformation.awsMethodInformation shouldBe null
         }
     }
 
