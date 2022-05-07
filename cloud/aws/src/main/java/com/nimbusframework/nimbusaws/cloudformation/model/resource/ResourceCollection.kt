@@ -2,15 +2,18 @@ package com.nimbusframework.nimbusaws.cloudformation.model.resource
 
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbusaws.annotation.annotations.database.RdsDatabase
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionIdentifier
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.database.RdsResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.dynamo.DynamoResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.file.FileBucketResource
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.notification.SnsTopicResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.queue.QueueResource
 import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabaseDefinition
 import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition
 import com.nimbusframework.nimbuscore.annotations.notification.NotificationTopicDefinition
 import com.nimbusframework.nimbuscore.annotations.queue.QueueDefinition
+import javax.lang.model.element.TypeElement
 
 class ResourceCollection {
 
@@ -22,6 +25,7 @@ class ResourceCollection {
     private val databases: MutableMap<String, RdsResource> = mutableMapOf()
     private val snsTopics: MutableMap<String, SnsTopicResource> = mutableMapOf()
     private val s3Buckets: MutableMap<String, FileBucketResource> = mutableMapOf()
+    private val lambdaResources: MutableMap<FunctionIdentifier, FunctionResource> = mutableMapOf()
 
     fun addResource(resource: Resource) {
         if (resource is DirectAccessResource) {
@@ -34,6 +38,19 @@ class ResourceCollection {
         if (!resourceMap.containsKey(resource.getName())) {
             resourceMap[resource.getName()] = resource
         }
+    }
+
+    fun addFunction(function: FunctionResource) {
+        lambdaResources[function.getIdentifier()] = function
+        internalAddResource(function)
+    }
+
+    fun getFunction(functionIdentifier: FunctionIdentifier): FunctionResource? {
+        return lambdaResources[functionIdentifier]
+    }
+
+    fun getFunction(qualifiedClassName: String, methodName: String): FunctionResource? {
+        return lambdaResources[FunctionIdentifier(qualifiedClassName, methodName)]
     }
 
     fun addQueue(queueResource: QueueResource) {
@@ -105,10 +122,17 @@ class ResourceCollection {
         val resources = JsonObject()
 
         for (resource in resourceMap.values) {
-            resources.add(resource.getName(), resource.toCloudFormation())
+            processResource(resources, resource)
         }
 
         return resources
+    }
+
+    private fun processResource(resources: JsonObject, resource: Resource) {
+        resource.getAdditionalResources().forEach {
+            processResource(resources, it)
+        }
+        resources.add(resource.getName(), resource.toCloudFormation())
     }
 
     fun contains(resource: Resource): Boolean {
@@ -122,9 +146,5 @@ class ResourceCollection {
     fun addInvokableFunction(className: String, methodName: String, resource: Resource) {
         invokableFunctions[FunctionIdentifier(className, methodName)] = resource
     }
-
-    private data class FunctionIdentifier(val className: String, val methodName: String)
-
-
 
 }

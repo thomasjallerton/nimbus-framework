@@ -20,7 +20,7 @@ class UsesKeyValueStoreProcessor(
 ): UsesResourcesProcessor(nimbusState) {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
-        val iamRoleResource = functionResource.getIamRoleResource()
+        val iamRoleResource = functionResource.iamRoleResource
         val resourceFinder = ResourceFinder(cfDocuments, processingEnv, nimbusState)
 
         for (usesKeyValueStore in serverlessMethod.getAnnotationsByType(UsesKeyValueStore::class.java)) {

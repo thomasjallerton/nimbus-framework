@@ -9,4 +9,13 @@ data class FileBuilderMethodInformation(
         val packageName: String = "",
         val parameters: List<TypeMirror> = listOf(),
         val returnType: TypeMirror
-)
+) {
+
+        fun getQualifiedClassName(): String {
+                if (packageName.isBlank()) {
+                        return className
+                }
+                return "$packageName.$className"
+        }
+
+}

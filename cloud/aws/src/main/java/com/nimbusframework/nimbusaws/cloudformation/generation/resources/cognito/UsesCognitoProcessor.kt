@@ -20,7 +20,7 @@ class UsesCognitoProcessor(
 ): UsesResourcesProcessor(nimbusState)  {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
-        val iamRoleResource = functionResource.getIamRoleResource()
+        val iamRoleResource = functionResource.iamRoleResource
 
         for (usesCognitoUserPool in serverlessMethod.getAnnotationsByType(UsesCognitoUserPool::class.java)) {
 

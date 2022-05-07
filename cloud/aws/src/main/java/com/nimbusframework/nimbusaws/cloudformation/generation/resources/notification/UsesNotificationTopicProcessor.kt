@@ -19,7 +19,7 @@ class UsesNotificationTopicProcessor(
 
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
-        val iamRoleResource = functionResource.getIamRoleResource()
+        val iamRoleResource = functionResource.iamRoleResource
 
         for (notificationTopic in serverlessMethod.getAnnotationsByType(UsesNotificationTopic::class.java)) {
 

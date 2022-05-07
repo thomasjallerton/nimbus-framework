@@ -67,7 +67,7 @@ class AfterDeploymentResourceCreator(
                 val afterDeploymentList = nimbusState.afterDeployments.getOrPut(stage) { mutableListOf() }
                 afterDeploymentList.add(functionResource.getFunctionName())
 
-                updateResources.addResource(functionResource)
+                updateResources.addFunction(functionResource)
 
                 results.add(FunctionInformation(type, functionResource, fileBuilder.getGeneratedClassInformation(), false))
             }

@@ -12,7 +12,7 @@ class UsesSecretsManagerProcessor(
 ): UsesResourcesProcessor(nimbusState)  {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
-        val iamRoleResource = functionResource.getIamRoleResource()
+        val iamRoleResource = functionResource.iamRoleResource
 
         for (usesSecretsManagerSecret in serverlessMethod.getAnnotationsByType(UsesSecretManagerSecret::class.java)) {
             for (stage in stageService.determineStages(usesSecretsManagerSecret.stages)) {

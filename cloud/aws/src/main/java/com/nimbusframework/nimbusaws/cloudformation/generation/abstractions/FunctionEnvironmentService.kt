@@ -37,14 +37,7 @@ class FunctionEnvironmentService(
     fun newFunction(fileBuilderMethodInformation: FileBuilderMethodInformation, handlerInformation: HandlerInformation, functionConfig: FunctionConfig): FunctionResource {
         val function = FunctionResource(fileBuilderMethodInformation, functionConfig, handlerInformation, nimbusState)
 
-        val logGroup = LogGroupResource(fileBuilderMethodInformation.className, fileBuilderMethodInformation.methodName, function, nimbusState, functionConfig.stage)
         val bucket = NimbusBucketResource(nimbusState, functionConfig.stage)
-
-        val iamRoleResource = IamRoleResource(function.getShortName(), nimbusState, functionConfig.stage)
-        iamRoleResource.addAllowStatement("logs:CreateLogStream", logGroup, ":*")
-        iamRoleResource.addAllowStatement("logs:PutLogEvents", logGroup, ":*:*")
-
-        function.setIamRoleResource(iamRoleResource)
 
         val cloudFormationDocuments = cloudFormationFiles.getOrPut(functionConfig.stage) { CloudFormationFiles(
                 nimbusState,
@@ -53,9 +46,7 @@ class FunctionEnvironmentService(
         val updateResources = cloudFormationDocuments.updateTemplate.resources
         val createResources = cloudFormationDocuments.createTemplate.resources
 
-        updateResources.addResource(iamRoleResource)
-        updateResources.addResource(function)
-        updateResources.addResource(logGroup)
+        updateResources.addFunction(function)
         updateResources.addResource(bucket)
 
         createResources.addResource(bucket)
@@ -137,7 +128,7 @@ class FunctionEnvironmentService(
 
         val dynamoStreamResource = DynamoStreamResource(store, nimbusState)
 
-        function.getIamRoleResource().addAllowStatement("dynamodb:*", dynamoStreamResource, "")
+        function.iamRoleResource.addAllowStatement("dynamodb:*", dynamoStreamResource, "")
     }
 
     fun newCronTrigger(cron: String, function: FunctionResource) {

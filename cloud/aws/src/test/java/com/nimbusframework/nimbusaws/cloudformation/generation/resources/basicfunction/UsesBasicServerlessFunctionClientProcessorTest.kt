@@ -26,7 +26,6 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
     private lateinit var processingData: ProcessingData
-    private lateinit var iamRoleResource: IamRoleResource
     private lateinit var messager: Messager
     private lateinit var compileStateService: CompileStateService
 
@@ -52,8 +51,6 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
         HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
         HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, processingData))
 
-        iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRolecFunctionHandlerfunc") as IamRoleResource
-
         toRun()
     }
 
@@ -61,12 +58,12 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
     fun correctlySetsPermissions() {
         compileStateService.compileObjects {
             setup(it) {
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesBasicFunctionHandlerfuncFunction") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.getFunction("handlers.UsesBasicFunctionHandler", "func")!!
 
                 usesBasicServerlessFunctionClientProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[1], functionResource)
                 val basicFunctionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("BasicHandlersgetCurrentTimeFunction")!!
 
-                iamRoleResource.allows("lambda:*", basicFunctionResource) shouldBe true
+                functionResource.iamRoleResource.allows("lambda:*", basicFunctionResource) shouldBe true
 
                 functionResource.getStrEnvValue("NIMBUS_PROJECT_NAME") shouldBe ""
                 functionResource.getStrEnvValue("FUNCTION_STAGE") shouldBe "dev"
@@ -79,7 +76,7 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
     fun alertsIfNoCorrespondingBasicFunction() {
         compileStateService.compileObjects {
             setup(it) {
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesBasicFunctionHandlerfunc2Function") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.getFunction("handlers.UsesBasicFunctionHandler", "func2")!!
 
                 usesBasicServerlessFunctionClientProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[2], functionResource)
 

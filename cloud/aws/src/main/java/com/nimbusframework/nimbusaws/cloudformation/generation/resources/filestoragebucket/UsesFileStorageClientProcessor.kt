@@ -18,7 +18,7 @@ class UsesFileStorageClientProcessor(
 ): UsesResourcesProcessor(nimbusState)  {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
-        val iamRoleResource = functionResource.getIamRoleResource()
+        val iamRoleResource = functionResource.iamRoleResource
 
         for (fileStorage in serverlessMethod.getAnnotationsByType(UsesFileStorageBucket::class.java)) {
 

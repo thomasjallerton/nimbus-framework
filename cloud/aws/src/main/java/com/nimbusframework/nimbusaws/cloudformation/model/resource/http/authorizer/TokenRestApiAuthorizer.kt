@@ -8,8 +8,8 @@ import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.RestApi
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 
 class TokenRestApiAuthorizer(
-    private val function: FunctionResource,
-    private val identityHeader: String,
+    val function: FunctionResource,
+    val identityHeader: String,
     restApi: RestApi,
     ttlSeconds: Int = 300,
     nimbusState: NimbusState,

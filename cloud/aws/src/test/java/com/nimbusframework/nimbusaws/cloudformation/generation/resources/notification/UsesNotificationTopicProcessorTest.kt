@@ -27,7 +27,6 @@ class UsesNotificationTopicProcessorTest: AnnotationSpec() {
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var processingData: ProcessingData
     private lateinit var functionResource: FunctionResource
-    private lateinit var iamRoleResource: IamRoleResource
     private lateinit var messager: Messager
     private lateinit var compileStateService: CompileStateService
 
@@ -48,7 +47,6 @@ class UsesNotificationTopicProcessorTest: AnnotationSpec() {
         HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesNotificationTopicHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
 
         functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesNotificationTopicHandlerfuncFunction") as FunctionResource
-        iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoletionTopicHandlerfunc") as IamRoleResource
         usesNotificationTopicProcessor = UsesNotificationTopicProcessor(messager, ResourceFinder(cfDocuments, processingEnvironment, processingData.nimbusState), processingData.nimbusState)
 
         toRun()
@@ -64,9 +62,9 @@ class UsesNotificationTopicProcessorTest: AnnotationSpec() {
                 functionResource.getStrEnvValue("NIMBUS_STAGE") shouldBe "dev"
                 functionResource.getJsonEnvValue("SNS_TOPIC_ARN_NOTIFICATIONTOPIC") shouldNotBe null
 
-                iamRoleResource.allows("sns:Subscribe", notificationTopicResource) shouldBe true
-                iamRoleResource.allows("sns:Unsubscribe", notificationTopicResource) shouldBe true
-                iamRoleResource.allows("sns:Publish", notificationTopicResource) shouldBe true
+                functionResource.iamRoleResource.allows("sns:Subscribe", notificationTopicResource) shouldBe true
+                functionResource.iamRoleResource.allows("sns:Unsubscribe", notificationTopicResource) shouldBe true
+                functionResource.iamRoleResource.allows("sns:Publish", notificationTopicResource) shouldBe true
             }
         }
         compileStateService.status shouldBe Compilation.Status.SUCCESS

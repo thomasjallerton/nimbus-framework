@@ -29,7 +29,6 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var processingData: ProcessingData
     private lateinit var functionResource: FunctionResource
-    private lateinit var iamRoleResource: IamRoleResource
     private lateinit var compileStateService: CompileStateService
     private lateinit var messager: Messager
     private lateinit var resourceFinder: ResourceFinder
@@ -51,7 +50,6 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
         HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesFileStorageClientHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
 
         functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesFileStorageClientHandlerfuncFunction") as FunctionResource
-        iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleageClientHandlerfunc") as IamRoleResource
         usesFileStorageClientProcessor = UsesFileStorageClientProcessor(messager, resourceFinder, processingData.nimbusState)
 
         toRun()
@@ -68,12 +66,12 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
 
                 functionResource.getStrEnvValue("NIMBUS_STAGE") shouldBe "dev"
 
-                iamRoleResource.allows("s3:GetObject", bucketResource, "") shouldBe true
-                iamRoleResource.allows("s3:DeleteObject", bucketResource, "") shouldBe true
-                iamRoleResource.allows("s3:PutObject", bucketResource, "") shouldBe true
-                iamRoleResource.allows("s3:GetObject", bucketResource, "/*") shouldBe true
-                iamRoleResource.allows("s3:DeleteObject", bucketResource, "/*") shouldBe true
-                iamRoleResource.allows("s3:PutObject", bucketResource, "/*") shouldBe true
+                functionResource.iamRoleResource.allows("s3:GetObject", bucketResource, "") shouldBe true
+                functionResource.iamRoleResource.allows("s3:DeleteObject", bucketResource, "") shouldBe true
+                functionResource.iamRoleResource.allows("s3:PutObject", bucketResource, "") shouldBe true
+                functionResource.iamRoleResource.allows("s3:GetObject", bucketResource, "/*") shouldBe true
+                functionResource.iamRoleResource.allows("s3:DeleteObject", bucketResource, "/*") shouldBe true
+                functionResource.iamRoleResource.allows("s3:PutObject", bucketResource, "/*") shouldBe true
 
                 verify { messager wasNot Called }
             }

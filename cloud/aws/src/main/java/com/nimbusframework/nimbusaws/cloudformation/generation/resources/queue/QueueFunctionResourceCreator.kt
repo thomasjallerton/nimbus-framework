@@ -86,7 +86,7 @@ class QueueFunctionResourceCreator(
 
                 updateResources.addResource(eventMapping)
 
-                val iamRoleResource = functionResource.getIamRoleResource()
+                val iamRoleResource = functionResource.iamRoleResource
 
                 iamRoleResource.addAllowStatement("sqs:ReceiveMessage", sqsQueue, "")
                 iamRoleResource.addAllowStatement("sqs:DeleteMessage", sqsQueue, "")

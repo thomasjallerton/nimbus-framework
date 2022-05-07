@@ -44,7 +44,7 @@ class CustomFactoryCreationTest: AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 4
+            resources.size() shouldBe 2
 
             results.size shouldBe 1
         }

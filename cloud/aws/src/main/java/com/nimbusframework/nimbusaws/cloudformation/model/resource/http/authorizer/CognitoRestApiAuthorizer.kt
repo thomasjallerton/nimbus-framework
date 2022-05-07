@@ -6,8 +6,8 @@ import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.RestApi
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 
 class CognitoRestApiAuthorizer(
-    private val cognitoUserPoolArn: String,
-    private val identityHeader: String,
+    val cognitoUserPoolArn: String,
+    val identityHeader: String,
     restApi: RestApi,
     ttlSeconds: Int = 300,
     nimbusState: NimbusState,

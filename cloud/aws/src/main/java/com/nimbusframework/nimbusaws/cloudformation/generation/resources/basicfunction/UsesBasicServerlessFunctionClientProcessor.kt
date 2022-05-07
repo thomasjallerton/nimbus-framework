@@ -36,7 +36,7 @@ class UsesBasicServerlessFunctionClientProcessor(
                             targetElem.simpleName.toString(),
                             usesBasicServerlessFunctionClient.methodName)
                     if (function != null) {
-                        functionResource.getIamRoleResource().addAllowStatement("lambda:*", function, "")
+                        functionResource.iamRoleResource.addAllowStatement("lambda:*", function, "")
                     } else {
                         messager.printMessage(
                                 Diagnostic.Kind.ERROR,

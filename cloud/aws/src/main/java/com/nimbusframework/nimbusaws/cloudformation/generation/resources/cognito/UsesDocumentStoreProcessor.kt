@@ -20,7 +20,7 @@ class UsesDocumentStoreProcessor(
 ): UsesResourcesProcessor(nimbusState) {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
-        val iamRoleResource = functionResource.getIamRoleResource()
+        val iamRoleResource = functionResource.iamRoleResource
         val resourceFinder = ResourceFinder(cfDocuments, processingEnv, nimbusState)
         for (usesDocumentStore in serverlessMethod.getAnnotationsByType(UsesDocumentStore::class.java)) {
 

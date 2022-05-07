@@ -15,8 +15,7 @@ import javax.tools.Diagnostic
 import javax.tools.JavaFileObject
 
 class CompileStateService(
-        vararg filesToCompile: String,
-        private val useNimbus: Boolean = false
+        vararg filesToCompile: String
 ) {
 
     private val fileService = FileReader()
@@ -34,21 +33,25 @@ class CompileStateService(
         }
     }
 
+    fun compileObjectsWithNimbus() {
+        val compiler = Compiler.javac()
+        val compilation = compiler
+            .withProcessors(NimbusAnnotationProcessor())
+            .compile(fileObjects)
+
+        status = compilation.status()
+        diagnostics = compilation.diagnostics()
+    }
+
     fun compileObjects(toRunWhileProcessing: (ProcessingEnvironment) -> Unit) {
         val compiler = Compiler.javac()
 
-        var wasRun = false
-        val compilation = if (useNimbus) {
-            wasRun = true
-            compiler.withProcessors(NimbusAnnotationProcessor())
-        } else {
-            compiler.withProcessors(EvaluatingProcessor {
-                wasRun = true
+        val compilation = compiler
+            .withProcessors(EvaluatingProcessor {
                 toRunWhileProcessing(it)
             })
-        }.compile(fileObjects)
+            .compile(fileObjects)
 
-        wasRun shouldBe true
         status = compilation.status()
         diagnostics = compilation.diagnostics()
     }

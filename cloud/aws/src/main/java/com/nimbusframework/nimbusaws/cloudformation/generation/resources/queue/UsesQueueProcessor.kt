@@ -18,7 +18,7 @@ class UsesQueueProcessor(
 ): UsesResourcesProcessor(nimbusState)  {
 
     override fun handleUseResources(serverlessMethod: Element, functionResource: FunctionResource) {
-        val iamRoleResource = functionResource.getIamRoleResource()
+        val iamRoleResource = functionResource.iamRoleResource
 
         for (usesQueue in serverlessMethod.getAnnotationsByType(UsesQueue::class.java)) {
             for (stage in stageService.determineStages(usesQueue.stages)) {

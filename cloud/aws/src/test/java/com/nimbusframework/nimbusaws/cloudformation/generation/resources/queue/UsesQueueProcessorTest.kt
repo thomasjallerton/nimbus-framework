@@ -31,7 +31,6 @@ class UsesQueueProcessorTest: AnnotationSpec() {
     private lateinit var roundEnvironment: RoundEnvironment
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var processingData: ProcessingData
-    private lateinit var iamRoleResource: IamRoleResource
     private lateinit var messager: Messager
     private lateinit var compileStateService: CompileStateService
     private lateinit var resourceFinder: ResourceFinder
@@ -55,7 +54,6 @@ class UsesQueueProcessorTest: AnnotationSpec() {
         HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesQueueHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, processingData))
 
         resourceFinder = ResourceFinder(cfDocuments, processingEnvironment, processingData.nimbusState)
-        iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleUsesQueueHandlerfunc") as IamRoleResource
         usesQueueProcessor = UsesQueueProcessor(messager, resourceFinder, processingData.nimbusState)
 
         toRun()
@@ -73,7 +71,7 @@ class UsesQueueProcessorTest: AnnotationSpec() {
                 functionResource.getStrEnvValue("NIMBUS_STAGE") shouldBe "dev"
                 functionResource.getJsonEnvValue("NIMBUS_QUEUE_URL_ID_MESSAGEQUEUE") shouldNotBe null
 
-                iamRoleResource.allows("sqs:SendMessage", queueResource) shouldBe true
+                functionResource.iamRoleResource.allows("sqs:SendMessage", queueResource) shouldBe true
             }
         }
 

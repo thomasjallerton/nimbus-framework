@@ -2,10 +2,13 @@ package com.nimbusframework.nimbusaws.cloudformation.model.resource.function
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionIdentifier
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.environment.ConstantEnvironmentVariable
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.environment.NimbusEnvironmentVariable
 import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.DirectAccessResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.IamRoleResource
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.LogGroupResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.Resource
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -15,23 +18,23 @@ class FunctionResource(
     private val functionConfig: FunctionConfig,
     private val handlerInformation: HandlerInformation,
     nimbusState: NimbusState
-) : Resource(nimbusState, functionConfig.stage) {
+) : Resource(nimbusState, functionConfig.stage), DirectAccessResource {
 
     private val envVariables: MutableMap<String, String> = mutableMapOf()
     private val jsonEnvVariables: MutableMap<String, JsonObject> = mutableMapOf()
-    private lateinit var iamRoleResource: IamRoleResource
+
+    val iamRoleResource: IamRoleResource = IamRoleResource(getShortName(), nimbusState, functionConfig.stage)
+    val logGroupResource = LogGroupResource(fileBuilderMethodInformation.className, fileBuilderMethodInformation.methodName, this, nimbusState, functionConfig.stage)
 
     init {
         envVariables["NIMBUS_STAGE"] = functionConfig.stage
-    }
-
-    fun setIamRoleResource(resource: IamRoleResource) {
-        iamRoleResource = resource
+        iamRoleResource.addAllowStatement("logs:CreateLogStream", logGroupResource, ":*")
+        iamRoleResource.addAllowStatement("logs:PutLogEvents", logGroupResource, ":*:*")
         dependsOn.add(iamRoleResource.getName())
     }
 
-    fun getIamRoleResource(): IamRoleResource {
-        return iamRoleResource
+    fun getIdentifier(): FunctionIdentifier {
+        return FunctionIdentifier(fileBuilderMethodInformation.getQualifiedClassName(), fileBuilderMethodInformation.methodName)
     }
 
     override fun getName(): String {
@@ -164,6 +167,13 @@ class FunctionResource(
 
         uri.add("Fn::Join", joinFunc)
         return uri
+    }
+
+    override fun getAdditionalResources(): List<Resource> {
+        return listOf(
+            iamRoleResource,
+            logGroupResource
+        )
     }
 
     companion object {

@@ -27,7 +27,6 @@ class UsesDocumentStoreProcessorTest : AnnotationSpec() {
     private lateinit var cfDocuments: MutableMap<String, CloudFormationFiles>
     private lateinit var nimbusState: NimbusState
     private lateinit var processingData: ProcessingData
-    private lateinit var iamRoleResource: IamRoleResource
     private lateinit var messager: Messager
     private lateinit var compileStateService: CompileStateService
 
@@ -49,7 +48,6 @@ class UsesDocumentStoreProcessorTest : AnnotationSpec() {
         HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesDocumentStoreHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
         HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesDocumentStoreHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, processingData))
 
-        iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRolementStoreHandlerfunc") as IamRoleResource
         usesDocumentStoreProcessor = UsesDocumentStoreProcessor(cfDocuments, processingEnvironment, nimbusState, messager)
 
         toRun()
@@ -63,7 +61,7 @@ class UsesDocumentStoreProcessorTest : AnnotationSpec() {
                 usesDocumentStoreProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesDocumentStoreHandler").enclosedElements[1], functionResource)
                 val dynamoResource = cfDocuments["dev"]!!.updateTemplate.resources.get("Documentdev")!!
 
-                iamRoleResource.allows("dynamodb:*", dynamoResource) shouldBe true
+                functionResource.iamRoleResource.allows("dynamodb:*", dynamoResource) shouldBe true
             }
         }
         compileStateService.status shouldBe Compilation.Status.SUCCESS

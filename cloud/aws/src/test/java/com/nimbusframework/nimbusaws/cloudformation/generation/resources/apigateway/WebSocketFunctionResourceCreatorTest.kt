@@ -50,7 +50,7 @@ class WebSocketFunctionResourceCreatorTest : AnnotationSpec() {
                 cfDocuments["dev"] shouldNotBe null
 
                 val resources = cfDocuments["dev"]!!.updateTemplate.resources
-                resources.size() shouldBe 10
+                resources.size() shouldBe 8
 
                 results.size shouldBe 1
                 processingData.classesForReflection shouldContain WebSocketEvent::class.qualifiedName

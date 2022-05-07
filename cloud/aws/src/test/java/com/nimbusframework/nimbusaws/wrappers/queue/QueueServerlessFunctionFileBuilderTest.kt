@@ -12,8 +12,8 @@ internal class QueueServerlessFunctionFileBuilderTest: AnnotationSpec() {
 
     @Test
     fun correctCompiles() {
-        val compileStateService = CompileStateService("models/Queue.java", "handlers/QueueHandlers.java", useNimbus = true)
-        compileStateService.compileObjects {  }
+        val compileStateService = CompileStateService("models/Queue.java", "handlers/QueueHandlers.java")
+        compileStateService.compileObjectsWithNimbus()
         compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
 }

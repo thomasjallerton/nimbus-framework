@@ -5,7 +5,6 @@ import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionEnvironmentService
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.apigateway.HttpFunctionResourceCreator
-import com.nimbusframework.nimbusaws.cloudformation.generation.resources.cognito.UsesCognitoProcessor
 import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.ExistingResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.IamRoleResource
@@ -56,13 +55,10 @@ internal class UsesSecretsManagerProcessorTest: AnnotationSpec() {
     fun correctlySetsPermissions() {
         compileStateService.compileObjects {
             setup(it) {
-                val iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleesSecretsHandlerfunc") as IamRoleResource
-
                 val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesSecretsHandlerfuncFunction") as FunctionResource
-
                 usesSecretsManagerProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.secrets.UsesSecretsHandler").enclosedElements[1], functionResource)
 
-                iamRoleResource.allows("secretsmanager:GetSecretValue", ExistingResource("arn:partition:service:region:account-id:resource-id", nimbusState, "dev")) shouldBe true
+                functionResource.iamRoleResource.allows("secretsmanager:GetSecretValue", ExistingResource("arn:partition:service:region:account-id:resource-id", nimbusState, "dev")) shouldBe true
             }
         }
         compileStateService.status shouldBe Compilation.Status.SUCCESS

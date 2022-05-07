@@ -48,7 +48,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 9
+            resources.size() shouldBe 7
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain "com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent"
@@ -70,7 +70,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 10
+            resources.size() shouldBe 8
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
@@ -91,7 +91,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 11
+            resources.size() shouldBe 9
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
@@ -112,7 +112,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 9
+            resources.size() shouldBe 7
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
@@ -133,7 +133,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 9
+            resources.size() shouldBe 7
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
@@ -154,7 +154,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 9
+            resources.size() shouldBe 7
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
@@ -177,7 +177,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 9
+            resources.size() shouldBe 7
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
@@ -200,7 +200,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 9
+            resources.size() shouldBe 7
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
@@ -224,7 +224,7 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 9
+            resources.size() shouldBe 7
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName

@@ -7,7 +7,7 @@ import com.google.gson.JsonObject
 
 class FunctionPermissionResource(
     private val function: FunctionResource,
-    private val trigger: FunctionTrigger,
+    val trigger: FunctionTrigger,
     nimbusState: NimbusState
 ): Resource(nimbusState, function.stage) {
     override fun toCloudFormation(): JsonObject {

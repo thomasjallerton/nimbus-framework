@@ -15,7 +15,7 @@ class FunctionEventMappingResource(
     override fun toCloudFormation(): JsonObject {
         val eventMapping = JsonObject()
         eventMapping.addProperty("Type", "AWS::Lambda::EventSourceMapping")
-        eventMapping.addProperty("DependsOn", function.getIamRoleResource().getName())
+        eventMapping.addProperty("DependsOn", function.iamRoleResource.getName())
 
         val properties = getProperties()
         properties.addProperty("BatchSize", batchSize)

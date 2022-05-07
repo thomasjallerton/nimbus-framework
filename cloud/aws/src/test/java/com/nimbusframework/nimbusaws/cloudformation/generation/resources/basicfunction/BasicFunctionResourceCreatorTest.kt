@@ -48,7 +48,7 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 4
+            resources.size() shouldBe 2
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain "models.Person"
@@ -84,7 +84,7 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 6
+            resources.size() shouldBe 4
 
             results.size shouldBe 1
         }
@@ -102,7 +102,7 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 4
+            resources.size() shouldBe 2
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain "models.Person"
@@ -121,7 +121,7 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 4
+            resources.size() shouldBe 2
 
             results.size shouldBe 1
             processingData.classesForReflection shouldContain "models.Person"

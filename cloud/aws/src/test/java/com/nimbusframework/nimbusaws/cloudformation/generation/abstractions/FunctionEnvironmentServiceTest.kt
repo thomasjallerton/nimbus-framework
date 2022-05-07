@@ -39,12 +39,11 @@ class FunctionEnvironmentServiceTest : AnnotationSpec() {
         underTest.newFunction(fileBuilderMethodInformation, handlerInformation, functionConfig)
 
         createResources.size() shouldBe 1
-        updateResources.size() shouldBe 4
+        updateResources.size() shouldBe 2
 
-        updateResources.get("IamRoleTesttestMethod") shouldNotBe null
         updateResources.get("NimbusDeploymentBucket") shouldNotBe null
-        updateResources.get("LogGroupTesttestMethod") shouldNotBe null
         updateResources.get("TesttestMethodFunction") shouldNotBe null
+        updateResources.getFunction("com.test.Test", "testMethod") shouldNotBe null
     }
 
 }

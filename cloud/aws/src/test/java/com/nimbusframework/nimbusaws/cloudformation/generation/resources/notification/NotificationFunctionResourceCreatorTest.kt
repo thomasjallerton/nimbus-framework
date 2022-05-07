@@ -56,7 +56,7 @@ class NotificationFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 5
+            resources.size() shouldBe 3
 
             results.size shouldBe 1
 

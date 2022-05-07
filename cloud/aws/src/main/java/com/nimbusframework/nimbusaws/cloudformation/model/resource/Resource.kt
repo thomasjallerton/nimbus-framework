@@ -88,6 +88,10 @@ abstract class Resource(protected val nimbusState: NimbusState, val stage: Strin
         return sub
     }
 
+    open fun getAdditionalResources(): List<Resource> {
+        return listOf()
+    }
+
     protected fun toAlphanumeric(str: String): String {
         return str.replace(Regex("[^a-zA-Z0-9]"), "")
     }

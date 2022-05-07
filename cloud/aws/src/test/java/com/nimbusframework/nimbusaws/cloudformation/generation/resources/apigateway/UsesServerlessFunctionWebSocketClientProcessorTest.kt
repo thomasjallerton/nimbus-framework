@@ -26,7 +26,6 @@ class UsesServerlessFunctionWebSocketClientProcessorTest: AnnotationSpec() {
     private lateinit var nimbusState: NimbusState
     private lateinit var processingData: ProcessingData
     private lateinit var functionResource: FunctionResource
-    private lateinit var iamRoleResource: IamRoleResource
     private lateinit var messager: Messager
     private lateinit var compileStateService: CompileStateService
 
@@ -46,7 +45,6 @@ class UsesServerlessFunctionWebSocketClientProcessorTest: AnnotationSpec() {
         WebSocketFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesWebSocketHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
 
         functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesWebSocketHandlerfuncFunction") as FunctionResource
-        iamRoleResource = cfDocuments["dev"]!!.updateTemplate.resources.get("IamRoleWebSocketHandlerfunc") as IamRoleResource
         usesServerlessFunctionWebSocketClientProcessor = UsesServerlessFunctionWebSocketClientProcessor(cfDocuments, nimbusState)
         toRun()
     }
@@ -60,7 +58,7 @@ class UsesServerlessFunctionWebSocketClientProcessorTest: AnnotationSpec() {
 
                 functionResource.getJsonEnvValue("WEBSOCKET_ENDPOINT") shouldNotBe null
 
-                iamRoleResource.allows("execute-api:ManageConnections", webSocketApi, "/*") shouldBe true
+                functionResource.iamRoleResource.allows("execute-api:ManageConnections", webSocketApi, "/*") shouldBe true
             }
         }
         compileStateService.status shouldBe Compilation.Status.SUCCESS

@@ -8,7 +8,7 @@ import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.RestApi
 
 abstract class RestApiAuthorizer(
     protected val restApi: RestApi,
-    private val ttlSeconds: Int = 300,
+    val ttlSeconds: Int = 300,
     nimbusState: NimbusState,
     stage: String
 ) : Resource(nimbusState, stage) {
