@@ -70,7 +70,7 @@ class UsesKeyValueStoreProcessorTest: AnnotationSpec() {
 
     @Test
     fun reportsErrorIfCannotFindDocumentStore() {
-        compileStateService.compileObjects {
+        compileStateService.compileObjectsExpectingFailure {
             setup(it) {
                 val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesKeyValueStoreHandlerfunc2Function") as FunctionResource
                 usesKeyValueStoreProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[2], functionResource)

@@ -28,13 +28,13 @@ class UsesCognitoProcessor(
                 if (stage == functionResource.stage) {
                     val cloudFormationDocuments = cfDocuments[stage]!!
                     val typeElem = UsesCognitoUserPoolAnnotation(usesCognitoUserPool).getTypeElement(processingEnv)
-                    val arn = cloudFormationDocuments.getAdditionalAttribute(typeElem)
-                    if (arn == null) {
+                    val existingResource = cloudFormationDocuments.updateTemplate.resources.getCognitoResource(typeElem.simpleName.toString())
+                    if (existingResource == null) {
                         messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find cognito user pool for class ${typeElem.qualifiedName} in stage $stage", serverlessMethod)
                         return
                     }
-                    iamRoleResource.addAllowStatement("cognito-idp:GetUser", ExistingResource(arn, nimbusState, stage), "")
-                    iamRoleResource.addAllowStatement("cognito-idp:ListUsers", ExistingResource(arn, nimbusState, stage), "")
+                    iamRoleResource.addAllowStatement("cognito-idp:GetUser", existingResource, "")
+                    iamRoleResource.addAllowStatement("cognito-idp:ListUsers", existingResource, "")
                 }
             }
         }
@@ -43,14 +43,15 @@ class UsesCognitoProcessor(
             for (stage in stageService.determineStages(usesCognitoUserPool.stages)) {
                 if (stage == functionResource.stage) {
                     val cloudFormationDocuments = cfDocuments[stage]!!
-                    val arn = cloudFormationDocuments.getAdditionalAttribute(UsesCognitoUserPoolAsAdminAnnotation(usesCognitoUserPool).getTypeElement(processingEnv))
-                    if (arn == null) {
-                        messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find cognito user pool for class ${usesCognitoUserPool.userPool.simpleName} in stage $stage", serverlessMethod)
+                    val typeElem = UsesCognitoUserPoolAsAdminAnnotation(usesCognitoUserPool).getTypeElement(processingEnv)
+                    val existingResource = cloudFormationDocuments.updateTemplate.resources.getCognitoResource(typeElem.simpleName.toString())
+                    if (existingResource == null) {
+                        messager.printMessage(Diagnostic.Kind.ERROR, "Unable to find cognito user pool for class ${typeElem.simpleName} in stage $stage", serverlessMethod)
                         return
                     }
-                    iamRoleResource.addAllowStatement("cognito-idp:AdminAddUserToGroup", ExistingResource(arn, nimbusState, stage), "")
-                    iamRoleResource.addAllowStatement("cognito-idp:AdminRemoveUserFromGroup", ExistingResource(arn, nimbusState, stage), "")
-                    iamRoleResource.addAllowStatement("cognito-idp:AdminUpdateUserAttributes", ExistingResource(arn, nimbusState, stage), "")
+                    iamRoleResource.addAllowStatement("cognito-idp:AdminAddUserToGroup", existingResource, "")
+                    iamRoleResource.addAllowStatement("cognito-idp:AdminRemoveUserFromGroup", existingResource, "")
+                    iamRoleResource.addAllowStatement("cognito-idp:AdminUpdateUserAttributes", existingResource, "")
                 }
             }
         }

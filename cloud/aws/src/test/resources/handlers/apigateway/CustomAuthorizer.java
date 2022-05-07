@@ -10,7 +10,7 @@ import java.lang.Override;
 public class CustomAuthorizer implements ApiGatewayLambdaAuthorizer {
 
   @Override
-  @CustomLambdaFunctionHandler(file = "target/customfile.zip", "testhandler", "provided")
+  @CustomLambdaFunctionHandler(file = "target/customfile.zip", handler = "testhandler", runtime = "provided")
   public IamPolicyResponse handleRequest(APIGatewayCustomAuthorizerEvent input, Context context) {
     return null;
   }

@@ -9,18 +9,9 @@ data class CloudFormationFiles(
     val updateTemplate: CloudFormationTemplate
 ) {
 
-    private val additionalAttributes: MutableMap<String, String> = mutableMapOf()
-
     constructor(nimbusState: NimbusState, stage: String): this (
             CloudFormationTemplate(nimbusState, stage),
             CloudFormationTemplate(nimbusState, stage)
     )
 
-    fun addAdditionalAttribute(type: Element, data: String) {
-        additionalAttributes[type.simpleName.toString()] = data
-    }
-
-    fun getAdditionalAttribute(typeElement: TypeElement): String? {
-        return additionalAttributes[typeElement.simpleName.toString()]
-    }
 }

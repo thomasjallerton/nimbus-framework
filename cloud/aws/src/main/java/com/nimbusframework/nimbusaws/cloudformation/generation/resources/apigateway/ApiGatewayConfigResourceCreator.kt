@@ -12,6 +12,7 @@ import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.Func
 import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.FunctionResourceCreator
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.CloudResourceResourceCreator
 import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.ExistingResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionPermissionResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.authorizer.CognitoRestApiAuthorizer
@@ -52,10 +53,8 @@ class ApiGatewayConfigResourceCreator(
                 val cloudFormationDocuments =
                     cfDocuments.getOrPut(stage) { CloudFormationFiles(nimbusState, stage) }
 
-                val userPoolAnnotation =
-                    getAnnotationForStage(authorizerClass, ExistingCognitoUserPool::class, stage) { it.stages }
-                val isInterface =
-                    authorizerClass.interfaces.any { it.toString() == ApiGatewayLambdaAuthorizer::class.qualifiedName }
+                val userPoolAnnotation = cloudFormationDocuments.updateTemplate.resources.getCognitoResource(authorizerClass.simpleName.toString())
+                val isInterface = authorizerClass.interfaces.any { it.toString() == ApiGatewayLambdaAuthorizer::class.qualifiedName }
 
                 if (userPoolAnnotation != null && isInterface) {
                     messager.printMessage(
@@ -76,7 +75,7 @@ class ApiGatewayConfigResourceCreator(
         }
     }
 
-    private fun handleExistingUserPoolAnnotations(config: ApiGatewayRestConfig, userPoolAnnotation: ExistingCognitoUserPool, cloudFormationDocuments: CloudFormationFiles) {
+    private fun handleExistingUserPoolAnnotations(config: ApiGatewayRestConfig, userPoolAnnotation: ExistingResource, cloudFormationDocuments: CloudFormationFiles) {
         val restApi = cloudFormationDocuments.updateTemplate.getOrCreateRootRestApi()
 
         val authorizer = CognitoRestApiAuthorizer(userPoolAnnotation.arn, config.authorizationHeader, restApi, config.authorizationCacheTtl, nimbusState, restApi.stage)
@@ -116,6 +115,6 @@ class ApiGatewayConfigResourceCreator(
             )
         }
         val functionInformation = FunctionInformation(function, functionResource, awsFunctionInformation, false)
-        processingData.functions.add(functionInformation)
+        processingData.additionalFunctions.add(functionInformation)
     }
 }

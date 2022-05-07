@@ -14,9 +14,9 @@ import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 
 class FunctionResource(
-    private val fileBuilderMethodInformation: FileBuilderMethodInformation,
-    private val functionConfig: FunctionConfig,
-    private val handlerInformation: HandlerInformation,
+    val fileBuilderMethodInformation: FileBuilderMethodInformation,
+    val functionConfig: FunctionConfig,
+    val handlerInformation: HandlerInformation,
     nimbusState: NimbusState
 ) : Resource(nimbusState, functionConfig.stage), DirectAccessResource {
 

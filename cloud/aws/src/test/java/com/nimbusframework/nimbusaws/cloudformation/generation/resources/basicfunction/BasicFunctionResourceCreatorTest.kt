@@ -60,7 +60,7 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
     fun correctlyProcessesBasicCustomFactoryNoEmptyConstructor() {
         compileState = CompileStateService("handlers/CustomFactoryHandlerNoEmptyConstructor.java", "handlers/CustomFactoryFactoryNoEmptyConstructor.java")
         val messager = mockk<Messager>(relaxed = true)
-        compileState.compileObjects { processingEnv ->
+        compileState.compileObjectsExpectingFailure { processingEnv ->
             val classForReflectionService = ClassForReflectionService(processingData, processingEnv.typeUtils)
             basicFunctionResourceCreator = BasicFunctionResourceCreator(cfDocuments, processingData, classForReflectionService, processingEnv, setOf(), messager)
             every { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) } answers { processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, "") }
@@ -70,7 +70,6 @@ class BasicFunctionResourceCreatorTest : AnnotationSpec() {
 
             verify { messager.printMessage(Diagnostic.Kind.ERROR, "handlers.CustomFactoryHandlerNoEmptyConstructor must have a non-parameterized constructor", any()) }
         }
-        compileState.status shouldBe Compilation.Status.FAILURE
     }
 
     @Test

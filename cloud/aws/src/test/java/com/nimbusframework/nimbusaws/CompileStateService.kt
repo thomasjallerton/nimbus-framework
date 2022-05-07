@@ -44,6 +44,16 @@ class CompileStateService(
     }
 
     fun compileObjects(toRunWhileProcessing: (ProcessingEnvironment) -> Unit) {
+        internalCompileObjects(toRunWhileProcessing)
+        status shouldBe Compilation.Status.SUCCESS
+    }
+
+    fun compileObjectsExpectingFailure(toRunWhileProcessing: (ProcessingEnvironment) -> Unit) {
+        internalCompileObjects(toRunWhileProcessing)
+        status shouldBe Compilation.Status.FAILURE
+    }
+
+    private fun internalCompileObjects(toRunWhileProcessing: (ProcessingEnvironment) -> Unit) {
         val compiler = Compiler.javac()
 
         val compilation = compiler

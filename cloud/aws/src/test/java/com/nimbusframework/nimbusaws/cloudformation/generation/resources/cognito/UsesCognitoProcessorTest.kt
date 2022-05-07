@@ -85,6 +85,5 @@ internal class UsesCognitoProcessorTest: AnnotationSpec() {
                 iamRoleResource.allows("cognito-idp:AdminUpdateUserAttributes", ExistingResource("arn:partition:service:region:account-id:resource-id", nimbusState, "dev")) shouldBe true
             }
         }
-        compileStateService.status shouldBe Compilation.Status.SUCCESS
     }
 }

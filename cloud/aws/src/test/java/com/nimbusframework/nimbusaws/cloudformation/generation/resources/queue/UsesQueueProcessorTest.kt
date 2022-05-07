@@ -80,7 +80,7 @@ class UsesQueueProcessorTest: AnnotationSpec() {
 
     @Test
     fun throwsErrorIfQueueDoesNotExist() {
-        compileStateService.compileObjects {
+        compileStateService.compileObjectsExpectingFailure {
             setup(it) {
                 val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesQueueHandlerfunc2Function") as FunctionResource
 

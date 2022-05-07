@@ -74,7 +74,7 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
 
     @Test
     fun alertsIfNoCorrespondingBasicFunction() {
-        compileStateService.compileObjects {
+        compileStateService.compileObjectsExpectingFailure {
             setup(it) {
                 val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.getFunction("handlers.UsesBasicFunctionHandler", "func2")!!
 
@@ -83,6 +83,5 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
                 verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }
             }
         }
-        compileStateService.status shouldBe Compilation.Status.FAILURE
     }
 }

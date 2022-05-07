@@ -4,8 +4,8 @@ import com.nimbusframework.nimbuscore.persisted.NimbusState
 
 data class ProcessingData(
     val nimbusState: NimbusState,
+    val additionalFunctions: MutableSet<FunctionInformation> = mutableSetOf(),
     // qualified names of classes needed for reflection
-    val functions: MutableSet<FunctionInformation> = mutableSetOf(),
     val classesForReflection: MutableSet<String> = mutableSetOf(),
     val defaultRequestHeaders: Map<String, List<String>> = mapOf(),
     val defaultAllowedOrigin: Map<String, String> = mapOf()

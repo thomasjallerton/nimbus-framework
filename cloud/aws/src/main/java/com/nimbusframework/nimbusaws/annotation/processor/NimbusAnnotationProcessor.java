@@ -196,7 +196,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         functionResourceCreators.add(new FileUploadResourceCreator(cloudFormationFiles, processingData, processingEnv, functionDecoratorHandlers, messager, resourceFinder));
         functionResourceCreators.add(new AfterDeploymentResourceCreator(cloudFormationFiles, processingData, classForReflectionService, processingEnv, functionDecoratorHandlers, messager));
 
-        List<FunctionInformation> allInformation = new LinkedList<>(processingData.getFunctions());
+        List<FunctionInformation> allInformation = new LinkedList<>(processingData.getAdditionalFunctions());
         for (FunctionResourceCreator creator : functionResourceCreators) {
             allInformation.addAll(creator.handle(roundEnv, functionEnvironmentService));
         }

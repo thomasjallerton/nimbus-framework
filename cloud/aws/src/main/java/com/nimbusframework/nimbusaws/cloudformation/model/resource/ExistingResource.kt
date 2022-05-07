@@ -4,7 +4,7 @@ import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.google.gson.JsonObject
 
 class ExistingResource(
-        private val arn: String,
+        val arn: String,
         nimbusState: NimbusState,
         stage: String
 ) : Resource(nimbusState, stage) {

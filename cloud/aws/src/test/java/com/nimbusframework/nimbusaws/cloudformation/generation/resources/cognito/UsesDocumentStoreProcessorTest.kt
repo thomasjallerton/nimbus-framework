@@ -69,7 +69,7 @@ class UsesDocumentStoreProcessorTest : AnnotationSpec() {
 
     @Test
     fun reportsErrorIfCannotFindDocumentStore() {
-        compileStateService.compileObjects {
+        compileStateService.compileObjectsExpectingFailure {
             setup(it) {
                 val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesDocumentStoreHandlerfunc2Function") as FunctionResource
                 usesDocumentStoreProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesDocumentStoreHandler").enclosedElements[2], functionResource)

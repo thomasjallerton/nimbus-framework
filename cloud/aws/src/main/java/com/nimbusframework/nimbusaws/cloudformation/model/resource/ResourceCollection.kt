@@ -13,7 +13,6 @@ import com.nimbusframework.nimbuscore.annotations.database.RelationalDatabaseDef
 import com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinition
 import com.nimbusframework.nimbuscore.annotations.notification.NotificationTopicDefinition
 import com.nimbusframework.nimbuscore.annotations.queue.QueueDefinition
-import javax.lang.model.element.TypeElement
 
 class ResourceCollection {
 
@@ -26,6 +25,7 @@ class ResourceCollection {
     private val snsTopics: MutableMap<String, SnsTopicResource> = mutableMapOf()
     private val s3Buckets: MutableMap<String, FileBucketResource> = mutableMapOf()
     private val lambdaResources: MutableMap<FunctionIdentifier, FunctionResource> = mutableMapOf()
+    private val cognitoResource: MutableMap<String, ExistingResource> = mutableMapOf()
 
     fun addResource(resource: Resource) {
         if (resource is DirectAccessResource) {
@@ -65,6 +65,14 @@ class ResourceCollection {
     fun addDynamoResource(dataClassSimpleName: String, resource: DynamoResource) {
         dynamoStores[dataClassSimpleName] = resource
         internalAddResource(resource)
+    }
+
+    fun addCognitoResource(simpleClassName: String, resource: ExistingResource) {
+        cognitoResource[simpleClassName] = resource
+    }
+
+    fun getCognitoResource(simpleClassName: String): ExistingResource? {
+        return cognitoResource[simpleClassName]
     }
 
     fun getDynamoResource(dataClassSimpleName: String): DynamoResource? {

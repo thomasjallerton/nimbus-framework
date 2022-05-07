@@ -1,11 +1,11 @@
 package models.apigateway;
 
 import com.nimbusframework.nimbusaws.annotation.annotations.apigateway.ApiGatewayRestConfig;
-import model.cognito.UserPool;
+import models.cognito.UserPool;
 
 @ApiGatewayRestConfig(
         authorizer = UserPool.class
 )
-public class ConfiguredApiGatewayCustomHandler {
+public class ConfiguredApiGatewayCognito {
 
 }
