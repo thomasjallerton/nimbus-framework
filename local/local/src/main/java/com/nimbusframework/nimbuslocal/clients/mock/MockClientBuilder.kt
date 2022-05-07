@@ -38,7 +38,7 @@ class MockClientBuilder(
         return basicFunctionInterfaces[handlerClass] as T? ?: error("Missing mock for function interface ${handlerClass.simpleName}")
     }
 
-    override fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient {
+    override fun <T> getDatabaseClient(databaseObject: Class<T>, stage: String): DatabaseClient {
         return databaseClients[databaseObject] ?: error("Missing mock for DatabaseClient")
     }
 

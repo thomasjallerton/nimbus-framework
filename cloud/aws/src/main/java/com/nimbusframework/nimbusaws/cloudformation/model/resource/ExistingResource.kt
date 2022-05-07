@@ -21,4 +21,19 @@ class ExistingResource(
         arnJson.addProperty("Arn", arn)
         return arnJson
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ExistingResource) return false
+
+        if (arn != other.arn) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return arn.hashCode()
+    }
+
+
 }

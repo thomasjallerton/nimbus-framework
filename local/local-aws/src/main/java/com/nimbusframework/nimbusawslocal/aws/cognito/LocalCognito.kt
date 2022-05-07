@@ -22,6 +22,10 @@ class LocalCognito(
         return usersByAccessToken[accessToken]
     }
 
+    fun getUserByUsername(username: String): CognitoUser? {
+        return usersByUserName[username]?.first
+    }
+
     fun searchUsers(
         filterAttribute: SearchableCognitoAttribute,
         value: String,

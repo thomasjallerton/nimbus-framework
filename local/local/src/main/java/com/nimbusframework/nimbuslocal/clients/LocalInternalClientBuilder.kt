@@ -22,7 +22,7 @@ object LocalInternalClientBuilder: InternalClientBuilder {
         return Class.forName(handlerClass.canonicalName + "Serverless").getDeclaredConstructor().newInstance() as T
     }
 
-    override fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient {
+    override fun <T> getDatabaseClient(databaseObject: Class<T>, stage: String): DatabaseClient {
         return DatabaseClientLocal(databaseObject)
     }
 

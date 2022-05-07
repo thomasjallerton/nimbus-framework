@@ -69,7 +69,7 @@ class MockClientBuilderTest : StringSpec({
     "can inject database client" {
         val client = mockk<DatabaseClient>()
         val underTest = MockClientBuilder(databaseClients = mapOf(Pair(Database::class.java, client)))
-        underTest.getDatabaseClient(Database::class.java) shouldBe client
+        underTest.getDatabaseClient(Database::class.java, "") shouldBe client
     }
 
     "can inject transactional client" {
@@ -100,7 +100,7 @@ class MockClientBuilderTest : StringSpec({
     "correct missing database mock error" {
         val underTest = MockClientBuilder()
         shouldThrowMessage("Missing mock for DatabaseClient") {
-            underTest.getDatabaseClient(Database::class.java)
+            underTest.getDatabaseClient(Database::class.java, "")
         }
     }
 
