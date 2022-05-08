@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbuslocal.deployment.store
 
 import com.nimbusframework.nimbuscore.clients.store.conditions.BracketsCondition
-import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonOperator
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.clients.store.conditions.bool.BooleanComparisonCondition
@@ -18,7 +18,7 @@ class ConditionProcessor <T> (private val clazz: Class<T>, private val keyColumn
     fun processCondition(condition: Condition, obj: T?): Boolean {
         return when (condition) {
             is NotCondition -> !processCondition(condition.condition, obj)
-            is ComparisionCondition -> processComparisonCondition(condition, obj)
+            is ComparisonCondition -> processComparisonCondition(condition, obj)
             is BooleanComparisonCondition -> processBooleanComparisonCondition(condition, obj)
             is BracketsCondition -> processCondition(condition.condition, obj)
             is FunctionCondition -> processFunctionCondition(condition, obj)
@@ -26,7 +26,7 @@ class ConditionProcessor <T> (private val clazz: Class<T>, private val keyColumn
         }
     }
 
-    private fun processComparisonCondition(condition: ComparisionCondition, obj: T?): Boolean {
+    private fun processComparisonCondition(condition: ComparisonCondition, obj: T?): Boolean {
         val value1 = processConditionVariable(condition.value1, obj)
         val value2 = processConditionVariable(condition.value2, obj)
 

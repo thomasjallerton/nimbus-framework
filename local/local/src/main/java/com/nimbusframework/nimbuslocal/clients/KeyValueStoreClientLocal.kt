@@ -81,4 +81,8 @@ internal class KeyValueStoreClientLocal<K, V>(
     override fun put(key: K, value: V, condition: Condition) {
         return table.put(key, value, condition)
     }
+
+    override fun filter(condition: Condition): List<V> {
+        return table.filter(condition)
+    }
 }

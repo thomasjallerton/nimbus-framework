@@ -88,6 +88,11 @@ class LocalStore<K, V>(
         put(key, value)
     }
 
+    fun filter(condition: Condition): List<V> {
+        return getAll()
+            .map { it.value }
+            .filter { conditionProcessor.processCondition(condition, it) }
+    }
 
     fun put(key: K, valueObj: V) {
         val value = allAttributesToJson(valueObj)

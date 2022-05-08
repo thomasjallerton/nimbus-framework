@@ -1,7 +1,6 @@
 package com.nimbusframework.nimbuscore.clients.keyvalue
 
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
-import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
@@ -26,6 +25,9 @@ interface KeyValueStoreClient<K, V> {
 
     @Throws(RetryableException::class, NonRetryableException::class)
     fun get(keyObj: K): V?
+
+    @Throws(RetryableException::class, NonRetryableException::class)
+    fun filter(condition: Condition): List<V>
 
     fun getReadItem(keyObj: K): ReadItemRequest<V>
 

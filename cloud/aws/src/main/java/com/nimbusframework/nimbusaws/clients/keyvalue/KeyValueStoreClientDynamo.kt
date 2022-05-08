@@ -53,6 +53,10 @@ internal class KeyValueStoreClientDynamo<K, V>(
         return dynamoStreamProcessor.toObject(dynamoClient.get(keyToKeyMap(keyObj)))
     }
 
+    override fun filter(condition: Condition): List<V> {
+        return dynamoClient.filter(condition).map { toObject(it) }
+    }
+
     override fun getReadItem(keyObj: K): ReadItemRequest<V> {
         return dynamoClient.getReadItem(keyToKeyMap(keyObj)) { dynamoStreamProcessor.toObject(it)!! }
     }

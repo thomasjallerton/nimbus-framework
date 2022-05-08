@@ -2,7 +2,7 @@ package com.nimbusframework.nimbusaws.clients.dynamo.condition
 
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
 import com.nimbusframework.nimbuscore.clients.store.conditions.BracketsCondition
-import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonOperator
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.clients.store.conditions.bool.BooleanComparisonCondition
@@ -20,7 +20,7 @@ class DynamoConditionProcessor(private val dynamoClient: DynamoClient) {
     fun processCondition(condition: Condition, valueMap: MutableMap<String, AttributeValue>): String {
         return when (condition) {
             is NotCondition -> "Not ${processCondition(condition.condition, valueMap)}"
-            is ComparisionCondition -> processComparisonCondition(condition, valueMap)
+            is ComparisonCondition -> processComparisonCondition(condition, valueMap)
             is BooleanComparisonCondition -> processBooleanComparisonCondition(condition, valueMap)
             is BracketsCondition -> "( ${processCondition(condition.condition, valueMap)} )"
             is FunctionCondition -> processFunctionCondition(condition)
@@ -28,7 +28,7 @@ class DynamoConditionProcessor(private val dynamoClient: DynamoClient) {
         }
     }
 
-    private fun processComparisonCondition(condition: ComparisionCondition, valueMap: MutableMap<String, AttributeValue>): String {
+    private fun processComparisonCondition(condition: ComparisonCondition, valueMap: MutableMap<String, AttributeValue>): String {
         val operator = when (condition.operator) {
             ComparisonOperator.GREATER_THAN -> ">"
             ComparisonOperator.EQUAL -> "="

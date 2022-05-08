@@ -1,7 +1,6 @@
 package com.nimbusframework.nimbuscore.clients.document
 
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
-import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
@@ -32,6 +31,9 @@ interface DocumentStoreClient<T> {
 
     @Throws(RetryableException::class, NonRetryableException::class)
     fun get(keyObj: Any): T?
+
+    @Throws(RetryableException::class, NonRetryableException::class)
+    fun filter(condition: Condition): List<T>
 
     fun getReadItem(keyObj: Any): ReadItemRequest<T>
 

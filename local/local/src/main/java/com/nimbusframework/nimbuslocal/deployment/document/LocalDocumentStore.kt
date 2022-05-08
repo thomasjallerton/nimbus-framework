@@ -136,4 +136,8 @@ class LocalDocumentStore<T>(private val clazz: Class<T>, tableName: String, stag
     override fun failedTransaction(transactionUid: UUID) {
         documentStore.failedTransaction(transactionUid)
     }
+
+    override fun filter(condition: Condition): List<T> {
+        return documentStore.filter(condition)
+    }
 }

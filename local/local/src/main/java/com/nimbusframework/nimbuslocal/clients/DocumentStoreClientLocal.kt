@@ -97,4 +97,8 @@ class DocumentStoreClientLocal<T>(private val clazz: Class<T>) : DocumentStoreCl
         return documentStore.getDeleteKeyItemRequest(keyObj, condition)
     }
 
+    override fun filter(condition: Condition): List<T> {
+        return documentStore.filter(condition)
+    }
+
 }
