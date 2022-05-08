@@ -2,7 +2,6 @@ package com.nimbusframework.nimbusaws.cloudformation.generation.resources.cognit
 
 import com.nimbusframework.nimbusaws.annotation.annotations.cognito.ExistingCognitoUserPool
 import com.nimbusframework.nimbusaws.annotation.annotations.cognito.ExistingCognitoUserPools
-import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.NameHelper
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.CloudResourceResourceCreator
 import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.ExistingResource
