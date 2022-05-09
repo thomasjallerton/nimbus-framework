@@ -5,10 +5,11 @@ import com.nimbusframework.nimbusaws.cloudformation.model.resource.Resource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionTrigger
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
 
 class CronRule(
     private val cron: String,
-    private val target: Resource,
+    private val target: FunctionResource,
     nimbusState: NimbusState
 ): Resource(nimbusState, target.stage), FunctionTrigger {
 
@@ -37,7 +38,7 @@ class CronRule(
 
 
         val targets = JsonArray()
-        targets.add(getRuleTarget(target))
+        targets.add(getRuleTarget())
         properties.add("Targets", targets)
 
         rule.add("Properties", properties)
@@ -48,14 +49,14 @@ class CronRule(
     }
 
     override fun getName(): String {
-        return "CronRule${target.getName()}"
+        return "CronRule${target.getShortName()}"
     }
 
-    private fun getRuleTarget(resource: Resource): JsonObject {
+    private fun getRuleTarget(): JsonObject {
         val eventRule = JsonObject()
 
-        eventRule.add("Arn", resource.getArn())
-        eventRule.addProperty("Id", "RuleTarget${resource.getName()}")
+        eventRule.add("Arn", target.getArn())
+        eventRule.addProperty("Id", "RuleTarget${target.getShortName()}")
 
         return eventRule
     }
