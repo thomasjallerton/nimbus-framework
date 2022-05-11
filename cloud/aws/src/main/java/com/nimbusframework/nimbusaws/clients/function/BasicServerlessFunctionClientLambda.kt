@@ -1,6 +1,8 @@
 package com.nimbusframework.nimbusaws.clients.function
 
-import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbusaws.clients.InternalEnvironmentVariableClient
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.environment.ConstantEnvironmentVariable
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient
@@ -16,12 +18,12 @@ internal class BasicServerlessFunctionClientLambda(
     private val handlerClass: Class<out Any>,
     private val functionName: String,
     private val lambdaClient: LambdaClient,
-    private val environmentVariableClient: EnvironmentVariableClient
+    private val internalEnvironmentVariableClient: InternalEnvironmentVariableClient
 ) : BasicServerlessFunctionClient {
 
-    private val projectName by lazy { environmentVariableClient.get("NIMBUS_PROJECT_NAME") ?: "" }
+    private val projectName by lazy { internalEnvironmentVariableClient.get(ConstantEnvironmentVariable.NIMBUS_PROJECT_NAME) ?: "" }
 
-    private val stage by lazy { environmentVariableClient.get("FUNCTION_STAGE") ?: NimbusConstants.stage }
+    private val stage by lazy { internalEnvironmentVariableClient.get(ConstantEnvironmentVariable.FUNCTION_STAGE) ?: NimbusConstants.stage }
 
     override fun invoke() {
         invoke("", Unit.javaClass)

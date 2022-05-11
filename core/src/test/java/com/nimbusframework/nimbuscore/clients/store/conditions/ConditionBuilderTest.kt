@@ -18,7 +18,7 @@ class ConditionBuilderTest : AnnotationSpec() {
 
     @Test
     fun canProcessComparison() {
-        ConditionBuilder.ifComparison("field", ComparisonOperator.EQUAL, NumericVariable(20)).build() shouldBe ComparisionCondition(ColumnVariable("field"), ComparisonOperator.EQUAL, NumericVariable(20))
+        ConditionBuilder.ifComparison("field", ComparisonOperator.EQUAL, NumericVariable(20)).build() shouldBe ComparisonCondition(ColumnVariable("field"), ComparisonOperator.EQUAL, NumericVariable(20))
     }
 
     @Test
@@ -28,7 +28,7 @@ class ConditionBuilderTest : AnnotationSpec() {
 
     @Test
     fun canProcessAndConditionWithComparison() {
-        ConditionBuilder.ifFunction(AttributeExists("test")).and("field", ComparisonOperator.LESS_THAN, NumericVariable(20)).build() shouldBe BooleanComparisonCondition(AttributeExists("test"), BooleanOperator.AND, ComparisionCondition(ColumnVariable("field"), ComparisonOperator.LESS_THAN, NumericVariable(20)))
+        ConditionBuilder.ifFunction(AttributeExists("test")).and("field", ComparisonOperator.LESS_THAN, NumericVariable(20)).build() shouldBe BooleanComparisonCondition(AttributeExists("test"), BooleanOperator.AND, ComparisonCondition(ColumnVariable("field"), ComparisonOperator.LESS_THAN, NumericVariable(20)))
     }
 
     @Test
@@ -38,7 +38,7 @@ class ConditionBuilderTest : AnnotationSpec() {
 
     @Test
     fun canProcessOrConditionWithComparison() {
-        ConditionBuilder.ifFunction(AttributeExists("test")).or("field", ComparisonOperator.LESS_THAN, NumericVariable(20)).build() shouldBe BooleanComparisonCondition(AttributeExists("test"), BooleanOperator.OR, ComparisionCondition(ColumnVariable("field"), ComparisonOperator.LESS_THAN, NumericVariable(20)))
+        ConditionBuilder.ifFunction(AttributeExists("test")).or("field", ComparisonOperator.LESS_THAN, NumericVariable(20)).build() shouldBe BooleanComparisonCondition(AttributeExists("test"), BooleanOperator.OR, ComparisonCondition(ColumnVariable("field"), ComparisonOperator.LESS_THAN, NumericVariable(20)))
     }
 
     @Test

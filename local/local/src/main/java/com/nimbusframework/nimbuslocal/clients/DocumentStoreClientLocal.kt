@@ -6,12 +6,12 @@ import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.permissions.PermissionType
 
-class DocumentStoreClientLocal<T>(private val clazz: Class<T>) : DocumentStoreClient<T>, LocalClient() {
+class DocumentStoreClientLocal<T>(private val clazz: Class<T>) : DocumentStoreClient<T>, LocalClient(PermissionType.DOCUMENT_STORE) {
 
     private val documentStore = localNimbusDeployment.getDocumentStore(clazz)
 
-    override fun canUse(): Boolean {
-        return checkPermissions(PermissionType.DOCUMENT_STORE, clazz.canonicalName)
+    override fun canUse(permissionType: PermissionType): Boolean {
+        return checkPermissions(permissionType, clazz.canonicalName)
     }
 
     override val clientName: String = DocumentStoreClient::class.java.simpleName
@@ -95,6 +95,10 @@ class DocumentStoreClientLocal<T>(private val clazz: Class<T>) : DocumentStoreCl
 
     override fun getDeleteKeyItemRequest(keyObj: Any, condition: Condition): WriteItemRequest {
         return documentStore.getDeleteKeyItemRequest(keyObj, condition)
+    }
+
+    override fun filter(condition: Condition): List<T> {
+        return documentStore.filter(condition)
     }
 
 }

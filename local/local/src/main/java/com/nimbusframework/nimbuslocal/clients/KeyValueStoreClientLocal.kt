@@ -9,12 +9,12 @@ import com.nimbusframework.nimbuslocal.deployment.keyvalue.LocalKeyValueStore
 
 internal class KeyValueStoreClientLocal<K, V>(
         private val valueClass: Class<V>
-): KeyValueStoreClient<K, V>, LocalClient() {
+): KeyValueStoreClient<K, V>, LocalClient(PermissionType.KEY_VALUE_STORE) {
 
     private val table: LocalKeyValueStore<K, V> = localNimbusDeployment.getKeyValueStore(valueClass)
 
-    override fun canUse(): Boolean {
-        return checkPermissions(PermissionType.KEY_VALUE_STORE, valueClass.canonicalName)
+    override fun canUse(permissionType: PermissionType): Boolean {
+        return checkPermissions(permissionType, valueClass.canonicalName)
     }
     override val clientName: String = KeyValueStoreClientLocal::class.java.simpleName
 
@@ -80,5 +80,9 @@ internal class KeyValueStoreClientLocal<K, V>(
 
     override fun put(key: K, value: V, condition: Condition) {
         return table.put(key, value, condition)
+    }
+
+    override fun filter(condition: Condition): Map<K, V> {
+        return table.filter(condition)
     }
 }

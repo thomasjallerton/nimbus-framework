@@ -18,7 +18,7 @@ class ConditionBuilder private constructor(private var currentCondition: Conditi
         currentCondition = BooleanComparisonCondition(
                 currentCondition,
                 BooleanOperator.AND,
-                ComparisionCondition(ColumnVariable(fieldName), comparisonOperator, conditionVariable))
+                ComparisonCondition(ColumnVariable(fieldName), comparisonOperator, conditionVariable))
         return this
     }
 
@@ -31,7 +31,7 @@ class ConditionBuilder private constructor(private var currentCondition: Conditi
         currentCondition = BooleanComparisonCondition(
                 currentCondition,
                 BooleanOperator.OR,
-                ComparisionCondition(ColumnVariable(fieldName), comparisonOperator, conditionVariable))
+                ComparisonCondition(ColumnVariable(fieldName), comparisonOperator, conditionVariable))
         return this
     }
 
@@ -58,7 +58,7 @@ class ConditionBuilder private constructor(private var currentCondition: Conditi
 
         @JvmStatic
         fun ifComparison(fieldName: String, comparisonOperator: ComparisonOperator, conditionVariable: ConditionVariable): ConditionBuilder  {
-            return ConditionBuilder(ComparisionCondition(ColumnVariable(fieldName), comparisonOperator, conditionVariable))
+            return ConditionBuilder(ComparisonCondition(ColumnVariable(fieldName), comparisonOperator, conditionVariable))
         }
     }
 }

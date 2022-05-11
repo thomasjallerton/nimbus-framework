@@ -3,9 +3,11 @@ package com.nimbusframework.nimbusaws.wrappers
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
 import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.clients.AwsClientBinder
 import com.nimbusframework.nimbusaws.clients.AwsInternalClientBuilder
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
+import com.nimbusframework.nimbusaws.lambda.handlers.HandlerInformationProvider
 import com.nimbusframework.nimbuscore.clients.ClientBinder
 import com.nimbusframework.nimbuscore.eventabstractions.ServerlessEvent
 import java.io.File
@@ -17,15 +19,16 @@ import javax.lang.model.type.TypeKind
 import javax.tools.Diagnostic
 
 abstract class ServerlessFunctionFileBuilder(
-        protected val processingEnv: ProcessingEnvironment,
-        protected val methodInformation: MethodInformation,
-        private val functionType: String,
-        eventType: Class<out ServerlessEvent>?,
-        private val compilingElement: Element,
-        inputType: Class<*>?,
-        returnType: Class<*>?,
-        protected val classForReflectionService: ClassForReflectionService
-): FileBuilder() {
+    protected val processingEnv: ProcessingEnvironment,
+    protected val fileBuilderMethodInformation: FileBuilderMethodInformation,
+    private val functionType: String,
+    eventType: Class<out ServerlessEvent>?,
+    private val compilingElement: Element,
+    inputType: Class<*>?,
+    returnType: Class<*>?,
+    protected val classForReflectionService: ClassForReflectionService,
+    private val catchExceptions: Boolean = true
+): FileBuilder(), HandlerInformationProvider {
 
     private val messager: Messager = processingEnv.messager
 
@@ -44,9 +47,9 @@ abstract class ServerlessFunctionFileBuilder(
     protected val eventCanonicalName: String = if (eventType != null) eventType.canonicalName else ""
     protected val eventSimpleName: String = if (eventType != null) eventType.simpleName else ""
 
-    protected val params = findParamIndexes(methodInformation, eventCanonicalName)
+    protected val params = findParamIndexes(fileBuilderMethodInformation, eventCanonicalName)
 
-    protected val voidMethodReturn = methodInformation.returnType.kind == TypeKind.NULL || methodInformation.returnType.kind == TypeKind.VOID
+    protected val voidMethodReturn = fileBuilderMethodInformation.returnType.kind == TypeKind.NULL || fileBuilderMethodInformation.returnType.kind == TypeKind.VOID
 
     protected val returnTypeCanonicalName: String
     protected val returnTypeSimpleName: String
@@ -75,7 +78,7 @@ abstract class ServerlessFunctionFileBuilder(
                 returnTypeCanonicalName = "java.lang.Void"
                 returnTypeSimpleName = "Void"
             } else {
-                val returnTypeString = methodInformation.returnType.toString()
+                val returnTypeString = fileBuilderMethodInformation.returnType.toString()
                 if (primitiveToBoxedMap.containsKey(returnTypeString)) {
                     returnTypeCanonicalName = primitiveToBoxedMap[returnTypeString]!!
                     returnTypeSimpleName = returnTypeCanonicalName.substringAfterLast('.')
@@ -99,9 +102,9 @@ abstract class ServerlessFunctionFileBuilder(
         if (params.inputParam.exists()) {
             classForReflectionService.addClassForReflection(params.inputParam.type)
         }
-        val returnTypeString = methodInformation.returnType.toString()
+        val returnTypeString = fileBuilderMethodInformation.returnType.toString()
         if (!primitiveToBoxedMap.containsKey(returnTypeString)) {
-            classForReflectionService.addClassForReflection(methodInformation.returnType)
+            classForReflectionService.addClassForReflection(fileBuilderMethodInformation.returnType)
         }
     }
 
@@ -117,22 +120,25 @@ abstract class ServerlessFunctionFileBuilder(
 
     protected abstract fun writeHandleError()
 
+    protected open fun writeCustomExceptionHandler() {}
+
+
     open fun eventCannotBeList(): Boolean {
         return true
     }
 
     fun getGeneratedClassInformation(): AwsMethodInformation {
         return AwsMethodInformation(
-            methodInformation.packageName,
+            fileBuilderMethodInformation.packageName,
             generatedClassName,
             inputTypeCanonicalName,
             returnTypeCanonicalName
         )
     }
 
-    fun classFilePath(): String {
+    override fun getClassFilePath(): String {
         val className = generatedClassName
-        val packageName = methodInformation.packageName
+        val packageName = fileBuilderMethodInformation.packageName
         val packagePath = packageName.replace(".", File.separator)
 
         return if (packageName.isEmpty()) {
@@ -140,10 +146,6 @@ abstract class ServerlessFunctionFileBuilder(
         } else {
             "$packagePath${File.separator}$className"
         }
-    }
-
-    fun handlerFile(): String {
-        return "$generatedClassName.jar"
     }
 
     open fun createClass() {
@@ -159,7 +161,7 @@ abstract class ServerlessFunctionFileBuilder(
                 out = PrintWriter(builderFile.openWriter())
 
 
-                if (methodInformation.packageName != "") write("package ${methodInformation.packageName};")
+                if (fileBuilderMethodInformation.packageName != "") write("package ${fileBuilderMethodInformation.packageName};")
 
                 writeImports()
 
@@ -167,6 +169,7 @@ abstract class ServerlessFunctionFileBuilder(
                 write("import ${Context::class.qualifiedName};")
                 write("import ${AwsInternalClientBuilder::class.qualifiedName};")
                 write("import ${ClientBinder::class.qualifiedName};")
+                write("import ${AwsClientBinder::class.qualifiedName};")
                 write("import $inputTypeCanonicalName;")
                 write("import $returnTypeCanonicalName; ")
 
@@ -181,39 +184,46 @@ abstract class ServerlessFunctionFileBuilder(
                     write("import $eventCanonicalName;")
                 }
 
-                if (methodInformation.packageName.isNotBlank()) {
-                    write("import ${methodInformation.packageName}.${methodInformation.className};")
+                if (fileBuilderMethodInformation.packageName.isNotBlank()) {
+                    write("import ${fileBuilderMethodInformation.packageName}.${fileBuilderMethodInformation.className};")
                 }
 
                 write("public class $generatedClassName implements RequestHandler<$inputTypeSimpleName, $returnTypeSimpleName>{")
 
                 write()
 
-                write("private final ${methodInformation.className} handler;")
+                write("private final ${fileBuilderMethodInformation.className} handler;")
 
 
                 write("public ${generatedClassName}() {")
                 write("ClientBinder.INSTANCE.setInternalBuilder(AwsInternalClientBuilder.INSTANCE);")
-                if (methodInformation.customFactoryQualifiedName == null) {
-                    write("handler = new ${methodInformation.className}();")
+                write("AwsClientBinder.INSTANCE.setInternalBuilder(AwsInternalClientBuilder.INSTANCE);")
+                if (fileBuilderMethodInformation.customFactoryQualifiedName == null) {
+                    write("handler = new ${fileBuilderMethodInformation.className}();")
                 } else {
-                    write("handler = new ${methodInformation.customFactoryQualifiedName}().create();")
+                    write("handler = new ${fileBuilderMethodInformation.customFactoryQualifiedName}().create();")
                 }
                 write("}")
 
                 write("public $returnTypeSimpleName handleRequest($inputTypeSimpleName input, Context context) {")
 
-                write("try {")
+                if (catchExceptions) {
+                    write("try {")
+                }
 
                 write("String requestId = context.getAwsRequestId();")
 
                 writeFunction(params.inputParam, params.eventParam)
 
-                write("} catch (Exception e) {")
+                writeCustomExceptionHandler()
 
-                writeHandleError()
+                if (catchExceptions) {
+                    write("} catch (Exception e) {")
 
-                write("}")
+                    writeHandleError()
+
+                    write("}")
+                }
 
                 write("}")
 
@@ -228,9 +238,9 @@ abstract class ServerlessFunctionFileBuilder(
 
     protected open fun isValidFunction(functionParams: FunctionParams) {
         val errorPrefix = "Incorrect $functionType parameters."
-        if (methodInformation.parameters.size > 2) {
+        if (fileBuilderMethodInformation.parameters.size > 2) {
             compilationError("$errorPrefix Too many arguments, can have at most two: T input, $eventSimpleName event.")
-        } else if (methodInformation.parameters.size == 2) {
+        } else if (fileBuilderMethodInformation.parameters.size == 2) {
             if (functionParams.eventParam.doesNotExist()) {
                 compilationError("$errorPrefix Can't have two data input types. Function can have at most two parameters: T input, $eventSimpleName event.")
             } else if (functionParams.inputParam.doesNotExist()) {
@@ -249,24 +259,24 @@ abstract class ServerlessFunctionFileBuilder(
         }
     }
 
-    fun getHandler(): String {
+    override fun getHandler(): String {
         return if (customFunction()) {
-            if (methodInformation.packageName == "") {
-                "${methodInformation.className}::${methodInformation.methodName}"
+            if (fileBuilderMethodInformation.packageName == "") {
+                "${fileBuilderMethodInformation.className}::${fileBuilderMethodInformation.methodName}"
             } else {
-                "${methodInformation.packageName}.${methodInformation.className}::${methodInformation.methodName}"
+                "${fileBuilderMethodInformation.packageName}.${fileBuilderMethodInformation.className}::${fileBuilderMethodInformation.methodName}"
             }
         } else {
-            if (methodInformation.packageName == "") {
+            if (fileBuilderMethodInformation.packageName == "") {
                 "${generatedClassName}::handleRequest"
             } else {
-                methodInformation.packageName + ".${generatedClassName}::handleRequest"
+                fileBuilderMethodInformation.packageName + ".${generatedClassName}::handleRequest"
             }
         }
     }
 
     protected fun customFunction(): Boolean {
-        val params = methodInformation.parameters
+        val params = fileBuilderMethodInformation.parameters
         if (params.size == 3) {
             return (params[0].toString().contains("InputStream") &&
                     params[1].toString().contains("OutputStream") &&

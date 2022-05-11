@@ -3,15 +3,14 @@ package com.nimbusframework.nimbuslocal.clients
 import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient
 import com.nimbusframework.nimbuscore.permissions.PermissionType
 
-internal class
-BasicServerlessFunctionClientLocal(
+internal class BasicServerlessFunctionClientLocal(
         private val handlerClass: Class<out Any>,
         private val functionName: String
-): BasicServerlessFunctionClient, LocalClient() {
+): BasicServerlessFunctionClient, LocalClient(PermissionType.BASIC_FUNCTION) {
 
 
-    override fun canUse(): Boolean {
-        return checkPermissions(PermissionType.BASIC_FUNCTION, handlerClass.simpleName + functionName)
+    override fun canUse(permissionType: PermissionType): Boolean {
+        return checkPermissions(permissionType, handlerClass.simpleName + functionName)
     }
 
     override val clientName: String = BasicServerlessFunctionClient::class.java.simpleName

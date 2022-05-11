@@ -1,9 +1,9 @@
 package com.nimbusframework.nimbusaws.wrappers.store
 
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoStreamParser
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.persistent.StoreEventType
 import com.nimbusframework.nimbuscore.eventabstractions.StoreEvent
@@ -13,7 +13,7 @@ import javax.lang.model.element.TypeElement
 
 abstract class StoreServerlessFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
-    methodInformation: MethodInformation,
+    fileBuilderMethodInformation: FileBuilderMethodInformation,
     compilingElement: Element,
     private val method: StoreEventType,
     private val clazz: TypeElement,
@@ -21,7 +21,7 @@ abstract class StoreServerlessFunctionFileBuilder(
     classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
-    methodInformation,
+    fileBuilderMethodInformation,
     functionName,
     StoreEvent::class.java,
     compilingElement,
@@ -30,7 +30,7 @@ abstract class StoreServerlessFunctionFileBuilder(
     classForReflectionService
 ) {
     override fun generateClassName(): String {
-        return "$functionName${methodInformation.className}${methodInformation.methodName}"
+        return "$functionName${fileBuilderMethodInformation.className}${fileBuilderMethodInformation.methodName}"
     }
 
     private val eventMapperSimpleName = DynamoStoreEventMapper::class.java.simpleName
@@ -44,9 +44,9 @@ abstract class StoreServerlessFunctionFileBuilder(
         val eventSimpleName = StoreEvent::class.java.simpleName
 
         if (method == StoreEventType.INSERT || method == StoreEventType.REMOVE) {
-            if (methodInformation.parameters.size > 2) {
+            if (fileBuilderMethodInformation.parameters.size > 2) {
                 compilationError("$errorPrefix Too many arguments, can have at most two: T input, $eventSimpleName event.")
-            } else if (methodInformation.parameters.size == 2) {
+            } else if (fileBuilderMethodInformation.parameters.size == 2) {
                 if (functionParams.eventParam.doesNotExist()) {
                     compilationError("$errorPrefix Can't have two data input types. Function can have at most two parameters: T input, $eventSimpleName event.")
                 } else if (functionParams.inputParam.doesNotExist()) {
@@ -54,10 +54,10 @@ abstract class StoreServerlessFunctionFileBuilder(
                 }
             }
         } else {
-            if (methodInformation.parameters.size > 3) {
+            if (fileBuilderMethodInformation.parameters.size > 3) {
                 compilationError("$errorPrefix Too many arguments, can have at most three: T oldEvent, T newEvent, $eventSimpleName event.")
-            } else if (methodInformation.parameters.size == 2) {
-                if (functionParams.eventParam.doesNotExist() && methodInformation.parameters[0] != methodInformation.parameters[1]) {
+            } else if (fileBuilderMethodInformation.parameters.size == 2) {
+                if (functionParams.eventParam.doesNotExist() && fileBuilderMethodInformation.parameters[0] != fileBuilderMethodInformation.parameters[1]) {
                     compilationError(
                         "$errorPrefix Wrong input arguments, cannot have two different types of data inputs. " +
                                 "Can have at most three arguments: T oldEvent, T newEvent, $eventSimpleName event. (Your T's were not the same type)"
@@ -65,14 +65,14 @@ abstract class StoreServerlessFunctionFileBuilder(
                 } else if (functionParams.inputParam.doesNotExist()) {
                     compilationError("$errorPrefix Can't have two event input types. Function can have at most three parameters: T oldEvent, T newEvent, $eventSimpleName event.")
                 }
-            } else if (methodInformation.parameters.size == 3) {
+            } else if (fileBuilderMethodInformation.parameters.size == 3) {
                 if (functionParams.eventParam.doesNotExist()) {
                     compilationError("$errorPrefix Can't have three data input types. Function can have at most three parameters: T oldEvent, T newEvent, $eventSimpleName event.")
                 } else if (functionParams.inputParam.doesNotExist()) {
                     compilationError("$errorPrefix Can't have three event input types. Function can have at most three parameters: T oldEvent, T newEvent, $eventSimpleName event.")
                 } else if (functionParams.eventParam.index != 2) {
                     compilationError("$errorPrefix If three parameters then event input needs to be the final one. Need exact order: T oldEvent, T newEvent, $eventSimpleName event.")
-                } else if (functionParams.eventParam.index == 2 && methodInformation.parameters[0] != methodInformation.parameters[1]) {
+                } else if (functionParams.eventParam.index == 2 && fileBuilderMethodInformation.parameters[0] != fileBuilderMethodInformation.parameters[1]) {
                     compilationError(
                         "$errorPrefix Wrong input arguments, cannot have two different types of data inputs. " +
                                 "Can have at most three arguments: T oldEvent, T newEvent, $eventSimpleName event. (Your T's were not the same type)"
@@ -106,13 +106,13 @@ abstract class StoreServerlessFunctionFileBuilder(
             write("${inputParam.type} parsedOldItem = parser.toObjectFromLambda(record.getDynamodb().getOldImage());")
         }
 
-        val methodName = methodInformation.methodName
+        val methodName = fileBuilderMethodInformation.methodName
         when {
             inputParam.doesNotExist() && eventParam.doesNotExist() -> write("handler.$methodName();")
             inputParam.type == null -> write("handler.$methodName(event);")
-            methodInformation.parameters.size == 1 -> handleOneParam(methodName)
-            methodInformation.parameters.size == 2 -> handleTwoParams(methodName, eventParam)
-            methodInformation.parameters.size == 3 -> write("handler.$methodName(parsedOldItem, parsedNewItem, event);")
+            fileBuilderMethodInformation.parameters.size == 1 -> handleOneParam(methodName)
+            fileBuilderMethodInformation.parameters.size == 2 -> handleTwoParams(methodName, eventParam)
+            fileBuilderMethodInformation.parameters.size == 3 -> write("handler.$methodName(parsedOldItem, parsedNewItem, event);")
         }
         write("return null;")
     }

@@ -1,6 +1,12 @@
 package com.nimbusframework.nimbusaws.clients.rdbms
 
+import com.nimbusframework.nimbusaws.annotation.annotations.database.ParsedDatabaseConfig
+import com.nimbusframework.nimbusaws.clients.InternalEnvironmentVariableClient
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.database.DatabaseConnectionUrlEnvironmentVariable
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.database.DatabasePasswordEnvironmentVariable
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.database.DatabaseUsernameEnvironmentVariable
 import com.nimbusframework.nimbusaws.examples.RelationalDatabaseExample
+import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import io.kotest.core.spec.style.AnnotationSpec
 import io.mockk.every
@@ -10,40 +16,43 @@ import kotlin.test.assertFailsWith
 
 class DatabaseClientRdsTest : AnnotationSpec() {
 
-    private lateinit var underTest: DatabaseClientRds<RelationalDatabaseExample>
+    private lateinit var underTest: DatabaseClientRds
 
-    private lateinit var environmentVariableClient: EnvironmentVariableClient
+    private lateinit var environmentVariableClient: InternalEnvironmentVariableClient
+
+    private val parsedDatabaseConfig = ParsedDatabaseConfig(
+        "name",
+        "USERNAME",
+        "PASSWORD",
+        DatabaseLanguage.POSTGRESQL,
+        "size",
+        1
+    )
 
     @BeforeEach
     fun setup() {
         environmentVariableClient = mockk()
-        underTest = DatabaseClientRds(RelationalDatabaseExample::class.java, environmentVariableClient)
+
+        every { environmentVariableClient.get(eq(DatabaseConnectionUrlEnvironmentVariable(parsedDatabaseConfig))) } returns "URL"
+        every { environmentVariableClient.get(eq(DatabaseUsernameEnvironmentVariable(parsedDatabaseConfig))) } returns "USERNAME"
+        every { environmentVariableClient.get(eq(DatabasePasswordEnvironmentVariable(parsedDatabaseConfig))) } returns "PASSWORD"
+
+        underTest = DatabaseClientRds(parsedDatabaseConfig, environmentVariableClient)
     }
 
     @Test
     fun canConnectToDatabase() {
-        every { environmentVariableClient.get("testDbRdsInstance_CONNECTION_URL") } returns "URL"
-        every { environmentVariableClient.get("testDbRdsInstance_USERNAME") } returns "USERNAME"
-        every { environmentVariableClient.get("testDbRdsInstance_PASSWORD") } returns "PASSWORD"
-
         assertFailsWith<PSQLException> { underTest.getConnection() }
     }
 
     @Test
     fun canConnectToDatabaseSlashAtEndOfUrl() {
-        every { environmentVariableClient.get("testDbRdsInstance_CONNECTION_URL") } returns "URL/"
-        every { environmentVariableClient.get("testDbRdsInstance_USERNAME") } returns "USERNAME"
-        every { environmentVariableClient.get("testDbRdsInstance_PASSWORD") } returns "PASSWORD"
-
+        every { environmentVariableClient.get(eq(DatabaseConnectionUrlEnvironmentVariable(parsedDatabaseConfig))) } returns "URL"
         assertFailsWith<PSQLException> { underTest.getConnection() }
     }
 
     @Test
     fun canConnectToDatabaseWithExtraParams() {
-        every { environmentVariableClient.get("testDbRdsInstance_CONNECTION_URL") } returns "URL"
-        every { environmentVariableClient.get("testDbRdsInstance_USERNAME") } returns "USERNAME"
-        every { environmentVariableClient.get("testDbRdsInstance_PASSWORD") } returns "PASSWORD"
-
         assertFailsWith<PSQLException> { underTest.getConnection("database", true) }
     }
 

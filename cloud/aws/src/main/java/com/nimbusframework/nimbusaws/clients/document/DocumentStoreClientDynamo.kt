@@ -95,6 +95,10 @@ internal class DocumentStoreClientDynamo<T>(
         return dynamoClient.getDeleteRequest(objectToKeyMap(obj), condition)
     }
 
+    override fun filter(attributeCondition: Condition): List<T> {
+        return dynamoClient.filter(attributeCondition).map { toObject(it) }
+    }
+
     private fun objectToKeyMap(obj: T): Map<String, AttributeValue> {
         val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
 

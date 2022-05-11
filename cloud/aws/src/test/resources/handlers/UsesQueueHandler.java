@@ -6,6 +6,7 @@ import com.nimbusframework.nimbuscore.annotations.notification.UsesNotificationT
 import com.nimbusframework.nimbuscore.annotations.queue.UsesQueue;
 import com.nimbusframework.nimbuscore.clients.ClientBuilder;
 import models.Queue;
+import models.RdsDatabaseModel;
 
 public class UsesQueueHandler {
 
@@ -16,7 +17,7 @@ public class UsesQueueHandler {
     }
 
     @HttpServerlessFunction(method = HttpMethod.POST, path = "test2")
-    @UsesQueue(queue = Queue.class)
+    @UsesQueue(queue = RdsDatabaseModel.class)
     public void func2() {
         ClientBuilder.getQueueClient(Queue.class);
     }

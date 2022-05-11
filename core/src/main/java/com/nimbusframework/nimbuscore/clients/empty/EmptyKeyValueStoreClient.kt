@@ -3,7 +3,6 @@ package com.nimbusframework.nimbuscore.clients.empty
 import com.nimbusframework.nimbuscore.exceptions.PermissionException
 import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
-import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 
@@ -67,6 +66,10 @@ class EmptyKeyValueStoreClient<K, V>: KeyValueStoreClient<K, V> {
     }
 
     override fun getDeleteItemRequest(key: K): WriteItemRequest {
+        throw PermissionException(clientName)
+    }
+
+    override fun filter(condition: Condition): Map<K, V> {
         throw PermissionException(clientName)
     }
 }

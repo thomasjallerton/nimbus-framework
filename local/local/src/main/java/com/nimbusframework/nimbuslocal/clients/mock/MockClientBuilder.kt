@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbuslocal.clients.mock
 
 import com.nimbusframework.nimbuscore.clients.database.DatabaseClient
-import com.nimbusframework.nimbuscore.clients.database.InternalClientBuilder
+import com.nimbusframework.nimbuscore.clients.InternalClientBuilder
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.file.FileStorageBucketNameAnnotationService
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
@@ -14,18 +14,7 @@ import com.nimbusframework.nimbuscore.clients.queue.QueueClient
 import com.nimbusframework.nimbuscore.clients.queue.QueueIdAnnotationService
 import com.nimbusframework.nimbuscore.clients.store.TransactionalClient
 import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSocketClient
-import com.nimbusframework.nimbuslocal.deployment.basic.BasicFunction
-import com.nimbusframework.nimbuslocal.deployment.document.LocalDocumentStore
-import com.nimbusframework.nimbuslocal.deployment.file.LocalFileStorage
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionIdentifier
-import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
-import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
-import com.nimbusframework.nimbuslocal.deployment.keyvalue.LocalKeyValueStore
-import com.nimbusframework.nimbuslocal.deployment.notification.LocalNotificationTopic
-import com.nimbusframework.nimbuslocal.deployment.queue.LocalQueue
-import com.nimbusframework.nimbuslocal.deployment.websocket.LocalWebsocketMethod
-import kotlin.reflect.KClass
-import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
 
 class MockClientBuilder(
     private val queueClients: Map<String, QueueClient> = mapOf(),
@@ -49,7 +38,7 @@ class MockClientBuilder(
         return basicFunctionInterfaces[handlerClass] as T? ?: error("Missing mock for function interface ${handlerClass.simpleName}")
     }
 
-    override fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient {
+    override fun <T> getDatabaseClient(databaseObject: Class<T>, stage: String): DatabaseClient {
         return databaseClients[databaseObject] ?: error("Missing mock for DatabaseClient")
     }
 

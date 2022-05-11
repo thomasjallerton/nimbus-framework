@@ -1,5 +1,8 @@
 package com.nimbusframework.nimbusaws.clients.notification
 
+import com.nimbusframework.nimbusaws.annotation.annotations.parsed.ParsedNotificationTopic
+import com.nimbusframework.nimbusaws.clients.InternalEnvironmentVariableClient
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.notification.NotificationTopicEnvironmentVariable
 import com.nimbusframework.nimbusaws.examples.SimpleObject
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import com.nimbusframework.nimbuscore.clients.notification.Protocol
@@ -18,15 +21,15 @@ class NotificationClientSNSTest : AnnotationSpec() {
 
     private lateinit var underTest: NotificationClientSNS
     private lateinit var snsClient: SnsClient
-    private lateinit var environmentVariableClient: EnvironmentVariableClient
+    private lateinit var environmentVariableClient: InternalEnvironmentVariableClient
 
-    private val TOPIC_NAME = "TOPIC"
     @BeforeEach
     fun setup() {
+        val parsedNotificationTopic = ParsedNotificationTopic("TOPIC")
         snsClient = mockk(relaxed = true)
         environmentVariableClient = mockk()
-        every { environmentVariableClient.get("SNS_TOPIC_ARN_TOPIC") } returns "ARN"
-        underTest = NotificationClientSNS(TOPIC_NAME, snsClient, environmentVariableClient)
+        every { environmentVariableClient.get(NotificationTopicEnvironmentVariable(parsedNotificationTopic)) } returns "ARN"
+        underTest = NotificationClientSNS(parsedNotificationTopic, snsClient, environmentVariableClient)
     }
 
     @Test

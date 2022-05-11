@@ -5,10 +5,10 @@ import com.nimbusframework.nimbuscore.clients.websocket.ServerlessFunctionWebSoc
 import com.nimbusframework.nimbuscore.permissions.PermissionType
 import java.nio.ByteBuffer
 
-class ServerlessFunctionWebsocketClientLocal: ServerlessFunctionWebSocketClient, LocalClient() {
+class ServerlessFunctionWebsocketClientLocal: ServerlessFunctionWebSocketClient, LocalClient(PermissionType.WEBSOCKET_MANAGER) {
 
-    override fun canUse(): Boolean {
-        return checkPermissions(PermissionType.WEBSOCKET_MANAGER, "")
+    override fun canUse(permissionType: PermissionType): Boolean {
+        return checkPermissions(permissionType, "")
     }
 
     override val clientName: String = ServerlessFunctionWebSocketClient::class.java.simpleName

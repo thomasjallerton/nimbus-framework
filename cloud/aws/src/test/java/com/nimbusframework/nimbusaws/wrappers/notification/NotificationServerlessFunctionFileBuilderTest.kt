@@ -12,8 +12,8 @@ internal class NotificationServerlessFunctionFileBuilderTest: AnnotationSpec() {
 
     @Test
     fun correctCompiles() {
-        val compileStateService = CompileStateService("models/NotificationTopic.java", "handlers/NotificationHandlers.java", useNimbus = true)
-        compileStateService.compileObjects { }
+        val compileStateService = CompileStateService("models/NotificationTopic.java", "handlers/NotificationHandlers.java")
+        compileStateService.compileObjectsWithNimbus()
 
         compileStateService.status shouldBe Compilation.Status.SUCCESS
     }

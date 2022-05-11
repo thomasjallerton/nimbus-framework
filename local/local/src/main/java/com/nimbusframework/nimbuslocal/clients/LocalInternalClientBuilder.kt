@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbuslocal.clients
 
 import com.nimbusframework.nimbuscore.clients.database.DatabaseClient
-import com.nimbusframework.nimbuscore.clients.database.InternalClientBuilder
+import com.nimbusframework.nimbuscore.clients.InternalClientBuilder
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.file.FileStorageClient
 import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient
@@ -22,7 +22,7 @@ object LocalInternalClientBuilder: InternalClientBuilder {
         return Class.forName(handlerClass.canonicalName + "Serverless").getDeclaredConstructor().newInstance() as T
     }
 
-    override fun <T> getDatabaseClient(databaseObject: Class<T>): DatabaseClient {
+    override fun <T> getDatabaseClient(databaseObject: Class<T>, stage: String): DatabaseClient {
         return DatabaseClientLocal(databaseObject)
     }
 

@@ -12,6 +12,7 @@ import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.*
 import java.lang.reflect.Field
+import java.util.stream.Stream
 import javax.naming.InvalidNameException
 
 class DynamoClient (
@@ -35,7 +36,6 @@ class DynamoClient (
                     .expressionAttributeValues(valueMap)
         }
 
-        println(putItemRequest.build().item())
         executeDynamoRequest { client.putItem(putItemRequest.build()) }
     }
 
@@ -78,6 +78,30 @@ class DynamoClient (
         } else {
             null
         }
+    }
+
+    fun filter(attributeCondition: Condition): List<Map<String, AttributeValue>> {
+        val expressionValues = mutableMapOf<String, AttributeValue>()
+        val filterExpression = conditionProcessor.processCondition(attributeCondition, expressionValues)
+        val scanRequest = ScanRequest.builder()
+            .tableName(tableName)
+            .filterExpression(filterExpression)
+            .expressionAttributeValues(expressionValues)
+
+        val result = mutableListOf<Map<String, AttributeValue>>()
+
+        var hasLastEvaluatedKey = true
+        while (hasLastEvaluatedKey) {
+            val scanResponse = executeDynamoRequest { client.scan(scanRequest.build()) }
+
+            hasLastEvaluatedKey = scanResponse.hasLastEvaluatedKey()
+            if (hasLastEvaluatedKey) {
+                scanRequest.exclusiveStartKey(scanResponse.lastEvaluatedKey())
+            }
+
+            result.addAll(scanResponse.items())
+        }
+        return result
     }
 
     fun <T> getReadItem(keyMap: Map<String, AttributeValue>, transformer: (MutableMap<String, AttributeValue>) -> T): ReadItemRequest<T> {

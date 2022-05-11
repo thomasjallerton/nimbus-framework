@@ -112,4 +112,8 @@ class LocalKeyValueStore<K, V>(private val keyClass: Class<K>, private val value
         keyValueStore.failedTransaction(transactionUid)
     }
 
+    override fun filter(condition: Condition): Map<K, V> {
+        return keyValueStore.filter(condition)
+    }
+
 }
