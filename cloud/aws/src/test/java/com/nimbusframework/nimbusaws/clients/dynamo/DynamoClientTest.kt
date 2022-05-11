@@ -1,14 +1,21 @@
 package com.nimbusframework.nimbusaws.clients.dynamo
 
+import com.nimbusframework.nimbusaws.clients.dynamo.condition.DynamoConditionProcessor
 import com.nimbusframework.nimbusaws.examples.document.DocumentStoreNoTableName
 import com.nimbusframework.nimbusaws.wrappers.store.keyvalue.exceptions.ConditionFailedException
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute
 import com.nimbusframework.nimbuscore.annotations.persistent.Key
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonCondition
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonOperator
+import com.nimbusframework.nimbuscore.clients.store.conditions.bool.BooleanComparisonCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeNotExists
+import com.nimbusframework.nimbuscore.clients.store.conditions.variable.ConditionVariable
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
 import com.nimbusframework.nimbuscore.exceptions.RetryableException
 import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
@@ -31,8 +38,7 @@ class DynamoClientTest : AnnotationSpec() {
 
     private val attributes: MutableMap<String, Field> = mutableMapOf()
     private val columnNames: MutableMap<String, String> = mutableMapOf()
-    private val obj =
-        DocumentStoreNoTableName("test", 15)
+    private val obj = DocumentStoreNoTableName("test", 15)
 
     init {
         val numberVal = AttributeValue.builder()
@@ -124,6 +130,63 @@ class DynamoClientTest : AnnotationSpec() {
     }
 
     @Test
+    fun canFilterItemsNoPagination() {
+        val scanRequest = slot<ScanRequest>()
+
+        every { mockDynamoDb.scan(capture(scanRequest)) } returns ScanResponse.builder()
+            .items(attributeMap)
+            .lastEvaluatedKey(null)
+            .build()
+
+        underTest.filter(AttributeNotExists("string")).size shouldBe 1
+
+        scanRequest.captured.tableName() shouldBe "testTable"
+        scanRequest.captured.filterExpression() shouldBe "attribute_not_exists ( string )"
+        scanRequest.captured.expressionAttributeValues() shouldBe mapOf()
+    }
+
+    @Test
+    fun canFilterItemsPagination() {
+        val scanRequest = mutableListOf<ScanRequest>()
+
+        val condition = ComparisonCondition(ConditionVariable.column("string"), ComparisonOperator.EQUAL, ConditionVariable.string("test"))
+        val attributeValues = mutableMapOf<String, AttributeValue>()
+        val conditionStr = DynamoConditionProcessor(underTest).processCondition(
+            condition,
+            attributeValues
+        )
+
+        val item2 = mapOf(Pair("string", AttributeValue.builder().s("test2").build()), Pair("integer", AttributeValue.builder()
+            .n("13")
+            .build())
+        )
+
+        every { mockDynamoDb.scan(capture(scanRequest)) } returnsMany listOf(
+            ScanResponse.builder()
+                .items(attributeMap)
+                .lastEvaluatedKey(mapOf(Pair("string", AttributeValue.builder().s("test").build())))
+                .build(),
+            ScanResponse.builder()
+                .items(item2)
+                .lastEvaluatedKey(null)
+                .build()
+        )
+
+        underTest.filter(condition) shouldContainExactlyInAnyOrder listOf(attributeMap, item2)
+
+        scanRequest shouldHaveSize 2
+        scanRequest[0].tableName() shouldBe "testTable"
+        scanRequest[0].exclusiveStartKey() shouldBe mapOf()
+        scanRequest[0].filterExpression() shouldBe conditionStr
+        scanRequest[0].expressionAttributeValues() shouldBe attributeValues
+
+        scanRequest[1].tableName() shouldBe "testTable"
+        scanRequest[1].exclusiveStartKey() shouldBe mapOf(Pair("string", AttributeValue.builder().s("test").build()))
+        scanRequest[1].filterExpression() shouldBe conditionStr
+        scanRequest[1].expressionAttributeValues() shouldBe attributeValues
+    }
+
+    @Test
     fun canGetItem() {
         val queryRequest = slot<QueryRequest>()
 
@@ -141,7 +204,7 @@ class DynamoClientTest : AnnotationSpec() {
 
     @Test
     fun canGetReadItem() {
-        val readItem = underTest.getReadItem(keyMap) {obj} as DynamoReadItemRequest<DocumentStoreNoTableName>
+        val readItem = underTest.getReadItem(keyMap) { obj } as DynamoReadItemRequest<DocumentStoreNoTableName>
         readItem.transactReadItem.get().key() shouldBe keyMap
         readItem.transactReadItem.get().tableName() shouldBe "testTable"
         readItem.getItem(ItemResponse.builder().item(attributeMap).build()) shouldBe obj
