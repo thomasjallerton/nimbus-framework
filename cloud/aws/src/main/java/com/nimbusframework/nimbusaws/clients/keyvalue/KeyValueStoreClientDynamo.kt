@@ -53,8 +53,14 @@ internal class KeyValueStoreClientDynamo<K, V>(
         return dynamoStreamProcessor.toObject(dynamoClient.get(keyToKeyMap(keyObj)))
     }
 
-    override fun filter(condition: Condition): List<V> {
-        return dynamoClient.filter(condition).map { toObject(it) }
+    override fun filter(condition: Condition): Map<K, V> {
+        val results = dynamoClient.filter(condition)
+        val resultMap: MutableMap<K, V> = mutableMapOf()
+        for (item in results) {
+            val key: K = fromAttributeValue(item[keyName]!!, keyClass, keyName) as K
+            resultMap[key] = toObject(item)
+        }
+        return resultMap
     }
 
     override fun getReadItem(keyObj: K): ReadItemRequest<V> {

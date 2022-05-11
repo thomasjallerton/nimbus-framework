@@ -88,10 +88,9 @@ class LocalStore<K, V>(
         put(key, value)
     }
 
-    fun filter(condition: Condition): List<V> {
+    fun filter(condition: Condition): Map<K, V> {
         return getAll()
-            .map { it.value }
-            .filter { conditionProcessor.processCondition(condition, it) }
+            .filter { conditionProcessor.processCondition(condition, it.value) }
     }
 
     fun put(key: K, valueObj: V) {

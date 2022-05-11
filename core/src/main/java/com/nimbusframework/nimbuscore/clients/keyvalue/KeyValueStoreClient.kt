@@ -27,7 +27,7 @@ interface KeyValueStoreClient<K, V> {
     fun get(keyObj: K): V?
 
     @Throws(RetryableException::class, NonRetryableException::class)
-    fun filter(condition: Condition): List<V>
+    fun filter(condition: Condition): Map<K, V>
 
     fun getReadItem(keyObj: K): ReadItemRequest<V>
 

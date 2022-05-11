@@ -82,7 +82,7 @@ internal class KeyValueStoreClientLocal<K, V>(
         return table.put(key, value, condition)
     }
 
-    override fun filter(condition: Condition): List<V> {
+    override fun filter(condition: Condition): Map<K, V> {
         return table.filter(condition)
     }
 }

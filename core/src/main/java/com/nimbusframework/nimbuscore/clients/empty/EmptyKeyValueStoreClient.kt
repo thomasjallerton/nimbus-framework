@@ -69,7 +69,7 @@ class EmptyKeyValueStoreClient<K, V>: KeyValueStoreClient<K, V> {
         throw PermissionException(clientName)
     }
 
-    override fun filter(condition: Condition): List<V> {
+    override fun filter(condition: Condition): Map<K, V> {
         throw PermissionException(clientName)
     }
 }

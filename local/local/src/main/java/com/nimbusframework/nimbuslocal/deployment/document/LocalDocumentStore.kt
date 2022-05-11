@@ -138,6 +138,6 @@ class LocalDocumentStore<T>(private val clazz: Class<T>, tableName: String, stag
     }
 
     override fun filter(condition: Condition): List<T> {
-        return documentStore.filter(condition)
+        return documentStore.filter(condition).values.toList()
     }
 }

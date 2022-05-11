@@ -8,6 +8,7 @@ import com.nimbusframework.nimbusaws.examples.document.KotlinDocumentStoreNoTabl
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
+import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.collections.shouldContain
@@ -91,6 +92,14 @@ class DocumentStoreClientDynamoTest : AnnotationSpec() {
         every { dynamoClient.getAll() } returns listOf(exampleObj)
 
         underTest.getAll() shouldContain obj
+    }
+
+    @Test
+    fun canFilter() {
+        val condition = mockk<Condition>()
+        every { dynamoClient.filter(condition) } returns listOf(exampleObj)
+
+        underTest.filter(condition) shouldContain obj
     }
 
     @Test

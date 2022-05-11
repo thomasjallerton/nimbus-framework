@@ -1,10 +1,14 @@
 package com.nimbusframework.nimbuslocal.clients
 
 import com.nimbusframework.nimbuscore.clients.ClientBuilder
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonCondition
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonOperator
+import com.nimbusframework.nimbuscore.clients.store.conditions.variable.ConditionVariable
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.exampleModels.KeyValue
 import com.nimbusframework.nimbuslocal.exampleModels.Person
 import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.maps.shouldContainExactly
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -83,5 +87,19 @@ class KeyValueStoreClientLocalTest: AnnotationSpec() {
         assertEquals(2, getAllResults.size)
         assertEquals(houseOne, getAllResults[10])
         assertEquals(houseTwo, getAllResults[5])
+    }
+
+    @Test
+    fun filterReturnsCorrectValues() {
+        val localDeployment = LocalNimbusDeployment.getNewInstance(KeyValue::class.java)
+
+        val keyValueStore = localDeployment.getKeyValueStore<Int, KeyValue>(KeyValue::class.java)
+        val keyValueStoreClient = ClientBuilder.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
+
+        keyValueStore.put(10, houseOne)
+        keyValueStore.put(5, houseTwo)
+
+        val result = keyValueStoreClient.filter(ComparisonCondition(ConditionVariable.column("name"), ComparisonOperator.EQUAL, ConditionVariable.string("testHouse")))
+        result shouldContainExactly mapOf(Pair(10, houseOne))
     }
 }
