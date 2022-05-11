@@ -2,7 +2,6 @@ package com.nimbusframework.nimbuscore.clients.empty
 
 import com.nimbusframework.nimbuscore.clients.document.DocumentStoreClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
-import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.exceptions.PermissionException
@@ -84,6 +83,10 @@ internal class EmptyDocumentStoreClient<T>: DocumentStoreClient<T> {
     }
 
     override fun getDeleteItemRequest(obj: T, condition: Condition): WriteItemRequest {
+        throw PermissionException(clientName)
+    }
+
+    override fun filter(condition: Condition): List<T> {
         throw PermissionException(clientName)
     }
 }

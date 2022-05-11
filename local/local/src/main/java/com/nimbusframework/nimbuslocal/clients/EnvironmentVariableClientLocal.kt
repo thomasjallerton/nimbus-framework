@@ -1,10 +1,11 @@
 package com.nimbusframework.nimbuslocal.clients
 
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
+import com.nimbusframework.nimbuscore.permissions.PermissionType
 
-class EnvironmentVariableClientLocal: EnvironmentVariableClient, LocalClient() {
+class EnvironmentVariableClientLocal: EnvironmentVariableClient, LocalClient(PermissionType.FUNCTION) {
 
-    override fun canUse(): Boolean {
+    override fun canUse(permissionType: PermissionType): Boolean {
         functionEnvironment = getCallingServerlessMethod()
         return true
     }

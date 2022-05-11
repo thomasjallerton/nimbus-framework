@@ -3,7 +3,7 @@ package com.nimbusframework.nimbusaws.clients.dynamo.condition
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoClient
 import com.nimbusframework.nimbusaws.clients.dynamo.DynamoHelper.numAttribute
 import com.nimbusframework.nimbuscore.clients.store.conditions.BracketsCondition
-import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisionCondition
+import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonOperator
 import com.nimbusframework.nimbuscore.clients.store.conditions.ConditionBuilder
 import com.nimbusframework.nimbuscore.clients.store.conditions.bool.NotCondition
@@ -68,7 +68,7 @@ class DynamoConditionProcessorTest : AnnotationSpec() {
     fun canProcessGreaterThan() {
         val valueMap: MutableMap<String, AttributeValue> = mutableMapOf()
         underTest.processCondition(
-                ComparisionCondition(NumericVariable(10), ComparisonOperator.GREATER_THAN, NumericVariable(11)),
+                ComparisonCondition(NumericVariable(10), ComparisonOperator.GREATER_THAN, NumericVariable(11)),
                 valueMap) shouldBe ":variable0 > :variable1"
         valueMap[":variable0"] shouldBe numAttribute("10")
         valueMap[":variable1"] shouldBe numAttribute("11")
@@ -78,7 +78,7 @@ class DynamoConditionProcessorTest : AnnotationSpec() {
     fun canProcessGreaterThanOrEqualTo() {
         val valueMap: MutableMap<String, AttributeValue> = mutableMapOf()
         underTest.processCondition(
-                ComparisionCondition(NumericVariable(10), ComparisonOperator.GREATER_THAN_OR_EQUAL, NumericVariable(11)),
+                ComparisonCondition(NumericVariable(10), ComparisonOperator.GREATER_THAN_OR_EQUAL, NumericVariable(11)),
                 valueMap) shouldBe ":variable0 >= :variable1"
         valueMap[":variable0"] shouldBe numAttribute("10")
         valueMap[":variable1"] shouldBe numAttribute("11")
@@ -88,7 +88,7 @@ class DynamoConditionProcessorTest : AnnotationSpec() {
     fun canProcessLessThan() {
         val valueMap: MutableMap<String, AttributeValue> = mutableMapOf()
         underTest.processCondition(
-                ComparisionCondition(NumericVariable(10), ComparisonOperator.LESS_THAN, NumericVariable(11)),
+                ComparisonCondition(NumericVariable(10), ComparisonOperator.LESS_THAN, NumericVariable(11)),
                 valueMap) shouldBe ":variable0 < :variable1"
         valueMap[":variable0"] shouldBe numAttribute("10")
         valueMap[":variable1"] shouldBe numAttribute("11")
@@ -98,7 +98,7 @@ class DynamoConditionProcessorTest : AnnotationSpec() {
     fun canProcessLessThanOrEqualTo() {
         val valueMap: MutableMap<String, AttributeValue> = mutableMapOf()
         underTest.processCondition(
-                ComparisionCondition(NumericVariable(10), ComparisonOperator.LESS_THAN_OR_EQUAL, NumericVariable(11)),
+                ComparisonCondition(NumericVariable(10), ComparisonOperator.LESS_THAN_OR_EQUAL, NumericVariable(11)),
                 valueMap) shouldBe ":variable0 <= :variable1"
     }
 
@@ -106,7 +106,7 @@ class DynamoConditionProcessorTest : AnnotationSpec() {
     fun canProcessEqualTo() {
         val valueMap: MutableMap<String, AttributeValue> = mutableMapOf()
         underTest.processCondition(
-                ComparisionCondition(NumericVariable(10), ComparisonOperator.EQUAL, NumericVariable(11)),
+                ComparisonCondition(NumericVariable(10), ComparisonOperator.EQUAL, NumericVariable(11)),
                 valueMap) shouldBe ":variable0 = :variable1"
         valueMap[":variable0"] shouldBe numAttribute("10")
         valueMap[":variable1"] shouldBe numAttribute("11")
@@ -116,7 +116,7 @@ class DynamoConditionProcessorTest : AnnotationSpec() {
     fun canProcessNotEqualTo() {
         val valueMap: MutableMap<String, AttributeValue> = mutableMapOf()
         underTest.processCondition(
-                ComparisionCondition(NumericVariable(10), ComparisonOperator.NOT_EQUAL, NumericVariable(11)),
+                ComparisonCondition(NumericVariable(10), ComparisonOperator.NOT_EQUAL, NumericVariable(11)),
                 valueMap) shouldBe ":variable0 <> :variable1"
         valueMap[":variable0"] shouldBe numAttribute("10")
         valueMap[":variable1"] shouldBe numAttribute("11")

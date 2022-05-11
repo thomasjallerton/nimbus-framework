@@ -5,8 +5,10 @@ import com.nimbusframework.nimbusaws.clients.dynamo.DynamoHelper.strAttribute
 import com.nimbusframework.nimbusaws.examples.keyvalue.KeyValueStoreNoTableName
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
+import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
 import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -75,6 +77,17 @@ class KeyValueStoreClientDynamoTest : AnnotationSpec() {
         every { dynamoClient.getAll() } returns listOf(merged)
 
         underTest.getAll()["key"] shouldBe obj
+    }
+
+    @Test
+    fun canFilter() {
+        val merged = exampleObj.toMutableMap();
+        merged["PrimaryKey"] = strAttribute("key")
+
+        val condition = mockk<Condition>()
+        every { dynamoClient.filter(condition) } returns listOf(merged)
+
+        underTest.filter(condition)["key"] shouldBe obj
     }
 
     @Test

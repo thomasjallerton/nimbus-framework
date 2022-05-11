@@ -1,5 +1,7 @@
 package com.nimbusframework.nimbusaws.clients.queue
 
+import com.nimbusframework.nimbusaws.annotation.annotations.parsed.ParsedQueueDefinition
+import com.nimbusframework.nimbusaws.clients.InternalEnvironmentVariableClient
 import com.nimbusframework.nimbusaws.examples.SimpleObject
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import io.kotest.core.spec.style.AnnotationSpec
@@ -16,12 +18,12 @@ class QueueClientSQSTest : AnnotationSpec() {
     private lateinit var sqsClient: SqsClient
     private lateinit var environmentVariableClient: EnvironmentVariableClient
 
-    private val QUEUE_ID = "QUEUE"
     @BeforeEach
     fun setup() {
         sqsClient = mockk(relaxed = true)
         environmentVariableClient = mockk()
-        underTest = QueueClientSQS(QUEUE_ID, sqsClient, environmentVariableClient)
+        val queue = ParsedQueueDefinition("QUEUE", 10)
+        underTest = QueueClientSQS(queue, sqsClient, InternalEnvironmentVariableClient(environmentVariableClient))
     }
 
     @Test

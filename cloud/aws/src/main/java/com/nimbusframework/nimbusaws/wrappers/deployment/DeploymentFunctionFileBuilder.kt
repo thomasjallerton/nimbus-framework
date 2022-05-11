@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbusaws.wrappers.deployment
 
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.deployment.AfterDeployment
 import com.nimbusframework.nimbuscore.eventabstractions.BasicEvent
@@ -10,12 +10,12 @@ import javax.lang.model.element.Element
 
 class DeploymentFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
-    methodInformation: MethodInformation,
+    fileBuilderMethodInformation: FileBuilderMethodInformation,
     compilingElement: Element,
     classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
-    methodInformation,
+    fileBuilderMethodInformation,
     AfterDeployment::class.java.simpleName,
     BasicEvent::class.java,
     compilingElement,
@@ -24,7 +24,7 @@ class DeploymentFunctionFileBuilder(
     classForReflectionService
 ) {
     override fun generateClassName(): String {
-        return "AfterDeployment${methodInformation.className}${methodInformation.methodName}"
+        return "AfterDeployment${fileBuilderMethodInformation.className}${fileBuilderMethodInformation.methodName}"
     }
 
     override fun writeImports() {}
@@ -33,14 +33,14 @@ class DeploymentFunctionFileBuilder(
         val callPrefix = if (voidMethodReturn) {
             ""
         } else {
-            "${methodInformation.returnType} result = "
+            "${fileBuilderMethodInformation.returnType} result = "
         }
 
         if (eventParam.exists()) {
             write("$eventSimpleName event = new $eventSimpleName(requestId);")
         }
 
-        val methodName = methodInformation.methodName
+        val methodName = fileBuilderMethodInformation.methodName
         when {
             eventParam.doesNotExist() -> write("${callPrefix}handler.$methodName();")
             else -> write("${callPrefix}handler.$methodName(event);")

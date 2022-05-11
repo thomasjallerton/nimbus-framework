@@ -15,10 +15,10 @@ import com.nimbusframework.nimbuslocal.deployment.webserver.WebServerHandler
 import java.lang.reflect.Method
 
 class LocalHttpFunctionHandler(
-        private val localResourceHolder: LocalResourceHolder,
-        private val httpPort: Int,
-        private val variableSubstitution: MutableMap<String, String>,
-        private val stageService: StageService
+    private val localResourceHolder: LocalResourceHolder,
+    private val httpPort: Int,
+    private val variableSubstitution: MutableMap<String, String>,
+    private val stageService: StageService
 ) : LocalFunctionHandler(localResourceHolder) {
 
     override fun handleMethod(clazz: Class<out Any>, method: Method): Boolean {
@@ -27,7 +27,7 @@ class LocalHttpFunctionHandler(
 
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
 
-        val annotation = stageService.annotationForStage(httpServerlessFunctions) {annotation -> annotation.stages}
+        val annotation = stageService.annotationForStage(httpServerlessFunctions) { annotation -> annotation.stages }
         if (annotation != null) {
             val invokeOn = getFunctionClassInstance(clazz)
 
@@ -51,15 +51,24 @@ class LocalHttpFunctionHandler(
             }
             val allowedOrigin = if (variableSubstitution.containsKey(annotation.allowedCorsOrigin)) {
                 variableSubstitution[annotation.allowedCorsOrigin]!!
-            } else {
+            } else if (annotation.allowedCorsOrigin.isNotBlank()) {
                 annotation.allowedCorsOrigin
+            } else {
+                stageService.getDefaultAllowedOrigin()
             }
+
+            val allowedHeaders = if (annotation.allowedCorsHeaders.isNotEmpty()) {
+                annotation.allowedCorsHeaders
+            } else {
+                stageService.getDefaultAllowedHeaders()
+            }
+
             functionApiServer.handler.handler.addWebResource(
-                    annotation.path,
-                    annotation.method,
-                    httpMethod,
-                    allowedOrigin,
-                    annotation.allowedCorsHeaders
+                annotation.path,
+                annotation.method,
+                httpMethod,
+                allowedOrigin,
+                allowedHeaders
             )
         }
 

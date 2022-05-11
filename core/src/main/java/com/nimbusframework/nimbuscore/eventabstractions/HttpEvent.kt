@@ -12,6 +12,7 @@ data class HttpEvent(
         val multiValueQueryStringParameters: Map<String, List<String>>? = mapOf(),
         val pathParameters: Map<String, String>? = mapOf(),
         val stageVariables: Map<String, String>? = mapOf(),
+        val authorizationContext: Map<String, Any>? = mapOf(),
         val body: String? = null,
         val isBase64Encoded: Boolean? = null,
         val requestId: String = UUID.randomUUID().toString()

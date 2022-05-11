@@ -1,6 +1,8 @@
 package com.nimbusframework.nimbusaws.clients.function
 
-import com.nimbusframework.nimbusaws.cloudformation.resource.function.FunctionResource
+import com.nimbusframework.nimbusaws.clients.InternalEnvironmentVariableClient
+import com.nimbusframework.nimbusaws.cloudformation.generation.resources.environment.ConstantEnvironmentVariable
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
 import com.nimbusframework.nimbusaws.examples.BasicFunctionHandler
 import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import io.kotest.core.spec.style.AnnotationSpec
@@ -20,14 +22,14 @@ class BasicServerlessFunctionClientLambdaTest : AnnotationSpec() {
     private lateinit var underTest: BasicServerlessFunctionClientLambda
     private lateinit var awsLambda: LambdaClient
 
-    private lateinit var environmentVariableClient: EnvironmentVariableClient
+    private lateinit var environmentVariableClient: InternalEnvironmentVariableClient
 
     @BeforeEach
     fun setup() {
         awsLambda = mockk(relaxed = true)
         environmentVariableClient = mockk()
-        every { environmentVariableClient.get("NIMBUS_PROJECT_NAME") } returns "PROJECT"
-        every { environmentVariableClient.get("FUNCTION_STAGE") } returns "STAGE"
+        every { environmentVariableClient.get(ConstantEnvironmentVariable.NIMBUS_PROJECT_NAME) } returns "PROJECT"
+        every { environmentVariableClient.get(ConstantEnvironmentVariable.FUNCTION_STAGE) } returns "STAGE"
         underTest = BasicServerlessFunctionClientLambda(BasicFunctionHandler::class.java, "exampleFunc", awsLambda, environmentVariableClient)
     }
 

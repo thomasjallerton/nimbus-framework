@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.wrappers.notification
 
 import com.amazonaws.services.lambda.runtime.events.SNSEvent
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.function.NotificationServerlessFunction
 import com.nimbusframework.nimbuscore.clients.JacksonClient
@@ -12,12 +12,12 @@ import javax.lang.model.element.Element
 
 class NotificationServerlessFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
-    methodInformation: MethodInformation,
+    fileBuilderMethodInformation: FileBuilderMethodInformation,
     compilingElement: Element,
     classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
-    methodInformation,
+    fileBuilderMethodInformation,
     NotificationServerlessFunction::class.java.simpleName,
     NotificationEvent::class.java,
     compilingElement,
@@ -27,7 +27,7 @@ class NotificationServerlessFunctionFileBuilder(
 ) {
 
     override fun generateClassName(): String {
-        return "NotificationServerlessFunction${methodInformation.className}${methodInformation.methodName}"
+        return "NotificationServerlessFunction${fileBuilderMethodInformation.className}${fileBuilderMethodInformation.methodName}"
     }
 
     override fun writeImports() {
@@ -46,7 +46,7 @@ class NotificationServerlessFunctionFileBuilder(
             write("${inputParam.simpleName()} parsedType = JacksonClient.readValue(snsEvent.getMessage(), ${inputParam.simpleName()}.class);")
         }
 
-        val methodName = methodInformation.methodName
+        val methodName = fileBuilderMethodInformation.methodName
         when {
             inputParam.doesNotExist() && eventParam.doesNotExist() -> write("handler.$methodName();")
             inputParam.type == null -> write("handler.$methodName(event);")

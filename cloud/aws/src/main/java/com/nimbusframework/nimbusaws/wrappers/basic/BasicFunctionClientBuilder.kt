@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusaws.wrappers.basic
 
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.FileBuilder
 import com.nimbusframework.nimbuscore.clients.ClientBuilder
 import com.nimbusframework.nimbuscore.clients.function.BasicServerlessFunctionClient
@@ -10,10 +10,10 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.type.TypeKind
 
 class BasicFunctionClientBuilder(
-        private val functionClassName: String,
-        private val packageLocation: String,
-        private val methods: Set<MethodInformation>,
-        processingEnvironment: ProcessingEnvironment
+    private val functionClassName: String,
+    private val packageLocation: String,
+    private val methods: Set<FileBuilderMethodInformation>,
+    processingEnvironment: ProcessingEnvironment
 ): FileBuilder() {
 
     val className = functionClassName + "Serverless"
@@ -48,10 +48,10 @@ class BasicFunctionClientBuilder(
         out?.close()
     }
 
-    private fun overrideFunction(methodInformation: MethodInformation) {
-        val voidMethodReturn = methodInformation.returnType.kind == TypeKind.NULL || methodInformation.returnType.kind == TypeKind.VOID
+    private fun overrideFunction(fileBuilderMethodInformation: FileBuilderMethodInformation) {
+        val voidMethodReturn = fileBuilderMethodInformation.returnType.kind == TypeKind.NULL || fileBuilderMethodInformation.returnType.kind == TypeKind.VOID
 
-        val (inputParam, eventParam) = findParamIndexes(methodInformation, BasicEvent::class.qualifiedName!!)
+        val (inputParam, eventParam) = findParamIndexes(fileBuilderMethodInformation, BasicEvent::class.qualifiedName!!)
 
         val paramDeclaration = when {
             inputParam.doesNotExist() && eventParam.doesNotExist() -> "()"
@@ -62,14 +62,14 @@ class BasicFunctionClientBuilder(
         }
 
         write("@Override")
-        write("public ${methodInformation.returnType} ${methodInformation.methodName}$paramDeclaration {")
-        write("${BasicServerlessFunctionClient::class.simpleName} functionClient = ${ClientBuilder::class.simpleName}.getBasicServerlessFunctionClient($functionClassName.class, \"${methodInformation.methodName}\");")
+        write("public ${fileBuilderMethodInformation.returnType} ${fileBuilderMethodInformation.methodName}$paramDeclaration {")
+        write("${BasicServerlessFunctionClient::class.simpleName} functionClient = ${ClientBuilder::class.simpleName}.getBasicServerlessFunctionClient($functionClassName.class, \"${fileBuilderMethodInformation.methodName}\");")
 
         val invocationType = when {
             voidMethodReturn && inputParam.doesNotExist() -> "functionClient.invoke();"
             voidMethodReturn && inputParam.exists() -> "functionClient.invoke(inputType);"
-            inputParam.doesNotExist() -> "return functionClient.invoke(${methodInformation.returnType}.class);"
-            else -> "return functionClient.invoke(inputType, ${methodInformation.returnType}.class);"
+            inputParam.doesNotExist() -> "return functionClient.invoke(${fileBuilderMethodInformation.returnType}.class);"
+            else -> "return functionClient.invoke(inputType, ${fileBuilderMethodInformation.returnType}.class);"
         }
 
         write(invocationType)

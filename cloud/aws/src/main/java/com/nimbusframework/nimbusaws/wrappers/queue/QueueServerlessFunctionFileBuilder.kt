@@ -1,8 +1,8 @@
 package com.nimbusframework.nimbusaws.wrappers.queue
 
 import com.amazonaws.services.lambda.runtime.events.SQSEvent
-import com.nimbusframework.nimbusaws.annotation.services.dependencies.ClassForReflectionService
-import com.nimbusframework.nimbusaws.cloudformation.processing.MethodInformation
+import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
+import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.function.QueueServerlessFunction
 import com.nimbusframework.nimbuscore.clients.JacksonClient
@@ -12,22 +12,23 @@ import javax.lang.model.element.Element
 
 class QueueServerlessFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
-    methodInformation: MethodInformation,
+    fileBuilderMethodInformation: FileBuilderMethodInformation,
     compilingElement: Element,
     classForReflectionService: ClassForReflectionService
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
-    methodInformation,
+    fileBuilderMethodInformation,
     QueueServerlessFunction::class.java.simpleName,
     QueueEvent::class.java,
     compilingElement,
     SQSEvent::class.java,
     Void::class.java,
-    classForReflectionService
+    classForReflectionService,
+    false
 ) {
 
     override fun generateClassName(): String {
-        return "QueueServerlessFunction${methodInformation.className}${methodInformation.methodName}"
+        return "QueueServerlessFunction${fileBuilderMethodInformation.className}${fileBuilderMethodInformation.methodName}"
     }
 
     override fun eventCannotBeList(): Boolean {
@@ -90,7 +91,7 @@ class QueueServerlessFunctionFileBuilder(
     }
 
     private fun invokeHandler(inputParam: Param, eventParam: Param, inputVariable: String, eventVariable: String) {
-        val methodName = methodInformation.methodName
+        val methodName = fileBuilderMethodInformation.methodName
         when {
             inputParam.doesNotExist() && eventParam.doesNotExist() -> write("handler.$methodName();")
             inputParam.doesNotExist() -> write("handler.$methodName($eventVariable);")

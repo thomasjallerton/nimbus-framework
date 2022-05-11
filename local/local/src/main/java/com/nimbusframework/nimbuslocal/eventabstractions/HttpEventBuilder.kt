@@ -14,6 +14,7 @@ class HttpEventBuilder {
     private var multiValueQueryStringParameters: MutableMap<String, List<String>> = mutableMapOf()
     private var pathParameters: MutableMap<String, String> = mutableMapOf()
     private var stageVariables: MutableMap<String, String> = mutableMapOf()
+    private var authorizationContext: MutableMap<String, Any> = mutableMapOf()
     private var body: String? = null
     private var isBase64Encoded: Boolean? = null
     private var requestId: String = UUID.randomUUID().toString()
@@ -119,6 +120,7 @@ class HttpEventBuilder {
             multiValueQueryStringParameters,
             pathParameters,
             stageVariables,
+            authorizationContext,
             body,
             isBase64Encoded,
             requestId

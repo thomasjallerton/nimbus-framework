@@ -8,14 +8,14 @@ import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import java.io.File
 import java.io.InputStream
 
-class FileStorageClientLocal(bucketClass: Class<*>, stage: String): FileStorageClient, LocalClient() {
+class FileStorageClientLocal(bucketClass: Class<*>, stage: String): FileStorageClient, LocalClient(PermissionType.FILE_STORAGE) {
 
     private val bucketName = FileStorageBucketNameAnnotationService.getBucketName(bucketClass, stage)
     private val localNimbusClient = LocalNimbusDeployment.getInstance()
     private val fileStorage = localNimbusClient.getLocalFileStorage(bucketClass)
 
-    override fun canUse(): Boolean {
-        return checkPermissions(PermissionType.FILE_STORAGE, bucketName)
+    override fun canUse(permissionType: PermissionType): Boolean {
+        return checkPermissions(permissionType, bucketName)
     }
 
     override val clientName: String = FileStorageClient::class.java.simpleName
