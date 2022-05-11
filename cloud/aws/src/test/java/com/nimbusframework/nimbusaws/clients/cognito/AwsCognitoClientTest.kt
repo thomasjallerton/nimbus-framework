@@ -76,25 +76,139 @@ class AwsCognitoClientTest : AnnotationSpec() {
         // First time calls with no token
         val built1 = adminListGroupsConsumer[0]
         built1.username() shouldBe "USERNAME"
-        built1.limit() shouldBe 10
+        built1.limit() shouldBe 50
         built1.nextToken() shouldBe null
         built1.userPoolId() shouldBe userPoolId
 
         // Second time calls with a token
         val built2 = adminListGroupsConsumer[1]
         built2.username() shouldBe "USERNAME"
-        built2.limit() shouldBe 10
+        built2.limit() shouldBe 50
         built2.nextToken() shouldBe "NEXT_TOKEN"
         built2.userPoolId() shouldBe userPoolId
 
         // Third time calls with a token
         val built3 = adminListGroupsConsumer[2]
         built3.username() shouldBe "USERNAME"
-        built3.limit() shouldBe 10
+        built3.limit() shouldBe 50
         built3.nextToken() shouldBe "NEXT_TOKEN_2"
         built3.userPoolId() shouldBe userPoolId
 
         adminListGroupsConsumer shouldHaveSize 3
+    }
+
+    @Test
+    fun canListGroupsForUserAsAdminWhenNoPagingNeeded() {
+        val adminListGroupsForUserResponse1 = AdminListGroupsForUserResponse.builder()
+            .groups(
+                GroupType.builder().groupName("group1").build(),
+                GroupType.builder().groupName("group2").build()
+            )
+            .nextToken(null)
+            .build()
+
+        val adminListGroupsConsumer = mutableListOf<AdminListGroupsForUserRequest>()
+        every { cognitoClient.adminListGroupsForUser(capture(adminListGroupsConsumer)) } returnsMany listOf(
+            adminListGroupsForUserResponse1
+        )
+
+        val result = underTest.listGroupsForUserAsAdmin("USERNAME")
+        result shouldContainExactlyInAnyOrder listOf("group1", "group2")
+
+        // First time calls with no token
+        val built1 = adminListGroupsConsumer[0]
+        built1.username() shouldBe "USERNAME"
+        built1.limit() shouldBe 50
+        built1.nextToken() shouldBe null
+        built1.userPoolId() shouldBe userPoolId
+
+        adminListGroupsConsumer shouldHaveSize 1
+    }
+
+    @Test
+    fun canListUsersInGroupWhenNoPagingNeeded() {
+        val listUsersInGroupResponse = ListUsersInGroupResponse.builder()
+            .users(
+                UserType.builder().username("user1").attributes(
+                    AttributeType.builder().name("key1").value("value1").build()
+                ).build(),
+                UserType.builder().username("user2").attributes(
+                    AttributeType.builder().name("key2").value("value2").build()
+                ).build()
+            )
+            .nextToken(null)
+            .build()
+
+        val listUsersInGroupRequests = mutableListOf<ListUsersInGroupRequest>()
+        every { cognitoClient.listUsersInGroup(capture(listUsersInGroupRequests)) } returnsMany listOf(
+            listUsersInGroupResponse
+        )
+
+        val result = underTest.listUsersInGroup("pro")
+        result shouldContainExactlyInAnyOrder listOf(
+            CognitoUser("user1", mapOf(Pair("key1", "value1"))),
+            CognitoUser("user2", mapOf(Pair("key2", "value2"))),
+        )
+
+        // First time calls with no token
+        val built1 = listUsersInGroupRequests[0]
+        built1.limit() shouldBe 50
+        built1.nextToken() shouldBe null
+        built1.userPoolId() shouldBe userPoolId
+        built1.groupName() shouldBe "pro"
+
+        listUsersInGroupRequests shouldHaveSize 1
+    }
+
+    @Test
+    fun canListUsersInGroupWhenPagingNeeded() {
+        val listUsersInGroupResponse = ListUsersInGroupResponse.builder()
+            .users(
+                UserType.builder().username("user1").attributes(
+                    AttributeType.builder().name("key1").value("value1").build()
+                ).build(),
+                UserType.builder().username("user2").attributes(
+                    AttributeType.builder().name("key2").value("value2").build()
+                ).build()
+            )
+            .nextToken("token1")
+            .build()
+
+        val listUsersInGroupResponse2 = ListUsersInGroupResponse.builder()
+            .users(
+                UserType.builder().username("user3").attributes(
+                    AttributeType.builder().name("key3").value("value3").build()
+                ).build()
+            )
+            .nextToken(null)
+            .build()
+
+        val listUsersInGroupRequests = mutableListOf<ListUsersInGroupRequest>()
+        every { cognitoClient.listUsersInGroup(capture(listUsersInGroupRequests)) } returnsMany listOf(
+            listUsersInGroupResponse, listUsersInGroupResponse2
+        )
+
+        val result = underTest.listUsersInGroup("pro")
+        result shouldContainExactlyInAnyOrder listOf(
+            CognitoUser("user1", mapOf(Pair("key1", "value1"))),
+            CognitoUser("user2", mapOf(Pair("key2", "value2"))),
+            CognitoUser("user3", mapOf(Pair("key3", "value3")))
+        )
+
+        // First time calls with no token
+        val built1 = listUsersInGroupRequests[0]
+        built1.limit() shouldBe 50
+        built1.nextToken() shouldBe null
+        built1.userPoolId() shouldBe userPoolId
+        built1.groupName() shouldBe "pro"
+
+        val built2 = listUsersInGroupRequests[1]
+        built2.limit() shouldBe 50
+        built2.nextToken() shouldBe "token1"
+        built2.userPoolId() shouldBe userPoolId
+        built2.groupName() shouldBe "pro"
+
+        listUsersInGroupRequests shouldHaveSize 2
     }
 
     @Test

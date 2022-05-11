@@ -47,6 +47,29 @@ internal class LocalCognitoClientTest: StringSpec({
         underTest.listGroupsForUserAsAdmin("user") shouldContainExactlyInAnyOrder listOf("group", "group_two")
     }
 
+    "Can users in group" {
+        // given
+        LocalNimbusDeployment.getNewInstance { it
+            .withSpecificLocalDeployment(AwsSpecificLocalDeployment.newInstance())
+            .withClasses(UserPool::class.java)
+        }
+
+        val userPool = AwsSpecificLocalDeployment.currentInstance().getUserPool(UserPool::class.java)
+
+        userPool.addUser("ACCESS_TOKEN", CognitoUser("user", mapOf(Pair("key", "value"))))
+        userPool.addUserToGroupAsAdmin("user", "group")
+
+        userPool.addUser("ACCESS_TOKEN_2", CognitoUser("user2", mapOf(Pair("key2", "value2"))))
+        userPool.addUserToGroupAsAdmin("user2", "group")
+
+        // when
+        val underTest = AwsClientBuilder.getCognitoClient(UserPool::class.java)
+        underTest.listUsersInGroup("group") shouldContainExactlyInAnyOrder listOf(
+            CognitoUser("user", mapOf(Pair("key", "value"))),
+            CognitoUser("user2", mapOf(Pair("key2", "value2")))
+        )
+    }
+
     "Can search for user with equals attribute" {
         // given
         LocalNimbusDeployment.getNewInstance { it

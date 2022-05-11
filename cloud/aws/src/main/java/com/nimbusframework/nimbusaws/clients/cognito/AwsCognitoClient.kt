@@ -3,6 +3,8 @@ package com.nimbusframework.nimbusaws.clients.cognito
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminListGroupsForUserRequest
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminListGroupsForUserResponse
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUsersInGroupRequest
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUsersInGroupResponse
 
 class AwsCognitoClient(
     private val userPoolId: String,
@@ -27,11 +29,41 @@ class AwsCognitoClient(
                     .userPoolId(userPoolId)
                     .username(username)
                     .nextToken(nextToken)
-                    .limit(10)
+                    .limit(50)
                     .build()
             )
             nextToken = currentResponse!!.nextToken()
             result.addAll(currentResponse.groups().map { it.groupName() })
+            if (nextToken == null) {
+                break
+            }
+        }
+        return result
+    }
+
+    override fun listUsersInGroup(groupName: String): List<CognitoUser> {
+        var currentResponse: ListUsersInGroupResponse? = null
+        var nextToken: String? = null
+        val baseRequest = ListUsersInGroupRequest.builder()
+            .userPoolId(userPoolId)
+            .groupName(groupName)
+            .limit(50)
+
+        val result = mutableListOf<CognitoUser>()
+        while (currentResponse == null || currentResponse.hasUsers()) {
+            currentResponse = cognitoClient.listUsersInGroup(
+                baseRequest
+                    .nextToken(nextToken)
+                    .build()
+            )
+            nextToken = currentResponse!!.nextToken()
+            result.addAll(currentResponse.users().map { user -> CognitoUser(
+                user.username(),
+                user.attributes().associate { Pair(it.name(), it.value()) }
+            ) })
+            if (nextToken == null) {
+                break
+            }
         }
         return result
     }

@@ -66,6 +66,7 @@ internal class UsesCognitoProcessorTest: AnnotationSpec() {
 
                 iamRoleResource.allows("cognito-idp:GetUser", ExistingResource("arn:partition:service:region:account-id:resource-id", nimbusState, "dev")) shouldBe true
                 iamRoleResource.allows("cognito-idp:ListUsers", ExistingResource("arn:partition:service:region:account-id:resource-id", nimbusState, "dev")) shouldBe true
+                iamRoleResource.allows("cognito-idp:ListUsersInGroup", ExistingResource("arn:partition:service:region:account-id:resource-id", nimbusState, "dev")) shouldBe true
             }
         }
         compileStateService.status shouldBe Compilation.Status.SUCCESS

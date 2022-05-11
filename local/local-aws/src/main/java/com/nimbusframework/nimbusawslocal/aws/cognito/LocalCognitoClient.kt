@@ -29,7 +29,13 @@ class LocalCognitoClient(
     }
 
     override fun listGroupsForUserAsAdmin(username: String): List<String> {
+        checkClientUse(AwsPermissionTypes.COGNITO_ADMIN)
         return localCognito.getGroupsForUser(username)
+    }
+
+    override fun listUsersInGroup(groupName: String): List<CognitoUser> {
+        checkClientUse(AwsPermissionTypes.COGNITO_ADMIN)
+        return localCognito.listUsersInGroup(groupName)
     }
 
     override fun searchUsers(

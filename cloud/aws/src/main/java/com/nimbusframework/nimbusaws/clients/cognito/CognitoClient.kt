@@ -6,6 +6,8 @@ interface CognitoClient {
 
     fun listGroupsForUserAsAdmin(username: String): List<String>
 
+    fun listUsersInGroup(groupName: String): List<CognitoUser>
+
     fun searchUsers(filterAttribute: SearchableCognitoAttribute, value: String, searchType: SearchType): List<CognitoUser>
 
     fun searchUsers(filterAttribute: SearchableCognitoAttribute, value: String): List<CognitoUser> = searchUsers(filterAttribute, value, SearchType.EQUALS)

@@ -47,6 +47,11 @@ class LocalCognito(
         userGroups.getOrPut(groupName) { mutableSetOf() }.add(username)
     }
 
+    fun listUsersInGroup(groupName: String): List<CognitoUser> {
+        val group = userGroups[groupName] ?: throw IllegalStateException("Group $groupName does not exist" )
+        return group.map { usersByUserName[it]!!.first }
+    }
+
     fun getGroupsForUser(username: String): List<String> {
         if (!usersByUserName.containsKey(username)) {
             throw IllegalArgumentException("User does not exist")

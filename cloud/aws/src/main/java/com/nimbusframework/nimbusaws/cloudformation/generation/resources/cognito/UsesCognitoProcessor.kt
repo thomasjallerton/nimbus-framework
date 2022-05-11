@@ -35,6 +35,7 @@ class UsesCognitoProcessor(
                     }
                     iamRoleResource.addAllowStatement("cognito-idp:GetUser", existingResource, "")
                     iamRoleResource.addAllowStatement("cognito-idp:ListUsers", existingResource, "")
+                    iamRoleResource.addAllowStatement("cognito-idp:ListUsersInGroup", existingResource, "")
                 }
             }
         }
