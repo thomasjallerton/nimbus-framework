@@ -50,7 +50,7 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@v4.3.0
       with:
         branch: master
-        file_pattern: pom.xml cloud/pom.xml cloud/aws/pom.xml core/pom.xml local/pom.xml local/local/pom.xml local/local-aws/pom.xml
+        file_pattern: pom.xml cloud/pom.xml cloud/aws/pom.xml core/pom.xml local/pom.xml local/local/pom.xml local/local-aws/pom.xml deployment/pom.xml
         tagging_message: '${{ steps.version.outputs.version }}'
         commit_message: release version
 
@@ -73,5 +73,5 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@v4.3.0
       with:
         branch: master
-        file_pattern: pom.xml cloud/pom.xml cloud/aws/pom.xml core/pom.xml local/pom.xml local/local/pom.xml local/local-aws/pom.xml
+        file_pattern: pom.xml cloud/pom.xml cloud/aws/pom.xml core/pom.xml local/pom.xml local/local/pom.xml local/local-aws/pom.xml deployment/pom.xml
         commit_message: prepare for next development cycle
