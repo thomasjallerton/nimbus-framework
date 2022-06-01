@@ -4,7 +4,6 @@ import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.NotificationEvent
 import com.nimbusframework.nimbuslocal.ServerlessMethod
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionType
-import com.nimbusframework.nimbuslocal.deployment.webserver.webconsole.models.FunctionSubscriberInformation
 import java.lang.reflect.Method
 
 class NotificationMethod(
@@ -15,13 +14,6 @@ class NotificationMethod(
         NotificationEvent::class.java,
         FunctionType.NOTIFICATION
 ) {
-
-    fun getFunctionSubscriber(): FunctionSubscriberInformation {
-        return FunctionSubscriberInformation(
-                method.declaringClass.simpleName,
-                method.name
-        )
-    }
 
     fun invoke(strParam: String) {
 
