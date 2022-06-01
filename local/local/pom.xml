@@ -18,7 +18,7 @@
 
   <properties>
     <junit-jupiter-api.version>5.5.2</junit-jupiter-api.version>
-    <jackson.version>2.13.0</jackson.version>
+    <jackson.version>2.13.2.1</jackson.version>
     <org.reflections.version>0.9.11</org.reflections.version>
     <tika.version>2.1.0</tika.version>
     <jetty-server.version>11.0.7</jetty-server.version>
