@@ -2,7 +2,6 @@ package com.nimbusframework.nimbuslocal.deployment.notification
 
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.notification.Protocol
-import com.nimbusframework.nimbuslocal.deployment.webserver.webconsole.models.FunctionSubscriberInformation
 import java.util.*
 
 class LocalNotificationTopic {
@@ -14,10 +13,6 @@ class LocalNotificationTopic {
 
     internal fun addSubscriber(method: NotificationMethod) {
         methodSubscribers.add(method)
-    }
-
-    fun getFunctionSubscribers(): List<FunctionSubscriberInformation> {
-        return methodSubscribers.map { it.getFunctionSubscriber() }
     }
 
     fun createSubscription(protocol: Protocol, endpoint: String): String {
