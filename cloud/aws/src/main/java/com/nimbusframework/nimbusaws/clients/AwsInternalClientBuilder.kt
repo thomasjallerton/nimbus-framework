@@ -74,6 +74,10 @@ object AwsInternalClientBuilder : InternalClientBuilder, InternalAwsClientBuilde
         return Class.forName(handlerClass.canonicalName + "Serverless").getDeclaredConstructor().newInstance() as T
     }
 
+    override fun isLocal(): Boolean {
+        return false
+    }
+
     override fun <K, V> getKeyValueStoreClient(key: Class<K>, value: Class<V>, stage: String): KeyValueStoreClient<K, V> {
         val agnosticAnnotation = getAnnotationForStage(value, KeyValueStoreDefinition::class, stage) { it.stages }
         val specificAnnotation = getAnnotationForStage(value, DynamoDbKeyValueStore::class, stage) { it.stages }

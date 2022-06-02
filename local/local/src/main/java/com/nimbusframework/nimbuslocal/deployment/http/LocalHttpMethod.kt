@@ -10,26 +10,27 @@ import java.net.URLDecoder
 
 
 class LocalHttpMethod(
-        private val method: Method,
-        private val invokeOn: Any
+    private val method: Method,
+    private val invokeOn: Any
 ) : ServerlessMethod(
-        method,
-        HttpEvent::class.java,
-        FunctionType.HTTP
+    method,
+    HttpEvent::class.java,
+    FunctionType.HTTP
 ) {
 
-    fun invoke(request: HttpRequest, methodIdentifier: HttpMethodIdentifier): Any? {
+    fun invoke(request: HttpRequest, methodIdentifier: HttpMethodIdentifier, authorizationContext: Map<String, Any>): Any? {
         timesInvoked++
 
         val multiValueQueryStringParameters = extractMultiValueQueryStringParameters(request.path)
         val queryStringParameters = multiValueParamsToSingle(multiValueQueryStringParameters)
 
         val httpEvent = HttpEvent(
-                pathParameters = methodIdentifier.extractPathParameters(request.path),
-                headers = multiValueParamsToSingle(request.headers),
-                multiValueHeaders = request.headers,
-                queryStringParameters = queryStringParameters,
-                multiValueQueryStringParameters = multiValueQueryStringParameters
+            pathParameters = methodIdentifier.extractPathParameters(request.path),
+            headers = multiValueParamsToSingle(request.headers),
+            multiValueHeaders = request.headers,
+            queryStringParameters = queryStringParameters,
+            multiValueQueryStringParameters = multiValueQueryStringParameters,
+            authorizationContext = authorizationContext
         )
 
         val strParam = request.body
@@ -81,7 +82,8 @@ class LocalHttpMethod(
     }
 
     private fun multiValueParamsToSingle(params: Map<String, List<String>>): Map<String, String> {
-        return params.mapValues {(_, value) -> value.fold("") {
-            acc, s -> if (acc.isNotEmpty()) "$acc,s" else s } }
+        return params.mapValues { (_, value) ->
+            value.fold("") { acc, s -> if (acc.isNotEmpty()) "$acc,s" else s }
+        }
     }
 }

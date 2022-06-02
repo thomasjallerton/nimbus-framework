@@ -35,9 +35,15 @@ class NimbusMockInjector(
     private var transactionalClient: TransactionalClient? = null
     private var webSocketClient: ServerlessFunctionWebSocketClient? = null
     private var environmentVariableClient: EnvironmentVariableClient? = null
+    private var isLocal: Boolean = false
 
     fun withQueueClient(queueClass: Class<*>, queueClient: QueueClient): NimbusMockInjector {
         queueClients[QueueIdAnnotationService.getQueueId(queueClass, stage)] = queueClient
+        return this
+    }
+
+    fun withIsLocal(isLocal: Boolean): NimbusMockInjector {
+        this.isLocal = isLocal
         return this
     }
 
@@ -108,7 +114,8 @@ class NimbusMockInjector(
             databaseClients,
             transactionalClient,
             webSocketClient,
-            environmentVariableClient
+            environmentVariableClient,
+            isLocal
         )
         ClientBinder.setInternalBuilder(clientBuilder)
     }

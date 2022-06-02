@@ -1,6 +1,8 @@
 package com.nimbusframework.nimbusawslocal.aws
 
 import com.nimbusframework.nimbusaws.clients.AwsClientBinder
+import com.nimbusframework.nimbusawslocal.aws.apigateway.LambdaAuthorizerFunctionCreator
+import com.nimbusframework.nimbusawslocal.aws.apigateway.LocalApiGatewayResourceCreator
 import com.nimbusframework.nimbusawslocal.aws.cognito.LocalCognito
 import com.nimbusframework.nimbusawslocal.aws.cognito.LocalCognitoResourceCreator
 import com.nimbusframework.nimbusawslocal.aws.cognito.LocalUsesCognitoHandler
@@ -11,6 +13,7 @@ import com.nimbusframework.nimbusawslocal.deployment.services.resource.LocalDyna
 import com.nimbusframework.nimbuslocal.deployment.CloudSpecificLocalDeployment
 import com.nimbusframework.nimbuslocal.deployment.services.LocalResourceHolder
 import com.nimbusframework.nimbuslocal.deployment.services.StageService
+import com.nimbusframework.nimbuslocal.deployment.services.function.LocalFunctionHandler
 import com.nimbusframework.nimbuslocal.deployment.services.resource.LocalCreateResourcesHandler
 import com.nimbusframework.nimbuslocal.deployment.services.usesresources.LocalUsesResourcesHandler
 
@@ -26,7 +29,14 @@ class AwsSpecificLocalDeployment private constructor(): CloudSpecificLocalDeploy
         return listOf(
             LocalDynamoDbDocumentStoreCreator(localResourceHolder, stageService),
             LocalDynamoDbKeyValueStoreCreator(localResourceHolder, stageService),
-            LocalCognitoResourceCreator(stageService, resourceHolder)
+            LocalCognitoResourceCreator(stageService, resourceHolder),
+            LocalApiGatewayResourceCreator(stageService, resourceHolder, localResourceHolder)
+        )
+    }
+
+    override fun getLocalFunctionHandlers(localResourceHolder: LocalResourceHolder, stageService: StageService): List<LocalFunctionHandler> {
+        return listOf(
+            LambdaAuthorizerFunctionCreator(localResourceHolder)
         )
     }
 

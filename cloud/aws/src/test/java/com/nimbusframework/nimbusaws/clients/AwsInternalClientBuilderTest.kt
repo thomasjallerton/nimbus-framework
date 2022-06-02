@@ -4,6 +4,7 @@ import com.nimbusframework.nimbusaws.examples.cognito.DefaultStagesCognito
 import com.nimbusframework.nimbusaws.examples.cognito.MultipleStagesCognito
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import software.amazon.awssdk.regions.Region
 
 internal class AwsInternalClientBuilderTest: StringSpec({
@@ -20,6 +21,10 @@ internal class AwsInternalClientBuilderTest: StringSpec({
 
     "throws error if using multiple stages stage doesn't exist" {
         shouldThrowAny { underTest.getCognitoClient(MultipleStagesCognito::class.java, "stage") }
+    }
+
+    "Correct is local" {
+        underTest.isLocal() shouldBe false
     }
 
 })
