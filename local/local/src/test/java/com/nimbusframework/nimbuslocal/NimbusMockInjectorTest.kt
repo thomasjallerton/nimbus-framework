@@ -29,6 +29,20 @@ class NimbusMockInjectorTest : StringSpec({
         ClientBuilder.getQueueClient(Queue::class.java) shouldBe client
     }
 
+    "correct isLocal client" {
+        NimbusMockInjector()
+            .withIsLocal(true)
+            .inject()
+        ClientBuilder.isLocal() shouldBe true
+    }
+
+    "correct isLocal client 2" {
+        NimbusMockInjector()
+            .withIsLocal(false)
+            .inject()
+        ClientBuilder.isLocal() shouldBe false
+    }
+
     "correct basic function client" {
         val client: BasicServerlessFunctionClient = mockk()
         NimbusMockInjector()

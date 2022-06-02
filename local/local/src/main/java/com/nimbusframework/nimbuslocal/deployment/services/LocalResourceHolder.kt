@@ -9,6 +9,7 @@ import com.nimbusframework.nimbuslocal.deployment.function.FunctionIdentifier
 import com.nimbusframework.nimbuslocal.deployment.function.ServerlessFunction
 import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
+import com.nimbusframework.nimbuslocal.deployment.http.authentication.HttpMethodAuthenticator
 import com.nimbusframework.nimbuslocal.deployment.keyvalue.LocalKeyValueStore
 import com.nimbusframework.nimbuslocal.deployment.notification.LocalNotificationTopic
 import com.nimbusframework.nimbuslocal.deployment.queue.LocalQueue
@@ -18,7 +19,7 @@ import com.nimbusframework.nimbuslocal.deployment.websocketserver.LocalWebSocket
 import org.eclipse.jetty.websocket.api.Session
 import java.util.*
 
-class LocalResourceHolder() {
+class LocalResourceHolder {
     val functions: MutableMap<FunctionIdentifier, ServerlessFunction> = mutableMapOf()
 
     val queues: MutableMap<String, LocalQueue> = mutableMapOf()
@@ -37,6 +38,7 @@ class LocalResourceHolder() {
     val webDocumentStores: MutableMap<String, LocalDocumentStore<out Any>> = mutableMapOf()
 
     val httpServers: MutableMap<String, LocalHttpServer> = mutableMapOf()
+    var httpAuthenticator: HttpMethodAuthenticator? = null
     val webSocketSessions: MutableMap<String, Session> = mutableMapOf()
     val webSocketServer = LocalWebSocketServer(webSocketSessions)
 

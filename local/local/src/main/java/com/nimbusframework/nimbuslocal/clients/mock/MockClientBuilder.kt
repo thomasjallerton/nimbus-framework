@@ -27,7 +27,8 @@ class MockClientBuilder(
     private val databaseClients: Map<Class<*>, DatabaseClient> = mapOf(),
     private val transactionalClient: TransactionalClient? = null,
     private val webSocketClient: ServerlessFunctionWebSocketClient? = null,
-    private val environmentVariableClient: EnvironmentVariableClient? = null
+    private val environmentVariableClient: EnvironmentVariableClient? = null,
+    private val isLocal: Boolean = true
 ): InternalClientBuilder {
 
     override fun getBasicServerlessFunctionClient(handlerClass: Class<*>, functionName: String): BasicServerlessFunctionClient {
@@ -36,6 +37,10 @@ class MockClientBuilder(
 
     override fun <T> getBasicServerlessFunctionInterface(handlerClass: Class<T>): T {
         return basicFunctionInterfaces[handlerClass] as T? ?: error("Missing mock for function interface ${handlerClass.simpleName}")
+    }
+
+    override fun isLocal(): Boolean {
+        return isLocal
     }
 
     override fun <T> getDatabaseClient(databaseObject: Class<T>, stage: String): DatabaseClient {

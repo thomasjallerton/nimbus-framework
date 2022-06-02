@@ -2,6 +2,7 @@ package com.nimbusframework.nimbuslocal
 
 import com.nimbusframework.nimbuscore.services.ReadUserConfigService
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
+import com.nimbusframework.nimbuscore.annotations.function.HttpException
 import com.nimbusframework.nimbuscore.clients.ClientBinder
 import com.nimbusframework.nimbuscore.clients.file.FileStorageBucketNameAnnotationService
 import com.nimbusframework.nimbuscore.clients.notification.NotificationTopicAnnotationService
@@ -66,6 +67,10 @@ class LocalNimbusDeployment private constructor(
         localFunctionHandlers.add(LocalNotificationFunctionHandler(localResourceHolder, stageService))
         localFunctionHandlers.add(LocalQueueFunctionHandler(localResourceHolder, stageService))
         localFunctionHandlers.add(LocalWebSocketFunctionHandler(localResourceHolder, webSocketPort, variableSubstitution, stageService))
+
+        if (specificLocalDeployment != null) {
+            localFunctionHandlers.addAll(specificLocalDeployment.getLocalFunctionHandlers(localResourceHolder, stageService))
+        }
     }
 
     private fun initialiseResourceCreators(stageService: StageService) {
@@ -307,7 +312,11 @@ class LocalNimbusDeployment private constructor(
         val mainPath = request.path.split("?")[0]
         for ((identifier, method) in localHttpMethods) {
             if (identifier.matches(mainPath, request.method)) {
-                return method.invoke(request, identifier)
+                val authenticationResponse = localResourceHolder.httpAuthenticator?.allow(request)
+                if (authenticationResponse?.authenticated == false) {
+                    throw HttpException(403, "Unauthorized")
+                }
+                return method.invoke(request, identifier, authenticationResponse?.context ?: mapOf())
             }
         }
         throw ResourceNotFoundException()

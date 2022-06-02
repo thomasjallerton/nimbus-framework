@@ -8,5 +8,6 @@ enum class FunctionType {
     DOCUMENT_STORE,
     KEY_VALUE_STORE,
     FILE_STORAGE,
-    BASIC
+    BASIC,
+    AUTHORIZATION
 }

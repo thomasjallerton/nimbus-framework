@@ -18,6 +18,13 @@ class LocalCognito(
         usersByAccessToken[accessToken] = user
     }
 
+    fun removeUser(username: String) {
+        val user = usersByUserName.remove(username)!!
+        usersByAccessToken.remove(user.second)
+
+        userGroups.forEach { it.value.remove(username) }
+    }
+
     fun getUser(accessToken: String): CognitoUser? {
         return usersByAccessToken[accessToken]
     }
