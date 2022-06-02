@@ -133,6 +133,11 @@ object ClientBuilder {
         }
     }
 
+    @JvmStatic
+    fun isLocal(): Boolean {
+        return internalClientBuilder.isLocal()
+    }
+
     fun getStage(): String {
         return if (System.getenv().containsKey("NIMBUS_STAGE")) {
             System.getenv("NIMBUS_STAGE")

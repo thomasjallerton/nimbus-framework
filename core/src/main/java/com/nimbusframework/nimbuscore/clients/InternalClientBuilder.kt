@@ -35,4 +35,6 @@ interface InternalClientBuilder {
 
     fun <T> getBasicServerlessFunctionInterface(handlerClass: Class<T>): T
 
+    fun isLocal(): Boolean
+
 }

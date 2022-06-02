@@ -1,8 +1,10 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.resources
 
+import com.nimbusframework.nimbuscore.annotations.function.HttpException
 import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse
+import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuslocal.deployment.http.HttpRequest
 import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
@@ -31,8 +33,13 @@ class FunctionResource(
 
         val httpRequest = HttpRequest(correctedPath, httpMethod, strBody, headers)
 
+
         try {
-            val result = method.invoke(httpRequest, HttpMethodIdentifier(path, httpMethod))
+            val authResponse = LocalNimbusDeployment.getInstance().localResourceHolder.httpAuthenticator?.allow(httpRequest)
+            if (authResponse?.authenticated == false) {
+                throw HttpException(403, "Unauthenticated")
+            }
+            val result = method.invoke(httpRequest, HttpMethodIdentifier(path, httpMethod), authResponse?.context ?: mapOf())
 
             response.contentType = "application/json"
 
@@ -46,6 +53,8 @@ class FunctionResource(
             } else if (result !is Unit){
                 response.writer.print(JacksonClient.writeValueAsString(result))
             }
+        } catch (e: HttpException) {
+            response.status = e.statusCode
         } catch (e: Exception) {
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
             e.printStackTrace()
