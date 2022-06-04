@@ -12,12 +12,15 @@ import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.*
 import java.lang.reflect.Field
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import java.util.stream.Stream
 import javax.naming.InvalidNameException
 
 class DynamoClient (
         private val tableName: String,
         private val className: String,
+        private val keyColumn: String,
         private val columnNameMap: Map<String, String>,
         private val client: DynamoDbClient
 ) {
@@ -55,14 +58,20 @@ class DynamoClient (
         executeDynamoRequest { client.deleteItem(deleteItemRequest.build()) }
     }
 
-    fun getAll(): List<MutableMap<String, AttributeValue>> {
+    fun getAll(): Stream<Map<String, AttributeValue>> {
         val scanRequest = ScanRequest.builder()
                 .tableName(tableName)
-        return executeDynamoRequest { client.scan(scanRequest.build()) }.items()
+        return lazyEvaluateScan(scanRequest)
+    }
+
+    fun getAllKeys(): Stream<Map<String, AttributeValue>> {
+        val scanRequest = ScanRequest.builder()
+            .tableName(tableName)
+            .projectionExpression(keyColumn)
+        return lazyEvaluateScan(scanRequest)
     }
 
     fun get(keyMap: Map<String, AttributeValue>): MutableMap<String, AttributeValue>? {
-
         val convertedMap = keyMap.mapValues { entry ->
             software.amazon.awssdk.services.dynamodb.model.Condition.builder().comparisonOperator("EQ").attributeValueList(listOf(entry.value)).build()
         }
@@ -80,7 +89,7 @@ class DynamoClient (
         }
     }
 
-    fun filter(attributeCondition: Condition): List<Map<String, AttributeValue>> {
+    fun filter(attributeCondition: Condition): Stream<Map<String, AttributeValue>> {
         val expressionValues = mutableMapOf<String, AttributeValue>()
         val filterExpression = conditionProcessor.processCondition(attributeCondition, expressionValues)
         val scanRequest = ScanRequest.builder()
@@ -88,20 +97,34 @@ class DynamoClient (
             .filterExpression(filterExpression)
             .expressionAttributeValues(expressionValues)
 
-        val result = mutableListOf<Map<String, AttributeValue>>()
+        return lazyEvaluateScan(scanRequest)
+    }
 
-        var hasLastEvaluatedKey = true
-        while (hasLastEvaluatedKey) {
-            val scanResponse = executeDynamoRequest { client.scan(scanRequest.build()) }
+    private fun lazyEvaluateScan(scanRequestBuilder: ScanRequest.Builder): Stream<Map<String, AttributeValue>> {
+        val atomicRef = AtomicReference<Map<String, AttributeValue>?>()
+        val terminateNext = AtomicBoolean(false)
+        val terminateNow = AtomicBoolean(false)
 
-            hasLastEvaluatedKey = scanResponse.hasLastEvaluatedKey()
-            if (hasLastEvaluatedKey) {
-                scanRequest.exclusiveStartKey(scanResponse.lastEvaluatedKey())
+        return Stream.generate {
+            if (terminateNext.get()) {
+                terminateNow.set(true)
+                listOf()
+            } else {
+                val currentKey = atomicRef.get()
+                if (currentKey != null) {
+                    scanRequestBuilder.exclusiveStartKey(currentKey)
+                }
+                val scanResponse = executeDynamoRequest { client.scan(scanRequestBuilder.build()) }
+                if (scanResponse.hasLastEvaluatedKey()) {
+                    atomicRef.set(scanResponse.lastEvaluatedKey());
+                } else {
+                    terminateNext.set(true)
+                }
+                scanResponse.items()
             }
-
-            result.addAll(scanResponse.items())
         }
-        return result
+            .takeWhile { !terminateNow.get() }
+            .flatMap { it.stream() }
     }
 
     fun <T> getReadItem(keyMap: Map<String, AttributeValue>, transformer: (MutableMap<String, AttributeValue>) -> T): ReadItemRequest<T> {

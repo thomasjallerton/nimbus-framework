@@ -6,6 +6,7 @@ import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
 import com.nimbusframework.nimbuscore.exceptions.RetryableException
 import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
+import java.util.stream.Stream
 
 interface DocumentStoreClient<T> {
 
@@ -27,13 +28,16 @@ interface DocumentStoreClient<T> {
     fun deleteKey(keyObj: Any, condition: Condition)
 
     @Throws(RetryableException::class, NonRetryableException::class)
-    fun getAll(): List<T>
+    fun getAll(): Stream<T>
+
+    @Throws(RetryableException::class, NonRetryableException::class)
+    fun getAllKeys(): Stream<Any>
 
     @Throws(RetryableException::class, NonRetryableException::class)
     fun get(keyObj: Any): T?
 
     @Throws(RetryableException::class, NonRetryableException::class)
-    fun filter(condition: Condition): List<T>
+    fun filter(condition: Condition): Stream<T>
 
     fun getReadItem(keyObj: Any): ReadItemRequest<T>
 

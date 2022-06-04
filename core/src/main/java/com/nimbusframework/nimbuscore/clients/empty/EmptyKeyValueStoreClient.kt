@@ -5,6 +5,7 @@ import com.nimbusframework.nimbuscore.clients.keyvalue.KeyValueStoreClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
+import java.util.stream.Stream
 
 class EmptyKeyValueStoreClient<K, V>: KeyValueStoreClient<K, V> {
     private val clientName = "KeyValueStoreClient"
@@ -70,6 +71,10 @@ class EmptyKeyValueStoreClient<K, V>: KeyValueStoreClient<K, V> {
     }
 
     override fun filter(condition: Condition): Map<K, V> {
+        throw PermissionException(clientName)
+    }
+
+    override fun getAllKeys(): Stream<K> {
         throw PermissionException(clientName)
     }
 }

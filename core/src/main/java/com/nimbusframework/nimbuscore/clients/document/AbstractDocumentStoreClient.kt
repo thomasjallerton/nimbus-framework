@@ -7,12 +7,13 @@ import java.lang.reflect.Field
 
 abstract class AbstractDocumentStoreClient<T>(clazz: Class<T>, tableName: String, stage: String): DocumentStoreClient<T> {
 
-    protected val keys: MutableMap<String, Field> = mutableMapOf()
+    protected val key: Pair<String, Field>
     protected val allAttributes: MutableMap<String, Field> = mutableMapOf()
     protected val userTableName: String = tableName.removeSuffix(stage)
     protected val columnNames: MutableMap<String, String> = mutableMapOf()
 
     init {
+        val keys = mutableMapOf<String, Field>()
         for (field in clazz.declaredFields) {
             if (field.isAnnotationPresent(Key::class.java)) {
                 val keyAnnotation = field.getDeclaredAnnotation(Key::class.java)
@@ -27,11 +28,16 @@ abstract class AbstractDocumentStoreClient<T>(clazz: Class<T>, tableName: String
                 columnNames[field.name] = columnName
             }
         }
+        if (keys.size > 1) {
+            throw Exception("Composite key shouldn't exist!!")
+        } else if (keys.isEmpty()) {
+            throw Exception("Need a key field!")
+        }
+        key = Pair(keys.keys.first(), keys.values.first())
     }
 
     fun getItemDescription(): ItemDescription {
-        val key = keys.keys.first()
-        val attributes = allAttributes.keys.filter { attribute -> attribute != key }.toSet()
-        return ItemDescription(key, attributes)
+        val attributes = allAttributes.keys.filter { attribute -> attribute != key.first }.toSet()
+        return ItemDescription(key.first, attributes)
     }
 }

@@ -7,6 +7,7 @@ import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
+import java.util.stream.Stream
 
 internal class KeyValueStoreClientDynamo<K, V>(
         private val keyClass: Class<K>,
@@ -49,9 +50,15 @@ internal class KeyValueStoreClientDynamo<K, V>(
         return resultMap
     }
 
+    override fun getAllKeys(): Stream<K> {
+        return dynamoClient.getAllKeys()
+            .map { fromAttributeValue(it[keyName]!!, keyClass, keyName) as K }
+    }
+
     override fun get(keyObj: K): V? {
         return dynamoStreamProcessor.toObject(dynamoClient.get(keyToKeyMap(keyObj)))
     }
+
 
     override fun filter(condition: Condition): Map<K, V> {
         val results = dynamoClient.filter(condition)

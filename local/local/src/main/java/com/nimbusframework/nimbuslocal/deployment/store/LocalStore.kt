@@ -120,6 +120,10 @@ class LocalStore<K, V>(
         return localStore.mapValues { entry -> JacksonClient.readValue(entry.value, valueClass)}
     }
 
+    fun getAllKeys(): Set<K> {
+        return localStore.keys
+    }
+
     fun get(key: K): V? {
         val strValue = localStore[key]
         return if (strValue != null) {

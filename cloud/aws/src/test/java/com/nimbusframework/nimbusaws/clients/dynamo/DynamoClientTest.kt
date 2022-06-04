@@ -14,6 +14,7 @@ import com.nimbusframework.nimbuscore.clients.store.conditions.variable.Conditio
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
 import com.nimbusframework.nimbuscore.exceptions.RetryableException
 import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -26,6 +27,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.*
 import java.lang.reflect.Field
 import javax.naming.InvalidNameException
+import kotlin.streams.toList
 
 class DynamoClientTest : AnnotationSpec() {
 
@@ -63,7 +65,7 @@ class DynamoClientTest : AnnotationSpec() {
     @BeforeEach
     fun setUp() {
         mockDynamoDb = mockk()
-        underTest = DynamoClient("testTable", "test", columnNames, mockDynamoDb)
+        underTest = DynamoClient("testTable", "test", "string", columnNames, mockDynamoDb)
     }
 
     @Test
@@ -124,9 +126,21 @@ class DynamoClientTest : AnnotationSpec() {
 
         every { mockDynamoDb.scan(capture(scanRequest)) } returns ScanResponse.builder().items(attributeMap).build()
 
-        underTest.getAll().size shouldBe 1
+        underTest.getAll().count() shouldBe 1
 
         scanRequest.captured.tableName() shouldBe "testTable"
+    }
+
+    @Test
+    fun canGetAllKeys() {
+        val scanRequest = slot<ScanRequest>()
+
+        every { mockDynamoDb.scan(capture(scanRequest)) } returns ScanResponse.builder().items(attributeMap.filter { it.key == "string" }).build()
+
+        underTest.getAllKeys().toList() shouldContainExactly listOf(mapOf(Pair("string", AttributeValue.builder().s("test").build())))
+
+        scanRequest.captured.tableName() shouldBe "testTable"
+        scanRequest.captured.projectionExpression() shouldBe "string"
     }
 
     @Test
@@ -138,7 +152,7 @@ class DynamoClientTest : AnnotationSpec() {
             .lastEvaluatedKey(null)
             .build()
 
-        underTest.filter(AttributeNotExists("string")).size shouldBe 1
+        underTest.filter(AttributeNotExists("string")).count() shouldBe 1
 
         scanRequest.captured.tableName() shouldBe "testTable"
         scanRequest.captured.filterExpression() shouldBe "attribute_not_exists ( string )"
@@ -172,7 +186,7 @@ class DynamoClientTest : AnnotationSpec() {
                 .build()
         )
 
-        underTest.filter(condition) shouldContainExactlyInAnyOrder listOf(attributeMap, item2)
+        underTest.filter(condition).toList() shouldContainExactlyInAnyOrder listOf(attributeMap, item2)
 
         scanRequest shouldHaveSize 2
         scanRequest[0].tableName() shouldBe "testTable"

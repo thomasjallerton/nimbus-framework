@@ -1,6 +1,7 @@
 package com.nimbusframework.nimbusaws.wrappers.customRuntimeEntry
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.environment.ConstantEnvironmentVariable
@@ -42,10 +43,12 @@ class CustomRuntimeEntryFileBuilder(
         import(InvocationResponse::class.java)
         import(LambdaExecutionFunction::class.java)
         import(CustomContext::class.java)
+        import(MapperFeature::class.java)
         write("public class $CUSTOM_RUNTIME_ENTRY_CLASS_NAME {")
         write()
         write("public static void main(String[] args) throws IOException, InterruptedException {")
         write("ObjectMapper objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);")
+        write("objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);")
         write("CustomRuntimeHandler customRuntimeHandler = new CustomRuntimeHandler(objectMapper);")
         write("String endpointIdentifier = System.getenv(\"${ConstantEnvironmentVariable.NIMBUS_CUSTOM_RUNTIME_FUNCTION_IDENTIFIER.name}\");")
         write("LambdaExecutionFunction handler = getConsumer(endpointIdentifier, objectMapper, customRuntimeHandler);")

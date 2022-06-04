@@ -4,6 +4,9 @@ import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.exampleModels.Document
 import com.nimbusframework.nimbuslocal.exampleModels.Person
 import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import kotlin.streams.toList
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -110,9 +113,22 @@ class DocumentStoreClientLocalTest: AnnotationSpec() {
         documentStoreClient.put(documentOne)
         documentStoreClient.put(documentTwo)
 
-        val getAllResults = documentStoreClient.getAll()
+        val getAllResults = documentStoreClient.getAll().toList()
         assertEquals(2, getAllResults.size)
         assertTrue(getAllResults.contains(documentOne))
         assertTrue(getAllResults.contains(documentTwo))
+    }
+
+    @Test
+    fun getAllKeysReturnsCorrectValues() {
+        val localDeployment = LocalNimbusDeployment.getNewInstance(Document::class.java)
+
+        val documentStoreClient = localDeployment.getDocumentStore(Document::class.java)
+
+        documentStoreClient.put(documentOne)
+        documentStoreClient.put(documentTwo)
+
+        val getAllResults = documentStoreClient.getAllKeys().toList()
+        getAllResults shouldContainExactlyInAnyOrder listOf(documentOne.name, documentTwo.name)
     }
 }
