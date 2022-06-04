@@ -6,6 +6,7 @@ import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
 import com.nimbusframework.nimbuscore.exceptions.RetryableException
 import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
+import java.util.stream.Stream
 
 interface KeyValueStoreClient<K, V> {
     @Throws(RetryableException::class, NonRetryableException::class)
@@ -22,6 +23,9 @@ interface KeyValueStoreClient<K, V> {
 
     @Throws(RetryableException::class, NonRetryableException::class)
     fun getAll(): Map<K, V>
+
+    @Throws(RetryableException::class, NonRetryableException::class)
+    fun getAllKeys(): Stream<K>
 
     @Throws(RetryableException::class, NonRetryableException::class)
     fun get(keyObj: K): V?

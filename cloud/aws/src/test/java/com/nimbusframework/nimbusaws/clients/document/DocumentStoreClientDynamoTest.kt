@@ -12,6 +12,7 @@ import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -19,6 +20,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import java.lang.reflect.Field
+import kotlin.streams.toList
 
 class DocumentStoreClientDynamoTest : AnnotationSpec() {
 
@@ -42,7 +44,7 @@ class DocumentStoreClientDynamoTest : AnnotationSpec() {
     fun setUp() {
         dynamoClient = mockk(relaxed = true)
         every { dynamoClient.toAttributeValue("test") } returns strAttribute("test")
-        underTest = DocumentStoreClientDynamo(DocumentStoreNoTableName::class.java, "tableName", "dev") { dynamoClient }
+        underTest = DocumentStoreClientDynamo(DocumentStoreNoTableName::class.java, "tableName", "dev") { _, _ -> dynamoClient }
     }
 
     @Test
@@ -89,17 +91,24 @@ class DocumentStoreClientDynamoTest : AnnotationSpec() {
 
     @Test
     fun canGetAll() {
-        every { dynamoClient.getAll() } returns listOf(exampleObj)
+        every { dynamoClient.getAll() } returns listOf(exampleObj.toMap()).stream()
 
-        underTest.getAll() shouldContain obj
+        underTest.getAll().toList() shouldContain obj
+    }
+
+    @Test
+    fun canGetAllKeys() {
+        every { dynamoClient.getAllKeys() } returns listOf(exampleObj.toMap().filter { it.key == "string" }).stream()
+
+        underTest.getAllKeys().toList() shouldContainExactly listOf(obj.string)
     }
 
     @Test
     fun canFilter() {
         val condition = mockk<Condition>()
-        every { dynamoClient.filter(condition) } returns listOf(exampleObj)
+        every { dynamoClient.filter(condition) } returns listOf(exampleObj.toMap()).stream()
 
-        underTest.filter(condition) shouldContain obj
+        underTest.filter(condition).toList() shouldContain obj
     }
 
     @Test
@@ -111,7 +120,7 @@ class DocumentStoreClientDynamoTest : AnnotationSpec() {
 
     @Test
     fun canGetKotlinItem() {
-        val underTest = DocumentStoreClientDynamo(KotlinDocumentStoreNoTableName::class.java, "tableName", "dev") { dynamoClient }
+        val underTest = DocumentStoreClientDynamo(KotlinDocumentStoreNoTableName::class.java, "tableName", "dev") { _, _ -> dynamoClient }
         val kotlinObj = KotlinDocumentStoreNoTableName("test", listOf(obj))
 
         val exampleObj = mutableMapOf(

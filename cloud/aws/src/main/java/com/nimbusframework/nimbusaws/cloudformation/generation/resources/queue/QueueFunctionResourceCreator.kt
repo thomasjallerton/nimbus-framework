@@ -50,6 +50,8 @@ class QueueFunctionResourceCreator(
             classForReflectionService
         )
 
+        fileBuilder.createClass()
+
         for (queueFunction in queueFunctions) {
             val stages = stageService.determineStages(queueFunction.stages)
 
@@ -91,8 +93,6 @@ class QueueFunctionResourceCreator(
                 iamRoleResource.addAllowStatement("sqs:ReceiveMessage", sqsQueue, "")
                 iamRoleResource.addAllowStatement("sqs:DeleteMessage", sqsQueue, "")
                 iamRoleResource.addAllowStatement("sqs:GetQueueAttributes", sqsQueue, "")
-
-                fileBuilder.createClass()
 
                 results.add(FunctionInformation(type, functionResource, fileBuilder.getGeneratedClassInformation()))
             }

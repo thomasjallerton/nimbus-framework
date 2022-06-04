@@ -9,12 +9,15 @@ import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import java.lang.reflect.Field
+import kotlin.streams.toList
 
 class KeyValueStoreClientDynamoTest : AnnotationSpec() {
 
@@ -74,9 +77,19 @@ class KeyValueStoreClientDynamoTest : AnnotationSpec() {
         val merged = exampleObj.toMutableMap();
         merged["PrimaryKey"] = strAttribute("key")
 
-        every { dynamoClient.getAll() } returns listOf(merged)
+        every { dynamoClient.getAll() } returns listOf(merged.toMap()).stream()
 
         underTest.getAll()["key"] shouldBe obj
+    }
+
+    @Test
+    fun canGetAllKeys() {
+        val merged = mutableMapOf<String, AttributeValue>();
+        merged["PrimaryKey"] = strAttribute("key")
+
+        every { dynamoClient.getAllKeys() } returns listOf(merged.toMap()).stream()
+
+        underTest.getAllKeys().toList() shouldContainExactly listOf("key")
     }
 
     @Test
@@ -85,7 +98,7 @@ class KeyValueStoreClientDynamoTest : AnnotationSpec() {
         merged["PrimaryKey"] = strAttribute("key")
 
         val condition = mockk<Condition>()
-        every { dynamoClient.filter(condition) } returns listOf(merged)
+        every { dynamoClient.filter(condition) } returns listOf(merged.toMap()).stream()
 
         underTest.filter(condition)["key"] shouldBe obj
     }

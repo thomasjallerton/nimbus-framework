@@ -7,17 +7,18 @@ import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
+import java.util.stream.Stream
 
 internal class DocumentStoreClientDynamo<T>(
         clazz: Class<T>,
         tableName: String,
         stage: String,
-        dynamoClientFactory: (Map<String, String>) -> DynamoClient
+        dynamoClientFactory: (Map<String, String>, String) -> DynamoClient
 ): AbstractDocumentStoreClient<T>(clazz, tableName, stage) {
 
     private val dynamoStreamProcessor = DynamoStreamParser(clazz, allAttributes)
 
-    private val dynamoClient = dynamoClientFactory(columnNames)
+    private val dynamoClient = dynamoClientFactory(columnNames, key.first)
 
     override fun put(obj: T) {
         dynamoClient.put(obj, allAttributes)
@@ -43,8 +44,12 @@ internal class DocumentStoreClientDynamo<T>(
         dynamoClient.deleteKey(keyToKeyMap(keyObj), condition)
     }
 
-    override fun getAll(): List<T> {
+    override fun getAll(): Stream<T> {
         return dynamoClient.getAll().map { valueMap -> toObject(valueMap) }
+    }
+
+    override fun getAllKeys(): Stream<Any> {
+        return dynamoClient.getAllKeys().map { valueMap -> dynamoStreamProcessor.fromAttributeValue(valueMap.values.first(), key.second.type, key.first) }
     }
 
     override fun get(keyObj: Any): T? {
@@ -95,32 +100,20 @@ internal class DocumentStoreClientDynamo<T>(
         return dynamoClient.getDeleteRequest(objectToKeyMap(obj), condition)
     }
 
-    override fun filter(attributeCondition: Condition): List<T> {
+    override fun filter(attributeCondition: Condition): Stream<T> {
         return dynamoClient.filter(attributeCondition).map { toObject(it) }
     }
 
     private fun objectToKeyMap(obj: T): Map<String, AttributeValue> {
         val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
-
-        for ((columnName, field) in keys) {
-            field.isAccessible = true
-            keyMap[columnName] = dynamoClient.toAttributeValue(field.get(obj))
-        }
+        key.second.isAccessible = true
+        keyMap[key.first] = dynamoClient.toAttributeValue(key.second.get(obj))
         return keyMap
     }
 
     private fun keyToKeyMap(keyObj: Any): Map<String, AttributeValue> {
-        if (keys.size > 1) {
-            throw Exception("Composite key shouldn't exist!!")
-        } else if (keys.isEmpty()) {
-            throw Exception("Need a key field!")
-        }
-
         val keyMap: MutableMap<String, AttributeValue> = mutableMapOf()
-
-        for ((columnName, _) in keys) {
-            keyMap[columnName] = dynamoClient.toAttributeValue(keyObj)
-        }
+        keyMap[key.first] = dynamoClient.toAttributeValue(keyObj)
         return keyMap
     }
 
