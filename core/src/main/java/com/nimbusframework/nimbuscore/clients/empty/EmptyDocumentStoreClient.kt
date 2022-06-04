@@ -5,6 +5,7 @@ import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.exceptions.PermissionException
+import java.util.stream.Stream
 
 internal class EmptyDocumentStoreClient<T>: DocumentStoreClient<T> {
 
@@ -46,7 +47,7 @@ internal class EmptyDocumentStoreClient<T>: DocumentStoreClient<T> {
         throw PermissionException(clientName)
     }
 
-    override fun getAll(): List<T> {
+    override fun getAll(): Stream<T> {
         throw PermissionException(clientName)
     }
 
@@ -86,7 +87,11 @@ internal class EmptyDocumentStoreClient<T>: DocumentStoreClient<T> {
         throw PermissionException(clientName)
     }
 
-    override fun filter(condition: Condition): List<T> {
+    override fun filter(condition: Condition): Stream<T> {
+        throw PermissionException(clientName)
+    }
+
+    override fun getAllKeys(): Stream<Any> {
         throw PermissionException(clientName)
     }
 }

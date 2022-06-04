@@ -88,6 +88,7 @@ object AwsInternalClientBuilder : InternalClientBuilder, InternalAwsClientBuilde
                 DynamoClient(
                     tableName,
                     value.canonicalName,
+                    keyNameAndType.first,
                     columnNameMap,
                     createDynamoDbClient()
                 )
@@ -99,6 +100,7 @@ object AwsInternalClientBuilder : InternalClientBuilder, InternalAwsClientBuilde
                 DynamoClient(
                     tableName,
                     value.canonicalName,
+                    keyNameAndType.first,
                     columnNameMap,
                     createDynamoDbClient()
                 )
@@ -115,20 +117,22 @@ object AwsInternalClientBuilder : InternalClientBuilder, InternalAwsClientBuilde
 
         val documentStoreClient = if (agnosticAnnotation != null) {
             val tableName = DocumentStoreAnnotationService.getTableName(document, stage)
-            DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String> ->
+            DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String>, keyColumn: String ->
                 DynamoClient(
                     tableName,
                     document.canonicalName,
+                    keyColumn,
                     columnNameMap,
                     createDynamoDbClient()
                 )
             }
         } else if (specificAnnotation != null) {
             val tableName = DynamoDbDocumentStoreAnnotationService.getTableName(document, stage)
-            DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String> ->
+            DocumentStoreClientDynamo(document, tableName, stage) { columnNameMap: Map<String, String>, keyColumn: String  ->
                 DynamoClient(
                     tableName,
                     document.canonicalName,
+                    keyColumn,
                     columnNameMap,
                     createDynamoDbClient()
                 )

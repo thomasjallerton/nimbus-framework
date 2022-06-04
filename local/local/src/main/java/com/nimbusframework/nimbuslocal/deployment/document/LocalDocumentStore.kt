@@ -8,11 +8,12 @@ import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuslocal.deployment.store.LocalStore
 import com.nimbusframework.nimbuslocal.deployment.store.LocalStoreTransactions
 import java.util.*
+import java.util.stream.Stream
 
 class LocalDocumentStore<T>(private val clazz: Class<T>, tableName: String, stage: String)
     : AbstractDocumentStoreClient<T>(clazz, tableName, stage), LocalStoreTransactions {
 
-    private var documentStore = LocalStore(Any::class.java, clazz, keys.keys.first(), allAttributes)
+    private var documentStore = LocalStore(Any::class.java, clazz, key.first, allAttributes)
 
     internal val internalTableName = userTableName
 
@@ -101,8 +102,8 @@ class LocalDocumentStore<T>(private val clazz: Class<T>, tableName: String, stag
         documentStore.delete(keyObj)
     }
 
-    override fun getAll(): List<T> {
-        return documentStore.getAll().values.toList()
+    override fun getAll(): Stream<T> {
+        return documentStore.getAll().values.toList().stream()
     }
 
     override fun get(keyObj: Any): T? {
@@ -110,18 +111,8 @@ class LocalDocumentStore<T>(private val clazz: Class<T>, tableName: String, stag
     }
 
     private fun getKeyValue(obj: T): Any {
-        if (keys.size > 1) {
-            throw Exception("Composite key shouldn't exist!!")
-        } else if (keys.isEmpty()) {
-            throw Exception("Need a key field!")
-        }
-
-        for ((_, field) in keys) {
-            field.isAccessible = true
-            return field[obj]
-        }
-        //should never hit here
-        return Any()
+        key.second.isAccessible = true
+        return key.second[obj]
     }
 
 
@@ -137,7 +128,11 @@ class LocalDocumentStore<T>(private val clazz: Class<T>, tableName: String, stag
         documentStore.failedTransaction(transactionUid)
     }
 
-    override fun filter(condition: Condition): List<T> {
-        return documentStore.filter(condition).values.toList()
+    override fun filter(condition: Condition): Stream<T> {
+        return documentStore.filter(condition).values.toList().stream()
+    }
+
+    override fun getAllKeys(): Stream<Any> {
+        return documentStore.getAllKeys().stream()
     }
 }

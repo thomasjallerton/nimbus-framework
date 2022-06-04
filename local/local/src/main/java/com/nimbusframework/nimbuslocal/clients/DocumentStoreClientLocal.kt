@@ -5,6 +5,7 @@ import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.permissions.PermissionType
+import java.util.stream.Stream
 
 class DocumentStoreClientLocal<T>(private val clazz: Class<T>) : DocumentStoreClient<T>, LocalClient(PermissionType.DOCUMENT_STORE) {
 
@@ -31,7 +32,7 @@ class DocumentStoreClientLocal<T>(private val clazz: Class<T>) : DocumentStoreCl
         documentStore.deleteKey(keyObj)
     }
 
-    override fun getAll(): List<T> {
+    override fun getAll(): Stream<T> {
         checkClientUse()
         return documentStore.getAll()
     }
@@ -97,8 +98,12 @@ class DocumentStoreClientLocal<T>(private val clazz: Class<T>) : DocumentStoreCl
         return documentStore.getDeleteKeyItemRequest(keyObj, condition)
     }
 
-    override fun filter(condition: Condition): List<T> {
+    override fun filter(condition: Condition): Stream<T> {
         return documentStore.filter(condition)
+    }
+
+    override fun getAllKeys(): Stream<Any> {
+        return documentStore.getAllKeys()
     }
 
 }

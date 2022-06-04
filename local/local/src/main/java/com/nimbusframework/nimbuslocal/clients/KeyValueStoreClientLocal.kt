@@ -6,6 +6,7 @@ import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.permissions.PermissionType
 import com.nimbusframework.nimbuslocal.deployment.keyvalue.LocalKeyValueStore
+import java.util.stream.Stream
 
 internal class KeyValueStoreClientLocal<K, V>(
         private val valueClass: Class<V>
@@ -84,5 +85,9 @@ internal class KeyValueStoreClientLocal<K, V>(
 
     override fun filter(condition: Condition): Map<K, V> {
         return table.filter(condition)
+    }
+
+    override fun getAllKeys(): Stream<K> {
+        return table.getAllKeys()
     }
 }

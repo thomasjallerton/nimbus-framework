@@ -8,6 +8,7 @@ import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuslocal.deployment.store.LocalStore
 import com.nimbusframework.nimbuslocal.deployment.store.LocalStoreTransactions
 import java.util.*
+import java.util.stream.Stream
 
 class LocalKeyValueStore<K, V>(private val keyClass: Class<K>, private val valueClass: Class<V>, keyType: Class<*>, keyName: String, tableName: String, stage: String)
     : AbstractKeyValueStoreClient<K, V>(keyClass, valueClass, keyType, keyName, tableName, stage), LocalStoreTransactions {
@@ -114,6 +115,10 @@ class LocalKeyValueStore<K, V>(private val keyClass: Class<K>, private val value
 
     override fun filter(condition: Condition): Map<K, V> {
         return keyValueStore.filter(condition)
+    }
+
+    override fun getAllKeys(): Stream<K> {
+        return keyValueStore.getAllKeys().stream()
     }
 
 }
