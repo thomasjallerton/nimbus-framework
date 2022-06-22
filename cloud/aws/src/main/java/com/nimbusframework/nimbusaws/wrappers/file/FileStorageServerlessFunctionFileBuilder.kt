@@ -55,9 +55,4 @@ class FileStorageServerlessFunctionFileBuilder(
             compilationError("FileStorageServerlessFunction cannot have a custom user type, only a maximum of one FileStorageEvent type")
         }
     }
-
-    override fun writeHandleError() {
-        write("e.printStackTrace();")
-        write("return null;")
-    }
 }
