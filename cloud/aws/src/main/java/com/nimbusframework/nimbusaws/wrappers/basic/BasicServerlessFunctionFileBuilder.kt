@@ -59,11 +59,6 @@ class BasicServerlessFunctionFileBuilder(
         }
     }
 
-    override fun writeHandleError() {
-        write("e.printStackTrace();")
-        write("return null;")
-    }
-
     override fun isValidFunction(functionParams: FunctionParams) {
         if (cron && !functionParams.inputParam.doesNotExist()) {
             compilationError("Cannot have a custom user type parameter in a BasicServerlessFunction")

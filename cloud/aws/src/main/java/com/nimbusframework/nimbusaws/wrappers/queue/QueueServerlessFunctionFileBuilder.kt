@@ -23,8 +23,7 @@ class QueueServerlessFunctionFileBuilder(
     compilingElement,
     SQSEvent::class.java,
     Void::class.java,
-    classForReflectionService,
-    false
+    classForReflectionService
 ) {
 
     override fun generateClassName(): String {
@@ -99,10 +98,5 @@ class QueueServerlessFunctionFileBuilder(
             inputParam.index == 0 -> write("handler.$methodName($inputVariable, $eventVariable);")
             else -> write("handler.$methodName($eventVariable, $inputVariable);")
         }
-    }
-
-    override fun writeHandleError() {
-        write("e.printStackTrace();")
-        write("return null;")
     }
 }

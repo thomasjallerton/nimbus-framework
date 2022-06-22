@@ -26,8 +26,7 @@ abstract class ServerlessFunctionFileBuilder(
     private val compilingElement: Element,
     inputType: Class<*>?,
     returnType: Class<*>?,
-    protected val classForReflectionService: ClassForReflectionService,
-    private val catchExceptions: Boolean = true
+    protected val classForReflectionService: ClassForReflectionService
 ): FileBuilder(), HandlerInformationProvider {
 
     private val messager: Messager = processingEnv.messager
@@ -118,7 +117,10 @@ abstract class ServerlessFunctionFileBuilder(
 
     protected abstract fun writeFunction(inputParam: Param, eventParam: Param)
 
-    protected abstract fun writeHandleError()
+    protected open fun writeHandleError() {
+        write("e.printStackTrace();")
+        write("throw e;")
+    }
 
     protected open fun writeCustomExceptionHandler() {}
 
@@ -207,23 +209,19 @@ abstract class ServerlessFunctionFileBuilder(
 
                 write("public $returnTypeSimpleName handleRequest($inputTypeSimpleName input, Context context) {")
 
-                if (catchExceptions) {
-                    write("try {")
-                }
+                write("try {")
 
                 write("String requestId = context.getAwsRequestId();")
 
                 writeFunction(params.inputParam, params.eventParam)
 
                 writeCustomExceptionHandler()
+                write("} catch (Exception e) {")
 
-                if (catchExceptions) {
-                    write("} catch (Exception e) {")
+                writeHandleError()
 
-                    writeHandleError()
+                write("}")
 
-                    write("}")
-                }
 
                 write("}")
 

@@ -150,9 +150,4 @@ abstract class StoreServerlessFunctionFileBuilder(
             }
         }
     }
-
-    override fun writeHandleError() {
-        write("e.printStackTrace();")
-        write("return null;")
-    }
 }
