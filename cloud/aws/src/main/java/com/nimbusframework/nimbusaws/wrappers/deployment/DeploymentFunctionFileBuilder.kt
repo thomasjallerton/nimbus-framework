@@ -53,11 +53,6 @@ class DeploymentFunctionFileBuilder(
         }
     }
 
-    override fun writeHandleError() {
-        write("e.printStackTrace();")
-        write("return null;")
-    }
-
     override fun isValidFunction(functionParams: FunctionParams) {
         if (!functionParams.inputParam.doesNotExist()) {
             compilationError("Cannot have a custom user type in an AfterDeployment function")

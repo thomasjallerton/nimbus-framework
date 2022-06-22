@@ -92,13 +92,6 @@ class HttpServerlessFunctionFileBuilder(
         write("return errorResponse;")
     }
 
-    override fun writeHandleError() {
-        write("e.printStackTrace();")
-        write("APIGatewayProxyResponseEvent errorResponse = new APIGatewayProxyResponseEvent().withStatusCode(500);")
-        addCorsHeader("errorResponse")
-        write("return errorResponse;")
-    }
-
     private fun addCorsHeader(variableName: String) {
         write("if ($variableName.getHeaders() == null) {")
         write("$variableName.setHeaders(new HashMap<>());")

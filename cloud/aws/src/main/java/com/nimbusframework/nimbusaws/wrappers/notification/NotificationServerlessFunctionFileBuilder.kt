@@ -56,9 +56,4 @@ class NotificationServerlessFunctionFileBuilder(
         }
         write("return null;")
     }
-
-    override fun writeHandleError() {
-        write("e.printStackTrace();")
-        write("return null;")
-    }
 }
