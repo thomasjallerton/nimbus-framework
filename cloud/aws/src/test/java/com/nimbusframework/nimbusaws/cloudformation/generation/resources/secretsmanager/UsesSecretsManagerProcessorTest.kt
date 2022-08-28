@@ -55,7 +55,7 @@ internal class UsesSecretsManagerProcessorTest: AnnotationSpec() {
     fun correctlySetsPermissions() {
         compileStateService.compileObjects {
             setup(it) {
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesSecretsHandlerfuncFunction") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hsUsesSecretsHandlerfuncFunction") as FunctionResource
                 usesSecretsManagerProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.secrets.UsesSecretsHandler").enclosedElements[1], functionResource)
 
                 functionResource.iamRoleResource.allows("secretsmanager:GetSecretValue", ExistingResource("arn:partition:service:region:account-id:resource-id", nimbusState, "dev")) shouldBe true

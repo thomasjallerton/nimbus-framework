@@ -58,7 +58,7 @@ internal class UsesCognitoProcessorTest: AnnotationSpec() {
     fun correctlySetsPermissions() {
         compileStateService.compileObjects {
             setup(it) {
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesCognitoUserPoolHandlerfuncFunction") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hcUsesCognitoUserPoolHandlerfuncFunction") as FunctionResource
                 val iamRoleResource = functionResource.iamRoleResource
 
 
@@ -76,7 +76,7 @@ internal class UsesCognitoProcessorTest: AnnotationSpec() {
     fun correctlySetsPermissionsForAdminUse() {
         compileStateService.compileObjects {
             setup(it) {
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesCognitoUserPoolHandlerfunc2Function") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hcUsesCognitoUserPoolHandlerfunc2Function") as FunctionResource
                 val iamRoleResource = functionResource.iamRoleResource
 
                 usesCognitoProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.cognito.UsesCognitoUserPoolHandler").enclosedElements[2], functionResource)

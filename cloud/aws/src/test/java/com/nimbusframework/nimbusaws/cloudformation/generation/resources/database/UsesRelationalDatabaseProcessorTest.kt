@@ -65,7 +65,7 @@ class UsesRelationalDatabaseProcessorTest: AnnotationSpec() {
         compileStateService.compileObjects {
             setup(it) {
 
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesRDBHandlerfuncFunction") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hUsesRDBHandlerfuncFunction") as FunctionResource
 
                 usesRelationalDatabaseProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesRDBHandler").enclosedElements[1], functionResource)
 

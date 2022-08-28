@@ -58,7 +58,7 @@ class UsesKeyValueStoreProcessorTest: AnnotationSpec() {
     fun correctlySetsPermissions() {
         compileStateService.compileObjects {
             setup(it) {
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesKeyValueStoreHandlerfuncFunction") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hUsesKeyValueStoreHandlerfuncFunction") as FunctionResource
                 usesKeyValueStoreProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[1], functionResource)
                 val dynamoResource = cfDocuments["dev"]!!.updateTemplate.resources.get("KeyValuedev")!!
 
@@ -72,7 +72,7 @@ class UsesKeyValueStoreProcessorTest: AnnotationSpec() {
     fun reportsErrorIfCannotFindDocumentStore() {
         compileStateService.compileObjectsExpectingFailure {
             setup(it) {
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesKeyValueStoreHandlerfunc2Function") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hUsesKeyValueStoreHandlerfunc2Function") as FunctionResource
                 usesKeyValueStoreProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesKeyValueStoreHandler").enclosedElements[2], functionResource)
 
                 verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }

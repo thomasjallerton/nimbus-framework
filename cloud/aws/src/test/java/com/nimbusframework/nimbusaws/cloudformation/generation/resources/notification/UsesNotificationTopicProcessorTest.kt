@@ -46,7 +46,7 @@ class UsesNotificationTopicProcessorTest: AnnotationSpec() {
         NotificationTopicResourceCreator(roundEnvironment, cfDocuments, processingData.nimbusState).handleAgnosticType(elements.getTypeElement("models.NotificationTopic"))
         HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesNotificationTopicHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
 
-        functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesNotificationTopicHandlerfuncFunction") as FunctionResource
+        functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hUsesNotificatnTopicHandlerfuncFunction") as FunctionResource
         usesNotificationTopicProcessor = UsesNotificationTopicProcessor(messager, ResourceFinder(cfDocuments, processingEnvironment, processingData.nimbusState), processingData.nimbusState)
 
         toRun()
