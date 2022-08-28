@@ -5,9 +5,7 @@ import com.nimbusframework.nimbusaws.clients.InternalEnvironmentVariableClient
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.database.DatabaseConnectionUrlEnvironmentVariable
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.database.DatabasePasswordEnvironmentVariable
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.database.DatabaseUsernameEnvironmentVariable
-import com.nimbusframework.nimbusaws.examples.RelationalDatabaseExample
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage
-import com.nimbusframework.nimbuscore.clients.function.EnvironmentVariableClient
 import io.kotest.core.spec.style.AnnotationSpec
 import io.mockk.every
 import io.mockk.mockk
