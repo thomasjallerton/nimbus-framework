@@ -28,10 +28,6 @@
         <aws-lambda-java-events.version>3.11.0</aws-lambda-java-events.version>
         <auto-service.version>1.0-rc6</auto-service.version>
         <aws.version>1.12.119</aws.version>
-        <mysql-connector-java.version>8.0.16</mysql-connector-java.version>
-        <postgresql.version>42.3.3</postgresql.version>
-        <mssql-jdbc.version>7.2.1.jre8</mssql-jdbc.version>
-        <mariadb-java-client.version>2.4.0</mariadb-java-client.version>
         <junit.version>4.13-rc-1</junit.version>
         <compile-testing.version>0.15</compile-testing.version>
         <mockk.version>1.9.2</mockk.version>
@@ -205,28 +201,6 @@
             <version>${kotlin.version}</version>
         </dependency>
 
-        <!-- Database Connectors -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>${mysql-connector-java.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>${postgresql.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <version>${mssql-jdbc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <version>${mariadb-java-client.version}</version>
-        </dependency>
-
         <!-- For tests dependencies -->
         <dependency>
             <groupId>io.kotest</groupId>
@@ -250,6 +224,12 @@
             <groupId>io.mockk</groupId>
             <artifactId>mockk</artifactId>
             <version>${mockk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.4.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
