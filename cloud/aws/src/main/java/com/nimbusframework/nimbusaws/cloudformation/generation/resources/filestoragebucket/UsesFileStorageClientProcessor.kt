@@ -35,10 +35,12 @@ class UsesFileStorageClientProcessor(
                     iamRoleResource.addAllowStatement("s3:GetObject", fileStorageBucket, "")
                     iamRoleResource.addAllowStatement("s3:DeleteObject", fileStorageBucket, "")
                     iamRoleResource.addAllowStatement("s3:PutObject", fileStorageBucket, "")
+                    iamRoleResource.addAllowStatement("s3:PutObjectTagging", fileStorageBucket, "")
                     iamRoleResource.addAllowStatement("s3:ListBucket", fileStorageBucket, "")
                     iamRoleResource.addAllowStatement("s3:GetObject", fileStorageBucket, "/*")
                     iamRoleResource.addAllowStatement("s3:DeleteObject", fileStorageBucket, "/*")
                     iamRoleResource.addAllowStatement("s3:PutObject", fileStorageBucket, "/*")
+                    iamRoleResource.addAllowStatement("s3:PutObjectTagging", fileStorageBucket, "/*")
                     iamRoleResource.addAllowStatement("s3:ListBucket", fileStorageBucket, "/*")
                 }
             }

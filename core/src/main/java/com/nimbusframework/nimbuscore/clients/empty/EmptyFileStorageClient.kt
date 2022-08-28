@@ -10,27 +10,27 @@ class EmptyFileStorageClient(): FileStorageClient {
 
     private val clientName = "FileStorageClient"
 
-    override fun saveFile(path: String, file: File) {
+    override fun saveFile(path: String, file: File, tags: Map<String, String>) {
         throw PermissionException(clientName)
     }
 
-    override fun saveFile(path: String, inputStream: InputStream) {
+    override fun saveFile(path: String, inputStream: InputStream, tags: Map<String, String>) {
         throw PermissionException(clientName)
     }
 
-    override fun saveFile(path: String, content: String) {
+    override fun saveFile(path: String, content: String, tags: Map<String, String>) {
         throw PermissionException(clientName)
     }
 
-    override fun saveFileWithContentType(path: String, content: String, contentType: String) {
+    override fun saveFileWithContentType(path: String, content: String, contentType: String, tags: Map<String, String>) {
         throw PermissionException(clientName)
     }
 
-    override fun saveFileWithContentType(path: String, file: File, contentType: String) {
+    override fun saveFileWithContentType(path: String, file: File, contentType: String, tags: Map<String, String>) {
         throw PermissionException(clientName)
     }
 
-    override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String) {
+    override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String, tags: Map<String, String>) {
         throw PermissionException(clientName)
     }
 

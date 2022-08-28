@@ -38,31 +38,35 @@ class FunctionResource(
     }
 
     override fun getName(): String {
-        val className = if (fileBuilderMethodInformation.className.length > 28) {
-            fileBuilderMethodInformation.className.takeLast(28)
+        val path = fileBuilderMethodInformation.packageName.split(".").mapNotNull { it.firstOrNull() }.joinToString("").take(24)
+        val charactersForClassAndMethod = (56 - path.length) / 2
+        val className = if (fileBuilderMethodInformation.className.length > charactersForClassAndMethod) {
+            fileBuilderMethodInformation.className.take(charactersForClassAndMethod / 2) + fileBuilderMethodInformation.className.takeLast(charactersForClassAndMethod / 2)
         } else {
             fileBuilderMethodInformation.className
         }
-        val methodName = if (fileBuilderMethodInformation.className.length > 28) {
-            fileBuilderMethodInformation.methodName.takeLast(28)
+        val methodName = if (fileBuilderMethodInformation.methodName.length > charactersForClassAndMethod) {
+            fileBuilderMethodInformation.methodName.take(charactersForClassAndMethod / 2) + fileBuilderMethodInformation.methodName.takeLast(charactersForClassAndMethod / 2)
         } else {
             fileBuilderMethodInformation.methodName
         }
-        return "$className${methodName}Function"
+        return "$path$className${methodName}Function"
     }
 
     fun getShortName(): String {
-        val className = if (fileBuilderMethodInformation.className.length > 16) {
-            fileBuilderMethodInformation.className.takeLast(16)
+        val path = fileBuilderMethodInformation.packageName.split(".").mapNotNull { it.firstOrNull() }.joinToString("").take(10)
+        val charactersForClassAndMethod = (32 - path.length) / 2
+        val className = if (fileBuilderMethodInformation.className.length > charactersForClassAndMethod) {
+            fileBuilderMethodInformation.className.take(charactersForClassAndMethod / 2) + fileBuilderMethodInformation.className.takeLast(charactersForClassAndMethod / 2)
         } else {
             fileBuilderMethodInformation.className
         }
-        val methodName = if (fileBuilderMethodInformation.className.length > 16) {
-            fileBuilderMethodInformation.methodName.takeLast(16)
+        val methodName = if (fileBuilderMethodInformation.methodName.length > charactersForClassAndMethod) {
+            fileBuilderMethodInformation.methodName.take(charactersForClassAndMethod / 2) + fileBuilderMethodInformation.methodName.takeLast(charactersForClassAndMethod / 2)
         } else {
             fileBuilderMethodInformation.methodName
         }
-        return "$className$methodName"
+        return "$path$className$methodName"
     }
 
     override fun toCloudFormation(): JsonObject {
@@ -75,7 +79,7 @@ class FunctionResource(
         s3Bucket.addProperty("Ref", "NimbusDeploymentBucket")
 
         code.add("S3Bucket", s3Bucket)
-            code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${handlerInformation.fileReplacementVariable}")
+        code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${handlerInformation.fileReplacementVariable}")
 
         val (runtime, finalHandler) = if (nimbusState.customRuntime) {
             Pair("provided", "provided")
@@ -84,7 +88,10 @@ class FunctionResource(
         }
 
         properties.add("Code", code)
-        properties.addProperty("FunctionName", functionName(nimbusState.projectName, fileBuilderMethodInformation.className, fileBuilderMethodInformation.methodName, functionConfig.stage))
+        properties.addProperty(
+            "FunctionName",
+            functionName(nimbusState.projectName, fileBuilderMethodInformation.packageName, fileBuilderMethodInformation.className, fileBuilderMethodInformation.methodName, functionConfig.stage)
+        )
         properties.addProperty("Handler", finalHandler)
         properties.addProperty("MemorySize", functionConfig.memory)
 
@@ -136,7 +143,7 @@ class FunctionResource(
     }
 
     fun getFunctionName(): String {
-        return functionName(nimbusState.projectName, fileBuilderMethodInformation.className, fileBuilderMethodInformation.methodName, functionConfig.stage)
+        return functionName(nimbusState.projectName, fileBuilderMethodInformation.packageName, fileBuilderMethodInformation.className, fileBuilderMethodInformation.methodName, functionConfig.stage)
     }
 
     fun getUri(): JsonObject {
@@ -177,10 +184,11 @@ class FunctionResource(
     }
 
     companion object {
-        fun functionName(projectName: String, className: String, methodName: String, stage: String): String {
-            val desiredName = "$projectName-$stage-$className-$methodName"
+        fun functionName(projectName: String, packageName: String, className: String, methodName: String, stage: String): String {
+            val shortPackage = packageName.split(".").mapNotNull { it.firstOrNull() }.joinToString("").take(5)
+            val desiredName = "$projectName-$stage-$shortPackage-$className-$methodName"
             return if (desiredName.length > 64) {
-                "${projectName.take(15)}-${stage.take(15)}-${className.take(15)}-${methodName.take(15)}"
+                "${projectName.take(6)}-${stage.take(5)}-$shortPackage-${className.take(22)}-${methodName.take(22)}"
             } else {
                 desiredName
             }

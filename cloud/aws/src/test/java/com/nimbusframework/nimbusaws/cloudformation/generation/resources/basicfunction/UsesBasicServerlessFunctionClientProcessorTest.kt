@@ -61,7 +61,7 @@ class UsesBasicServerlessFunctionClientProcessorTest: AnnotationSpec() {
                 val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.getFunction("handlers.UsesBasicFunctionHandler", "func")!!
 
                 usesBasicServerlessFunctionClientProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesBasicFunctionHandler").enclosedElements[1], functionResource)
-                val basicFunctionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("BasicHandlersgetCurrentTimeFunction")!!
+                val basicFunctionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hBasicHandlersgetCurrentTimeFunction")!!
 
                 functionResource.iamRoleResource.allows("lambda:*", basicFunctionResource) shouldBe true
 

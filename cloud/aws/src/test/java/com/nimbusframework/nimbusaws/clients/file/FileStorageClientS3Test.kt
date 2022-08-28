@@ -47,6 +47,23 @@ class FileStorageClientS3Test : AnnotationSpec() {
     }
 
     @Test
+    fun canSaveInputStreamWithTags() {
+        val inputStream: InputStream = mockk()
+
+        val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
+
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
+
+        underTest.saveFile("path", inputStream, mapOf(Pair("Example tag", "value")))
+
+        putObjectRequest.captured.key() shouldBe "path"
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.tagging() shouldBe "Example%20tag=value"
+        requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
+    }
+
+    @Test
     fun canSaveStringWithContentType() {
         val putObjectRequest = slot<PutObjectRequest>()
         val requestBody = slot<RequestBody>()
@@ -56,6 +73,21 @@ class FileStorageClientS3Test : AnnotationSpec() {
         underTest.saveFileWithContentType("path", "content", "text/plain")
 
         putObjectRequest.captured.bucket() shouldBe bucketName
+        requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe "content"
+        requestBody.captured.contentType() shouldBe "text/plain"
+    }
+
+    @Test
+    fun canSaveStringWithContentTypeAndTags() {
+        val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
+
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
+
+        underTest.saveFileWithContentType("path", "content", "text/plain", mapOf(Pair("Key", "thing")))
+
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.tagging() shouldBe "Key=thing"
         requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe "content"
         requestBody.captured.contentType() shouldBe "text/plain"
     }
@@ -75,6 +107,21 @@ class FileStorageClientS3Test : AnnotationSpec() {
     }
 
     @Test
+    fun canSaveFileWithContentTypeAndTags() {
+        val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
+
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
+
+        underTest.saveFileWithContentType("path", File.createTempFile("test", "test"), "text/plain", mapOf(Pair("Other", "cat")))
+
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.tagging() shouldBe "Other=cat"
+        requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe ""
+        requestBody.captured.contentType() shouldBe "text/plain"
+    }
+
+    @Test
     fun canSaveInputStreamWithContentType() {
         val inputStream: InputStream = mockk()
         val putObjectRequest = slot<PutObjectRequest>()
@@ -86,6 +133,23 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
         putObjectRequest.captured.key() shouldBe "path"
         putObjectRequest.captured.bucket() shouldBe bucketName
+        requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
+        requestBody.captured.contentType() shouldBe "text/plain"
+    }
+
+    @Test
+    fun canSaveInputStreamWithContentTypeAndTags() {
+        val inputStream: InputStream = mockk()
+        val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
+
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
+
+        underTest.saveFileWithContentType("path", inputStream, "text/plain", mapOf(Pair("key", "dog")))
+
+        putObjectRequest.captured.key() shouldBe "path"
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.tagging() shouldBe "key=dog"
         requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
         requestBody.captured.contentType() shouldBe "text/plain"
     }
@@ -143,6 +207,22 @@ class FileStorageClientS3Test : AnnotationSpec() {
     }
 
     @Test
+    fun canSaveFileWithTags() {
+        val file: File = mockk(relaxed = true)
+        val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
+
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
+
+        underTest.saveFile("path", file, mapOf(Pair("booo", "ahhh")))
+
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.key() shouldBe "path"
+        putObjectRequest.captured.tagging() shouldBe "booo=ahhh"
+        requestBody.captured.contentType() shouldBe "application/octet-stream"
+    }
+
+    @Test
     fun canSaveString() {
         val putObjectRequest = slot<PutObjectRequest>()
         val requestBody = slot<RequestBody>()
@@ -153,6 +233,22 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.key() shouldBe "path"
+        requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe "test"
+        requestBody.captured.contentType() shouldContain "text/plain"
+    }
+
+    @Test
+    fun canSaveStringAndTags() {
+        val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
+
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
+
+        underTest.saveFile("path", "test", mapOf(Pair("test", "")))
+
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.key() shouldBe "path"
+        putObjectRequest.captured.tagging() shouldBe "test="
         requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe "test"
         requestBody.captured.contentType() shouldContain "text/plain"
     }

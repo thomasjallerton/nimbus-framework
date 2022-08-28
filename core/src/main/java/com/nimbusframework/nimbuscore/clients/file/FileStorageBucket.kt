@@ -8,28 +8,28 @@ open class FileStorageBucket(fileStorageBucket: Class<*>): FileStorageClient {
 
     private val fileStorageClient = ClientBuilder.getFileStorageClient(fileStorageBucket)
 
-    override fun saveFile(path: String, file: File) {
-        fileStorageClient.saveFile(path, file)
+    override fun saveFile(path: String, file: File, tags: Map<String, String>) {
+        fileStorageClient.saveFile(path, file, tags)
     }
 
-    override fun saveFile(path: String, inputStream: InputStream) {
-        fileStorageClient.saveFile(path, inputStream)
+    override fun saveFile(path: String, inputStream: InputStream, tags: Map<String, String>) {
+        fileStorageClient.saveFile(path, inputStream, tags)
     }
 
-    override fun saveFile(path: String, content: String) {
-        fileStorageClient.saveFile(path, content)
+    override fun saveFile(path: String, content: String, tags: Map<String, String>) {
+        fileStorageClient.saveFile(path, content, tags)
     }
 
-    override fun saveFileWithContentType(path: String, content: String, contentType: String) {
-        fileStorageClient.saveFileWithContentType(path, content, contentType)
+    override fun saveFileWithContentType(path: String, content: String, contentType: String, tags: Map<String, String>) {
+        fileStorageClient.saveFileWithContentType(path, content, contentType, tags)
     }
 
-    override fun saveFileWithContentType(path: String, file: File, contentType: String) {
-        fileStorageClient.saveFileWithContentType(path, file, contentType)
+    override fun saveFileWithContentType(path: String, file: File, contentType: String, tags: Map<String, String>) {
+        fileStorageClient.saveFileWithContentType(path, file, contentType, tags)
     }
 
-    override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String) {
-        fileStorageClient.saveFileWithContentType(path, inputStream, contentType)
+    override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String, tags: Map<String, String>) {
+        fileStorageClient.saveFileWithContentType(path, inputStream, contentType, tags)
     }
 
     override fun deleteFile(path: String) {

@@ -21,41 +21,50 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
     private val handler: WebServerHandler? = localNimbusClient.getLocalHandler(bucketName)
     private val tmpDir: String
     private val methods: MutableList<FileStorageMethod> = mutableListOf()
-
-    val configuredAsStaticWebsite = handler != null
+    private val fileTags: MutableMap<String, Map<String, String>> = mutableMapOf()
 
     init {
         System.setProperty("content.types.user.table","mimetypes/content-types.properties")
     }
 
-    override fun saveFile(path: String, inputStream: InputStream) {
+    override fun saveFile(path: String, inputStream: InputStream, tags: Map<String, String>) {
         val outputFile = saveInputStreamToFile(path, inputStream)
+        fileTags[path] = tags
         addNewWebHandler(path, outputFile, determineContentType(outputFile))
     }
 
-    override fun saveFile(path: String, file: File) {
+    override fun saveFile(path: String, file: File, tags: Map<String, String>) {
         val outputFile = saveFileToFile(path, file)
+        fileTags[path] = tags
         addNewWebHandler(path, outputFile, determineContentType(file))
     }
 
-    override fun saveFile(path: String, content: String) {
+    override fun saveFile(path: String, content: String, tags: Map<String, String>) {
         val outputFile = saveStringToFile(path, content)
+        fileTags[path] = tags
         addNewWebHandler(path, outputFile, determineContentType(outputFile))
     }
 
-    override fun saveFileWithContentType(path: String, content: String, contentType: String) {
+    override fun saveFileWithContentType(path: String, content: String, contentType: String, tags: Map<String, String>) {
         val outputFile = saveStringToFile(path, content)
+        fileTags[path] = tags
         addNewWebHandler(path, outputFile, contentType)
     }
 
-    override fun saveFileWithContentType(path: String, file: File, contentType: String) {
+    override fun saveFileWithContentType(path: String, file: File, contentType: String, tags: Map<String, String>) {
         val outputFile = saveFileToFile(path, file)
+        fileTags[path] = tags
         addNewWebHandler(path, outputFile, contentType)
     }
 
-    override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String) {
+    override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String, tags: Map<String, String>) {
         val outputFile = saveInputStreamToFile(path, inputStream)
+        fileTags[path] = tags
         addNewWebHandler(path, outputFile, contentType)
+    }
+
+    fun getFileTags(path: String): Map<String, String>? {
+        return fileTags[path]
     }
 
     init {
@@ -76,6 +85,7 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
     override fun deleteFile(path: String) {
         val actualPath = tmpDir + File.separator + path
         val f = File(actualPath)
+        fileTags.remove(path)
         if (f.exists()) {
             f.delete()
             methods.forEach { method -> method.invoke(path, 0, FileStorageEventType.OBJECT_DELETED) }

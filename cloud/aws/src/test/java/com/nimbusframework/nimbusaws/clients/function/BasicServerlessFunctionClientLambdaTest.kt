@@ -39,7 +39,7 @@ class BasicServerlessFunctionClientLambdaTest : AnnotationSpec() {
         every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResponse.builder().build()
 
         underTest.invoke()
-        invokeResult.captured.functionName() shouldBe FunctionResource.functionName("PROJECT", "BasicFunctionHandler", "exampleFunc", "STAGE")
+        invokeResult.captured.functionName() shouldBe FunctionResource.functionName("PROJECT", "com.nimbusframework.nimbusaws.examples", "BasicFunctionHandler", "exampleFunc", "STAGE")
         UTF_8.decode(invokeResult.captured.payload().asByteBuffer()).toString() shouldBe "\"\""
         invokeResult.captured.invocationType() shouldBe InvocationType.REQUEST_RESPONSE
     }
@@ -59,7 +59,7 @@ class BasicServerlessFunctionClientLambdaTest : AnnotationSpec() {
         every { awsLambda.invoke(capture(invokeResult)) } returns InvokeResponse.builder().payload(SdkBytes.fromByteArray("\"TEST\"".toByteArray())).build()
 
         underTest.invoke(String::class.java) shouldBe "TEST"
-        invokeResult.captured.functionName() shouldBe FunctionResource.functionName("PROJECT", "BasicFunctionHandler", "exampleFunc", "STAGE")
+        invokeResult.captured.functionName() shouldBe FunctionResource.functionName("PROJECT", "com.nimbusframework.nimbusaws.examples", "BasicFunctionHandler", "exampleFunc", "STAGE")
     }
 
     @Test
