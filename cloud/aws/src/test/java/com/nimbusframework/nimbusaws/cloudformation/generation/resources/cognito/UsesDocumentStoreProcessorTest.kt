@@ -57,7 +57,7 @@ class UsesDocumentStoreProcessorTest : AnnotationSpec() {
     fun correctlySetsPermissions() {
         compileStateService.compileObjects {
             setup(it) {
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesDocumentStoreHandlerfuncFunction") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hUsesDocumentStoreHandlerfuncFunction") as FunctionResource
                 usesDocumentStoreProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesDocumentStoreHandler").enclosedElements[1], functionResource)
                 val dynamoResource = cfDocuments["dev"]!!.updateTemplate.resources.get("Documentdev")!!
 
@@ -71,7 +71,7 @@ class UsesDocumentStoreProcessorTest : AnnotationSpec() {
     fun reportsErrorIfCannotFindDocumentStore() {
         compileStateService.compileObjectsExpectingFailure {
             setup(it) {
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesDocumentStoreHandlerfunc2Function") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hUsesDocumentStoreHandlerfunc2Function") as FunctionResource
                 usesDocumentStoreProcessor.handleUseResources(it.elementUtils.getTypeElement("handlers.UsesDocumentStoreHandler").enclosedElements[2], functionResource)
 
                 verify { messager.printMessage(Diagnostic.Kind.ERROR, any(), any()) }

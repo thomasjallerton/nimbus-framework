@@ -49,7 +49,7 @@ class UsesFileStorageBucketClientProcessorTest: AnnotationSpec() {
 
         HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), processingEnvironment, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesFileStorageClientHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
 
-        functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("UsesFileStorageClientHandlerfuncFunction") as FunctionResource
+        functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hUsesFileStoraClientHandlerfuncFunction") as FunctionResource
         usesFileStorageClientProcessor = UsesFileStorageClientProcessor(messager, resourceFinder, processingData.nimbusState)
 
         toRun()

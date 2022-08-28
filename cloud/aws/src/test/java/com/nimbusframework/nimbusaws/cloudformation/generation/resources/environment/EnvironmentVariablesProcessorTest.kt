@@ -48,7 +48,7 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
             HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
             HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, processingData))
 
-            val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfuncFunction") as FunctionResource
+            val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hUsesEnvironmeriableHandlerfuncFunction") as FunctionResource
 
             environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], functionResource)
 
@@ -63,7 +63,7 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
             val elements = it.elementUtils
             HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
             HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, processingData))
-            val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfunc2Function") as FunctionResource
+            val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hUsesEnvironmeriableHandlerfuncFunction") as FunctionResource
 
             environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], functionResource)
 
@@ -82,7 +82,7 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
                 HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
                 HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, processingData))
 
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("esEnvironmentVariableHandlerfunc2Function") as FunctionResource
+                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hUsesEnvironmeriableHandlerfunc2Function") as FunctionResource
 
                 environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], functionResource)
 

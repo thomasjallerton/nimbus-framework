@@ -20,34 +20,34 @@ class FileStorageClientLocal(bucketClass: Class<*>, stage: String): FileStorageC
 
     override val clientName: String = FileStorageClient::class.java.simpleName
 
-    override fun saveFile(path: String, file: File) {
+    override fun saveFile(path: String, file: File, tags: Map<String, String>) {
         checkClientUse()
-        fileStorage.saveFile(path, file)
+        fileStorage.saveFile(path, file, tags)
     }
 
-    override fun saveFile(path: String, content: String) {
+    override fun saveFile(path: String, content: String, tags: Map<String, String>) {
         checkClientUse()
-        fileStorage.saveFile(path, content)
+        fileStorage.saveFile(path, content, tags)
     }
 
-    override fun saveFile(path: String, inputStream: InputStream) {
+    override fun saveFile(path: String, inputStream: InputStream, tags: Map<String, String>) {
         checkClientUse()
-        fileStorage.saveFile(path, inputStream)
+        fileStorage.saveFile(path, inputStream, tags)
     }
 
-    override fun saveFileWithContentType(path: String, content: String, contentType: String) {
+    override fun saveFileWithContentType(path: String, content: String, contentType: String, tags: Map<String, String>) {
         checkClientUse()
-        fileStorage.saveFileWithContentType(path, content, contentType)
+        fileStorage.saveFileWithContentType(path, content, contentType, tags)
     }
 
-    override fun saveFileWithContentType(path: String, file: File, contentType: String) {
+    override fun saveFileWithContentType(path: String, file: File, contentType: String, tags: Map<String, String>) {
         checkClientUse()
-        fileStorage.saveFileWithContentType(path, file, contentType)
+        fileStorage.saveFileWithContentType(path, file, contentType, tags)
     }
 
-    override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String) {
+    override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String, tags: Map<String, String>) {
         checkClientUse()
-        fileStorage.saveFileWithContentType(path, inputStream, contentType)
+        fileStorage.saveFileWithContentType(path, inputStream, contentType, tags)
     }
 
     override fun deleteFile(path: String) {

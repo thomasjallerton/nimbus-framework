@@ -39,7 +39,7 @@ internal class BasicServerlessFunctionClientLambda(
 
     override fun <T> invoke(param: Any, responseType: Class<T>): T? {
         val invokeRequest = InvokeRequest.builder()
-            .functionName(FunctionResource.functionName(projectName, handlerClass.simpleName, functionName, stage))
+            .functionName(FunctionResource.functionName(projectName, handlerClass.packageName, handlerClass.simpleName, functionName, stage))
             .payload(SdkBytes.fromByteArray(JacksonClient.writeValueAsBytes(param)))
             .invocationType(InvocationType.REQUEST_RESPONSE)
             .build()
@@ -59,7 +59,7 @@ internal class BasicServerlessFunctionClientLambda(
 
     override fun invokeAsync(param: Any) {
         val invokeRequest = InvokeRequest.builder()
-            .functionName(FunctionResource.functionName(projectName, handlerClass.simpleName, functionName, stage))
+            .functionName(FunctionResource.functionName(projectName, handlerClass.packageName, handlerClass.simpleName, functionName, stage))
             .payload(SdkBytes.fromByteArray(JacksonClient.writeValueAsBytes(param)))
             .invocationType(InvocationType.EVENT)
             .build()

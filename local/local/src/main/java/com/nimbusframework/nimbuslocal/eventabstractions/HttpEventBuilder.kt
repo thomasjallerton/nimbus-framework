@@ -109,6 +109,11 @@ class HttpEventBuilder {
         return this
     }
 
+    fun withAuthorizationContext(key: String, value: String): HttpEventBuilder {
+        this.authorizationContext[key] = value
+        return this
+    }
+
     fun build(): HttpEvent {
         return HttpEvent(
             resource,

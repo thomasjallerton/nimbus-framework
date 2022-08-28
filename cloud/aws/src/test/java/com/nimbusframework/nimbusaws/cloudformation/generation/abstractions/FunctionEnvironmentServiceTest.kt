@@ -42,7 +42,7 @@ class FunctionEnvironmentServiceTest : AnnotationSpec() {
         updateResources.size() shouldBe 2
 
         updateResources.get("NimbusDeploymentBucket") shouldNotBe null
-        updateResources.get("TesttestMethodFunction") shouldNotBe null
+        updateResources.get("ctTesttestMethodFunction") shouldNotBe null
         updateResources.getFunction("com.test.Test", "testMethod") shouldNotBe null
     }
 
