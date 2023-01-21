@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>nimbus-aws</artifactId>
-    <version>0.15.6-SNAPSHOT</version>
+    <version>0.15.7-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>nimbus-aws</name>
@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.nimbusframework</groupId>
         <artifactId>nimbus-cloud</artifactId>
-        <version>0.15.6-SNAPSHOT</version>
+        <version>0.15.7-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -23,7 +23,7 @@
 
         <auto-service.version>1.0-rc6</auto-service.version>
         <aws.version>1.12.119</aws.version>
-        <awssdk.version>2.16.60</awssdk.version>
+        <awssdk.version>2.19.20</awssdk.version>
         <aws-lambda-java-core.version>1.2.1</aws-lambda-java-core.version>
         <aws-lambda-java-events.version>3.11.0</aws-lambda-java-events.version>
         <auto-service.version>1.0-rc6</auto-service.version>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>com.nimbusframework</groupId>
             <artifactId>nimbus-core</artifactId>
-            <version>0.15.6-SNAPSHOT</version>
+            <version>0.15.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.google.auto.service</groupId>
@@ -229,7 +229,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.4.1</version>
+            <version>42.4.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -30,6 +30,11 @@ class FileStorageClientLocal(bucketClass: Class<*>, stage: String): FileStorageC
         fileStorage.saveFile(path, content, tags)
     }
 
+    override fun saveFile(path: String, content: ByteArray, tags: Map<String, String>) {
+        checkClientUse()
+        fileStorage.saveFile(path, content, tags)
+    }
+
     override fun saveFile(path: String, inputStream: InputStream, tags: Map<String, String>) {
         checkClientUse()
         fileStorage.saveFile(path, inputStream, tags)
@@ -48,6 +53,11 @@ class FileStorageClientLocal(bucketClass: Class<*>, stage: String): FileStorageC
     override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String, tags: Map<String, String>) {
         checkClientUse()
         fileStorage.saveFileWithContentType(path, inputStream, contentType, tags)
+    }
+
+    override fun saveFileWithContentType(path: String, content: ByteArray, contentType: String, tags: Map<String, String>) {
+        checkClientUse()
+        fileStorage.saveFileWithContentType(path, content, contentType, tags)
     }
 
     override fun deleteFile(path: String) {
