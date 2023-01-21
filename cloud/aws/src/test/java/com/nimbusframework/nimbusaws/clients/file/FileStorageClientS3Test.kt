@@ -64,6 +64,41 @@ class FileStorageClientS3Test : AnnotationSpec() {
     }
 
     @Test
+    fun canSaveByteArray() {
+        val byteArray = ByteArray(20) { it.toByte() }
+
+        val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
+
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
+
+        underTest.saveFile("path", byteArray)
+
+        putObjectRequest.captured.key() shouldBe "path"
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.contentMD5() shouldBe "1549d1aae20214e065ab4b76aaac89a8"
+        requestBody.captured.contentStreamProvider().newStream().readAllBytes() shouldBe byteArray
+    }
+
+    @Test
+    fun canSaveByteArrayWithTags() {
+        val byteArray = ByteArray(20) { it.toByte() }
+
+        val putObjectRequest = slot<PutObjectRequest>()
+        val requestBody = slot<RequestBody>()
+
+        every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
+
+        underTest.saveFile("path", byteArray, mapOf(Pair("Example tag", "value")))
+
+        putObjectRequest.captured.key() shouldBe "path"
+        putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.tagging() shouldBe "Example%20tag=value"
+        putObjectRequest.captured.contentMD5() shouldBe "1549d1aae20214e065ab4b76aaac89a8"
+        requestBody.captured.contentStreamProvider().newStream().readAllBytes() shouldBe byteArray
+    }
+
+    @Test
     fun canSaveStringWithContentType() {
         val putObjectRequest = slot<PutObjectRequest>()
         val requestBody = slot<RequestBody>()
@@ -73,8 +108,9 @@ class FileStorageClientS3Test : AnnotationSpec() {
         underTest.saveFileWithContentType("path", "content", "text/plain")
 
         putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.contentMD5() shouldBe "9a0364b9e99bb480dd25e1f0284c8555"
         requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe "content"
-        requestBody.captured.contentType() shouldBe "text/plain"
+        putObjectRequest.captured.contentType() shouldBe "text/plain"
     }
 
     @Test
@@ -88,8 +124,9 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.tagging() shouldBe "Key=thing"
+        putObjectRequest.captured.contentMD5() shouldBe "9a0364b9e99bb480dd25e1f0284c8555"
         requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe "content"
-        requestBody.captured.contentType() shouldBe "text/plain"
+        putObjectRequest.captured.contentType() shouldBe "text/plain"
     }
 
     @Test
@@ -103,7 +140,7 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
         putObjectRequest.captured.bucket() shouldBe bucketName
         requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe ""
-        requestBody.captured.contentType() shouldBe "text/plain"
+        putObjectRequest.captured.contentType() shouldBe "text/plain"
     }
 
     @Test
@@ -118,7 +155,7 @@ class FileStorageClientS3Test : AnnotationSpec() {
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.tagging() shouldBe "Other=cat"
         requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe ""
-        requestBody.captured.contentType() shouldBe "text/plain"
+        putObjectRequest.captured.contentType() shouldBe "text/plain"
     }
 
     @Test
