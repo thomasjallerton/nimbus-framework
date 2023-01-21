@@ -5,13 +5,12 @@ import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.slot
+import io.mockk.*
 import software.amazon.awssdk.core.ResponseInputStream
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.*
+import software.amazon.awssdk.utils.Md5Utils
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
@@ -32,7 +31,7 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
     @Test
     fun canSaveInputStream() {
-        val inputStream: InputStream = mockk()
+        val inputStream: InputStream = "hello world".byteInputStream()
 
         val putObjectRequest = slot<PutObjectRequest>()
         val requestBody = slot<RequestBody>()
@@ -43,12 +42,13 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
         putObjectRequest.captured.key() shouldBe "path"
         putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.contentMD5() shouldBe "XrY7u+Ae7tCTyyK7j1rNww=="
         requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
     }
 
     @Test
     fun canSaveInputStreamWithTags() {
-        val inputStream: InputStream = mockk()
+        val inputStream: InputStream = "hello world".byteInputStream()
 
         val putObjectRequest = slot<PutObjectRequest>()
         val requestBody = slot<RequestBody>()
@@ -60,6 +60,7 @@ class FileStorageClientS3Test : AnnotationSpec() {
         putObjectRequest.captured.key() shouldBe "path"
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.tagging() shouldBe "Example%20tag=value"
+        putObjectRequest.captured.contentMD5() shouldBe "XrY7u+Ae7tCTyyK7j1rNww=="
         requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
     }
 
@@ -76,7 +77,7 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
         putObjectRequest.captured.key() shouldBe "path"
         putObjectRequest.captured.bucket() shouldBe bucketName
-        putObjectRequest.captured.contentMD5() shouldBe "1549d1aae20214e065ab4b76aaac89a8"
+        putObjectRequest.captured.contentMD5() shouldBe "FUnRquICFOBlq0t2qqyJqA=="
         requestBody.captured.contentStreamProvider().newStream().readAllBytes() shouldBe byteArray
     }
 
@@ -94,7 +95,7 @@ class FileStorageClientS3Test : AnnotationSpec() {
         putObjectRequest.captured.key() shouldBe "path"
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.tagging() shouldBe "Example%20tag=value"
-        putObjectRequest.captured.contentMD5() shouldBe "1549d1aae20214e065ab4b76aaac89a8"
+        putObjectRequest.captured.contentMD5() shouldBe "FUnRquICFOBlq0t2qqyJqA=="
         requestBody.captured.contentStreamProvider().newStream().readAllBytes() shouldBe byteArray
     }
 
@@ -108,7 +109,7 @@ class FileStorageClientS3Test : AnnotationSpec() {
         underTest.saveFileWithContentType("path", "content", "text/plain")
 
         putObjectRequest.captured.bucket() shouldBe bucketName
-        putObjectRequest.captured.contentMD5() shouldBe "9a0364b9e99bb480dd25e1f0284c8555"
+        putObjectRequest.captured.contentMD5() shouldBe "mgNkuembtIDdJeHwKEyFVQ=="
         requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe "content"
         putObjectRequest.captured.contentType() shouldBe "text/plain"
     }
@@ -124,7 +125,7 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.tagging() shouldBe "Key=thing"
-        putObjectRequest.captured.contentMD5() shouldBe "9a0364b9e99bb480dd25e1f0284c8555"
+        putObjectRequest.captured.contentMD5() shouldBe "mgNkuembtIDdJeHwKEyFVQ=="
         requestBody.captured.contentStreamProvider().newStream().bufferedReader().use(BufferedReader::readText) shouldBe "content"
         putObjectRequest.captured.contentType() shouldBe "text/plain"
     }
@@ -160,7 +161,7 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
     @Test
     fun canSaveInputStreamWithContentType() {
-        val inputStream: InputStream = mockk()
+        val inputStream: InputStream = "hello world".byteInputStream()
         val putObjectRequest = slot<PutObjectRequest>()
         val requestBody = slot<RequestBody>()
 
@@ -170,13 +171,14 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
         putObjectRequest.captured.key() shouldBe "path"
         putObjectRequest.captured.bucket() shouldBe bucketName
+        putObjectRequest.captured.contentMD5() shouldBe "XrY7u+Ae7tCTyyK7j1rNww=="
         requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
         requestBody.captured.contentType() shouldBe "text/plain"
     }
 
     @Test
     fun canSaveInputStreamWithContentTypeAndTags() {
-        val inputStream: InputStream = mockk()
+        val inputStream: InputStream = "hello world".byteInputStream()
         val putObjectRequest = slot<PutObjectRequest>()
         val requestBody = slot<RequestBody>()
 
@@ -187,6 +189,7 @@ class FileStorageClientS3Test : AnnotationSpec() {
         putObjectRequest.captured.key() shouldBe "path"
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.tagging() shouldBe "key=dog"
+        putObjectRequest.captured.contentMD5() shouldBe "XrY7u+Ae7tCTyyK7j1rNww=="
         requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
         requestBody.captured.contentType() shouldBe "text/plain"
     }
@@ -233,14 +236,17 @@ class FileStorageClientS3Test : AnnotationSpec() {
         val file: File = mockk(relaxed = true)
         val putObjectRequest = slot<PutObjectRequest>()
         val requestBody = slot<RequestBody>()
+        mockkStatic(Md5Utils::class)
 
         every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
-
+        every { Md5Utils.md5AsBase64(file) } returns "HASH"
         underTest.saveFile("path", file)
 
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.key() shouldBe "path"
+        putObjectRequest.captured.contentMD5() shouldBe "HASH"
         requestBody.captured.contentType() shouldBe "application/octet-stream"
+        unmockkStatic(Md5Utils::class)
     }
 
     @Test
@@ -248,15 +254,19 @@ class FileStorageClientS3Test : AnnotationSpec() {
         val file: File = mockk(relaxed = true)
         val putObjectRequest = slot<PutObjectRequest>()
         val requestBody = slot<RequestBody>()
+        mockkStatic(Md5Utils::class)
 
         every { s3Client.putObject(capture(putObjectRequest), capture(requestBody)) } returns PutObjectResponse.builder().build()
+        every { Md5Utils.md5AsBase64(file) } returns "HASH"
 
         underTest.saveFile("path", file, mapOf(Pair("booo", "ahhh")))
 
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.key() shouldBe "path"
         putObjectRequest.captured.tagging() shouldBe "booo=ahhh"
+        putObjectRequest.captured.contentMD5() shouldBe "HASH"
         requestBody.captured.contentType() shouldBe "application/octet-stream"
+        unmockkStatic(Md5Utils::class)
     }
 
     @Test

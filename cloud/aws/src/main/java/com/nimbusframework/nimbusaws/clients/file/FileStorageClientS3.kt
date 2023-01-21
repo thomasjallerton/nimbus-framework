@@ -6,6 +6,7 @@ import software.amazon.awssdk.core.internal.util.Mimetype
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.*
+import software.amazon.awssdk.utils.Md5Utils
 import java.io.File
 import java.io.InputStream
 import java.math.BigInteger
@@ -20,11 +21,11 @@ internal class FileStorageClientS3(
 ): FileStorageClient {
 
     private val bucketName = (annotationBucketName + stage).lowercase(Locale.getDefault())
-    private val md5Checksum = MessageDigest.getInstance("MD5")
 
     override fun saveFile(path: String, inputStream: InputStream, tags: Map<String, String>) {
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
+            .contentMD5(Md5Utils.md5AsBase64(inputStream))
             .key(path)
         if (tags.isNotEmpty()) {
             putObjectRequest.tagging(buildTags(tags))
@@ -37,7 +38,7 @@ internal class FileStorageClientS3(
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
             .contentType(contentType)
-            .contentMD5(md5(content.toByteArray()))
+            .contentMD5(Md5Utils.md5AsBase64(content.toByteArray()))
             .key(path)
         if (tags.isNotEmpty()) {
             putObjectRequest.tagging(buildTags(tags))
@@ -49,6 +50,7 @@ internal class FileStorageClientS3(
     override fun saveFileWithContentType(path: String, file: File, contentType: String, tags: Map<String, String>) {
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
+            .contentMD5(Md5Utils.md5AsBase64(file))
             .contentType(contentType)
             .key(path)
         if (tags.isNotEmpty()) {
@@ -61,7 +63,7 @@ internal class FileStorageClientS3(
     override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String, tags: Map<String, String>) {
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
-            .contentType(contentType)
+            .contentMD5(Md5Utils.md5AsBase64(inputStream))
             .key(path)
         if (tags.isNotEmpty()) {
             putObjectRequest.tagging(buildTags(tags))
@@ -75,7 +77,7 @@ internal class FileStorageClientS3(
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
             .contentType(contentType)
-            .contentMD5(md5(content))
+            .contentMD5(Md5Utils.md5AsBase64(content))
             .key(path)
         if (tags.isNotEmpty()) {
             putObjectRequest.tagging(buildTags(tags))
@@ -104,6 +106,7 @@ internal class FileStorageClientS3(
     override fun saveFile(path: String, file: File, tags: Map<String, String>) {
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
+            .contentMD5(Md5Utils.md5AsBase64(file))
             .key(path)
         if (tags.isNotEmpty()) {
             putObjectRequest.tagging(buildTags(tags))
@@ -116,7 +119,7 @@ internal class FileStorageClientS3(
     override fun saveFile(path: String, content: String, tags: Map<String, String>) {
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
-            .contentMD5(md5(content.toByteArray()))
+            .contentMD5(Md5Utils.md5AsBase64(content.toByteArray()))
             .key(path)
         if (tags.isNotEmpty()) {
             putObjectRequest.tagging(buildTags(tags))
@@ -128,7 +131,7 @@ internal class FileStorageClientS3(
     override fun saveFile(path: String, content: ByteArray, tags: Map<String, String>) {
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucketName)
-            .contentMD5(md5(content))
+            .contentMD5(Md5Utils.md5AsBase64(content))
             .key(path)
         if (tags.isNotEmpty()) {
             putObjectRequest.tagging(buildTags(tags))
@@ -149,7 +152,4 @@ internal class FileStorageClientS3(
         return Tagging.builder().tagSet(tags.map { Tag.builder().key(it.key).value(it.value).build() }).build()
     }
 
-    private fun md5(input: ByteArray): String {
-        return BigInteger(1, md5Checksum.digest(input)).toString(16).padStart(32, '0')
-    }
 }
