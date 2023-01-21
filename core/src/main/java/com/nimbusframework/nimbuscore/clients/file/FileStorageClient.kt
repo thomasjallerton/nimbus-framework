@@ -14,6 +14,9 @@ interface FileStorageClient {
     fun saveFile(path: String, content: String) = saveFile(path, content, mapOf())
     fun saveFile(path: String, content: String, tags: Map<String, String>)
 
+    fun saveFile(path: String, content: ByteArray) = saveFile(path, content, mapOf())
+    fun saveFile(path: String, content: ByteArray, tags: Map<String, String>)
+
     fun saveFileWithContentType(path: String, content: String, contentType: String) = saveFileWithContentType(path, content, contentType, mapOf())
     fun saveFileWithContentType(path: String, content: String, contentType: String, tags: Map<String, String>)
 
@@ -22,6 +25,9 @@ interface FileStorageClient {
 
     fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String) = saveFileWithContentType(path, inputStream, contentType, mapOf())
     fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String, tags: Map<String, String>)
+
+    fun saveFileWithContentType(path: String, content: ByteArray, contentType: String) = saveFileWithContentType(path, content, contentType, mapOf())
+    fun saveFileWithContentType(path: String, content: ByteArray, contentType: String, tags: Map<String, String>)
 
     fun deleteFile(path: String)
 

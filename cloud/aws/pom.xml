@@ -23,7 +23,7 @@
 
         <auto-service.version>1.0-rc6</auto-service.version>
         <aws.version>1.12.119</aws.version>
-        <awssdk.version>2.16.60</awssdk.version>
+        <awssdk.version>2.19.20</awssdk.version>
         <aws-lambda-java-core.version>1.2.1</aws-lambda-java-core.version>
         <aws-lambda-java-events.version>3.11.0</aws-lambda-java-events.version>
         <auto-service.version>1.0-rc6</auto-service.version>
