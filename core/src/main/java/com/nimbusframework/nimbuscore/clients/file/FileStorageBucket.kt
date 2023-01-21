@@ -20,6 +20,10 @@ open class FileStorageBucket(fileStorageBucket: Class<*>): FileStorageClient {
         fileStorageClient.saveFile(path, content, tags)
     }
 
+    override fun saveFile(path: String, content: ByteArray, tags: Map<String, String>) {
+        fileStorageClient.saveFile(path, content, tags)
+    }
+
     override fun saveFileWithContentType(path: String, content: String, contentType: String, tags: Map<String, String>) {
         fileStorageClient.saveFileWithContentType(path, content, contentType, tags)
     }
@@ -30,6 +34,10 @@ open class FileStorageBucket(fileStorageBucket: Class<*>): FileStorageClient {
 
     override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String, tags: Map<String, String>) {
         fileStorageClient.saveFileWithContentType(path, inputStream, contentType, tags)
+    }
+
+    override fun saveFileWithContentType(path: String, content: ByteArray, contentType: String, tags: Map<String, String>) {
+        fileStorageClient.saveFile(path, content, tags)
     }
 
     override fun deleteFile(path: String) {

@@ -22,6 +22,10 @@ class EmptyFileStorageClient(): FileStorageClient {
         throw PermissionException(clientName)
     }
 
+    override fun saveFile(path: String, content: ByteArray, tags: Map<String, String>) {
+        throw PermissionException(clientName)
+    }
+
     override fun saveFileWithContentType(path: String, content: String, contentType: String, tags: Map<String, String>) {
         throw PermissionException(clientName)
     }
@@ -31,6 +35,10 @@ class EmptyFileStorageClient(): FileStorageClient {
     }
 
     override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String, tags: Map<String, String>) {
+        throw PermissionException(clientName)
+    }
+
+    override fun saveFileWithContentType(path: String, content: ByteArray, contentType: String, tags: Map<String, String>) {
         throw PermissionException(clientName)
     }
 

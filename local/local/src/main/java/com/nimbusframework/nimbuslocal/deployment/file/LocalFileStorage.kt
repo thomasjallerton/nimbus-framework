@@ -10,9 +10,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.net.URLConnection
 import java.time.Instant
-import java.util.*
 
 
 class LocalFileStorage(bucketName: String, private val allowedOrigins: List<String>) : FileStorageClient {
@@ -45,6 +43,12 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
         addNewWebHandler(path, outputFile, determineContentType(outputFile))
     }
 
+    override fun saveFile(path: String, content: ByteArray, tags: Map<String, String>) {
+        val outputFile = saveBytesToFile(path, content)
+        fileTags[path] = tags
+        addNewWebHandler(path, outputFile, determineContentType(outputFile))
+    }
+
     override fun saveFileWithContentType(path: String, content: String, contentType: String, tags: Map<String, String>) {
         val outputFile = saveStringToFile(path, content)
         fileTags[path] = tags
@@ -59,6 +63,12 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
 
     override fun saveFileWithContentType(path: String, inputStream: InputStream, contentType: String, tags: Map<String, String>) {
         val outputFile = saveInputStreamToFile(path, inputStream)
+        fileTags[path] = tags
+        addNewWebHandler(path, outputFile, contentType)
+    }
+
+    override fun saveFileWithContentType(path: String, content: ByteArray, contentType: String, tags: Map<String, String>) {
+        val outputFile = saveBytesToFile(path, content)
         fileTags[path] = tags
         addNewWebHandler(path, outputFile, contentType)
     }
@@ -168,12 +178,16 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
     }
 
     private fun saveStringToFile(path: String, content: String): File {
+        return saveBytesToFile(path, content.toByteArray())
+    }
+
+    private fun saveBytesToFile(path: String, content: ByteArray): File {
         val actualPath = tmpDir + File.separator + path
         val f = File(actualPath)
         f.parentFile?.mkdirs()
         f.createNewFile()
 
-        f.writeText(content)
+        f.writeBytes(content)
 
         methods.forEach { method -> method.invoke(path, f.length(), FileStorageEventType.OBJECT_CREATED) }
 
