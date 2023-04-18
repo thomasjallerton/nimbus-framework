@@ -21,7 +21,7 @@
     <jackson-dataformat-yaml.version>2.13.0</jackson-dataformat-yaml.version>
     <org.reflections.version>0.9.11</org.reflections.version>
     <tika.version>2.1.0</tika.version>
-    <jetty-server.version>11.0.10</jetty-server.version>
+    <jetty-server.version>11.0.14</jetty-server.version>
     <h2.version>2.1.210</h2.version>
   </properties>
 
