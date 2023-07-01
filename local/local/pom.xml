@@ -17,12 +17,10 @@
   </parent>
 
   <properties>
-    <junit-jupiter-api.version>5.5.2</junit-jupiter-api.version>
-    <jackson-dataformat-yaml.version>2.13.0</jackson-dataformat-yaml.version>
-    <org.reflections.version>0.9.11</org.reflections.version>
-    <tika.version>2.1.0</tika.version>
-    <jetty-server.version>11.0.10</jetty-server.version>
-    <h2.version>2.1.210</h2.version>
+    <jackson-dataformat-yaml.version>2.15.2</jackson-dataformat-yaml.version>
+    <org.reflections.version>0.10.2</org.reflections.version>
+    <jetty-server.version>11.0.15</jetty-server.version>
+    <h2.version>2.1.214</h2.version>
   </properties>
 
   <dependencies>
@@ -30,6 +28,11 @@
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-core</artifactId>
       <version>${tika.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons-io.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -91,6 +94,18 @@
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-test-junit</artifactId>
       <version>${kotlin.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.mockk</groupId>
+      <artifactId>mockk</artifactId>
+      <version>${mockk.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.mockk</groupId>
+      <artifactId>mockk-jvm</artifactId>
+      <version>${mockk.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

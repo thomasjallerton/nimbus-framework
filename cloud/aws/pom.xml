@@ -21,7 +21,7 @@
 
         <java.version>11</java.version>
 
-        <auto-service.version>1.0-rc6</auto-service.version>
+        <auto-service.version>1.1.1</auto-service.version>
         <aws.version>1.12.119</aws.version>
         <awssdk.version>2.19.20</awssdk.version>
         <aws-lambda-java-core.version>1.2.1</aws-lambda-java-core.version>
@@ -30,8 +30,6 @@
         <aws.version>1.12.119</aws.version>
         <junit.version>4.13-rc-1</junit.version>
         <compile-testing.version>0.15</compile-testing.version>
-        <mockk.version>1.9.2</mockk.version>
-        <junit-jupiter-api.version>5.5.2</junit-jupiter-api.version>
     </properties>
 
     <dependencyManagement>
@@ -223,6 +221,12 @@
         <dependency>
             <groupId>io.mockk</groupId>
             <artifactId>mockk</artifactId>
+            <version>${mockk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.mockk</groupId>
+            <artifactId>mockk-jvm</artifactId>
             <version>${mockk.version}</version>
             <scope>test</scope>
         </dependency>

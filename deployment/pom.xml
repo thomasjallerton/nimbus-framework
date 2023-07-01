@@ -20,17 +20,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>11</java.version>
-        <kotlin.version>1.5.32</kotlin.version>
         <aws-java-sdk.version>1.12.261</aws-java-sdk.version>
-        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-        <maven-scm-provider-gitexe.version>1.11.2</maven-scm-provider-gitexe.version>
-        <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
-        <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
-        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <versions-maven-plugin.version>2.7</versions-maven-plugin.version>
     </properties>
 
     <dependencies>

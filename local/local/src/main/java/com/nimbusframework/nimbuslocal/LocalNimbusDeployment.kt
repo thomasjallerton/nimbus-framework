@@ -31,6 +31,7 @@ import com.nimbusframework.nimbuslocal.deployment.webserver.WebServerHandler
 import com.nimbusframework.nimbuslocal.deployment.websocket.WebSocketRequest
 import org.eclipse.jetty.websocket.api.Session
 import org.reflections.Reflections
+import org.reflections.scanners.Scanners
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
@@ -414,9 +415,9 @@ class LocalNimbusDeployment private constructor(
                 throw IllegalArgumentException("Classes has already been set")
             }
             val reflections = Reflections(ConfigurationBuilder()
-                .setScanners(SubTypesScanner(false))
+                .setScanners(Scanners.SubTypes.filterResultsBy { p -> true })
                 .addUrls(ClasspathHelper.forJavaClassPath())
-                .filterInputsBy(FilterBuilder().include(FilterBuilder.prefix(packageName))))
+                .filterInputsBy(FilterBuilder().includePackage(packageName)))
 
             this.classes = reflections.getSubTypesOf(Any::class.java).distinct().filter {clazz ->
                 try {
