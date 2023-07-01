@@ -16,8 +16,8 @@ class LocalUsesBasicFunctionHandler(
     override fun handleUsesResources(clazz: Class<out Any>, method: Method, functionEnvironment: FunctionEnvironment) {
         val usesBasicFunctionClients = method.getAnnotationsByType(UsesBasicServerlessFunction::class.java)
 
-        val annotation = stageService.annotationForStage(usesBasicFunctionClients) { annotation -> annotation.stages}
-        if (annotation != null) {
+        val annotations = stageService.annotationsForStage(usesBasicFunctionClients) { annotation -> annotation.stages}
+        for (annotation in annotations) {
             functionEnvironment.addPermission(PermissionType.BASIC_FUNCTION, BasicFunctionPermission(
                     annotation.targetClass.java,
                     annotation.methodName

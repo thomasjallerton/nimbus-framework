@@ -16,8 +16,8 @@ class LocalUsesRelationalDatabaseHandler(
     override fun handleUsesResources(clazz: Class<out Any>, method: Method, functionEnvironment: FunctionEnvironment) {
         val usesRelationalDatabases = method.getAnnotationsByType(UsesRelationalDatabase::class.java)
 
-        val annotation = stageService.annotationForStage(usesRelationalDatabases) { annotation -> annotation.stages}
-        if (annotation != null) {
+        val annotations = stageService.annotationsForStage(usesRelationalDatabases) { annotation -> annotation.stages}
+        for (annotation in annotations) {
             functionEnvironment.addPermission(PermissionType.RELATIONAL_DATABASE, StorePermission(annotation.dataModel.qualifiedName.toString()))
         }
     }

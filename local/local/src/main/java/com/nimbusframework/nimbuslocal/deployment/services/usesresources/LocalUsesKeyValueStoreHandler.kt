@@ -15,8 +15,8 @@ class LocalUsesKeyValueStoreHandler(
     override fun handleUsesResources(clazz: Class<out Any>, method: Method, functionEnvironment: FunctionEnvironment) {
         val usesKeyValueStores = method.getAnnotationsByType(UsesKeyValueStore::class.java)
 
-        val annotation = stageService.annotationForStage(usesKeyValueStores) { annotation -> annotation.stages}
-        if (annotation != null) {
+        val annotations = stageService.annotationsForStage(usesKeyValueStores) { annotation -> annotation.stages}
+        for (annotation in annotations) {
             functionEnvironment.addPermission(PermissionType.KEY_VALUE_STORE, StorePermission(annotation.dataModel.qualifiedName.toString()))
         }
 

@@ -17,8 +17,8 @@ class LocalUsesNotificationTopicHandler(
     override fun handleUsesResources(clazz: Class<out Any>, method: Method, functionEnvironment: FunctionEnvironment) {
         val usesNotificationTopics = method.getAnnotationsByType(UsesNotificationTopic::class.java)
 
-        val annotation = stageService.annotationForStage(usesNotificationTopics) { annotation -> annotation.stages}
-        if (annotation != null) {
+        val annotations = stageService.annotationsForStage(usesNotificationTopics) { annotation -> annotation.stages}
+        for (annotation in annotations) {
             val topicName = NotificationTopicAnnotationService.getTopicName(annotation.notificationTopic.java, stageService.deployingStage)
             functionEnvironment.addPermission(PermissionType.NOTIFICATION_TOPIC, NotificationTopicPermission(topicName))
         }

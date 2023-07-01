@@ -16,8 +16,8 @@ class LocalUsesWebSocketHandler(
     override fun handleUsesResources(clazz: Class<out Any>, method: Method, functionEnvironment: FunctionEnvironment) {
         val usesWebSocketManagers = method.getAnnotationsByType(UsesServerlessFunctionWebSocket::class.java)
 
-        val annotation = stageService.annotationForStage(usesWebSocketManagers) { annotation -> annotation.stages}
-        if (annotation != null) {
+        val annotations = stageService.annotationsForStage(usesWebSocketManagers) { annotation -> annotation.stages}
+        for (annotation in annotations) {
             functionEnvironment.addPermission(PermissionType.WEBSOCKET_MANAGER, AlwaysTruePermission())
         }
     }
