@@ -17,7 +17,6 @@
   </parent>
 
   <properties>
-    <junit-jupiter-api.version>5.5.2</junit-jupiter-api.version>
     <jackson.version>2.13.0</jackson.version>
   </properties>
 
@@ -30,7 +29,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>31.1-jre</version>
+      <version>32.1.1-jre</version>
     </dependency>
 
     <!-- Test Dependencies-->

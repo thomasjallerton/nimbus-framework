@@ -16,7 +16,6 @@ import com.nimbusframework.nimbuslocal.exampleModels.*
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.mockk
 
 class NimbusMockInjectorTest : StringSpec({
