@@ -17,8 +17,8 @@ class LocalUsesFileStorageClientHandler(
     override fun handleUsesResources(clazz: Class<out Any>, method: Method, functionEnvironment: FunctionEnvironment) {
         val usesFileStorages = method.getAnnotationsByType(UsesFileStorageBucket::class.java)
 
-        val annotation = stageService.annotationForStage(usesFileStorages) { annotation -> annotation.stages}
-        if (annotation != null) {
+        val annotations = stageService.annotationsForStage(usesFileStorages) { annotation -> annotation.stages}
+        for (annotation in annotations) {
             val bucketName = FileStorageBucketNameAnnotationService.getBucketName(annotation.fileStorageBucket.java, stageService.deployingStage)
             functionEnvironment.addPermission(PermissionType.FILE_STORAGE, FileStoragePermission(bucketName))
         }

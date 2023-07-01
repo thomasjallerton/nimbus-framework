@@ -17,8 +17,8 @@ class LocalUsesSecretManagerHandler(
     override fun handleUsesResources(clazz: Class<out Any>, method: Method, functionEnvironment: FunctionEnvironment) {
         val usesSecret = method.getAnnotationsByType(UsesSecretManagerSecret::class.java)
 
-        val annotation = stageService.annotationForStage(usesSecret) { annotation -> annotation.stages }
-        if (annotation != null) {
+        val annotations = stageService.annotationsForStage(usesSecret) { annotation -> annotation.stages }
+        for (annotation in annotations) {
             val arn = annotation.secretArn
             functionEnvironment.addPermission(AwsPermissionTypes.SECRETS_MANAGER, object: Permission {
                 override fun hasPermission(value: String): Boolean {

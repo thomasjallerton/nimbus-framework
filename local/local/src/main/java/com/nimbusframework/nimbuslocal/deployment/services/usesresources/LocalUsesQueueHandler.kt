@@ -17,8 +17,8 @@ class LocalUsesQueueHandler(
     override fun handleUsesResources(clazz: Class<out Any>, method: Method, functionEnvironment: FunctionEnvironment) {
         val usesQueues = method.getAnnotationsByType(UsesQueue::class.java)
 
-        val annotation = stageService.annotationForStage(usesQueues) { annotation -> annotation.stages}
-        if (annotation != null) {
+        val annotations = stageService.annotationsForStage(usesQueues) { annotation -> annotation.stages}
+        for (annotation in annotations) {
             val queueId = QueueIdAnnotationService.getQueueId(annotation.queue.java, stageService.deployingStage)
             functionEnvironment.addPermission(PermissionType.QUEUE, QueuePermission(queueId))
         }

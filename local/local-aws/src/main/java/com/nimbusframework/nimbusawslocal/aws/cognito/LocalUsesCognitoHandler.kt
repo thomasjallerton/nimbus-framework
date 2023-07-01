@@ -19,8 +19,8 @@ class LocalUsesCognitoHandler(
     override fun handleUsesResources(clazz: Class<out Any>, method: Method, functionEnvironment: FunctionEnvironment) {
         val usesCognito = method.getAnnotationsByType(UsesCognitoUserPool::class.java)
 
-        val annotation = stageService.annotationForStage(usesCognito) { annotation -> annotation.stages }
-        if (annotation != null) {
+        val annotations = stageService.annotationsForStage(usesCognito) { annotation -> annotation.stages}
+        for (annotation in annotations) {
             val arn = CognitoArnAnnotationService.getArn(annotation.userPool.java, stageService.deployingStage)
             functionEnvironment.addPermission(AwsPermissionTypes.COGNITO, object: Permission {
                 override fun hasPermission(value: String): Boolean {
@@ -30,8 +30,8 @@ class LocalUsesCognitoHandler(
         }
 
         val usesCognitoAsAdmin = method.getAnnotationsByType(UsesCognitoUserPool::class.java)
-        val adminAnnotation = stageService.annotationForStage(usesCognitoAsAdmin) { adminAnnotation -> adminAnnotation.stages }
-        if (adminAnnotation != null) {
+        val adminAnnotations = stageService.annotationsForStage(usesCognitoAsAdmin) { annotation -> annotation.stages}
+        for (adminAnnotation in adminAnnotations) {
             val arn = CognitoArnAnnotationService.getArn(adminAnnotation.userPool.java, stageService.deployingStage)
             functionEnvironment.addPermission(AwsPermissionTypes.COGNITO_ADMIN, object: Permission {
                 override fun hasPermission(value: String): Boolean {

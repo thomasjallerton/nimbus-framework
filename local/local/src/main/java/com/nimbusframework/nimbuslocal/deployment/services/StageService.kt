@@ -27,6 +27,13 @@ class StageService(
         return null
     }
 
+    fun <T> annotationsForStage(annotations: Array<T>, getStages: (T) -> Array<String>): List<T> {
+        return annotations.filter {
+            val stages = getStages(it)
+            stages.contains(deployingStage) || (stages.isEmpty() && deployingDefaultStage)
+        }
+    }
+
     fun getDefaultAllowedOrigin(): String {
         return allowedOrigin[deployingStage] ?: ""
     }
