@@ -1,6 +1,6 @@
 package handlers.cognito;
 
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod;
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod;
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction;
 import com.nimbusframework.nimbusaws.annotation.annotations.cognito.UsesCognitoUserPool;
 import com.nimbusframework.nimbusaws.annotation.annotations.cognito.UsesCognitoUserPoolAsAdmin;

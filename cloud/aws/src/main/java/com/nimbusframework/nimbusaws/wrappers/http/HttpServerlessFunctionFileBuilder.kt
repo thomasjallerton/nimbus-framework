@@ -7,19 +7,23 @@ import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunctio
 import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
-import com.nimbusframework.nimbuscore.annotations.function.HttpException
+import com.nimbusframework.nimbuscore.annotations.http.HttpException
+import com.nimbusframework.nimbuscore.annotations.http.HttpUtils
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse
 import java.util.HashMap
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
+import java.util.Base64
 
 class HttpServerlessFunctionFileBuilder(
     processingEnv: ProcessingEnvironment,
     fileBuilderMethodInformation: FileBuilderMethodInformation,
     compilingElement: Element,
-    classForReflectionService: ClassForReflectionService
+    classForReflectionService: ClassForReflectionService,
+    private val enableRequestCompression: Boolean,
+    private val enableResponseCompression: Boolean
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
     fileBuilderMethodInformation,
@@ -43,6 +47,8 @@ class HttpServerlessFunctionFileBuilder(
         write("import ${HttpResponse::class.qualifiedName};")
         write("import ${RestApiGatewayEventMapper::class.qualifiedName};")
         write("import ${HttpException::class.qualifiedName};")
+        write("import ${HttpUtils::class.qualifiedName};")
+        write("import ${Base64::class.qualifiedName};")
 
         write()
     }
@@ -50,7 +56,13 @@ class HttpServerlessFunctionFileBuilder(
     override fun writeFunction(inputParam: Param, eventParam: Param) {
         write("${HttpEvent::class.simpleName} event = ${RestApiGatewayEventMapper::class.simpleName}.getHttpEvent(input, requestId);")
         if (inputParam.exists()) {
-            write("${inputParam.canonicalName()} parsedType = JacksonClient.readValue(input.getBody(), ${inputParam.simpleName()}.class);")
+            if (!enableRequestCompression) {
+                write("String body = input.getBody();")
+            } else {
+                // Write code to detect compression
+                write("String body = ${HttpUtils::class.simpleName}.getUncompressedContent(event);")
+            }
+            write("${inputParam.canonicalName()} parsedType = JacksonClient.readValue(body, ${inputParam.simpleName()}.class);")
         }
 
         val callPrefix = if (voidMethodReturn) {
@@ -71,12 +83,26 @@ class HttpServerlessFunctionFileBuilder(
         write("APIGatewayProxyResponseEvent responseEvent = new APIGatewayProxyResponseEvent().withStatusCode(200);")
 
         if (fileBuilderMethodInformation.returnType.toString() == HttpResponse::class.qualifiedName) {
+            if (enableResponseCompression) {
+                error("enableResponseCompression cannot be used in HttpServerlessFunction if return type is ${HttpResponse::class.qualifiedName}")
+            }
             write("responseEvent.setBody(result.getBody());")
             write("responseEvent.setHeaders(result.getHeaders());")
             write("responseEvent.setStatusCode(result.getStatusCode());")
             write("responseEvent.setIsBase64Encoded(result.isBase64Encoded());")
         } else if (!voidMethodReturn) {
-            write("String responseBody = JacksonClient.writeValueAsString(result);")
+            if (enableResponseCompression) {
+                write("String responseBody = JacksonClient.writeValueAsString(result);")
+                write("${HttpUtils::class.simpleName}.${HttpUtils.CompressedContent::class.simpleName} compressedContent" +
+                        " = ${HttpUtils::class.simpleName}.compressContent(event, responseBody);")
+                write("if (compressedContent != null) {")
+                write("responseBody = Base64.getEncoder().encodeToString(compressedContent.getContent());")
+                write("responseEvent.setIsBase64Encoded(true);")
+                setHeader("responseEvent", "Content-Encoding", "compressedContent.getEncoding()")
+                write("}")
+            } else {
+                write("String responseBody = JacksonClient.writeValueAsString(result);")
+            }
             write("responseEvent.setBody(responseBody);")
         }
         addCorsHeader("responseEvent")
@@ -102,5 +128,12 @@ class HttpServerlessFunctionFileBuilder(
         write("$variableName.getHeaders().put(\"Access-Control-Allow-Origin\", allowedCorsOrigin);")
         write("}")
         write("}")
+    }
+
+    private fun setHeader(variableName: String, header: String, valueVariable: String) {
+        write("if ($variableName.getHeaders() == null) {")
+        write("$variableName.setHeaders(new HashMap<>());")
+        write("}")
+        write("$variableName.getHeaders().put(\"$header\", $valueVariable);")
     }
 }

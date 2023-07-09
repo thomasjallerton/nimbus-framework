@@ -1,10 +1,11 @@
 package com.nimbusframework.nimbuslocal.deployment.http
 
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 
 data class HttpMethodIdentifier(
         private var path: String,
-        private val method: HttpMethod) {
+        private val method: HttpMethod
+) {
 
     private val pathParameterNames: MutableList<String> = mutableListOf()
 

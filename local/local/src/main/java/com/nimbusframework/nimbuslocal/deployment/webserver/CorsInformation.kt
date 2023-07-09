@@ -7,7 +7,9 @@ object CorsInformation {
             "accept-language",
             "content-language",
             "origin",
-            "content-type"
+            "content-type",
+            "content-encoding",
+            "accept-encoding"
     )
 
 }

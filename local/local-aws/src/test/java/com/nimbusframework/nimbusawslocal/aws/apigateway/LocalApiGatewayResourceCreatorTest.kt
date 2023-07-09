@@ -2,7 +2,7 @@ package com.nimbusframework.nimbusawslocal.aws.apigateway
 
 import com.nimbusframework.nimbusaws.clients.cognito.CognitoUser
 import com.nimbusframework.nimbusawslocal.aws.AwsSpecificLocalDeployment
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.deployment.http.HttpRequest
 import exampleresources.LambdaApiGatewayAuthorizer

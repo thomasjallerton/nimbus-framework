@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbuslocal.deployment.services.function
 
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment.Companion.functionWebserverIdentifier
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionIdentifier
@@ -27,11 +27,14 @@ class LocalHttpFunctionHandler(
 
         val functionIdentifier = FunctionIdentifier(clazz.canonicalName, method.name)
 
+        val enabledRequestCompression = httpServerlessFunctions.any { it.enableRequestDecoding }
+        val enabledResponseCompression = httpServerlessFunctions.any { it.enableResponseEncoding }
+
         val annotation = stageService.annotationForStage(httpServerlessFunctions) { annotation -> annotation.stages }
         if (annotation != null) {
             val invokeOn = getFunctionClassInstance(clazz)
 
-            val httpMethod = LocalHttpMethod(method, invokeOn)
+            val httpMethod = LocalHttpMethod(method, invokeOn, enabledRequestCompression)
             val functionInformation = HttpFunctionInformation(annotation.method, annotation.path)
             if (annotation.method != HttpMethod.ANY) {
                 val httpIdentifier = HttpMethodIdentifier(annotation.path, annotation.method)
@@ -63,12 +66,13 @@ class LocalHttpFunctionHandler(
                 stageService.getDefaultAllowedHeaders()
             }
 
-            functionApiServer.handler.handler.addWebResource(
+            functionApiServer.webServerHandler.addWebResource(
                 annotation.path,
                 annotation.method,
                 httpMethod,
                 allowedOrigin,
-                allowedHeaders
+                allowedHeaders,
+                enabledResponseCompression
             )
         }
 

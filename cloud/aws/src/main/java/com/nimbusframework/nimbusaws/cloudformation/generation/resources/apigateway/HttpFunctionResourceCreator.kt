@@ -10,7 +10,6 @@ import com.nimbusframework.nimbusaws.cloudformation.generation.resources.environ
 import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.http.HttpServerlessFunctionFileBuilder
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants.allowedOriginEnvVariable
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.HttpServerlessFunctions
 import javax.annotation.processing.Messager
@@ -40,11 +39,16 @@ class HttpFunctionResourceCreator(
 
         val methodInformation = extractMethodInformation(type)
 
+        val enabledRequestCompression = httpFunctions.any { it.enableRequestDecoding }
+        val enabledResponseCompression = httpFunctions.any { it.enableResponseEncoding }
+
         val fileBuilder = HttpServerlessFunctionFileBuilder(
             processingEnv,
             methodInformation,
             type,
-            classForReflectionService
+            classForReflectionService,
+            enabledRequestCompression,
+            enabledResponseCompression
         )
 
         fileBuilder.createClass()

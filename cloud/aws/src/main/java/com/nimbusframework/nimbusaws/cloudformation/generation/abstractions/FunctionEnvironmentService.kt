@@ -3,8 +3,6 @@ package com.nimbusframework.nimbusaws.cloudformation.generation.abstractions
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.model.outputs.WebSocketApiOutput
 import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.IamRoleResource
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.LogGroupResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.NimbusBucketResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.Resource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.basic.CronRule
@@ -17,7 +15,7 @@ import com.google.gson.JsonObject
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.apigateway.HttpFunctionResourceCreator.Companion.getAllowedHeaders
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.apigateway.HttpFunctionResourceCreator.Companion.getAllowedOrigin
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.AbstractRestResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.CorsRestMethod

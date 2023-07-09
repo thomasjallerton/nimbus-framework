@@ -1,13 +1,13 @@
 package com.nimbusframework.nimbuslocal.deployment.http
 
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 
 data class HttpRequest(
-        var path: String,
-        var method: HttpMethod,
-        var body: String = "null",
-        var headers: Map<String, List<String>> = mapOf()
+    var path: String,
+    var method: HttpMethod,
+    var body: String = "null",
+    var headers: Map<String, List<String>> = mapOf()
 ) {
     constructor(path: String, method: HttpMethod): this(path, method, "null")
     constructor(path: String, method: HttpMethod, body: String): this(path, method, body, mapOf())

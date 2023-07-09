@@ -3,14 +3,25 @@ package com.nimbusframework.nimbuslocal.deployment.webserver
 import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
+import org.eclipse.jetty.server.handler.AbstractHandler
+import org.eclipse.jetty.server.handler.gzip.GzipHandler
 
 
 
 
-class LocalHttpServer(val port: Int, handler: WebServerHandler) {
 
-    val handler = CorsPassThroughHandler(handler)
+
+
+class LocalHttpServer(val port: Int, val webServerHandler: WebServerHandler) {
+
+    val handler: AbstractHandler
     var server: Server? = null
+
+    init {
+        val gzipHandler = GzipHandler()
+        gzipHandler.handler = CorsPassThroughHandler(webServerHandler)
+        handler = gzipHandler
+    }
 
     fun startServer() {
         val localServer = Server(port)

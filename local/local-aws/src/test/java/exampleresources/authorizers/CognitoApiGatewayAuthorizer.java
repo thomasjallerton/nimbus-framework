@@ -1,7 +1,7 @@
 package exampleresources.authorizers;
 
 import com.nimbusframework.nimbusaws.annotation.annotations.apigateway.ApiGatewayRestConfig;
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod;
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod;
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction;
 import exampleresources.UserPool;
 

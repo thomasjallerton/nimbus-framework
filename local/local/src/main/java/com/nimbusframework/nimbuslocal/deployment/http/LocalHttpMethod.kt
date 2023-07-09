@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbuslocal.deployment.http
 
+import com.nimbusframework.nimbuscore.annotations.http.HttpUtils
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent
 import com.nimbusframework.nimbuslocal.ServerlessMethod
@@ -7,11 +8,13 @@ import com.nimbusframework.nimbuslocal.deployment.function.FunctionType
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.net.URLDecoder
+import java.util.*
 
 
 class LocalHttpMethod(
     private val method: Method,
-    private val invokeOn: Any
+    private val invokeOn: Any,
+    private val enableRequestCompression: Boolean
 ) : ServerlessMethod(
     method,
     HttpEvent::class.java,
@@ -30,10 +33,15 @@ class LocalHttpMethod(
             multiValueHeaders = request.headers,
             queryStringParameters = queryStringParameters,
             multiValueQueryStringParameters = multiValueQueryStringParameters,
-            authorizationContext = authorizationContext
+            authorizationContext = authorizationContext,
+            body = request.body
         )
 
-        val strParam = request.body
+        var strParam = request.body
+        if (enableRequestCompression) {
+            strParam = HttpUtils.getUncompressedContent(httpEvent)
+        }
+
         val eventIndex = eventIndex()
         val params = method.parameters
         try {

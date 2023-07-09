@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusawslocal.aws.apigateway
 
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionIdentifier
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionType
 import com.nimbusframework.nimbuslocal.deployment.function.ServerlessFunction

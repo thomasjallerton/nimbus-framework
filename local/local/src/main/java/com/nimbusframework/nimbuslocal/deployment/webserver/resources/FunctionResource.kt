@@ -1,25 +1,26 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.resources
 
-import com.nimbusframework.nimbuscore.annotations.function.HttpException
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpException
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuslocal.deployment.http.HttpRequest
 import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
-import java.io.BufferedReader
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import java.io.BufferedReader
 
 class FunctionResource(
-        private val path: String,
-        private val httpMethod: HttpMethod,
-        private val method: LocalHttpMethod,
-        allowedHeaders: Array<String>,
-        allowedOrigin: String,
-        baseRequest: String
-): WebResource(allowedHeaders, listOf(allowedOrigin), baseRequest) {
+    private val path: String,
+    private val httpMethod: HttpMethod,
+    private val method: LocalHttpMethod,
+    allowedHeaders: Array<String>,
+    allowedOrigin: String,
+    baseRequest: String,
+    gzipResponse: Boolean
+): WebResource(allowedHeaders, listOf(allowedOrigin), baseRequest, gzipResponse) {
 
     override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
         val strBody = request.inputStream.bufferedReader().use(BufferedReader::readText)
@@ -32,7 +33,6 @@ class FunctionResource(
         }
 
         val httpRequest = HttpRequest(correctedPath, httpMethod, strBody, headers)
-
 
         try {
             val authResponse = LocalNimbusDeployment.getInstance().localResourceHolder.httpAuthenticator?.allow(httpRequest)

@@ -2,7 +2,7 @@ package com.nimbusframework.nimbusaws.cloudformation.model.resource.http
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationTemplate
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.Resource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
@@ -64,7 +64,7 @@ class CorsRestMethod (
         val methods = allowedMethods.reduce { acc, item -> "$acc,$item"}
         responseParameters.addProperty("method.response.header.Access-Control-Allow-Methods", "'$methods'")
 
-        var strAllowedHeaders = "origin,content-type"
+        var strAllowedHeaders = "origin,content-type,content-encoding,accept-encoding"
         this.allowedHeaders.forEach { strAllowedHeaders += ",$it" }
 
         responseParameters.addProperty("method.response.header.Access-Control-Allow-Headers", "'$strAllowedHeaders'")

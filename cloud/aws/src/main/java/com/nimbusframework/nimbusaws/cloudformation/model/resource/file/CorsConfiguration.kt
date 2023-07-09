@@ -2,7 +2,7 @@ package com.nimbusframework.nimbusaws.cloudformation.model.resource.file
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 
 class CorsConfiguration(
         private val allowedCorsOrigins: Array<String>

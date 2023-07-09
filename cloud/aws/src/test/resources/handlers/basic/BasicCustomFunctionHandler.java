@@ -1,9 +1,7 @@
 package handlers.basic;
 
 import com.nimbusframework.nimbusaws.annotation.annotations.lambda.CustomLambdaFunctionHandler;
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod;
 import com.nimbusframework.nimbuscore.annotations.function.BasicServerlessFunction;
-import com.nimbusframework.nimbuscore.annotations.function.UsesBasicServerlessFunction;
 import com.nimbusframework.nimbuscore.annotations.notification.UsesNotificationTopic;
 import com.nimbusframework.nimbuscore.clients.ClientBuilder;
 import models.NotificationTopic;

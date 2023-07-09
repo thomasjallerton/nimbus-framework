@@ -7,7 +7,8 @@ import jakarta.servlet.http.HttpServletResponse
 abstract class WebResource(
         headers: Array<String>,
         private val allowedOrigins: List<String>,
-        private val baseRequest: String
+        private val baseRequest: String,
+        val gzipResponse: Boolean
 ) {
 
     private val allowedHeaders: Set<String>

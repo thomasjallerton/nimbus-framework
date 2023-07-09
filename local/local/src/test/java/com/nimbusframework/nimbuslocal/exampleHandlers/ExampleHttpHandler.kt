@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbuslocal.exampleHandlers
 
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbuslocal.exampleModels.Person
 
