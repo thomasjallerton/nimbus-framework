@@ -30,7 +30,7 @@ class LambdaHttpMethodAuthenticator(
         .build<String, IamPolicyResponse>()
 
     override fun allow(httpRequest: HttpRequest): AuthenticationResponse {
-        val authHeader = httpRequest.headers[headerName]?.firstOrNull() ?: return AuthenticationResponse(false)
+        val authHeader = getAuthHeader(httpRequest) ?: return AuthenticationResponse(false)
         val cachedResult = cache.getIfPresent(authHeader)
         val policy = if (cachedResult != null) {
             cachedResult
@@ -52,6 +52,16 @@ class LambdaHttpMethodAuthenticator(
         }
 
         return AuthenticationResponse(validatePolicy(httpRequest, policy), policy.context)
+    }
+
+    private fun getAuthHeader(httpRequest: HttpRequest): String? {
+        if (httpRequest.headers.containsKey(headerName)) {
+            return httpRequest.headers[headerName]?.firstOrNull()
+        }
+        if (httpRequest.headers.containsKey(headerName.lowercase())) {
+            return httpRequest.headers[headerName.lowercase()]?.firstOrNull()
+        }
+        return null
     }
 
 

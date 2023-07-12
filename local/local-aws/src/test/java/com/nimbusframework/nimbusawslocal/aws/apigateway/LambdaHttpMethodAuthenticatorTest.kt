@@ -151,4 +151,24 @@ internal class LambdaHttpMethodAuthenticatorTest: StringSpec({
         result2.authenticated shouldBe true
     }
 
+    "Can validate http call when allowed - header is sent lowercase" {
+        val resourceHolder = LocalResourceHolder()
+        val identifier = FunctionIdentifier(ExampleAuthorizer::class.java, "handleRequest")
+        val method = ExampleAuthorizer::class.java.methods[0]
+        resourceHolder.functions[identifier] = ServerlessFunction(AuthorizationFunction(method, ExampleAuthorizer()), FunctionInformation(FunctionType.AUTHORIZATION))
+
+        val underTest = LambdaHttpMethodAuthenticator(
+            identifier,
+            "Authorization",
+            10,
+            resourceHolder
+        )
+
+        // when
+        val result = underTest.allow(HttpRequest("/hello/world", HttpMethod.GET, headers = mapOf(Pair("authorization", listOf("token")))))
+        result.authenticated shouldBe true
+        result.context["key"] shouldBe "value"
+    }
+
+
 })
