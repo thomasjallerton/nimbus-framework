@@ -1,4 +1,4 @@
-package com.nimbusframework.nimbuscore.annotations.function
+package com.nimbusframework.nimbuscore.annotations.http
 
 import java.lang.RuntimeException
 

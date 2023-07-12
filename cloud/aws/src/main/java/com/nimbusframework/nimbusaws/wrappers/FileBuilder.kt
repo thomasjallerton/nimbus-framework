@@ -23,6 +23,10 @@ abstract class FileBuilder {
         if (toWrite.endsWith("{")) tabLevel++
     }
 
+    protected fun log(toWrite: String) {
+        write("System.out.println($toWrite);")
+    }
+
     protected fun import(toImport: String) {
         write("import $toImport;")
     }

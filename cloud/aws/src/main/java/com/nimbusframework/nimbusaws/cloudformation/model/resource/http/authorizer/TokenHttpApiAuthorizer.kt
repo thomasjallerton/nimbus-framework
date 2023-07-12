@@ -4,22 +4,25 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionTrigger
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.RestApi
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.HttpApi
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 
-class TokenRestApiAuthorizer(
+class TokenHttpApiAuthorizer(
     val function: FunctionResource,
     val identityHeader: String,
-    restApi: RestApi,
+    restApi: HttpApi,
     ttlSeconds: Int = 300,
     nimbusState: NimbusState,
     stage: String
-) : RestApiAuthorizer(restApi, ttlSeconds, nimbusState, stage), FunctionTrigger {
+) : HttpApiAuthorizer(restApi, ttlSeconds, nimbusState, stage), FunctionTrigger {
 
     override fun addSpecificProperties(properties: JsonObject) {
-        properties.addProperty("Type", "TOKEN")
+        properties.addProperty("AuthorizerType", "REQUEST")
+        properties.addProperty("AuthorizerPayloadFormatVersion", "1.0")
         properties.add("AuthorizerUri", function.getUri())
-        properties.addProperty("IdentitySource", "method.request.header.$identityHeader")
+        val identitySource = JsonArray()
+        identitySource.add("\$request.header.$identityHeader")
+        properties.add("IdentitySource", identitySource)
     }
 
     override fun applyToRestMethodProperties(restMethodProperties: JsonObject) {
@@ -32,7 +35,7 @@ class TokenRestApiAuthorizer(
     }
 
     override fun getTriggerName(): String {
-        return "RestAuth"
+        return "HttpAuth"
     }
 
     override fun getTriggerArn(): JsonObject {
@@ -56,7 +59,7 @@ class TokenRestApiAuthorizer(
 
         join.add(":")
 
-        join.add(restApi.getRootId())
+        join.add(httpApi.getRef())
 
         join.add("/authorizers/")
 

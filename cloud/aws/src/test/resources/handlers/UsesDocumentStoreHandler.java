@@ -1,7 +1,7 @@
 package handlers;
 
 import com.nimbusframework.nimbuscore.annotations.document.UsesDocumentStore;
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod;
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod;
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction;
 import com.nimbusframework.nimbuscore.clients.ClientBuilder;
 import models.Document;

@@ -1,13 +1,14 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.resources
 
-import com.nimbusframework.nimbuslocal.deployment.webserver.CorsInformation
+import com.nimbusframework.nimbuscore.annotations.http.CorsInformation
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
 abstract class WebResource(
         headers: Array<String>,
         private val allowedOrigins: List<String>,
-        private val baseRequest: String
+        private val baseRequest: String,
+        val gzipResponse: Boolean
 ) {
 
     private val allowedHeaders: Set<String>

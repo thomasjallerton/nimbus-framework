@@ -3,8 +3,6 @@ package com.nimbusframework.nimbusaws.cloudformation.generation.abstractions
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.model.outputs.WebSocketApiOutput
 import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.IamRoleResource
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.LogGroupResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.NimbusBucketResource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.Resource
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.basic.CronRule
@@ -15,14 +13,8 @@ import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.Func
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.cloudformation.generation.resources.apigateway.HttpFunctionResourceCreator.Companion.getAllowedHeaders
-import com.nimbusframework.nimbusaws.cloudformation.generation.resources.apigateway.HttpFunctionResourceCreator.Companion.getAllowedOrigin
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
 import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.AbstractRestResource
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.CorsRestMethod
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.RestApiResource
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.RestMethod
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.*
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.websocket.*
 import com.nimbusframework.nimbuscore.persisted.ExportInformation
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
@@ -55,54 +47,22 @@ class FunctionEnvironmentService(
     }
 
     fun newHttpMethod(httpFunction: HttpServerlessFunction, function: FunctionResource) {
-        val pathParts = httpFunction.path.split("/")
-
         val updateTemplate = cloudFormationFiles[function.stage]!!.updateTemplate
         val updateResources = updateTemplate.resources
 
-        val restApi = updateTemplate.getOrCreateRootRestApi()
+        val httpApi = updateTemplate.getOrCreateRootHttpApi(processingData)
 
-        val apiGatewayDeployment = updateTemplate.getOrCreateRootRestApiDeployment()
+//        val apiGatewayHttpDeployment = updateTemplate.getOrCreateRootHttpApiDeployment(processingData)
 
-        var resource: AbstractRestResource = restApi
+        val httpLambdaIntegration = HttpLambdaIntegration(httpApi, httpFunction.path, httpFunction.method.name, function, nimbusState)
+        val restRoute = RestRoute(httpApi, httpFunction.path, httpFunction.method.name, httpLambdaIntegration, updateTemplate.getRestApiAuthorizer(), nimbusState)
 
-        for (part in pathParts) {
-            if (part.isNotEmpty()) {
-                resource = RestApiResource(resource, part, nimbusState)
-                updateResources.addResource(resource)
-            }
-        }
+        restRoute.addDependsOn(httpLambdaIntegration)
+//        apiGatewayHttpDeployment.addDependsOn(restRoute)
+        updateResources.addResource(httpLambdaIntegration)
+        updateResources.addResource(restRoute)
 
-        val method = httpFunction.method.name
-        val restMethod = RestMethod(resource, method, mapOf(), function, updateTemplate.getRestApiAuthorizer(), nimbusState)
-        apiGatewayDeployment.addDependsOn(restMethod)
-        updateResources.addResource(restMethod)
-
-        if (httpFunction.method != HttpMethod.OPTIONS && httpFunction.method != HttpMethod.ANY) {
-            val allowedHeaders = getAllowedHeaders(function.stage, processingData, httpFunction)
-            val allowedOrigin = getAllowedOrigin(function.stage, processingData, httpFunction)
-
-            if (allowedHeaders.isNotEmpty() || allowedOrigin.isNotBlank()) {
-                val newCorsMethod = CorsRestMethod(
-                        resource,
-                        updateTemplate,
-                        nimbusState
-                )
-                val existingCorsMethod = updateResources.get(newCorsMethod.getName())
-                val corsMethod = if (existingCorsMethod == null) {
-                    apiGatewayDeployment.addDependsOn(newCorsMethod)
-                    updateResources.addResource(newCorsMethod)
-                    newCorsMethod
-                } else {
-                    existingCorsMethod as CorsRestMethod
-                }
-                corsMethod.addHeaders(allowedHeaders)
-                corsMethod.addOrigin(allowedOrigin)
-                corsMethod.addMethod(httpFunction.method)
-            }
-        }
-
-        val permission = FunctionPermissionResource(function, restApi, nimbusState)
+        val permission = FunctionPermissionResource(function, restRoute, nimbusState)
         updateResources.addResource(permission)
     }
 

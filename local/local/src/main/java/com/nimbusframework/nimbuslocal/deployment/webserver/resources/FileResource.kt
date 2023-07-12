@@ -13,7 +13,8 @@ class FileResource(
 ): WebResource(
         arrayOf(),
         allowedOrigins,
-        baseRequest
+        baseRequest,
+    true
 ) {
 
     override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {

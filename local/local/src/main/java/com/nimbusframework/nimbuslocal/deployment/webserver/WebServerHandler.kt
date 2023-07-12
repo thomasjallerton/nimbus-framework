@@ -1,15 +1,15 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver
 
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
-import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.handler.AbstractHandler
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.FileResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.FunctionResource
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.WebResource
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.handler.AbstractHandler
 import java.io.File
 
 open class WebServerHandler(
@@ -45,6 +45,10 @@ open class WebServerHandler(
             } else if (passesCors(webResource, request)) {
                 webResource.addAllowedHeaders(response)
                 webResource.writeResponse(request, response, target)
+                if (webResource.gzipResponse) {
+                    // The jetty GzipHandler only uses gzip if the content length is >= 32 bytes
+                    response.addHeader("Content-Length", "32")
+                }
             } else {
                 response.status = HttpServletResponse.SC_UNAUTHORIZED
                 response.writer.println("CORS prevented access to this resource ($target). Check logs for more details.")
@@ -65,8 +69,8 @@ open class WebServerHandler(
         addNewResource(path, HttpMethod.GET, FileResource(file, contentType, allowedOrigins, combinePaths(path)))
     }
 
-    fun addWebResource(path: String, httpMethod: HttpMethod, method: LocalHttpMethod, allowedOrigin: String, allowedHeaders: Array<String>) {
-        addNewResource(path, httpMethod, FunctionResource(path, httpMethod, method, allowedHeaders, allowedOrigin, combinePaths(path)))
+    fun addWebResource(path: String, httpMethod: HttpMethod, method: LocalHttpMethod, allowedOrigin: String, allowedHeaders: Array<String>, gzipResponse: Boolean) {
+        addNewResource(path, httpMethod, FunctionResource(path, httpMethod, method, allowedHeaders, allowedOrigin, combinePaths(path), gzipResponse))
     }
 
     private fun addNewResource(path: String, httpMethod: HttpMethod, webResource: WebResource) {

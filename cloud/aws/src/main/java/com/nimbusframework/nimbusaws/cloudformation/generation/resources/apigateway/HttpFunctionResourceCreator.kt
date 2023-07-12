@@ -10,7 +10,6 @@ import com.nimbusframework.nimbusaws.cloudformation.generation.resources.environ
 import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionConfig
 import com.nimbusframework.nimbusaws.wrappers.http.HttpServerlessFunctionFileBuilder
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants.allowedOriginEnvVariable
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.HttpServerlessFunctions
 import javax.annotation.processing.Messager
@@ -40,11 +39,16 @@ class HttpFunctionResourceCreator(
 
         val methodInformation = extractMethodInformation(type)
 
+        val enabledRequestCompression = httpFunctions.any { it.enableRequestDecoding }
+        val enabledResponseCompression = httpFunctions.any { it.enableResponseEncoding }
+
         val fileBuilder = HttpServerlessFunctionFileBuilder(
             processingEnv,
             methodInformation,
             type,
-            classForReflectionService
+            classForReflectionService,
+            enabledRequestCompression,
+            enabledResponseCompression
         )
 
         fileBuilder.createClass()
@@ -64,18 +68,7 @@ class HttpFunctionResourceCreator(
                     config
                 )
 
-                val annotationCorsOrigin = httpFunction.allowedCorsOrigin
-                val referencedWebsite =
-                    cfDocuments[stage]!!.updateTemplate.referencedFileStorageBucket(annotationCorsOrigin)
-
-                if (referencedWebsite != null) {
-                    functionResource.addEnvVariable(
-                        ConstantEnvironmentVariable.NIMBUS_ALLOWED_CORS_ORIGIN,
-                        referencedWebsite.getAttr("WebsiteURL")
-                    )
-                } else {
-                    functionResource.addEnvVariable(ConstantEnvironmentVariable.NIMBUS_ALLOWED_CORS_ORIGIN, getAllowedOrigin(stage, processingData, httpFunction))
-                }
+                functionResource.addEnvVariable(ConstantEnvironmentVariable.NIMBUS_ALLOWED_CORS_ORIGIN, getAllowedOrigin(stage, processingData))
 
                 functionEnvironmentService.newHttpMethod(httpFunction, functionResource)
 
@@ -87,20 +80,14 @@ class HttpFunctionResourceCreator(
 
     companion object {
 
-        fun getAllowedOrigin(stage: String, processingData: ProcessingData, httpServerlessFunction: HttpServerlessFunction): String  {
-            if (httpServerlessFunction.allowedCorsOrigin.isNotBlank()) {
-                return httpServerlessFunction.allowedCorsOrigin
-            }
+        fun getAllowedOrigin(stage: String, processingData: ProcessingData): String  {
             if (processingData.defaultAllowedOrigin[stage] != null) {
                 return processingData.defaultAllowedOrigin[stage]!!
             }
             return ""
         }
 
-        fun getAllowedHeaders(stage: String, processingData: ProcessingData, httpServerlessFunction: HttpServerlessFunction): Array<String>  {
-            if (httpServerlessFunction.allowedCorsHeaders.isNotEmpty()) {
-                return httpServerlessFunction.allowedCorsHeaders
-            }
+        fun getAllowedHeaders(stage: String, processingData: ProcessingData): Array<String>  {
             if (processingData.defaultRequestHeaders[stage] != null) {
                 return processingData.defaultRequestHeaders[stage]!!.toTypedArray()
             }

@@ -1,7 +1,7 @@
 package com.nimbusframework.nimbusaws.cloudformation.generation.resources.apigateway
 
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
+import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent
+import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse
 import com.google.testing.compile.Compilation
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
@@ -51,10 +51,9 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             resources.size() shouldBe 7
 
             results.size shouldBe 1
-            processingData.classesForReflection shouldContain "com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent"
-            processingData.classesForReflection shouldContain "com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent"
-            processingData.classesForReflection shouldContain "com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent\$ProxyRequestContext"
-            processingData.classesForReflection shouldContain "com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent\$RequestIdentity"
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPResponse::class.qualifiedName
+            processingData.classesForReflection shouldContain "com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent\$RequestContext"
             processingData.classesForReflection shouldNotContain "models.Person"
         }
     }
@@ -70,11 +69,11 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 8
+            resources.size() shouldBe 7
 
             results.size shouldBe 1
-            processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
-            processingData.classesForReflection shouldContain APIGatewayProxyResponseEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPResponse::class.qualifiedName
             processingData.classesForReflection shouldContain "models.Person"
         }
     }
@@ -91,11 +90,11 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             cfDocuments["dev"] shouldNotBe null
 
             val resources = cfDocuments["dev"]!!.updateTemplate.resources
-            resources.size() shouldBe 9
+            resources.size() shouldBe 7
 
             results.size shouldBe 1
-            processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
-            processingData.classesForReflection shouldContain APIGatewayProxyResponseEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPResponse::class.qualifiedName
             processingData.classesForReflection shouldContain "models.Person"
         }
     }
@@ -115,8 +114,8 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             resources.size() shouldBe 7
 
             results.size shouldBe 1
-            processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
-            processingData.classesForReflection shouldContain APIGatewayProxyResponseEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPResponse::class.qualifiedName
             processingData.classesForReflection shouldContain "models.Person"
         }
     }
@@ -136,8 +135,8 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             resources.size() shouldBe 7
 
             results.size shouldBe 1
-            processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
-            processingData.classesForReflection shouldContain APIGatewayProxyResponseEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPResponse::class.qualifiedName
             processingData.classesForReflection shouldContain "models.Person"
         }
     }
@@ -157,8 +156,8 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             resources.size() shouldBe 7
 
             results.size shouldBe 1
-            processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
-            processingData.classesForReflection shouldContain APIGatewayProxyResponseEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPResponse::class.qualifiedName
             processingData.classesForReflection shouldContain "models.Person"
             processingData.classesForReflection shouldContain "models.NestedPerson"
         }
@@ -180,8 +179,8 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             resources.size() shouldBe 7
 
             results.size shouldBe 1
-            processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
-            processingData.classesForReflection shouldContain APIGatewayProxyResponseEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPResponse::class.qualifiedName
             processingData.classesForReflection shouldContain "models.Person"
             processingData.classesForReflection shouldContain "models.NestedPerson"
         }
@@ -203,8 +202,8 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             resources.size() shouldBe 7
 
             results.size shouldBe 1
-            processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
-            processingData.classesForReflection shouldContain APIGatewayProxyResponseEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPResponse::class.qualifiedName
             processingData.classesForReflection shouldContain "models.Person"
             processingData.classesForReflection shouldContain "models.NestedPerson"
             processingData.classesForReflection shouldContain "models.People"
@@ -227,8 +226,8 @@ class HttpFunctionResourceCreatorTest : AnnotationSpec() {
             resources.size() shouldBe 7
 
             results.size shouldBe 1
-            processingData.classesForReflection shouldContain APIGatewayProxyRequestEvent::class.qualifiedName
-            processingData.classesForReflection shouldContain APIGatewayProxyResponseEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPEvent::class.qualifiedName
+            processingData.classesForReflection shouldContain APIGatewayV2HTTPResponse::class.qualifiedName
             processingData.classesForReflection shouldContain "models.Person"
             processingData.classesForReflection shouldContain "models.People"
         }

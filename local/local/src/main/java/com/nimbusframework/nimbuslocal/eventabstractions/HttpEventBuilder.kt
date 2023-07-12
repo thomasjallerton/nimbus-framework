@@ -5,18 +5,16 @@ import java.util.*
 
 class HttpEventBuilder {
 
-    private var resource: String? = null
-    private var path: String? = null
-    private var httpMethod: String? = null
+    private var resource: String = ""
+    private var path: String = ""
+    private var httpMethod: String = "GET"
     private var headers: MutableMap<String, String> = mutableMapOf()
-    private var multiValueHeaders: MutableMap<String, List<String>> = mutableMapOf()
     private var queryStringParameters: MutableMap<String, String> = mutableMapOf()
-    private var multiValueQueryStringParameters: MutableMap<String, List<String>> = mutableMapOf()
     private var pathParameters: MutableMap<String, String> = mutableMapOf()
     private var stageVariables: MutableMap<String, String> = mutableMapOf()
     private var authorizationContext: MutableMap<String, Any> = mutableMapOf()
     private var body: String? = null
-    private var isBase64Encoded: Boolean? = null
+    private var isBase64Encoded: Boolean = false
     private var requestId: String = UUID.randomUUID().toString()
 
     fun withResource(resource: String): HttpEventBuilder {
@@ -44,16 +42,6 @@ class HttpEventBuilder {
         return this
     }
 
-    fun withMultiValueHeaders(multiValueHeaders: MutableMap<String, List<String>>): HttpEventBuilder {
-        this.multiValueHeaders = multiValueHeaders
-        return this
-    }
-
-    fun withMultiValueHeader(multiValueHeader: String, value: List<String>): HttpEventBuilder {
-        this.multiValueHeaders[multiValueHeader] = value
-        return this
-    }
-
     fun withQueryStringParameters(queryStringParameters: MutableMap<String, String>): HttpEventBuilder {
         this.queryStringParameters = queryStringParameters
         return this
@@ -61,16 +49,6 @@ class HttpEventBuilder {
 
     fun withQueryStringParameter(queryStringParameter: String, value: String): HttpEventBuilder {
         this.queryStringParameters[queryStringParameter] = value
-        return this
-    }
-
-    fun withMultiValueQueryStringParameters(multiValueQueryStringParameters: MutableMap<String, List<String>>): HttpEventBuilder {
-        this.multiValueQueryStringParameters = multiValueQueryStringParameters
-        return this
-    }
-
-    fun withMultiValueQueryStringParameter(multiValueQueryStringParameter: String, value: List<String>): HttpEventBuilder {
-        this.multiValueQueryStringParameters[multiValueQueryStringParameter] = value
         return this
     }
 
@@ -116,13 +94,8 @@ class HttpEventBuilder {
 
     fun build(): HttpEvent {
         return HttpEvent(
-            resource,
-            path,
-            httpMethod,
             headers,
-            multiValueHeaders,
             queryStringParameters,
-            multiValueQueryStringParameters,
             pathParameters,
             stageVariables,
             authorizationContext,

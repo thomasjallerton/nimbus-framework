@@ -1,4 +1,4 @@
-package com.nimbusframework.nimbuslocal.deployment.webserver
+package com.nimbusframework.nimbuscore.annotations.http
 
 object CorsInformation {
 
@@ -7,7 +7,9 @@ object CorsInformation {
             "accept-language",
             "content-language",
             "origin",
-            "content-type"
+            "content-type",
+            "content-encoding",
+            "accept-encoding"
     )
 
 }

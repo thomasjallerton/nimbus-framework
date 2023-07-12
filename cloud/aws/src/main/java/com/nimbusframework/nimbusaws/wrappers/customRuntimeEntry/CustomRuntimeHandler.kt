@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbusaws.wrappers.customRuntimeEntry
 
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
+import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.IOException
 import java.net.URI
@@ -59,7 +59,7 @@ class CustomRuntimeHandler(
             objectMapper.writeValueAsString(
                 mapOf(Pair("error", exception.message))
             )
-        val errorResponse = APIGatewayProxyResponseEvent()
+        val errorResponse = APIGatewayV2HTTPResponse()
         errorResponse.statusCode = 500
         errorResponse.body = errorBody
 

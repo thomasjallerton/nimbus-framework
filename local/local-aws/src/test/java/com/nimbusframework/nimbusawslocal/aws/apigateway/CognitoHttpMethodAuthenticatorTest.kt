@@ -3,7 +3,7 @@ package com.nimbusframework.nimbusawslocal.aws.apigateway
 import com.nimbusframework.nimbusaws.clients.cognito.CognitoUser
 import com.nimbusframework.nimbusawslocal.aws.LocalAwsResourceHolder
 import com.nimbusframework.nimbusawslocal.aws.cognito.LocalCognito
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbuslocal.deployment.http.HttpRequest
 import exampleresources.UserPool
 import io.kotest.core.spec.style.StringSpec

@@ -1,6 +1,6 @@
 package handlers;
 
-import com.nimbusframework.nimbuscore.annotations.function.HttpMethod;
+import com.nimbusframework.nimbuscore.annotations.http.HttpMethod;
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction;
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent;
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse;
@@ -61,6 +61,16 @@ public class HttpHandlers {
   @HttpServerlessFunction(method = HttpMethod.GET, path = "listnestedperson")
   public People listNestedResponse() {
     return new People();
+  }
+
+  @HttpServerlessFunction(method = HttpMethod.GET, path = "encoderequest", enableRequestDecoding = true)
+  public NestedPerson encodeRequest(Person person) {
+    return new NestedPerson();
+  }
+
+  @HttpServerlessFunction(method = HttpMethod.GET, path = "encoderesponse", enableResponseEncoding = true)
+  public NestedPerson encodeResponse(HttpEvent event) {
+    return new NestedPerson();
   }
 
 }

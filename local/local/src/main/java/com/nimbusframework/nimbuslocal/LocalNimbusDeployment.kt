@@ -2,7 +2,7 @@ package com.nimbusframework.nimbuslocal
 
 import com.nimbusframework.nimbuscore.services.ReadUserConfigService
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
-import com.nimbusframework.nimbuscore.annotations.function.HttpException
+import com.nimbusframework.nimbuscore.annotations.http.HttpException
 import com.nimbusframework.nimbuscore.clients.ClientBinder
 import com.nimbusframework.nimbuscore.clients.file.FileStorageBucketNameAnnotationService
 import com.nimbusframework.nimbuscore.clients.notification.NotificationTopicAnnotationService
@@ -32,7 +32,6 @@ import com.nimbusframework.nimbuslocal.deployment.websocket.WebSocketRequest
 import org.eclipse.jetty.websocket.api.Session
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
-import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.reflections.util.FilterBuilder
@@ -140,7 +139,7 @@ class LocalNimbusDeployment private constructor(
 
 
     internal fun getLocalHandler(bucketName: String): WebServerHandler? {
-        return localResourceHolder.httpServers[bucketName]?.handler?.handler
+        return localResourceHolder.httpServers[bucketName]?.webServerHandler
     }
 
     internal fun getWebSocketSessions(): Map<String, Session> {
