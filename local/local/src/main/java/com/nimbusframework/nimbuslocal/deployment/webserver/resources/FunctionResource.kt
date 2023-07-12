@@ -11,6 +11,7 @@ import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.BufferedReader
+import java.util.Base64
 
 class FunctionResource(
     private val path: String,
@@ -23,8 +24,13 @@ class FunctionResource(
 ): WebResource(allowedHeaders, listOf(allowedOrigin), baseRequest, gzipResponse) {
 
     override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
-        val strBody = request.inputStream.bufferedReader().use(BufferedReader::readText)
-        val headers = getHeaders(request)
+        val byteArrayBody = request.inputStream.readBytes()
+        val (strBody, isBase64Encoded) = if (request.getHeader("Content-Encoding") == "gzip") {
+            Pair(String(Base64.getEncoder().encode(byteArrayBody)), true)
+        } else {
+            Pair(String(byteArrayBody), false)
+        }
+        val (headersV1, headersV2) = getHeaders(request)
 
         val correctedPath = if (request.queryString.isNullOrEmpty()) {
             target
@@ -32,14 +38,15 @@ class FunctionResource(
             "$target?${request.queryString}"
         }
 
-        val httpRequest = HttpRequest(correctedPath, httpMethod, strBody, headers)
+        val httpRequestV2 = HttpRequest(correctedPath, httpMethod, strBody, headersV2, isBase64Encoded)
+        val httpRequestV1 = HttpRequest(correctedPath, httpMethod, strBody, headersV1, isBase64Encoded)
 
         try {
-            val authResponse = LocalNimbusDeployment.getInstance().localResourceHolder.httpAuthenticator?.allow(httpRequest)
+            val authResponse = LocalNimbusDeployment.getInstance().localResourceHolder.httpAuthenticator?.allow(httpRequestV1)
             if (authResponse?.authenticated == false) {
                 throw HttpException(403, "Unauthenticated")
             }
-            val result = method.invoke(httpRequest, HttpMethodIdentifier(path, httpMethod), authResponse?.context ?: mapOf())
+            val result = method.invoke(httpRequestV2, HttpMethodIdentifier(path, httpMethod), authResponse?.context ?: mapOf())
 
             response.contentType = "application/json"
 
@@ -63,14 +70,16 @@ class FunctionResource(
         }
     }
 
-    private fun getHeaders(request: HttpServletRequest): Map<String, List<String>> {
+    private fun getHeaders(request: HttpServletRequest): Pair<Map<String, List<String>>, Map<String, List<String>>> {
         val headerNames = request.headerNames
-        val result: MutableMap<String, List<String>> = mutableMapOf()
+        val resultV1: MutableMap<String, List<String>> = mutableMapOf()
+        val resultV2: MutableMap<String, List<String>> = mutableMapOf()
         for (headerName in headerNames) {
             val headerVal = request.getHeader(headerName)
-            result[headerName] = headerVal.split(",")
+            resultV1[headerName] = headerVal.split(",")
+            resultV2[headerName.lowercase()] = headerVal.split(",")
         }
-        return result
+        return Pair(resultV1, resultV2)
     }
 
 }

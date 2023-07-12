@@ -6,12 +6,6 @@ import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.AbstractHandler
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
 
-
-
-
-
-
-
 class LocalHttpServer(val port: Int, val webServerHandler: WebServerHandler) {
 
     val handler: AbstractHandler

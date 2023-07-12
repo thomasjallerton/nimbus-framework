@@ -52,19 +52,9 @@ class LocalHttpFunctionHandler(
                 variableSubstitution["\${NIMBUS_REST_API_URL}"] = "http://localhost:$httpPort"
                 LocalHttpServer(httpPort, WebServerHandler("", ""))
             }
-            val allowedOrigin = if (variableSubstitution.containsKey(annotation.allowedCorsOrigin)) {
-                variableSubstitution[annotation.allowedCorsOrigin]!!
-            } else if (annotation.allowedCorsOrigin.isNotBlank()) {
-                annotation.allowedCorsOrigin
-            } else {
-                stageService.getDefaultAllowedOrigin()
-            }
+            val allowedOrigin = stageService.getDefaultAllowedOrigin()
 
-            val allowedHeaders = if (annotation.allowedCorsHeaders.isNotEmpty()) {
-                annotation.allowedCorsHeaders
-            } else {
-                stageService.getDefaultAllowedHeaders()
-            }
+            val allowedHeaders = stageService.getDefaultAllowedHeaders()
 
             functionApiServer.webServerHandler.addWebResource(
                 annotation.path,

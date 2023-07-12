@@ -4,16 +4,16 @@ import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.Resource
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.RestApi
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.HttpApi
 
-abstract class RestApiAuthorizer(
-    protected val restApi: RestApi,
+abstract class HttpApiAuthorizer(
+    protected val httpApi: HttpApi,
     val ttlSeconds: Int = 300,
     nimbusState: NimbusState,
     stage: String
 ) : Resource(nimbusState, stage) {
 
-    private val name = "ApiGatewayRestApiAuthorizer"
+    private val name = "ApiGatewayHttpApiAuthorizer"
 
     fun getId(): JsonObject {
         val id = JsonObject()
@@ -30,12 +30,12 @@ abstract class RestApiAuthorizer(
 
     override fun toCloudFormation(): JsonObject {
         val restApiAuthorizer = JsonObject()
-        restApiAuthorizer.addProperty("Type", "AWS::ApiGateway::Authorizer")
+        restApiAuthorizer.addProperty("Type", "AWS::ApiGatewayV2::Authorizer")
 
         val properties = getProperties()
         properties.addProperty("AuthorizerResultTtlInSeconds", ttlSeconds)
         properties.addProperty("Name", getName())
-        properties.add("RestApiId", restApi.getRootId())
+        properties.add("ApiId", httpApi.getRef())
 
         addSpecificProperties(properties)
 

@@ -10,8 +10,7 @@ import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.Func
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.cognito.ExistingCognitoResourceCreator
 import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
 import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionPermissionResource
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.authorizer.CognitoRestApiAuthorizer
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.authorizer.TokenRestApiAuthorizer
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.authorizer.TokenHttpApiAuthorizer
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
@@ -56,12 +55,12 @@ internal class ApiGatewayConfigResourceCreatorTest: AnnotationSpec() {
 
             // ... created authorizer and permission
             val authorizer = cfDocuments["dev"]!!.updateTemplate.getRestApiAuthorizer()!!
-            authorizer.shouldBeInstanceOf<TokenRestApiAuthorizer>()
+            authorizer.shouldBeInstanceOf<TokenHttpApiAuthorizer>()
             authorizer.function shouldBe functionResource
             authorizer.identityHeader shouldBe "Authorization"
             authorizer.ttlSeconds shouldBe 300
 
-            val permission = resources.get("LambdaPermRestAuth" + functionResource.getShortName())!! as FunctionPermissionResource
+            val permission = resources.get("LambdaPermHttpAuth" + functionResource.getShortName())!! as FunctionPermissionResource
             permission.trigger shouldBe authorizer
 
             val functionInformation = processingData.additionalFunctions.first { it.resource == functionResource }
@@ -96,40 +95,16 @@ internal class ApiGatewayConfigResourceCreatorTest: AnnotationSpec() {
 
             // ... created authorizer and permission
             val authorizer = cfDocuments["dev"]!!.updateTemplate.getRestApiAuthorizer()!!
-            authorizer.shouldBeInstanceOf<TokenRestApiAuthorizer>()
+            authorizer.shouldBeInstanceOf<TokenHttpApiAuthorizer>()
             authorizer.function shouldBe functionResource
             authorizer.identityHeader shouldBe "Bearer"
             authorizer.ttlSeconds shouldBe 100
 
-            val permission = resources.get("LambdaPermRestAuth" + functionResource.getShortName())!! as FunctionPermissionResource
+            val permission = resources.get("LambdaPermHttpAuth" + functionResource.getShortName())!! as FunctionPermissionResource
             permission.trigger shouldBe authorizer
 
             val functionInformation = processingData.additionalFunctions.first { it.resource == functionResource }
             functionInformation.awsMethodInformation shouldBe null
-        }
-    }
-
-    @Test
-    fun correctlySetsUpCognitoAuthorizer() {
-        val compileStateService = CompileStateService("models/apigateway/ConfiguredApiGatewayCognito.java", "models/cognito/UserPool.java")
-        compileStateService.compileObjects {
-            val existingCognitoResourceCreator = ExistingCognitoResourceCreator(roundEnvironment, cfDocuments, processingData.nimbusState)
-            existingCognitoResourceCreator.handleAgnosticType(it.elementUtils.getTypeElement("models.cognito.UserPool"))
-
-            val apiGatewayConfigResourceCreator = ApiGatewayConfigResourceCreator(roundEnvironment, cfDocuments, processingData, it, it.messager, functionEnvironmentService)
-
-            val restApiTypeElem = it.elementUtils.getTypeElement("models.apigateway.ConfiguredApiGatewayCognito")
-            apiGatewayConfigResourceCreator.handleAgnosticType(restApiTypeElem)
-
-            cfDocuments["dev"] shouldNotBe null
-
-            // then
-            // ... created authorizer
-            val authorizer = cfDocuments["dev"]!!.updateTemplate.getRestApiAuthorizer()!!
-            authorizer.shouldBeInstanceOf<CognitoRestApiAuthorizer>()
-            authorizer.cognitoUserPoolArn shouldBe "arn:partition:service:region:account-id:resource-id"
-            authorizer.identityHeader shouldBe "Authorization"
-            authorizer.ttlSeconds shouldBe 300
         }
     }
 

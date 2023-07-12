@@ -1,16 +1,11 @@
 package com.nimbusframework.nimbusaws.cloudformation.generation.abstractions
 
-import com.amazonaws.services.lambda.runtime.events.APIGatewayCustomAuthorizerEvent
-import com.amazonaws.services.lambda.runtime.events.IamPolicyResponse
 import com.nimbusframework.nimbusaws.CompileStateService
 import com.nimbusframework.nimbusaws.annotation.processor.AwsMethodInformation
 import com.nimbusframework.nimbusaws.annotation.processor.FunctionInformation
 import com.nimbusframework.nimbusaws.annotation.processor.ProcessingData
-import com.nimbusframework.nimbusaws.cloudformation.generation.FunctionAssertions
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.basicfunction.BasicFunctionResourceCreator
 import com.nimbusframework.nimbusaws.cloudformation.model.CloudFormationFiles
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionPermissionResource
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.authorizer.TokenRestApiAuthorizer
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbuscore.annotations.function.repeatable.HttpServerlessFunctions
 import com.nimbusframework.nimbuscore.persisted.HandlerInformation
@@ -20,7 +15,6 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify

@@ -1,11 +1,11 @@
 package com.nimbusframework.nimbusaws.cloudformation.model.outputs
 
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.RestApi
+import com.nimbusframework.nimbusaws.cloudformation.model.resource.http.HttpApi
 import com.nimbusframework.nimbusaws.configuration.REST_API_URL_OUTPUT
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 
-class RestApiOutput(
-    restApi: RestApi,
+class HttpApiOutput(
+    restApi: HttpApi,
     nimbusState: NimbusState
 ): ApiGatewayOutput(
         restApi,

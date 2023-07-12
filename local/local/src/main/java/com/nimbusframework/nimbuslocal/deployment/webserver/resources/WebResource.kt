@@ -1,6 +1,6 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver.resources
 
-import com.nimbusframework.nimbuslocal.deployment.webserver.CorsInformation
+import com.nimbusframework.nimbuscore.annotations.http.CorsInformation
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 

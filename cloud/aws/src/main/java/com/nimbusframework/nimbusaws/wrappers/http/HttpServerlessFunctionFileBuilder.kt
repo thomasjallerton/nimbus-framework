@@ -1,7 +1,8 @@
 package com.nimbusframework.nimbusaws.wrappers.http
 
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
+import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
+import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse
 import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
@@ -30,8 +31,8 @@ class HttpServerlessFunctionFileBuilder(
     HttpServerlessFunction::class.java.simpleName,
     HttpEvent::class.java,
     compilingElement,
-    APIGatewayProxyRequestEvent::class.java,
-    APIGatewayProxyResponseEvent::class.java,
+    APIGatewayV2HTTPEvent::class.java,
+    APIGatewayV2HTTPResponse::class.java,
     classForReflectionService
 ) {
 
@@ -80,7 +81,8 @@ class HttpServerlessFunctionFileBuilder(
             else -> write("${callPrefix}handler.$methodName(event, parsedType);")
         }
 
-        write("APIGatewayProxyResponseEvent responseEvent = new APIGatewayProxyResponseEvent().withStatusCode(200);")
+        write("APIGatewayV2HTTPResponse responseEvent = new APIGatewayV2HTTPResponse();")
+        write("responseEvent.setStatusCode(200);")
 
         if (fileBuilderMethodInformation.returnType.toString() == HttpResponse::class.qualifiedName) {
             if (enableResponseCompression) {
@@ -105,30 +107,30 @@ class HttpServerlessFunctionFileBuilder(
             }
             write("responseEvent.setBody(responseBody);")
         }
-        addCorsHeader("responseEvent")
+//        addCorsHeader("responseEvent")
         write("return responseEvent;")
     }
 
     override fun writeCustomExceptionHandler() {
         write("} catch (HttpException e) {")
-        write("APIGatewayProxyResponseEvent errorResponse = new APIGatewayProxyResponseEvent()")
-        write("\t.withStatusCode(e.getStatusCode())")
-        write("\t.withBody(e.getMessage());")
-        addCorsHeader("errorResponse")
+        write("APIGatewayV2HTTPResponse errorResponse = new APIGatewayV2HTTPResponse();")
+        write("errorResponse.setStatusCode(e.getStatusCode());")
+        write("errorResponse.setBody(e.getMessage());")
+//        addCorsHeader("errorResponse")
         write("return errorResponse;")
     }
 
-    private fun addCorsHeader(variableName: String) {
-        write("if ($variableName.getHeaders() == null) {")
-        write("$variableName.setHeaders(new HashMap<>());")
-        write("}")
-        write("if (!$variableName.getHeaders().containsKey(\"Access-Control-Allow-Origin\")) {")
-        write("String allowedCorsOrigin = System.getenv(\"${NimbusConstants.allowedOriginEnvVariable}\");")
-        write("if (allowedCorsOrigin != null && !allowedCorsOrigin.equals(\"\")) {")
-        write("$variableName.getHeaders().put(\"Access-Control-Allow-Origin\", allowedCorsOrigin);")
-        write("}")
-        write("}")
-    }
+//    private fun addCorsHeader(variableName: String) {
+//        write("if ($variableName.getHeaders() == null) {")
+//        write("$variableName.setHeaders(new HashMap<>());")
+//        write("}")
+//        write("if (!$variableName.getHeaders().containsKey(\"Access-Control-Allow-Origin\")) {")
+//        write("String allowedCorsOrigin = System.getenv(\"${NimbusConstants.allowedOriginEnvVariable}\");")
+//        write("if (allowedCorsOrigin != null && !allowedCorsOrigin.equals(\"\")) {")
+//        write("$variableName.getHeaders().put(\"Access-Control-Allow-Origin\", allowedCorsOrigin);")
+//        write("}")
+//        write("}")
+//    }
 
     private fun setHeader(variableName: String, header: String, valueVariable: String) {
         write("if ($variableName.getHeaders() == null) {")

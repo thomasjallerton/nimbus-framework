@@ -1,4 +1,4 @@
-package com.nimbusframework.nimbuslocal.deployment.webserver
+package com.nimbusframework.nimbuscore.annotations.http
 
 object CorsInformation {
 

@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Repeatable(ApiGatewayRestConfigs.class)
 public @interface ApiGatewayRestConfig {
     /**
-     * Optional. Must be a class annotated with @ExistingCognitoUserPool, or a class that implements ApiGatewayLambdaAuthorizer
+     * Optional. Must be a class that implements ApiGatewayLambdaAuthorizer
      */
     Class<?> authorizer() default void.class;
 

@@ -68,18 +68,7 @@ class HttpFunctionResourceCreator(
                     config
                 )
 
-                val annotationCorsOrigin = httpFunction.allowedCorsOrigin
-                val referencedWebsite =
-                    cfDocuments[stage]!!.updateTemplate.referencedFileStorageBucket(annotationCorsOrigin)
-
-                if (referencedWebsite != null) {
-                    functionResource.addEnvVariable(
-                        ConstantEnvironmentVariable.NIMBUS_ALLOWED_CORS_ORIGIN,
-                        referencedWebsite.getAttr("WebsiteURL")
-                    )
-                } else {
-                    functionResource.addEnvVariable(ConstantEnvironmentVariable.NIMBUS_ALLOWED_CORS_ORIGIN, getAllowedOrigin(stage, processingData, httpFunction))
-                }
+                functionResource.addEnvVariable(ConstantEnvironmentVariable.NIMBUS_ALLOWED_CORS_ORIGIN, getAllowedOrigin(stage, processingData))
 
                 functionEnvironmentService.newHttpMethod(httpFunction, functionResource)
 
@@ -91,20 +80,14 @@ class HttpFunctionResourceCreator(
 
     companion object {
 
-        fun getAllowedOrigin(stage: String, processingData: ProcessingData, httpServerlessFunction: HttpServerlessFunction): String  {
-            if (httpServerlessFunction.allowedCorsOrigin.isNotBlank()) {
-                return httpServerlessFunction.allowedCorsOrigin
-            }
+        fun getAllowedOrigin(stage: String, processingData: ProcessingData): String  {
             if (processingData.defaultAllowedOrigin[stage] != null) {
                 return processingData.defaultAllowedOrigin[stage]!!
             }
             return ""
         }
 
-        fun getAllowedHeaders(stage: String, processingData: ProcessingData, httpServerlessFunction: HttpServerlessFunction): Array<String>  {
-            if (httpServerlessFunction.allowedCorsHeaders.isNotEmpty()) {
-                return httpServerlessFunction.allowedCorsHeaders
-            }
+        fun getAllowedHeaders(stage: String, processingData: ProcessingData): Array<String>  {
             if (processingData.defaultRequestHeaders[stage] != null) {
                 return processingData.defaultRequestHeaders[stage]!!.toTypedArray()
             }

@@ -15,9 +15,6 @@ object HttpUtils {
         if (httpEvent.headers?.containsKey(CONTENT_ENCODING_HEADER) == true) {
             return listOf(ContentEncoding.forContentEncodingHeader(httpEvent.headers[CONTENT_ENCODING_HEADER]!!))
         }
-        if (httpEvent.multiValueHeaders?.containsKey(CONTENT_ENCODING_HEADER) == true) {
-            return httpEvent.multiValueHeaders[CONTENT_ENCODING_HEADER]!!.map { ContentEncoding.forContentEncodingHeader(it) }
-        }
         return listOf()
     }
 
@@ -25,12 +22,9 @@ object HttpUtils {
      * Returns the accepted encodings, in order of preference.
      */
     @JvmStatic
-    fun getAcceptEncodings(headers: Map<String, String>?, multiValueHeaders: Map<String, List<String>>?): ContentEncoding? {
+    fun getAcceptEncodings(headers: Map<String, String>?): ContentEncoding? {
         if (headers?.containsKey(ACCEPT_ENCODING_HEADER) == true) {
             return ContentEncoding.forAcceptEncodingHeader(headers[ACCEPT_ENCODING_HEADER]!!)
-        }
-        if (multiValueHeaders?.containsKey(ACCEPT_ENCODING_HEADER) == true) {
-            return multiValueHeaders[ACCEPT_ENCODING_HEADER]!!.firstNotNullOfOrNull { ContentEncoding.forAcceptEncodingHeader(it) }
         }
         return null
     }
@@ -38,7 +32,7 @@ object HttpUtils {
     @JvmStatic
     fun getUncompressedContent(httpEvent: HttpEvent): String {
         val encodings = getContentEncoding(httpEvent)
-        var current = getBase64Decoded(httpEvent.body!!)
+        var current = getBase64Decoded(httpEvent.body!!, httpEvent.isBase64Encoded!!)
         // Reversed as the header is in the order the encodings were applied
         for (compression in encodings.reversed()) {
             when (compression) {
@@ -55,28 +49,22 @@ object HttpUtils {
     }
 
     // Tries to decode the input as a base 64 string.
-    private fun getBase64Decoded(input: String): ByteArray {
-        return try {
-            val trimmedInput = input.removePrefix("\"").removeSuffix("\"")
-            Base64.getDecoder().decode(trimmedInput)
-        } catch (e: Exception) {
+    private fun getBase64Decoded(input: String, isBase64Encoded: Boolean): ByteArray {
+        return if (isBase64Encoded) {
+            Base64.getDecoder().decode(input)
+        } else {
             input.toByteArray()
         }
     }
 
     @JvmStatic
     fun compressContent(httpEvent: HttpEvent, toCompress: String): CompressedContent? {
-        return compressContent(httpEvent.headers, httpEvent.multiValueHeaders, toCompress)
+        return compressContent(httpEvent.headers, toCompress)
     }
 
     @JvmStatic
-    fun compressContent(headers: Map<String, String>?, multiValueHeaders: Map<String, List<String>>?, toCompress: String): CompressedContent? {
-        headers?.forEach { println("${it.key}, ${it.value}") }
-        multiValueHeaders?.forEach { println("${it.key}, [${it.value.joinToString(",")}]") }
-        val chosenEncoding = getAcceptEncodings(headers, multiValueHeaders)
-        if (chosenEncoding == null) {
-            return null
-        }
+    fun compressContent(headers: Map<String, String>?, toCompress: String): CompressedContent? {
+        val chosenEncoding = getAcceptEncodings(headers) ?: return null
         val content = when (chosenEncoding) {
             ContentEncoding.GZIP -> {
                 val bos = ByteArrayOutputStream()
@@ -88,12 +76,11 @@ object HttpUtils {
             }
             ContentEncoding.IDENTITY, ContentEncoding.NO_PREFERENCE -> return null
         }
-        println(chosenEncoding)
         return CompressedContent(content, chosenEncoding.header)
     }
 
-    const val CONTENT_ENCODING_HEADER = "Content-Encoding"
-    private const val ACCEPT_ENCODING_HEADER = "Accept-Encoding"
+    const val CONTENT_ENCODING_HEADER = "content-encoding"
+    private const val ACCEPT_ENCODING_HEADER = "accept-encoding"
 
     data class CompressedContent(val content: ByteArray, val encoding: String)
 }

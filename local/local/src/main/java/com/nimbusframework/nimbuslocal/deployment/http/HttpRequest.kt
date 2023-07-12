@@ -7,7 +7,8 @@ data class HttpRequest(
     var path: String,
     var method: HttpMethod,
     var body: String = "null",
-    var headers: Map<String, List<String>> = mapOf()
+    var headers: Map<String, List<String>> = mapOf(),
+    val isBase64Encoded: Boolean = false
 ) {
     constructor(path: String, method: HttpMethod): this(path, method, "null")
     constructor(path: String, method: HttpMethod, body: String): this(path, method, body, mapOf())

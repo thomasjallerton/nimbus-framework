@@ -11,12 +11,10 @@ enum class ContentEncoding(val header: String) {
         }
 
         fun forAcceptEncodingHeader(header: String): ContentEncoding? {
-            println("header option: '$header'")
             val splitHeader = header.split(",").map { it.trim() }
             for (headerPart in splitHeader) {
-                println("part: $headerPart")
                 val qualityHeaders = headerPart.split(";").map { it.trim() }
-                return values().firstOrNull { it.header == qualityHeaders[0] }
+                return values().firstOrNull { it.header == qualityHeaders[0] } ?: continue
             }
             return null
         }

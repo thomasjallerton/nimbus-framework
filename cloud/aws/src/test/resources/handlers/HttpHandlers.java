@@ -63,4 +63,14 @@ public class HttpHandlers {
     return new People();
   }
 
+  @HttpServerlessFunction(method = HttpMethod.GET, path = "encoderequest", enableRequestDecoding = true)
+  public NestedPerson encodeRequest(Person person) {
+    return new NestedPerson();
+  }
+
+  @HttpServerlessFunction(method = HttpMethod.GET, path = "encoderesponse", enableResponseEncoding = true)
+  public NestedPerson encodeResponse(HttpEvent event) {
+    return new NestedPerson();
+  }
+
 }

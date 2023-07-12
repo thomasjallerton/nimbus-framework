@@ -30,11 +30,10 @@ class LocalHttpMethod(
         val httpEvent = HttpEvent(
             pathParameters = methodIdentifier.extractPathParameters(request.path),
             headers = multiValueParamsToSingle(request.headers),
-            multiValueHeaders = request.headers,
             queryStringParameters = queryStringParameters,
-            multiValueQueryStringParameters = multiValueQueryStringParameters,
             authorizationContext = authorizationContext,
-            body = request.body
+            body = request.body,
+            isBase64Encoded = request.isBase64Encoded
         )
 
         var strParam = request.body
