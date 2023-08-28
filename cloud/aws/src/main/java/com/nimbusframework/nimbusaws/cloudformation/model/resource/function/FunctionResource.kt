@@ -82,7 +82,7 @@ class FunctionResource(
         code.addProperty("S3Key", "nimbus/${nimbusState.projectName}/${handlerInformation.fileReplacementVariable}")
 
         val (runtime, finalHandler) = if (nimbusState.customRuntime) {
-            Pair("provided", "provided")
+            Pair("provided.al2", "provided")
         } else {
             Pair(handlerInformation.runtime, handlerInformation.handlerPath)
         }
