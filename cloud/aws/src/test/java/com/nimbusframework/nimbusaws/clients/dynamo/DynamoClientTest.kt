@@ -2,17 +2,16 @@ package com.nimbusframework.nimbusaws.clients.dynamo
 
 import com.nimbusframework.nimbusaws.clients.dynamo.condition.DynamoConditionProcessor
 import com.nimbusframework.nimbusaws.examples.document.DocumentStoreNoTableName
-import com.nimbusframework.nimbusaws.wrappers.store.keyvalue.exceptions.ConditionFailedException
 import com.nimbusframework.nimbuscore.annotations.persistent.Attribute
 import com.nimbusframework.nimbuscore.annotations.persistent.Key
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonOperator
-import com.nimbusframework.nimbuscore.clients.store.conditions.bool.BooleanComparisonCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeExists
 import com.nimbusframework.nimbuscore.clients.store.conditions.function.AttributeNotExists
 import com.nimbusframework.nimbuscore.clients.store.conditions.variable.ConditionVariable
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
 import com.nimbusframework.nimbuscore.exceptions.RetryableException
+import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -301,7 +300,7 @@ class DynamoClientTest : AnnotationSpec() {
         underTest.getColumnName("test")
     }
 
-    @Test(expected = ConditionFailedException::class)
+    @Test(expected = StoreConditionException::class)
     fun canExecuteDynamoRequestThrowsConditionException() {
         val putItemRequest = slot<PutItemRequest>()
 

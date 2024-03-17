@@ -1,5 +1,6 @@
 package com.nimbusframework.nimbuslocal.deployment.store
 
+import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.store.conditions.BracketsCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonCondition
 import com.nimbusframework.nimbuscore.clients.store.conditions.ComparisonOperator
@@ -40,6 +41,7 @@ class ConditionProcessor <T> (private val clazz: Class<T>, private val keyColumn
             value1 is Byte && value2 is Byte -> compareTwoVariables(value1 as Byte, condition.operator, value2 as Byte)
             value1 is String && value2 is String -> compareTwoVariables(value1 as String, condition.operator, value2 as String)
             value1 is Boolean && value2 is Boolean -> compareTwoVariables(value1 as Boolean, condition.operator, value2 as Boolean)
+            value1.javaClass == value2.javaClass -> compareTwoVariables(JacksonClient.writeValueAsString(value1), condition.operator, JacksonClient.writeValueAsString(value2))
             else -> throw TypeMismatchException()
         }
     }

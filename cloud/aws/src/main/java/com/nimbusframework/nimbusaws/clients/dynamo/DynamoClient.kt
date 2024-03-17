@@ -1,13 +1,13 @@
 package com.nimbusframework.nimbusaws.clients.dynamo
 
 import com.nimbusframework.nimbusaws.clients.dynamo.condition.DynamoConditionProcessor
-import com.nimbusframework.nimbusaws.wrappers.store.keyvalue.exceptions.ConditionFailedException
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.clients.store.ReadItemRequest
 import com.nimbusframework.nimbuscore.clients.store.WriteItemRequest
 import com.nimbusframework.nimbuscore.clients.store.conditions.Condition
 import com.nimbusframework.nimbuscore.exceptions.NonRetryableException
 import com.nimbusframework.nimbuscore.exceptions.RetryableException
+import com.nimbusframework.nimbuscore.exceptions.StoreConditionException
 import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.*
@@ -36,7 +36,9 @@ class DynamoClient (
         if (condition != null) {
             val valueMap: MutableMap<String, AttributeValue> = mutableMapOf()
             putItemRequest.conditionExpression(conditionProcessor.processCondition(condition, valueMap))
-                    .expressionAttributeValues(valueMap)
+            if (valueMap.isNotEmpty()) {
+                putItemRequest.expressionAttributeValues(valueMap)
+            }
         }
 
         executeDynamoRequest { client.putItem(putItemRequest.build()) }
@@ -209,7 +211,7 @@ class DynamoClient (
         try {
             return toExecute()
         } catch (e: ConditionalCheckFailedException) {
-            throw ConditionFailedException()
+            throw StoreConditionException()
         } catch (e: SdkException) {
             if (e.retryable()) {
                 throw RetryableException(e.localizedMessage)

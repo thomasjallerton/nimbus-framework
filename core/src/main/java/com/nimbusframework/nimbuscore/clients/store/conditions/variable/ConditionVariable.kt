@@ -25,5 +25,10 @@ abstract class ConditionVariable {
         fun string(string: String): StringVariable {
             return StringVariable(string)
         }
+
+        @JvmStatic
+        fun obj(obj: Any): ObjectVariable {
+            return ObjectVariable(obj)
+        }
     }
 }
