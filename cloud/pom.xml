@@ -3,13 +3,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>nimbus-cloud</artifactId>
-    <version>0.16.5</version>
+    <version>0.16.6-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>com.nimbusframework</groupId>
         <artifactId>nimbus-parent</artifactId>
-        <version>0.16.5</version>
+        <version>0.16.6-SNAPSHOT</version>
     </parent>
 
     <modules>
