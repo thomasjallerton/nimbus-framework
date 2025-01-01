@@ -44,6 +44,7 @@ class FileStorageBucketResourceCreator(
                 fileBucket.setWebsiteConfiguration(
                         WebsiteConfiguration(
                                 storageBucket.staticWebsite,
+                                storageBucket.websitePublicAccess,
                                 storageBucket.indexFile,
                                 storageBucket.errorFile
                         )

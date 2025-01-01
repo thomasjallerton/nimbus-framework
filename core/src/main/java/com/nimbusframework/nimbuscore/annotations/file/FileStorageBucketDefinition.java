@@ -8,6 +8,7 @@ import java.lang.annotation.*;
 public @interface FileStorageBucketDefinition {
     String bucketName();
     boolean staticWebsite() default false;
+    boolean websitePublicAccess() default true;
     String[] allowedCorsOrigins() default {};
     String indexFile() default "index.html";
     String errorFile() default "error.html";

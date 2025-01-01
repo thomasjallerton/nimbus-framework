@@ -9,11 +9,11 @@ import com.nimbusframework.nimbusaws.cloudformation.model.resource.DirectAccessR
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 
 class FileBucketResource(
-        nimbusState: NimbusState,
-        val annotationBucketName: String,
-        private val allowedCorsOrigins: Array<String>,
-        stage: String
-): Resource(nimbusState, stage), FunctionTrigger, DirectAccessResource {
+    nimbusState: NimbusState,
+    val annotationBucketName: String,
+    private val allowedCorsOrigins: Array<String>,
+    stage: String
+) : Resource(nimbusState, stage), FunctionTrigger, DirectAccessResource {
 
     private var hasNotificationConfiguration: Boolean = false
     private var hasWebsiteConfiguration: Boolean = false
@@ -46,7 +46,7 @@ class FileBucketResource(
 
     override fun toCloudFormation(): JsonObject {
         val bucketResource = JsonObject()
-        bucketResource.addProperty("Type","AWS::S3::Bucket")
+        bucketResource.addProperty("Type", "AWS::S3::Bucket")
         val properties = JsonObject()
 
         if (hasNotificationConfiguration) {
@@ -54,11 +54,18 @@ class FileBucketResource(
         }
 
         if (hasWebsiteConfiguration && websiteConfiguration.enabled) {
-            properties.addProperty("AccessControl", "PublicRead")
             properties.add("WebsiteConfiguration", websiteConfiguration.toJson())
+
+            val publicAccessBlockConfig = JsonObject()
+            publicAccessBlockConfig.addProperty("BlockPublicAcls", "false")
+            publicAccessBlockConfig.addProperty("BlockPublicPolicy", "false")
+            publicAccessBlockConfig.addProperty("IgnorePublicAcls", "false")
+            publicAccessBlockConfig.addProperty("RestrictPublicBuckets", "false")
+            properties.add("PublicAccessBlockConfiguration", publicAccessBlockConfig)
+
             if (allowedCorsOrigins.isNotEmpty()) {
                 val corsConfiguration = CorsConfiguration(
-                        allowedCorsOrigins
+                    allowedCorsOrigins
                 )
                 properties.add("CorsConfiguration", corsConfiguration.toJson())
             }
