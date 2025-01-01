@@ -59,7 +59,7 @@ jobs:
       with:
         gpg_private_key: ${{ secrets.GPG_KEY }}
         gpg_passphrase: ${{ secrets.GPG_PASSWORD }}
-        nexus_username: thomasjallerton
+        nexus_username: ${{ secrets.REPO_USERNAME }}
         nexus_password: ${{ secrets.REPO_PASSWORD }}
 
     - name: Rollback release
