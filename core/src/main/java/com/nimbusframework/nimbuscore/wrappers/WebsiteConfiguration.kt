@@ -4,7 +4,6 @@ import com.google.gson.JsonObject
 
 data class WebsiteConfiguration(
         val enabled: Boolean = false,
-        val publicAccess: Boolean = true,
         val index: String = "index.html",
         val error: String = "error.html"
 ) {
