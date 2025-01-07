@@ -107,30 +107,17 @@ class HttpServerlessFunctionFileBuilder(
             }
             write("responseEvent.setBody(responseBody);")
         }
-//        addCorsHeader("responseEvent")
         write("return responseEvent;")
     }
 
     override fun writeCustomExceptionHandler() {
         write("} catch (HttpException e) {")
+        write("e.printStackTrace(System.out);")
         write("APIGatewayV2HTTPResponse errorResponse = new APIGatewayV2HTTPResponse();")
         write("errorResponse.setStatusCode(e.getStatusCode());")
         write("errorResponse.setBody(e.getMessage());")
-//        addCorsHeader("errorResponse")
         write("return errorResponse;")
     }
-
-//    private fun addCorsHeader(variableName: String) {
-//        write("if ($variableName.getHeaders() == null) {")
-//        write("$variableName.setHeaders(new HashMap<>());")
-//        write("}")
-//        write("if (!$variableName.getHeaders().containsKey(\"Access-Control-Allow-Origin\")) {")
-//        write("String allowedCorsOrigin = System.getenv(\"${NimbusConstants.allowedOriginEnvVariable}\");")
-//        write("if (allowedCorsOrigin != null && !allowedCorsOrigin.equals(\"\")) {")
-//        write("$variableName.getHeaders().put(\"Access-Control-Allow-Origin\", allowedCorsOrigin);")
-//        write("}")
-//        write("}")
-//    }
 
     private fun setHeader(variableName: String, header: String, valueVariable: String) {
         write("if ($variableName.getHeaders() == null) {")
