@@ -6,6 +6,8 @@
     <version>0.16.7-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <name>nimbus-local-parent</name>
+
     <parent>
         <groupId>com.nimbusframework</groupId>
         <artifactId>nimbus-parent</artifactId>

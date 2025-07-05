@@ -6,6 +6,8 @@
     <version>0.16.7-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <name>nimbus-cloud</name>
+
     <parent>
         <groupId>com.nimbusframework</groupId>
         <artifactId>nimbus-parent</artifactId>
