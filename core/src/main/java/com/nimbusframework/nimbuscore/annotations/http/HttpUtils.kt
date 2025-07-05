@@ -59,17 +59,22 @@ object HttpUtils {
 
     @JvmStatic
     fun compressContent(httpEvent: HttpEvent, toCompress: String): CompressedContent? {
+        return compressContent(httpEvent.headers, toCompress.toByteArray())
+    }
+
+    @JvmStatic
+    fun compressContent(httpEvent: HttpEvent, toCompress: ByteArray): CompressedContent? {
         return compressContent(httpEvent.headers, toCompress)
     }
 
     @JvmStatic
-    fun compressContent(headers: Map<String, String>?, toCompress: String): CompressedContent? {
+    fun compressContent(headers: Map<String, String>?, toCompress: ByteArray): CompressedContent? {
         val chosenEncoding = getAcceptEncodings(headers) ?: return null
         val content = when (chosenEncoding) {
             ContentEncoding.GZIP -> {
                 val bos = ByteArrayOutputStream()
                 val compressionStream = GZIPOutputStream(bos)
-                compressionStream.write(toCompress.encodeToByteArray())
+                compressionStream.write(toCompress)
                 compressionStream.flush()
                 compressionStream.close()
                 bos.toByteArray()
