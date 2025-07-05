@@ -20,11 +20,18 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Set up JDK 11
       uses: actions/setup-java@v2
       with:
         java-version: '11'
         distribution: 'temurin'
+        server-id: central
+        server-username: MAVEN_USERNAME
+        server-password: MAVEN_PASSWORD
+        gpg-private-key: ${{ secrets.GPG_KEY }}
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
     - name: Get Snapshot Version
       id: snapshotversion
@@ -48,14 +55,12 @@ jobs:
         file_pattern: pom.xml cloud/pom.xml cloud/aws/pom.xml core/pom.xml local/pom.xml local/local/pom.xml local/local-aws/pom.xml deployment/pom.xml
         tagging_message: '${{ steps.version.outputs.version }}'
         commit_message: release version
-
-    - name: Release Maven package
-      uses: samuelmeuli/action-maven-publish@v1
-      with:
-        gpg_private_key: ${{ secrets.GPG_KEY }}
-        gpg_passphrase: ${{ secrets.GPG_PASSWORD }}
-        nexus_username: ${{ secrets.REPO_USERNAME }}
-        nexus_password: ${{ secrets.REPO_PASSWORD }}
+    - name: Publish package
+      run: mvn -P release --batch-mode deploy -DskipTests
+      env:
+        MAVEN_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSWORD }}
 
     - name: Rollback release
       if: ${{ failure() }}
