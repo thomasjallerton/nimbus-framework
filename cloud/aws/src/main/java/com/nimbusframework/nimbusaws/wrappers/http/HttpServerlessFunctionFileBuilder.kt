@@ -84,6 +84,8 @@ class HttpServerlessFunctionFileBuilder(
         write("APIGatewayV2HTTPResponse responseEvent = new APIGatewayV2HTTPResponse();")
         write("responseEvent.setStatusCode(200);")
 
+        val isByteArray = fileBuilderMethodInformation.returnType.toString() == "byte[]"
+
         if (fileBuilderMethodInformation.returnType.toString() == HttpResponse::class.qualifiedName) {
             if (enableResponseCompression) {
                 error("enableResponseCompression cannot be used in HttpServerlessFunction if return type is ${HttpResponse::class.qualifiedName}")
@@ -94,20 +96,33 @@ class HttpServerlessFunctionFileBuilder(
             write("responseEvent.setIsBase64Encoded(result.isBase64Encoded());")
         } else if (!voidMethodReturn) {
             if (enableResponseCompression) {
-                write("String responseBody = JacksonClient.writeValueAsString(result);")
-                write("${HttpUtils::class.simpleName}.${HttpUtils.CompressedContent::class.simpleName} compressedContent" +
-                        " = ${HttpUtils::class.simpleName}.compressContent(event, responseBody);")
-                write("if (compressedContent != null) {")
-                write("responseBody = Base64.getEncoder().encodeToString(compressedContent.getContent());")
-                write("responseEvent.setIsBase64Encoded(true);")
-                setHeader("responseEvent", "Content-Encoding", "compressedContent.getEncoding()")
-                write("}")
+                val httpUtilsClass = "${HttpUtils::class.simpleName}.${HttpUtils.CompressedContent::class.simpleName}"
+                if (isByteArray) {
+                    write("String responseBody;")
+                    write("$httpUtilsClass compressedContent = ${HttpUtils::class.simpleName}.compressContent(event, result);")
+                    write("responseEvent.setIsBase64Encoded(true);")
+                    write("if (compressedContent != null) {")
+                    write("responseBody = Base64.getEncoder().encodeToString(compressedContent.getContent());")
+                    setHeader("responseEvent", "Content-Encoding", "compressedContent.getEncoding()")
+                    write("} else {")
+                    write("responseBody = Base64.getEncoder().encodeToString(result);")
+                    write("}")
+                } else {
+                    write("String responseBody = JacksonClient.writeValueAsString(result);")
+                    write("$httpUtilsClass compressedContent = ${HttpUtils::class.simpleName}.compressContent(event, responseBody);")
+                    write("if (compressedContent != null) {")
+                    write("responseBody = Base64.getEncoder().encodeToString(compressedContent.getContent());")
+                    write("responseEvent.setIsBase64Encoded(true);")
+                    setHeader("responseEvent", "Content-Encoding", "compressedContent.getEncoding()")
+                    write("}")
+                }
+            } else if (isByteArray) {
+                write("String responseBody = Base64.getEncoder().encodeToString(result);")
             } else {
                 write("String responseBody = JacksonClient.writeValueAsString(result);")
             }
             write("responseEvent.setBody(responseBody);")
         }
-//        addCorsHeader("responseEvent")
         write("return responseEvent;")
     }
 
@@ -116,21 +131,9 @@ class HttpServerlessFunctionFileBuilder(
         write("APIGatewayV2HTTPResponse errorResponse = new APIGatewayV2HTTPResponse();")
         write("errorResponse.setStatusCode(e.getStatusCode());")
         write("errorResponse.setBody(e.getMessage());")
-//        addCorsHeader("errorResponse")
         write("return errorResponse;")
     }
 
-//    private fun addCorsHeader(variableName: String) {
-//        write("if ($variableName.getHeaders() == null) {")
-//        write("$variableName.setHeaders(new HashMap<>());")
-//        write("}")
-//        write("if (!$variableName.getHeaders().containsKey(\"Access-Control-Allow-Origin\")) {")
-//        write("String allowedCorsOrigin = System.getenv(\"${NimbusConstants.allowedOriginEnvVariable}\");")
-//        write("if (allowedCorsOrigin != null && !allowedCorsOrigin.equals(\"\")) {")
-//        write("$variableName.getHeaders().put(\"Access-Control-Allow-Origin\", allowedCorsOrigin);")
-//        write("}")
-//        write("}")
-//    }
 
     private fun setHeader(variableName: String, header: String, valueVariable: String) {
         write("if ($variableName.getHeaders() == null) {")

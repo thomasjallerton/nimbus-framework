@@ -10,8 +10,7 @@ import com.nimbusframework.nimbuslocal.deployment.http.HttpRequest
 import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import java.io.BufferedReader
-import java.util.Base64
+import java.util.*
 
 class FunctionResource(
     private val path: String,
@@ -21,7 +20,7 @@ class FunctionResource(
     allowedOrigin: String,
     baseRequest: String,
     gzipResponse: Boolean
-): WebResource(allowedHeaders, listOf(allowedOrigin), baseRequest, gzipResponse) {
+) : WebResource(allowedHeaders, listOf(allowedOrigin), baseRequest, gzipResponse) {
 
     override fun writeResponse(request: HttpServletRequest, response: HttpServletResponse, target: String) {
         val byteArrayBody = request.inputStream.readBytes()
@@ -57,16 +56,23 @@ class FunctionResource(
                 response.status = result.statusCode
 
                 response.writer.print(result.body)
-            } else if (result !is Unit){
+                response.writer.flush()
+                response.writer.close()
+            } else if (result is ByteArray) {
+                response.contentType = "application/octet-stream"
+                response.outputStream.write(result)
+                response.outputStream.flush()
+                response.outputStream.close()
+            } else if (result !is Unit) {
                 response.writer.print(JacksonClient.writeValueAsString(result))
+                response.writer.flush()
+                response.writer.close()
             }
         } catch (e: HttpException) {
             response.status = e.statusCode
         } catch (e: Exception) {
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
             e.printStackTrace()
-        } finally {
-            response.writer.close()
         }
     }
 

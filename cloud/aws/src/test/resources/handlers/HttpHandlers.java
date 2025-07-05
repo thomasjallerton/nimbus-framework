@@ -9,6 +9,7 @@ import models.NestedPerson;
 import models.People;
 
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class HttpHandlers {
@@ -63,6 +64,11 @@ public class HttpHandlers {
     return new People();
   }
 
+  @HttpServerlessFunction(method = HttpMethod.GET, path = "bytearrayresponse")
+  public byte[] byteArrayResponse() {
+    return  "test".getBytes();
+  }
+
   @HttpServerlessFunction(method = HttpMethod.GET, path = "encoderequest", enableRequestDecoding = true)
   public NestedPerson encodeRequest(Person person) {
     return new NestedPerson();
@@ -73,4 +79,8 @@ public class HttpHandlers {
     return new NestedPerson();
   }
 
+  @HttpServerlessFunction(method = HttpMethod.GET, path = "bytearrayencoderesponse", enableResponseEncoding = true)
+  public byte[] byteArrayEncodeResponse(HttpEvent event) {
+    return "test".getBytes();
+  }
 }
