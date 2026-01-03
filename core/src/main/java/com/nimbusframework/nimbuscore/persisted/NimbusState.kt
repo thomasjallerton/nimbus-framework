@@ -16,5 +16,6 @@ data class NimbusState(
         val fileUploads: MutableMap<String, MutableMap<String, MutableList<FileUploadDescription>>> = mutableMapOf(),
         val exports: MutableMap<String, MutableList<ExportInformation>> = mutableMapOf(),
         val handlerFiles: MutableSet<HandlerInformation> = mutableSetOf(),
-        val customRuntime: Boolean = false
+        val customRuntime: Boolean = false,
+        val logGroupRetentionInDays: Int? = null
 )

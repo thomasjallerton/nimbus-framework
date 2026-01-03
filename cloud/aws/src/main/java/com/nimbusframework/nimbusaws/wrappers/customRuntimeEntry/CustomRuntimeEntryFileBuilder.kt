@@ -73,11 +73,11 @@ class CustomRuntimeEntryFileBuilder(
 
         write("case \"$identifier\":")
         val (_, className, inputType, returnType) = functionInformation.awsMethodInformation!!
-        write("\t$className ${className.toLowerCase()} = new ${className}();")
+        write("\t$className ${className.lowercase()} = new ${className}();")
 
         write("\treturn (invocation, context) -> {")
         write("\t$inputType request = objectMapper.readValue(invocation.getEvent(), ${inputType}.class);")
-        write("\t$returnType response = ${className.toLowerCase()}.handleRequest(request, context);")
+        write("\t$returnType response = ${className.lowercase()}.handleRequest(request, context);")
         write("\tcustomRuntimeHandler.sendResponse(response, invocation);")
         write("\t};")
     }

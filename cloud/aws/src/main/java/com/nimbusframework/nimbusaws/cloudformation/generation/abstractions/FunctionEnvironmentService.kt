@@ -52,13 +52,10 @@ class FunctionEnvironmentService(
 
         val httpApi = updateTemplate.getOrCreateRootHttpApi(processingData)
 
-//        val apiGatewayHttpDeployment = updateTemplate.getOrCreateRootHttpApiDeployment(processingData)
-
         val httpLambdaIntegration = HttpLambdaIntegration(httpApi, httpFunction.path, httpFunction.method.name, function, nimbusState)
         val restRoute = RestRoute(httpApi, httpFunction.path, httpFunction.method.name, httpLambdaIntegration, updateTemplate.getRestApiAuthorizer(), nimbusState)
 
         restRoute.addDependsOn(httpLambdaIntegration)
-//        apiGatewayHttpDeployment.addDependsOn(restRoute)
         updateResources.addResource(httpLambdaIntegration)
         updateResources.addResource(restRoute)
 

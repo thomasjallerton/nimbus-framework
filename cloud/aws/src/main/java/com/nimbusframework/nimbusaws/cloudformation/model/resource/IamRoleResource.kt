@@ -5,9 +5,9 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
 class IamRoleResource(
-        private val functionName: String,
-        nimbusState: NimbusState,
-        stage: String
+    private val functionName: String,
+    nimbusState: NimbusState,
+    stage: String
 ) : Resource(nimbusState, stage) {
 
     private val policy: Policy = Policy(functionName, nimbusState)
@@ -18,7 +18,7 @@ class IamRoleResource(
         iamRoleResource.addProperty("Type", "AWS::IAM::Role")
 
         val properties = getProperties()
-        properties.add("AssumeRolePolicyDocument", rolePolicyDocument())
+        properties.add("AssumeRolePolicyDocument", ROLE_POLICY_DOCUMENT)
 
         val policies = JsonArray()
         policies.add(policy.toJson())
@@ -26,13 +26,13 @@ class IamRoleResource(
 
         properties.addProperty("Path", "/")
 
-        val projectName = if (nimbusState.projectName.length  < 15) {
+        val projectName = if (nimbusState.projectName.length < 15) {
             nimbusState.projectName
         } else {
             nimbusState.projectName.substring(0..15)
         }
 
-        properties.addProperty("RoleName", "$projectName-$stage-$functionName")
+        properties.addProperty("RoleName", "$projectName-$stage-${policy.hash()}")
 
         iamRoleResource.add("Properties", properties)
 
@@ -40,7 +40,7 @@ class IamRoleResource(
     }
 
     override fun getName(): String {
-        return "IamRole${functionName}"
+        return "IamRole${nimbusState.projectName}${stage}${policy.hash()}"
     }
 
     fun addAllowStatement(action: String, resource: Resource, suffix: String) {
@@ -51,27 +51,31 @@ class IamRoleResource(
         return policy.allows(action, resource, suffix)
     }
 
-    private fun rolePolicyDocument(): JsonObject {
-        val rolePolicyDocument = JsonObject()
-        rolePolicyDocument.addProperty("Version", "2012-10-17")
+    companion object {
+        private val ROLE_POLICY_DOCUMENT = rolePolicyDocument()
 
-        val statement = JsonObject()
-        statement.addProperty("Effect", "Allow")
-        val principal = JsonObject()
-        val service = JsonArray()
-        service.add("lambda.amazonaws.com")
-        principal.add("Service", service)
-        statement.add("Principal", principal)
-        val action = JsonArray()
-        action.add("sts:AssumeRole")
-        statement.add("Action", action)
+        private fun rolePolicyDocument(): JsonObject {
+            val rolePolicyDocument = JsonObject()
+            rolePolicyDocument.addProperty("Version", "2012-10-17")
 
-        val statements = JsonArray()
-        statements.add(statement)
+            val statement = JsonObject()
+            statement.addProperty("Effect", "Allow")
+            val principal = JsonObject()
+            val service = JsonArray()
+            service.add("lambda.amazonaws.com")
+            principal.add("Service", service)
+            statement.add("Principal", principal)
+            val action = JsonArray()
+            action.add("sts:AssumeRole")
+            statement.add("Action", action)
 
-        rolePolicyDocument.add("Statement", statements)
+            val statements = JsonArray()
+            statements.add(statement)
 
-        return rolePolicyDocument
+            rolePolicyDocument.add("Statement", statements)
+
+            return rolePolicyDocument
+        }
     }
 
 }

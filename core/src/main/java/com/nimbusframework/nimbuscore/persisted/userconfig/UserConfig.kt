@@ -12,7 +12,8 @@ data class UserConfig(
     val defaultStages: List<String> = listOf(NimbusConstants.stage),
     val keepWarmStages: List<String> = listOf(),
     val defaultAllowedHeaders: List<AllowedHeaders> = listOf(),
-    val defaultAllowedOrigin: List<AllowedOrigin> = listOf()
+    val defaultAllowedOrigin: List<AllowedOrigin> = listOf(),
+    val logGroupRetentionInDays: Int? = null
 ) {
 
     @JsonIgnore
