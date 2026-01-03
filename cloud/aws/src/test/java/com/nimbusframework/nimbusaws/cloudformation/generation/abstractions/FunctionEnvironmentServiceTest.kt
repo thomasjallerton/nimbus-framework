@@ -42,7 +42,8 @@ class FunctionEnvironmentServiceTest : AnnotationSpec() {
         updateResources.toJson()
 
         createResources.size() shouldBe 1
-        updateResources.size() shouldBe 2
+        // 1 function, 1 IAM role, 1 log group, 1 deployment bucket
+        updateResources.size() shouldBe 4
 
         updateResources.get("NimbusDeploymentBucket") shouldNotBe null
         updateResources.get("ctTesttestMethodFunction") shouldNotBe null
