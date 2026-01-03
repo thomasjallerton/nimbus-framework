@@ -1,26 +1,16 @@
 package com.nimbusframework.nimbusaws.cloudformation.model.resource
 
-import com.nimbusframework.nimbusaws.cloudformation.model.resource.function.FunctionResource
-import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.google.gson.JsonObject
+import com.nimbusframework.nimbuscore.persisted.NimbusState
+import javax.tools.Diagnostic
 
 class LogGroupResource(
-    private val className: String,
-    private val methodName: String,
-    private val functionResource: FunctionResource,
     nimbusState: NimbusState,
     stage: String
 ): Resource(nimbusState, stage) {
 
-    override fun getArn(suffix: String): JsonObject {
-        val arn = JsonObject()
-        arn.addProperty("Fn::Sub", "arn:\${AWS::Partition}:logs:\${AWS::Region}:\${AWS::AccountId}" +
-                ":log-group:/aws/lambda/${functionResource.getFunctionName()}$suffix")
-        return arn
-    }
-
     override fun getName(): String {
-        return "LogGroup$className${methodName}"
+        return "LogGroup${nimbusState.projectName}${stage}"
     }
 
     override fun toCloudFormation(): JsonObject {
@@ -29,11 +19,24 @@ class LogGroupResource(
         logGroupResource.addProperty("Type", "AWS::Logs::LogGroup")
 
         val properties = getProperties()
-        properties.addProperty("LogGroupName", "/aws/lambda/${functionResource.getFunctionName()}")
+        properties.addProperty("LogGroupName", logGroupName())
+        if (nimbusState.logGroupRetentionInDays != null) {
+            properties.addProperty("RetentionInDays", nimbusState.logGroupRetentionInDays)
+        }
 
         logGroupResource.add("Properties", properties)
 
         return logGroupResource
+    }
+
+    fun loggingConfig(): JsonObject {
+        val loggingConfig = JsonObject()
+        loggingConfig.addProperty("LogGroup", logGroupName())
+        return loggingConfig
+    }
+
+    private fun logGroupName(): String {
+        return "${nimbusState.projectName}-${stage}-logs"
     }
 
 }

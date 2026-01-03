@@ -3,6 +3,7 @@ package com.nimbusframework.nimbusaws.cloudformation.model.resource
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import kotlin.math.abs
 
 class Policy(
         private val name: String,
@@ -11,14 +12,17 @@ class Policy(
 
     private val statements: MutableMap<String, Statement> = mutableMapOf()
 
+    private var built = false
 
-    fun toJson(): JsonObject {
+    private val json by lazy { internalToJson() }
+
+    private fun internalToJson(): Pair<JsonObject, Int> {
+        built = true
         val policy = JsonObject()
-        policy.addProperty("PolicyName", "${nimbusState.projectName}-$name-policy")
 
         val statementsJson = JsonArray()
-        for (statement in statements.values) {
-            statementsJson.add(statement.toJson())
+        for (statementEntry in statements.entries.sortedBy { it.key }) {
+            statementsJson.add(statementEntry.value.toJson())
         }
         val policyDocument = JsonObject()
         policyDocument.addProperty("Version", "2012-10-17")
@@ -26,10 +30,21 @@ class Policy(
 
         policy.add("PolicyDocument", policyDocument)
 
-        return policy
+        val hash = policyDocument.hashCode()
+
+        policy.addProperty("PolicyName", "${nimbusState.projectName}-$name-policy")
+
+        return Pair(policy, hash)
+    }
+
+    fun toJson(): JsonObject {
+        return json.first
     }
 
     fun addAllowStatement(action: String, resource: Resource, suffix: String = "") {
+        if (built) {
+            throw Exception("Cannot add statements after policy has been built")
+        }
         if (statements.containsKey(action)) {
             statements[action]!!.addResource(resource, suffix)
         } else {
@@ -44,6 +59,10 @@ class Policy(
             return statements[action]!!.containsResource(resource, suffix)
         }
         return false
+    }
+
+    fun hash(): String {
+        return abs(json.second).toString()
     }
 
     private inner class Statement(

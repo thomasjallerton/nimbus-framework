@@ -129,19 +129,24 @@ class ResourceCollection {
     fun toJson(): JsonObject {
         val resources = JsonObject()
 
+        for (resource in resourceMap.values.toList()) {
+            addAdditionalResources(resource)
+        }
+
         for (resource in resourceMap.values) {
-            processResource(resources, resource)
+            resources.add(resource.getName(), resource.toCloudFormation())
         }
 
         return resources
     }
 
-    private fun processResource(resources: JsonObject, resource: Resource) {
+    private fun addAdditionalResources(resource: Resource) {
         resource.getAdditionalResources().forEach {
-            processResource(resources, it)
+            addResource(it)
+            addAdditionalResources( it)
         }
-        resources.add(resource.getName(), resource.toCloudFormation())
     }
+
 
     fun contains(resource: Resource): Boolean {
         return resourceMap.containsKey(resource.getName())

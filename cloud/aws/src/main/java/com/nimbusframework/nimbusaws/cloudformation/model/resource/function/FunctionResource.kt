@@ -24,13 +24,12 @@ class FunctionResource(
     private val jsonEnvVariables: MutableMap<String, JsonObject> = mutableMapOf()
 
     val iamRoleResource: IamRoleResource = IamRoleResource(getShortName(), nimbusState, functionConfig.stage)
-    val logGroupResource = LogGroupResource(fileBuilderMethodInformation.className, fileBuilderMethodInformation.methodName, this, nimbusState, functionConfig.stage)
+    val logGroupResource = LogGroupResource(nimbusState, functionConfig.stage)
 
     init {
         envVariables["NIMBUS_STAGE"] = functionConfig.stage
         iamRoleResource.addAllowStatement("logs:CreateLogStream", logGroupResource, ":*")
         iamRoleResource.addAllowStatement("logs:PutLogEvents", logGroupResource, ":*:*")
-        dependsOn.add(iamRoleResource.getName())
     }
 
     fun getIdentifier(): FunctionIdentifier {
@@ -70,6 +69,9 @@ class FunctionResource(
     }
 
     override fun toCloudFormation(): JsonObject {
+        // Depend on after-the-fact to get the completed name.
+        dependsOn.add(iamRoleResource.getName())
+
         val functionResource = JsonObject()
         functionResource.addProperty("Type", "AWS::Lambda::Function")
 
@@ -94,10 +96,11 @@ class FunctionResource(
         )
         properties.addProperty("Handler", finalHandler)
         properties.addProperty("MemorySize", functionConfig.memory)
+        properties.addProperty("Timeout", functionConfig.timeout)
 
         properties.add("Role", iamRoleResource.getArn())
         properties.addProperty("Runtime", runtime)
-        properties.addProperty("Timeout", functionConfig.timeout)
+        properties.add("LoggingConfig", logGroupResource.loggingConfig())
 
         val environment = JsonObject()
         val variables = JsonObject()

@@ -114,6 +114,8 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
     private List<FunctionInformation> functions = new LinkedList<>();
 
+    private UserConfigValidator userConfigValidator = new UserConfigValidator();
+
     private Messager messager;
 
     @Override
@@ -126,11 +128,14 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         nativeImageReflectionWriter = new NativeImageReflectionWriter(fileWriter);
         userConfig = new ReadUserConfigService().readUserConfig();
 
+        userConfigValidator.validateUserConfig(userConfig, messager);
+
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat simpleDateFormat =
                 new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSzzz", Locale.US);
 
         String compilationTime = simpleDateFormat.format(cal.getTime());
+
         processingData = new ProcessingData(
                 new NimbusState(
                         userConfig.getProjectName(),
@@ -142,7 +147,8 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                         new HashMap<>(),
                         new HashMap<>(),
                         new HashSet<>(),
-                        userConfig.getCustomRuntime()
+                        userConfig.getCustomRuntime(),
+                        userConfig.getLogGroupRetentionInDays()
                 ),
                 new HashSet<>(),
                 new HashSet<>(),
@@ -245,5 +251,6 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         }
         return true;
     }
+
 }
 
