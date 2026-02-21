@@ -62,7 +62,7 @@ class LocalNimbusDeployment private constructor(
         localFunctionHandlers.add(LocalBasicFunctionHandler(localResourceHolder, stageService))
         localFunctionHandlers.add(LocalDocumentStoreFunctionHandler(localResourceHolder, stageService))
         localFunctionHandlers.add(LocalFileStorageFunctionHandler(localResourceHolder, stageService))
-        localFunctionHandlers.add(LocalHttpFunctionHandler(localResourceHolder, httpPort, variableSubstitution, stageService))
+        localFunctionHandlers.add(LocalHttpFunctionHandler(localResourceHolder, httpPort, userConfig.httpErrorMessageType, variableSubstitution, stageService))
         localFunctionHandlers.add(LocalKeyValueStoreFunctionHandler(localResourceHolder, stageService))
         localFunctionHandlers.add(LocalNotificationFunctionHandler(localResourceHolder, stageService))
         localFunctionHandlers.add(LocalQueueFunctionHandler(localResourceHolder, stageService))

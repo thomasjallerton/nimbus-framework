@@ -13,6 +13,8 @@ import com.nimbusframework.nimbuscore.annotations.http.HttpUtils
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpEvent
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse
+import com.nimbusframework.nimbuscore.exceptions.HttpJsonErrorMessage
+import com.nimbusframework.nimbuscore.persisted.userconfig.HttpErrorMessageType
 import java.util.HashMap
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -24,7 +26,8 @@ class HttpServerlessFunctionFileBuilder(
     compilingElement: Element,
     classForReflectionService: ClassForReflectionService,
     private val enableRequestCompression: Boolean,
-    private val enableResponseCompression: Boolean
+    private val enableResponseCompression: Boolean,
+    private val httpErrorMessageType: HttpErrorMessageType
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
     fileBuilderMethodInformation,
@@ -130,7 +133,21 @@ class HttpServerlessFunctionFileBuilder(
         write("} catch (HttpException e) {")
         write("APIGatewayV2HTTPResponse errorResponse = new APIGatewayV2HTTPResponse();")
         write("errorResponse.setStatusCode(e.getStatusCode());")
-        write("errorResponse.setBody(e.getMessage());")
+
+        when (httpErrorMessageType) {
+            HttpErrorMessageType.NONE -> {}
+            HttpErrorMessageType.PLAIN_TEXT -> {
+                write("errorResponse.setBody(e.getMessage());")
+                setHeader("errorResponse", "Content-Type", "\"text/plain\"")
+            }
+            HttpErrorMessageType.APPLICATION_JSON -> {
+                write("errorResponse.setBody(JacksonClient.writeValueAsString(new ${HttpJsonErrorMessage::class.qualifiedName}(e.getMessage())));")
+                setHeader("errorResponse", "Content-Type", "\"application/json\"")
+            }
+            HttpErrorMessageType.HEADER -> {
+                setHeader("errorResponse", "Nimbus-Error-Message", "e.getMessage()")
+            }
+        }
         write("return errorResponse;")
     }
 

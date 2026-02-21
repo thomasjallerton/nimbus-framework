@@ -48,7 +48,8 @@ class HttpFunctionResourceCreator(
             type,
             classForReflectionService,
             enabledRequestCompression,
-            enabledResponseCompression
+            enabledResponseCompression,
+            functionEnvironmentService.processingData.httpErrorMessageType
         )
 
         fileBuilder.createClass()

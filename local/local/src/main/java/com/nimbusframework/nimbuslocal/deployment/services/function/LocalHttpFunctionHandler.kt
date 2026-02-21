@@ -2,6 +2,7 @@ package com.nimbusframework.nimbuslocal.deployment.services.function
 
 import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
+import com.nimbusframework.nimbuscore.persisted.userconfig.HttpErrorMessageType
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment.Companion.functionWebserverIdentifier
 import com.nimbusframework.nimbuslocal.deployment.function.FunctionIdentifier
 import com.nimbusframework.nimbuslocal.deployment.function.ServerlessFunction
@@ -17,6 +18,7 @@ import java.lang.reflect.Method
 class LocalHttpFunctionHandler(
     private val localResourceHolder: LocalResourceHolder,
     private val httpPort: Int,
+    private val httpErrorMessageType: HttpErrorMessageType,
     private val variableSubstitution: MutableMap<String, String>,
     private val stageService: StageService
 ) : LocalFunctionHandler(localResourceHolder) {
@@ -62,7 +64,8 @@ class LocalHttpFunctionHandler(
                 httpMethod,
                 allowedOrigin,
                 allowedHeaders,
-                enabledResponseCompression
+                enabledResponseCompression,
+                httpErrorMessageType
             )
         }
 

@@ -21,7 +21,7 @@ import com.nimbusframework.nimbuscore.persisted.HandlerInformation
 
 class FunctionEnvironmentService(
     private val cloudFormationFiles: MutableMap<String, CloudFormationFiles>,
-    private val processingData: ProcessingData
+    val processingData: ProcessingData
 ) {
 
     private val nimbusState = processingData.nimbusState

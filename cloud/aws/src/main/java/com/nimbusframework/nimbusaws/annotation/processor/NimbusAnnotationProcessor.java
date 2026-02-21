@@ -118,6 +118,12 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
     private Messager messager;
 
+    public NimbusAnnotationProcessor() {}
+
+    public NimbusAnnotationProcessor(UserConfig config) {
+        this.userConfig = config;
+    }
+
     @Override
     public synchronized void init(final ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
@@ -126,7 +132,9 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
 
         fileWriter = new FileWriter(processingEnv.getFiler());
         nativeImageReflectionWriter = new NativeImageReflectionWriter(fileWriter);
-        userConfig = new ReadUserConfigService().readUserConfig();
+        if (userConfig == null) {
+            userConfig = new ReadUserConfigService().readUserConfig();
+        }
 
         userConfigValidator.validateUserConfig(userConfig, messager);
 
@@ -150,6 +158,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                         userConfig.getCustomRuntime(),
                         userConfig.getLogGroupRetentionInDays()
                 ),
+                userConfig.getHttpErrorMessageType(),
                 new HashSet<>(),
                 new HashSet<>(),
                 userConfig.getAllowedHeaders(),

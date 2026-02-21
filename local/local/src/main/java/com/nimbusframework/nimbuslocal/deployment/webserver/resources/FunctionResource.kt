@@ -4,6 +4,9 @@ import com.nimbusframework.nimbuscore.annotations.http.HttpException
 import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
 import com.nimbusframework.nimbuscore.clients.JacksonClient
 import com.nimbusframework.nimbuscore.eventabstractions.HttpResponse
+import com.nimbusframework.nimbuscore.exceptions.HttpJsonErrorMessage
+import com.nimbusframework.nimbuscore.persisted.userconfig.HttpErrorMessageType
+import com.nimbusframework.nimbuscore.persisted.userconfig.UserConfig
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuslocal.deployment.http.HttpRequest
@@ -16,6 +19,7 @@ class FunctionResource(
     private val path: String,
     private val httpMethod: HttpMethod,
     private val method: LocalHttpMethod,
+    private val httpErrorMessageType: HttpErrorMessageType,
     allowedHeaders: Array<String>,
     allowedOrigin: String,
     baseRequest: String,
@@ -69,10 +73,34 @@ class FunctionResource(
                 response.writer.close()
             }
         } catch (e: HttpException) {
-            response.status = e.statusCode
+            handleHttpException(response, e)
         } catch (e: Exception) {
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
             e.printStackTrace()
+        }
+    }
+
+    private fun handleHttpException(response: HttpServletResponse, e: HttpException) {
+        response.status = e.statusCode
+        if (e.logException) {
+            e.printStackTrace()
+        }
+        when (httpErrorMessageType) {
+            HttpErrorMessageType.NONE -> {
+                response.contentType = "text/plain"
+            }
+            HttpErrorMessageType.PLAIN_TEXT -> {
+                response.contentType = "text/plain"
+                response.writer.print(e.message)
+            }
+            HttpErrorMessageType.APPLICATION_JSON -> {
+                response.contentType = "application/json"
+                response.writer.print(JacksonClient.writeValueAsString(HttpJsonErrorMessage(e.message ?: "Error")))
+            }
+            HttpErrorMessageType.HEADER -> {
+                response.contentType = "text/plain"
+                response.setHeader("Nimbus-Error-Message", e.message)
+            }
         }
     }
 

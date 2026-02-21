@@ -1,6 +1,8 @@
 package com.nimbusframework.nimbuslocal.deployment.webserver
 
 import com.nimbusframework.nimbuscore.annotations.http.HttpMethod
+import com.nimbusframework.nimbuscore.persisted.userconfig.HttpErrorMessageType
+import com.nimbusframework.nimbuscore.persisted.userconfig.UserConfig
 import com.nimbusframework.nimbuslocal.deployment.http.HttpMethodIdentifier
 import com.nimbusframework.nimbuslocal.deployment.http.LocalHttpMethod
 import com.nimbusframework.nimbuslocal.deployment.webserver.resources.FileResource
@@ -14,7 +16,7 @@ import java.io.File
 
 open class WebServerHandler(
     private val indexFile: String,
-    private val errorFile: String
+    private val errorFile: String,
 ): AbstractHandler() {
 
     private val resources: MutableMap<HttpMethodIdentifier, WebResource> = mutableMapOf()
@@ -69,8 +71,8 @@ open class WebServerHandler(
         addNewResource(path, HttpMethod.GET, FileResource(file, contentType, allowedOrigins, combinePaths(path)))
     }
 
-    fun addWebResource(path: String, httpMethod: HttpMethod, method: LocalHttpMethod, allowedOrigin: String, allowedHeaders: Array<String>, gzipResponse: Boolean) {
-        addNewResource(path, httpMethod, FunctionResource(path, httpMethod, method, allowedHeaders, allowedOrigin, combinePaths(path), gzipResponse))
+    fun addWebResource(path: String, httpMethod: HttpMethod, method: LocalHttpMethod, allowedOrigin: String, allowedHeaders: Array<String>, gzipResponse: Boolean, httpErrorMessageType: HttpErrorMessageType) {
+        addNewResource(path, httpMethod, FunctionResource(path, httpMethod, method, httpErrorMessageType, allowedHeaders, allowedOrigin, combinePaths(path), gzipResponse))
     }
 
     private fun addNewResource(path: String, httpMethod: HttpMethod, webResource: WebResource) {

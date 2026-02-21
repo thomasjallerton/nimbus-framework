@@ -13,7 +13,8 @@ data class UserConfig(
     val keepWarmStages: List<String> = listOf(),
     val defaultAllowedHeaders: List<AllowedHeaders> = listOf(),
     val defaultAllowedOrigin: List<AllowedOrigin> = listOf(),
-    val logGroupRetentionInDays: Int? = null
+    val logGroupRetentionInDays: Int? = null,
+    val httpErrorMessageType: HttpErrorMessageType = HttpErrorMessageType.PLAIN_TEXT
 ) {
 
     @JsonIgnore
