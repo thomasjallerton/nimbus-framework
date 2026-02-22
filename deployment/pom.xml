@@ -4,7 +4,7 @@
 
     <groupId>com.nimbusframework</groupId>
     <artifactId>nimbus-deployment-maven-plugin</artifactId>
-    <version>0.17.2</version>
+    <version>0.17.3-SNAPSHOT</version>
 
     <packaging>maven-plugin</packaging>
 
@@ -15,7 +15,7 @@
     <parent>
         <groupId>com.nimbusframework</groupId>
         <artifactId>nimbus-parent</artifactId>
-        <version>0.17.2</version>
+        <version>0.17.3-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -27,7 +27,7 @@
         <dependency>
             <groupId>com.nimbusframework</groupId>
             <artifactId>nimbus-core</artifactId>
-            <version>0.17.2</version>
+            <version>0.17.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
