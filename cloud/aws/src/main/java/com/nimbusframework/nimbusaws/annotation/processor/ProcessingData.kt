@@ -1,11 +1,13 @@
 package com.nimbusframework.nimbusaws.annotation.processor
 
+import com.nimbusframework.nimbuscore.annotations.function.HttpRequestPartLog
 import com.nimbusframework.nimbuscore.persisted.NimbusState
 import com.nimbusframework.nimbuscore.persisted.userconfig.HttpErrorMessageType
 
 data class ProcessingData(
     val nimbusState: NimbusState,
     val httpErrorMessageType: HttpErrorMessageType = HttpErrorMessageType.PLAIN_TEXT,
+    val httpLogParts: List<HttpRequestPartLog> = listOf(),
     val additionalFunctions: MutableSet<FunctionInformation> = mutableSetOf(),
     // qualified names of classes needed for reflection
     val classesForReflection: MutableSet<String> = mutableSetOf(),

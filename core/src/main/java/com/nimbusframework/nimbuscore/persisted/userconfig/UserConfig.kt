@@ -3,6 +3,8 @@ package com.nimbusframework.nimbuscore.persisted.userconfig
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.nimbusframework.nimbuscore.annotations.NimbusConstants
+import com.nimbusframework.nimbuscore.annotations.function.HttpRequestPartLog
+import java.net.http.HttpRequest
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -14,7 +16,8 @@ data class UserConfig(
     val defaultAllowedHeaders: List<AllowedHeaders> = listOf(),
     val defaultAllowedOrigin: List<AllowedOrigin> = listOf(),
     val logGroupRetentionInDays: Int? = null,
-    val httpErrorMessageType: HttpErrorMessageType = HttpErrorMessageType.PLAIN_TEXT
+    val httpErrorMessageType: HttpErrorMessageType = HttpErrorMessageType.PLAIN_TEXT,
+    val httpLogRequestParts: List<HttpRequestPartLog> = listOf()
 ) {
 
     @JsonIgnore

@@ -34,4 +34,9 @@ public @interface HttpServerlessFunction {
      * encodings can be found in the {@link ContentEncoding} enum.
      */
     boolean enableResponseEncoding() default false;
+
+    /**
+     * What parts of the request to log. Merged with the user settings values.
+     */
+    HttpRequestPartLog[] logParts() default {};
 }

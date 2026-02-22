@@ -159,6 +159,7 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
                         userConfig.getLogGroupRetentionInDays()
                 ),
                 userConfig.getHttpErrorMessageType(),
+                userConfig.getHttpLogRequestParts(),
                 new HashSet<>(),
                 new HashSet<>(),
                 userConfig.getAllowedHeaders(),

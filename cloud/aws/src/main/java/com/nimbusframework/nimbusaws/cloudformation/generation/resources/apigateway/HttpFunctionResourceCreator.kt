@@ -36,11 +36,13 @@ class HttpFunctionResourceCreator(
     override fun handleElement(type: Element, functionEnvironmentService: FunctionEnvironmentService): List<FunctionInformation> {
         val httpFunctions = type.getAnnotationsByType(HttpServerlessFunction::class.java)
         val results = mutableListOf<FunctionInformation>()
+        val processingData = functionEnvironmentService.processingData
 
         val methodInformation = extractMethodInformation(type)
 
         val enabledRequestCompression = httpFunctions.any { it.enableRequestDecoding }
         val enabledResponseCompression = httpFunctions.any { it.enableResponseEncoding }
+        val partsToLog = (httpFunctions.flatMap { it.logParts.toList() } + processingData.httpLogParts).toSet()
 
         val fileBuilder = HttpServerlessFunctionFileBuilder(
             processingEnv,
@@ -49,7 +51,8 @@ class HttpFunctionResourceCreator(
             classForReflectionService,
             enabledRequestCompression,
             enabledResponseCompression,
-            functionEnvironmentService.processingData.httpErrorMessageType
+            processingData.httpErrorMessageType,
+            partsToLog
         )
 
         fileBuilder.createClass()
@@ -86,13 +89,6 @@ class HttpFunctionResourceCreator(
                 return processingData.defaultAllowedOrigin[stage]!!
             }
             return ""
-        }
-
-        fun getAllowedHeaders(stage: String, processingData: ProcessingData): Array<String>  {
-            if (processingData.defaultRequestHeaders[stage] != null) {
-                return processingData.defaultRequestHeaders[stage]!!.toTypedArray()
-            }
-            return Array(0) { "" }
         }
 
     }

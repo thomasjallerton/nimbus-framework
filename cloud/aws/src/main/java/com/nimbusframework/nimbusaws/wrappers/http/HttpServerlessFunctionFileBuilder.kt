@@ -1,13 +1,12 @@
 package com.nimbusframework.nimbusaws.wrappers.http
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse
 import com.nimbusframework.nimbusaws.cloudformation.generation.abstractions.ClassForReflectionService
 import com.nimbusframework.nimbuscore.annotations.function.HttpServerlessFunction
 import com.nimbusframework.nimbusaws.cloudformation.model.processing.FileBuilderMethodInformation
 import com.nimbusframework.nimbusaws.wrappers.ServerlessFunctionFileBuilder
-import com.nimbusframework.nimbuscore.annotations.NimbusConstants
+import com.nimbusframework.nimbuscore.annotations.function.HttpRequestPartLog
 import com.nimbusframework.nimbuscore.annotations.http.HttpException
 import com.nimbusframework.nimbuscore.annotations.http.HttpUtils
 import com.nimbusframework.nimbuscore.clients.JacksonClient
@@ -27,7 +26,8 @@ class HttpServerlessFunctionFileBuilder(
     classForReflectionService: ClassForReflectionService,
     private val enableRequestCompression: Boolean,
     private val enableResponseCompression: Boolean,
-    private val httpErrorMessageType: HttpErrorMessageType
+    private val httpErrorMessageType: HttpErrorMessageType,
+    private val partsToLog: Set<HttpRequestPartLog>
 ) : ServerlessFunctionFileBuilder(
     processingEnv,
     fileBuilderMethodInformation,
@@ -59,6 +59,15 @@ class HttpServerlessFunctionFileBuilder(
 
     override fun writeFunction(inputParam: Param, eventParam: Param) {
         write("${HttpEvent::class.simpleName} event = ${RestApiGatewayEventMapper::class.simpleName}.getHttpEvent(input, requestId);")
+        if (partsToLog.contains(HttpRequestPartLog.SOURCE)) {
+            write("${RestApiGatewayEventMapper::class.simpleName}.logSource(event);")
+        }
+        if (partsToLog.contains(HttpRequestPartLog.PATH_PARAMETERS)) {
+            write("${RestApiGatewayEventMapper::class.simpleName}.logPathParameters(event);")
+        }
+        if (partsToLog.contains(HttpRequestPartLog.QUERY_STRING_PARAMETERS)) {
+            write("${RestApiGatewayEventMapper::class.simpleName}.logQueryStringParameters(event);")
+        }
         if (inputParam.exists()) {
             if (!enableRequestCompression) {
                 write("String body = input.getBody();")

@@ -18,4 +18,22 @@ object RestApiGatewayEventMapper {
             requestId
         )
     }
+
+    @JvmStatic
+    fun logSource(event: HttpEvent) {
+        val origin = event.headers?.get("Origin") ?: event.headers?.get("origin")
+        val userAgent = event.headers?.get("User-Agent") ?: event.headers?.get("user-agent")
+        println("Origin: $origin")
+        println("User-Agent: $userAgent")
+    }
+
+    @JvmStatic
+    fun logPathParameters(event: HttpEvent) {
+        println("Path Parameters: ${event.pathParameters}")
+    }
+
+    @JvmStatic
+    fun logQueryStringParameters(event: HttpEvent) {
+        println("Query String Parameters: ${event.queryStringParameters}")
+    }
 }
