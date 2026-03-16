@@ -20,7 +20,7 @@
     <jackson-dataformat-yaml.version>2.15.2</jackson-dataformat-yaml.version>
     <org.reflections.version>0.10.2</org.reflections.version>
     <jetty-server.version>11.0.15</jetty-server.version>
-    <h2.version>2.1.214</h2.version>
+    <h2.version>2.2.220</h2.version>
   </properties>
 
   <dependencies>
