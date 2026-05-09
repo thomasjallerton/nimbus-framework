@@ -150,6 +150,7 @@ class HttpServerlessFunctionFileBuilder(
                 setHeader("errorResponse", "Content-Type", "\"text/plain\"")
             }
             HttpErrorMessageType.APPLICATION_JSON -> {
+                classForReflectionService.addClassForReflection(HttpJsonErrorMessage::class.java)
                 write("errorResponse.setBody(JacksonClient.writeValueAsString(new ${HttpJsonErrorMessage::class.qualifiedName}(e.getMessage())));")
                 setHeader("errorResponse", "Content-Type", "\"application/json\"")
             }
