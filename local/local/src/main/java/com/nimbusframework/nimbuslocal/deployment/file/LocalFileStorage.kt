@@ -97,7 +97,10 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
         val f = File(actualPath)
         fileTags.remove(path)
         if (f.exists()) {
-            f.delete()
+            val deleted = f.delete()
+            if (!deleted) {
+                throw IllegalStateException("Failed to delete file \"$path\" - have you closed all file streams?")
+            }
             methods.forEach { method -> method.invoke(path, 0, FileStorageEventType.OBJECT_DELETED) }
         }
     }
