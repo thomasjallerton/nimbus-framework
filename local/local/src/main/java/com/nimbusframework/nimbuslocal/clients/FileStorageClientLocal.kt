@@ -65,6 +65,11 @@ class FileStorageClientLocal(bucketClass: Class<*>, stage: String): FileStorageC
         fileStorage.deleteFile(path)
     }
 
+    override fun deleteFiles(paths: List<String>) {
+        checkClientUse()
+        fileStorage.deleteFiles(paths)
+    }
+
     override fun listFiles(): List<FileInformation> {
         checkClientUse()
         return fileStorage.listFiles()

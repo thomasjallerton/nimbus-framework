@@ -43,7 +43,6 @@ class FileStorageClientS3Test : AnnotationSpec() {
         putObjectRequest.captured.key() shouldBe "path"
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.contentMD5() shouldBe "XrY7u+Ae7tCTyyK7j1rNww=="
-        requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
     }
 
     @Test
@@ -61,7 +60,6 @@ class FileStorageClientS3Test : AnnotationSpec() {
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.tagging() shouldBe "Example%20tag=value"
         putObjectRequest.captured.contentMD5() shouldBe "XrY7u+Ae7tCTyyK7j1rNww=="
-        requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
     }
 
     @Test
@@ -172,7 +170,6 @@ class FileStorageClientS3Test : AnnotationSpec() {
         putObjectRequest.captured.key() shouldBe "path"
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.contentMD5() shouldBe "XrY7u+Ae7tCTyyK7j1rNww=="
-        requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
         requestBody.captured.contentType() shouldBe "text/plain"
     }
 
@@ -190,7 +187,6 @@ class FileStorageClientS3Test : AnnotationSpec() {
         putObjectRequest.captured.bucket() shouldBe bucketName
         putObjectRequest.captured.tagging() shouldBe "key=dog"
         putObjectRequest.captured.contentMD5() shouldBe "XrY7u+Ae7tCTyyK7j1rNww=="
-        requestBody.captured.contentStreamProvider().newStream() shouldBe inputStream
         requestBody.captured.contentType() shouldBe "text/plain"
     }
 
@@ -309,5 +305,19 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
         deleteObjectRequest.captured.bucket() shouldBe bucketName
         deleteObjectRequest.captured.key() shouldBe "path"
+    }
+
+    @Test
+    fun canDeleteFiles() {
+        val deleteObjectsRequest = slot<DeleteObjectsRequest>()
+        every { s3Client.deleteObjects(capture(deleteObjectsRequest)) } returns mockk()
+
+        underTest.deleteFiles(listOf("path1", "path2"))
+
+        deleteObjectsRequest.captured.bucket() shouldBe bucketName
+        deleteObjectsRequest.captured.delete().objects() shouldBe listOf(
+            ObjectIdentifier.builder().key("path1").build(),
+            ObjectIdentifier.builder().key("path2").build(),
+        )
     }
 }

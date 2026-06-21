@@ -30,6 +30,7 @@ interface FileStorageClient {
     fun saveFileWithContentType(path: String, content: ByteArray, contentType: String, tags: Map<String, String>)
 
     fun deleteFile(path: String)
+    fun deleteFiles(paths: List<String>)
 
     fun listFiles(): List<FileInformation>
 

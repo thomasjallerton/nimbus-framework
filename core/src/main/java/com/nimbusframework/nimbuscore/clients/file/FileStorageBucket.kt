@@ -44,6 +44,10 @@ open class FileStorageBucket(fileStorageBucket: Class<*>): FileStorageClient {
         fileStorageClient.deleteFile(path)
     }
 
+    override fun deleteFiles(paths: List<String>) {
+        fileStorageClient.deleteFiles(paths)
+    }
+
     override fun listFiles(): List<FileInformation> {
         return fileStorageClient.listFiles()
     }

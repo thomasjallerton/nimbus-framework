@@ -12,6 +12,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import persisted.*;
 import services.*;
+import software.amazon.awssdk.regions.Region;
 
 import java.io.File;
 import java.net.URI;
@@ -24,7 +25,7 @@ import static configuration.ConfigurationKt.*;
         requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class DeploymentMojo extends AbstractMojo {
 
-    private Log logger;
+    private final Log logger;
 
     @Parameter(property = "region", defaultValue = "eu-west-1")
     private String region;
@@ -54,7 +55,7 @@ public class DeploymentMojo extends AbstractMojo {
 
     private void initialise(NimbusState nimbusState) {
         if (nimbusState.getCloudProvider() == CloudProvider.AWS) {
-            stackService = new CloudFormationService(logger, region);
+            stackService = new CloudFormationService(logger, Region.of(region));
         } else if (nimbusState.getCloudProvider() == CloudProvider.AZURE) {
             stackService = new AzureResourceManagerService(logger, region);
         }
@@ -75,7 +76,7 @@ public class DeploymentMojo extends AbstractMojo {
         initialise(nimbusState);
 
         logger.info("Initialised");
-        S3Service s3Service = new S3Service(region, nimbusState, logger);
+        S3Service s3Service = new S3Service(Region.of(region), nimbusState, logger);
 
         String stackName = nimbusState.getProjectName() + "-" + stage;
         logger.info("Beginning deployment for project: " + nimbusState.getProjectName() + ", stage: " + stage);
@@ -170,7 +171,7 @@ public class DeploymentMojo extends AbstractMojo {
             }
         }
 
-        if (nimbusState.getFileUploads().size() > 0) {
+        if (!nimbusState.getFileUploads().isEmpty()) {
             logger.info("Starting File Uploads");
 
             Map<String, List<FileUploadDescription>> bucketUploads = nimbusState.getFileUploads().get(stage);
@@ -185,14 +186,14 @@ public class DeploymentMojo extends AbstractMojo {
             }
         }
 
-        if (nimbusState.getAfterDeployments().size() > 0) {
+        if (!nimbusState.getAfterDeployments().isEmpty()) {
             if (nimbusState.getAfterDeployments().size() == 1) {
                 logger.info("Starting after deployment script");
             } else {
                 logger.info("Starting after deployment scripts");
             }
 
-            LambdaService lambdaClient = new LambdaService(logger, region);
+            LambdaService lambdaClient = new LambdaService(logger, Region.of(region));
 
             List<String> afterDeployments = nimbusState.getAfterDeployments().get(stage);
             if (afterDeployments != null) {

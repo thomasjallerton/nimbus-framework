@@ -8,13 +8,14 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import services.*;
+import software.amazon.awssdk.regions.Region;
 
 import static configuration.ConfigurationKt.DEPLOYMENT_BUCKET_NAME;
 
 @Mojo(name = "destroy-stack")
 public class DestroyMojo extends AbstractMojo {
 
-    private Log logger;
+    private final Log logger;
 
     @Parameter(property = "region", defaultValue = "eu-west-1")
     private String region;
@@ -36,8 +37,9 @@ public class DestroyMojo extends AbstractMojo {
 
         NimbusState nimbusState = new PersistedStateService(logger, compiledSourcePathFixed).getNimbusState();
 
-        CloudFormationService cloudFormationService = new CloudFormationService(logger, region);
-        S3Service s3Service = new S3Service(region, nimbusState, logger);
+        Region parsedRegion = Region.of(region);
+        CloudFormationService cloudFormationService = new CloudFormationService(logger, parsedRegion);
+        S3Service s3Service = new S3Service(parsedRegion, nimbusState, logger);
         String stackName = nimbusState.getProjectName() + "-" + stage;
 
         logger.info(nimbusState.getProjectName() + "-" + stage + "-" + DEPLOYMENT_BUCKET_NAME);

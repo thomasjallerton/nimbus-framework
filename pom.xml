@@ -66,6 +66,8 @@
         <mockk.version>1.13.5</mockk.version>
         <tika.version>2.8.0</tika.version>
         <commons-io.version>2.11.0</commons-io.version>
+
+        <awssdk.version>2.46.15</awssdk.version>
     </properties>
 
     <modules>

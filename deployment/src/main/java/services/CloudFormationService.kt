@@ -1,31 +1,28 @@
 package services
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormation
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder
-import com.amazonaws.services.cloudformation.model.*
 import configuration.AWS_STACK_CREATE_FILE
 import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.plugin.logging.Log
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient
+import software.amazon.awssdk.services.cloudformation.model.*
 import java.net.URI
-import java.net.URL
 
-class CloudFormationService(private val logger: Log, region: String): StackService {
-    private val client: AmazonCloudFormation = AmazonCloudFormationClientBuilder.standard()
-            .withRegion(region)
-            .build()
+class CloudFormationService(private val logger: Log, region: Region) : StackService {
+    private val client: CloudFormationClient = CloudFormationClient.builder()
+        .region(region)
+        .build()
 
     private val fileService: FileService = FileService(logger)
 
     override fun findExport(exportName: String): StackService.FindExportResponse {
-        val listExportsRequest = ListExportsRequest()
-
         try {
-            val exportsResults = client.listExports(listExportsRequest)
-            val exports = exportsResults.exports
+            val exportsResults = client.listExports()
+            val exports = exportsResults.exports()
 
             for (export in exports) {
-                if (export.name == exportName) {
-                    return StackService.FindExportResponse(true, export.value)
+                if (export.name() == exportName) {
+                    return StackService.FindExportResponse(true, export.value())
                 }
             }
 
@@ -38,10 +35,11 @@ class CloudFormationService(private val logger: Log, region: String): StackServi
     }
 
     override fun updateStack(projectName: String, uri: URI): Boolean {
-        val updateStackRequest = UpdateStackRequest()
-                .withStackName(projectName)
-                .withCapabilities("CAPABILITY_NAMED_IAM")
-                .withTemplateURL(uri.toURL().toString())
+        val updateStackRequest = UpdateStackRequest.builder()
+            .stackName(projectName)
+            .capabilities(Capability.CAPABILITY_NAMED_IAM)
+            .templateURL(uri.toURL().toString())
+            .build()
         return try {
             client.updateStack(updateStackRequest)
             true
@@ -54,10 +52,11 @@ class CloudFormationService(private val logger: Log, region: String): StackServi
 
     override fun createStack(projectName: String, stage: String, compiledSourcesPath: String): StackService.CreateStackResponse {
         val templateText = fileService.getFileText("$compiledSourcesPath$AWS_STACK_CREATE_FILE-$stage.json")
-        val createStackRequest = CreateStackRequest()
-                .withStackName(projectName)
-                .withCapabilities("CAPABILITY_NAMED_IAM")
-                .withTemplateBody(templateText)
+        val createStackRequest = CreateStackRequest.builder()
+            .stackName(projectName)
+            .capabilities(Capability.CAPABILITY_NAMED_IAM)
+            .templateBody(templateText)
+            .build()
         try {
             client.createStack(createStackRequest)
             return StackService.CreateStackResponse(true, false)
@@ -70,8 +69,9 @@ class CloudFormationService(private val logger: Log, region: String): StackServi
     }
 
     override fun deleteStack(stackName: String): Boolean {
-        val deleteStackRequest = DeleteStackRequest()
-                .withStackName(stackName)
+        val deleteStackRequest = DeleteStackRequest.builder()
+            .stackName(stackName)
+            .build()
 
         return try {
             client.deleteStack(deleteStackRequest)
@@ -82,15 +82,16 @@ class CloudFormationService(private val logger: Log, region: String): StackServi
         }
     }
 
-    override fun getStackStatus(stackName: String): String {
-        val describeStackRequest = DescribeStacksRequest()
-                .withStackName(stackName)
+    override fun getStackStatus(stackName: String): String{
+        val describeStackRequest = DescribeStacksRequest.builder()
+            .stackName(stackName)
+            .build()
         try {
             val response = client.describeStacks(describeStackRequest)
-            val stacks = response.stacks
+            val stacks = response.stacks()
 
             if (stacks.size == 1) {
-                return stacks[0].stackStatus
+                return stacks[0].stackStatus().name
             }
         } catch (e: java.lang.Exception) {
             if (!e.localizedMessage.contains("does not exist")) {
@@ -101,17 +102,19 @@ class CloudFormationService(private val logger: Log, region: String): StackServi
     }
 
     override fun getStackErrorReason(stackName: String): String {
-        val describeStackRequest = DescribeStackEventsRequest()
-                .withStackName(stackName)
+        val describeStackRequest = DescribeStackEventsRequest.builder()
+            .stackName(stackName)
+            .build()
 
         val response = client.describeStackEvents(describeStackRequest)
-        val events = response.stackEvents
+        val events = response.stackEvents()
 
         for (event in events) {
-            if (isErrorStatus(event.resourceStatus)
-                    && !event.resourceStatusReason.contains("Resource update cancelled")
-                    && !event.resourceStatusReason.contains("Resource creation cancelled")) {
-                return event.resourceStatusReason
+            if (isErrorStatus(event.resourceStatus().name)
+                && !event.resourceStatusReason().contains("Resource update cancelled")
+                && !event.resourceStatusReason().contains("Resource creation cancelled")
+            ) {
+                return event.resourceStatusReason()
             }
         }
         return "Couldn't find error, look at CloudFormation stack log"

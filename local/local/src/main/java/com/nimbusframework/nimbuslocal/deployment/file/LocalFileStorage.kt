@@ -102,6 +102,12 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
         }
     }
 
+    override fun deleteFiles(paths: List<String>) {
+        for (path in paths) {
+            deleteFile(path)
+        }
+    }
+
     override fun listFiles(): List<FileInformation> {
         val results: MutableList<FileInformation> = mutableListOf()
         listFiles(tmpDir, results)
@@ -148,13 +154,11 @@ class LocalFileStorage(bucketName: String, private val allowedOrigins: List<Stri
         f.parentFile?.mkdirs()
         f.createNewFile()
         val initialStream = FileInputStream(file)
-        val buffer = ByteArray(initialStream.available())
-        initialStream.read(buffer)
-
         val outStream = FileOutputStream(f)
-        outStream.write(buffer)
+        initialStream.copyTo(outStream)
 
         outStream.close()
+        initialStream.close()
 
         methods.forEach { method -> method.invoke(actualPath, f.length(), FileStorageEventType.OBJECT_CREATED) }
 

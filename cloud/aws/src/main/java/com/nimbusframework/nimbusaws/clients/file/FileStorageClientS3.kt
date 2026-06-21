@@ -9,9 +9,7 @@ import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.utils.Md5Utils
 import java.io.File
 import java.io.InputStream
-import java.math.BigInteger
 import java.nio.charset.Charset
-import java.security.MessageDigest
 import java.util.*
 
 internal class FileStorageClientS3(
@@ -146,6 +144,16 @@ internal class FileStorageClientS3(
             .key(path)
             .build()
         s3Client.deleteObject(deleteRequest)
+    }
+
+    override fun deleteFiles(paths: List<String>) {
+        val deleteRequest = DeleteObjectsRequest.builder()
+            .bucket(bucketName)
+            .delete { builder ->
+                builder.objects(paths.map { path -> ObjectIdentifier.builder().key(path).build() })
+            }
+            .build()
+        s3Client.deleteObjects(deleteRequest)
     }
 
     private fun buildTags(tags: Map<String, String>): Tagging {

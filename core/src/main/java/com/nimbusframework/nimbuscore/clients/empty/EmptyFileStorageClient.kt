@@ -46,6 +46,10 @@ class EmptyFileStorageClient(): FileStorageClient {
         throw PermissionException(clientName)
     }
 
+    override fun deleteFiles(paths: List<String>) {
+        throw PermissionException(clientName)
+    }
+
     override fun listFiles(): List<FileInformation> {
         throw PermissionException(clientName)
     }
