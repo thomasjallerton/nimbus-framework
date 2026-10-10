@@ -94,7 +94,7 @@ import java.util.*;
         "com.nimbusframework.nimbusaws.annotation.annotations.database.RdsDatabases",
         "com.nimbusframework.nimbusaws.annotation.annotations.nativeimage.RegisterForReflection"
 })
-@SupportedSourceVersion(SourceVersion.RELEASE_11)
+@SupportedSourceVersion(SourceVersion.RELEASE_21)
 @AutoService(Processor.class)
 public class NimbusAnnotationProcessor extends AbstractProcessor {
 

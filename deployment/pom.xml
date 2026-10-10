@@ -169,7 +169,7 @@
                                 <annotationProcessorPath>
                                     <groupId>com.nimbusframework</groupId>
                                     <artifactId>nimbus-aws</artifactId>
-                                    <version>${version}</version>
+                                    <version>${project.version}</version>
                                 </annotationProcessorPath>
                             </annotationProcessorPaths>
                         </configuration>
