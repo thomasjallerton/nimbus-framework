@@ -5,8 +5,8 @@ import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.exampleHandlers.ExampleFileStorageHandler
 import com.nimbusframework.nimbuslocal.exampleModels.Bucket
 import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
 import java.io.File
-import kotlin.test.assertEquals
 
 class FileStorageClientLocalTest: AnnotationSpec() {
 
@@ -16,17 +16,17 @@ class FileStorageClientLocalTest: AnnotationSpec() {
 
         val method = localDeployment.getMethod(ExampleFileStorageHandler::class.java, "newFile")
 
-        assertEquals(0, method.timesInvoked)
+        method.timesInvoked shouldBe 0
 
         val fileStorage = localDeployment.getLocalFileStorage(Bucket::class.java)
         val path = "testdir" + File.separator + "newFile"
         fileStorage.saveFile(path, "testContent")
 
-        assertEquals(1, method.timesInvoked)
+        method.timesInvoked shouldBe 1
 
         val event = method.mostRecentInvokeArgument as FileStorageEvent
-        assertEquals(path, event.key)
-        assertEquals(11, event.size)
+        event.key shouldBe path
+        event.size shouldBe 11
     }
 
     @Test
@@ -35,18 +35,18 @@ class FileStorageClientLocalTest: AnnotationSpec() {
 
         val method = localDeployment.getMethod(ExampleFileStorageHandler::class.java, "deletedFile")
 
-        assertEquals(0, method.timesInvoked)
+        method.timesInvoked shouldBe 0
 
         val fileStorage = localDeployment.getLocalFileStorage(Bucket::class.java)
         val path = "testdir" + File.separator + "newFile"
         fileStorage.saveFile(path, "testContent")
-        fileStorage.deleteFile(path
-        )
-        assertEquals(1, method.timesInvoked)
+        fileStorage.deleteFile(path)
+
+        method.timesInvoked shouldBe 1
 
         val event = method.mostRecentInvokeArgument as FileStorageEvent
-        assertEquals(path, event.key)
-        assertEquals(0, event.size)
+        event.key shouldBe path
+        event.size shouldBe 0
     }
 
     @Test
@@ -55,13 +55,13 @@ class FileStorageClientLocalTest: AnnotationSpec() {
 
         val method = localDeployment.getMethod(ExampleFileStorageHandler::class.java, "deletedFile")
 
-        assertEquals(0, method.timesInvoked)
+        method.timesInvoked shouldBe 0
 
         val fileStorage = localDeployment.getLocalFileStorage(Bucket::class.java)
         val path = "testdir" + File.separator + "shouldnotexist"
 
         fileStorage.deleteFile(path)
 
-        assertEquals(0, method.timesInvoked)
+        method.timesInvoked shouldBe 0
     }
 }

@@ -39,7 +39,7 @@ class Subnet(
     }
 
     override fun getName(): String {
-        return "PubliclyAccessibleSubnet${availabilityZone.toUpperCase()}"
+        return "PubliclyAccessibleSubnet${availabilityZone.uppercase()}"
     }
 
 }

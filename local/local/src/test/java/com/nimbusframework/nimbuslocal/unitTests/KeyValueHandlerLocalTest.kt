@@ -5,8 +5,7 @@ import com.nimbusframework.nimbuslocal.exampleModels.KeyValue
 import com.nimbusframework.nimbuslocal.exampleModels.Person
 import com.nimbusframework.nimbuslocal.exampleHandlers.ExampleKeyValueHandler
 import io.kotest.core.spec.style.AnnotationSpec
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
+import io.kotest.matchers.shouldBe
 
 class KeyValueHandlerLocalTest: AnnotationSpec() {
 
@@ -18,18 +17,18 @@ class KeyValueHandlerLocalTest: AnnotationSpec() {
         val keyValueStore = localDeployment.getKeyValueStore<String, KeyValue>(KeyValue::class.java)
 
         val insertMethod = localDeployment.getMethod(ExampleKeyValueHandler::class.java, "handleInsert")
-        assertEquals(0, insertMethod.timesInvoked)
+        insertMethod.timesInvoked shouldBe 0
         val removeMethod = localDeployment.getMethod(ExampleKeyValueHandler::class.java, "handleRemove")
-        assertEquals(0, removeMethod.timesInvoked)
+        removeMethod.timesInvoked shouldBe 0
         val modifyMethod = localDeployment.getMethod(ExampleKeyValueHandler::class.java, "handleModify")
-        assertEquals(0, modifyMethod.timesInvoked)
+        modifyMethod.timesInvoked shouldBe 0
 
 
         keyValueStore.put("KEYVALUE1", keyValueItem)
 
-        assertEquals(1, insertMethod.timesInvoked)
-        assertEquals(1, removeMethod.timesInvoked)
-        assertEquals(1, modifyMethod.timesInvoked)
+        insertMethod.timesInvoked shouldBe 1
+        removeMethod.timesInvoked shouldBe 1
+        modifyMethod.timesInvoked shouldBe 1
     }
 
     @Test
@@ -41,8 +40,8 @@ class KeyValueHandlerLocalTest: AnnotationSpec() {
 
         keyValueStore.put("KEYVALUE1", keyValueItem)
 
-        assertEquals(keyValueItem, insertMethod.mostRecentInvokeArgument)
-        assertEquals(true, insertMethod.mostRecentValueReturned)
+        insertMethod.mostRecentInvokeArgument shouldBe keyValueItem
+        insertMethod.mostRecentValueReturned shouldBe true
     }
 
     @Test
@@ -55,8 +54,8 @@ class KeyValueHandlerLocalTest: AnnotationSpec() {
         keyValueStore.put("KEYVALUE1", keyValueItem)
         keyValueStore.delete("KEYVALUE1")
 
-        assertEquals(keyValueItem, removeMethod.mostRecentInvokeArgument)
-        assertEquals(true, removeMethod.mostRecentValueReturned)
+        removeMethod.mostRecentInvokeArgument shouldBe keyValueItem
+        removeMethod.mostRecentValueReturned shouldBe true
     }
 
 
@@ -73,7 +72,7 @@ class KeyValueHandlerLocalTest: AnnotationSpec() {
 
         keyValueStore.put("KEYVALUE1", newDocument)
 
-        assertEquals(listOf(keyValueItem, newDocument), modifyMethod.mostRecentInvokeArgument)
-        assertEquals(true, modifyMethod.mostRecentValueReturned)
+        modifyMethod.mostRecentInvokeArgument shouldBe listOf(keyValueItem, newDocument)
+        modifyMethod.mostRecentValueReturned shouldBe true
     }
 }

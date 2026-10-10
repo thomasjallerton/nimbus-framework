@@ -20,7 +20,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import java.lang.reflect.Field
-import kotlin.streams.toList
 
 class DocumentStoreClientDynamoTest : AnnotationSpec() {
 

@@ -64,7 +64,7 @@ class FileStorageBucketResourceCreator(
                     val exportInformation = ExportInformation(
                             websiteOutputUrl.getExportName(),
                             "Created File Storage bucket as a static website. Base URL is ",
-                            "\${${storageBucket.bucketName.toUpperCase()}_URL}"
+                            "\${${storageBucket.bucketName.uppercase()}_URL}"
                     )
 
                     stageExports.add(exportInformation)

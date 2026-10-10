@@ -7,7 +7,7 @@ import com.nimbusframework.nimbuslocal.exampleHandlers.ExampleNotificationHandle
 import com.nimbusframework.nimbuslocal.exampleModels.NotificationTopic
 import com.nimbusframework.nimbuslocal.exampleModels.Person
 import io.kotest.core.spec.style.AnnotationSpec
-import org.junit.jupiter.api.Assertions.assertEquals
+import io.kotest.matchers.shouldBe
 
 class NotificationClientLocalTest: AnnotationSpec() {
 
@@ -23,8 +23,8 @@ class NotificationClientLocalTest: AnnotationSpec() {
 
         val sentMessages = topic.getEndpointsMessages(Protocol.HTTP, "www.test.com")
 
-        assertEquals(1, sentMessages.size)
-        assertEquals("{\"name\":\"Tom\", \"age\":15}", sentMessages[0])
+        sentMessages.size shouldBe 1
+        sentMessages[0] shouldBe "{\"name\":\"Tom\", \"age\":15}"
     }
 
     @Test
@@ -40,8 +40,8 @@ class NotificationClientLocalTest: AnnotationSpec() {
 
         val sentMessages = topic.getEndpointsMessages(Protocol.HTTP, "www.test.com")
 
-        assertEquals(1, sentMessages.size)
-        assertEquals(person, sentMessages[0])
+        sentMessages.size shouldBe 1
+        sentMessages[0] shouldBe person
     }
 
     @Test
@@ -57,6 +57,6 @@ class NotificationClientLocalTest: AnnotationSpec() {
 
         val sentMessages = topic.getEndpointsMessages(Protocol.HTTP, "www.test.com")
 
-        assertEquals(0, sentMessages.size)
+        sentMessages.size shouldBe 0
     }
 }

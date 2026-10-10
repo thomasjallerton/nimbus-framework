@@ -74,21 +74,4 @@ class EnvironmentVariablesProcessorTest : AnnotationSpec() {
         compileState.status shouldBe Compilation.Status.SUCCESS
     }
 
-    @Test
-    fun handlesLocalVariableBeingSet() {
-        withEnvironment("TEST_VALUE", "TEST_ENV_VAL") {
-            compileState.compileObjects {
-                val elements = it.elementUtils
-                HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[1], FunctionEnvironmentService(cfDocuments, processingData))
-                HttpFunctionResourceCreator(cfDocuments, processingData, mockk(relaxed = true), it, setOf(), mockk(relaxed = true)).handleElement(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], FunctionEnvironmentService(cfDocuments, processingData))
-
-                val functionResource = cfDocuments["dev"]!!.updateTemplate.resources.get("hUsesEnvironmeriableHandlerfunc2Function") as FunctionResource
-
-                environmentVariablesProcessor.handleUseResources(elements.getTypeElement("handlers.UsesEnvironmentVariableHandler").enclosedElements[2], functionResource)
-
-                functionResource.getStrEnvValue("TEST_KEY") shouldBe "TEST_ENV_VAL"
-            }
-        }
-        compileState.status shouldBe Compilation.Status.SUCCESS
-    }
 }

@@ -6,11 +6,11 @@ import com.nimbusframework.nimbusaws.cloudformation.generation.resources.databas
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.database.DatabasePasswordEnvironmentVariable
 import com.nimbusframework.nimbusaws.cloudformation.generation.resources.database.DatabaseUsernameEnvironmentVariable
 import com.nimbusframework.nimbuscore.annotations.database.DatabaseLanguage
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.AnnotationSpec
 import io.mockk.every
 import io.mockk.mockk
 import org.postgresql.util.PSQLException
-import kotlin.test.assertFailsWith
 
 class DatabaseClientRdsTest : AnnotationSpec() {
 
@@ -40,18 +40,18 @@ class DatabaseClientRdsTest : AnnotationSpec() {
 
     @Test
     fun canConnectToDatabase() {
-        assertFailsWith<PSQLException> { underTest.getConnection() }
+        shouldThrow<PSQLException> { underTest.getConnection() }
     }
 
     @Test
     fun canConnectToDatabaseSlashAtEndOfUrl() {
         every { environmentVariableClient.get(eq(DatabaseConnectionUrlEnvironmentVariable(parsedDatabaseConfig))) } returns "URL"
-        assertFailsWith<PSQLException> { underTest.getConnection() }
+        shouldThrow<PSQLException> { underTest.getConnection() }
     }
 
     @Test
     fun canConnectToDatabaseWithExtraParams() {
-        assertFailsWith<PSQLException> { underTest.getConnection("database", true) }
+        shouldThrow<PSQLException> { underTest.getConnection("database", true) }
     }
 
 

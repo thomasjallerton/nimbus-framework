@@ -5,8 +5,7 @@ import com.nimbusframework.nimbuslocal.exampleHandlers.ExampleNotificationHandle
 import com.nimbusframework.nimbuslocal.exampleModels.NotificationTopic
 import com.nimbusframework.nimbuslocal.exampleModels.Person
 import io.kotest.core.spec.style.AnnotationSpec
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
+import io.kotest.matchers.shouldBe
 
 class NotificationHandlerLocalTest: AnnotationSpec() {
 
@@ -18,13 +17,13 @@ class NotificationHandlerLocalTest: AnnotationSpec() {
 
         val notificationFunction = localDeployment.getMethod(ExampleNotificationHandler::class.java, "receiveNotification")
 
-        assertEquals(0, notificationFunction.timesInvoked)
+        notificationFunction.timesInvoked shouldBe 0
 
         val testTopic = localDeployment.getNotificationTopic(NotificationTopic::class.java)
         testTopic.notifyJson(testPerson)
 
-        assertEquals(1, notificationFunction.timesInvoked)
-        assertEquals(testPerson, notificationFunction.mostRecentInvokeArgument)
-        assertEquals(testPerson, notificationFunction.mostRecentValueReturned)
+        notificationFunction.timesInvoked shouldBe 1
+        notificationFunction.mostRecentInvokeArgument shouldBe testPerson
+        notificationFunction.mostRecentValueReturned shouldBe testPerson
     }
 }

@@ -6,8 +6,6 @@ import com.nimbusframework.nimbuslocal.exampleHandlers.ExampleBasicCustomFactory
 import com.nimbusframework.nimbuslocal.exampleHandlers.ExampleBasicFunctionHandler
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class BasicFunctionHandlerTest: AnnotationSpec() {
 
@@ -19,11 +17,11 @@ class BasicFunctionHandlerTest: AnnotationSpec() {
 
         val result = method.invoke("HELLO", Boolean::class.java)
 
-        assertEquals(true, result)
-        assertEquals(true, method.mostRecentValueReturned)
+        result shouldBe true
+        method.mostRecentValueReturned shouldBe true
 
-        assertEquals("HELLO", method.mostRecentInvokeArgument)
-        assertEquals(1, method.timesInvoked)
+        method.mostRecentInvokeArgument shouldBe "HELLO"
+        method.timesInvoked shouldBe 1
     }
 
     @Test
@@ -36,11 +34,11 @@ class BasicFunctionHandlerTest: AnnotationSpec() {
 
         val result = client.invoke("HELLO", Boolean::class.java)
 
-        assertEquals(true, result)
-        assertEquals(true, method.mostRecentValueReturned)
+        result shouldBe true
+        method.mostRecentValueReturned shouldBe true
 
-        assertEquals("HELLO", method.mostRecentInvokeArgument)
-        assertEquals(1, method.timesInvoked)
+        method.mostRecentInvokeArgument shouldBe "HELLO"
+        method.timesInvoked shouldBe 1
     }
 
     @Test

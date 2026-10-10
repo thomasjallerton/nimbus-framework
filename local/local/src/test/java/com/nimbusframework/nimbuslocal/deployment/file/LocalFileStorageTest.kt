@@ -4,8 +4,6 @@ import com.nimbusframework.nimbuscore.annotations.file.FileStorageEventType
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.exampleModels.Bucket
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.core.test.TestCase
-import io.kotest.core.test.TestResult
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -140,13 +138,11 @@ internal class LocalFileStorageTest: StringSpec({
         verify { method.invoke("trigger/created", 0, FileStorageEventType.OBJECT_DELETED) }
     }
 
-}) {
-
-    override suspend fun afterEach(testCase: TestCase, result: TestResult) {
+    afterEach {
         val underTest = LocalFileStorage("Test", listOf("*"))
         val files = underTest.listFiles()
         underTest.deleteFiles(files.map { it.path })
         underTest.listFiles() shouldBe listOf()
     }
 
-}
+})

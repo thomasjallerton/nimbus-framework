@@ -8,12 +8,10 @@ import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.exampleModels.KeyValue
 import com.nimbusframework.nimbuslocal.exampleModels.Person
 import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldContainExactly
-import org.junit.jupiter.api.Test
+import io.kotest.matchers.shouldBe
 import kotlin.streams.toList
-import kotlin.test.assertEquals
 
 class KeyValueStoreClientLocalTest: AnnotationSpec() {
 
@@ -27,12 +25,12 @@ class KeyValueStoreClientLocalTest: AnnotationSpec() {
         val keyValueStore = localDeployment.getKeyValueStore<Int, KeyValue>(KeyValue::class.java)
         val keyValueStoreClient = ClientBuilder.getKeyValueStoreClient(Int::class.java, KeyValue::class.java)
 
-        assertEquals(0, keyValueStore.size())
+        keyValueStore.size() shouldBe 0
 
         keyValueStoreClient.put(10, houseOne)
 
-        assertEquals(1, keyValueStore.size())
-        assertEquals(houseOne, keyValueStore.get(10))
+        keyValueStore.size() shouldBe 1
+        keyValueStore.get(10) shouldBe houseOne
     }
 
     @Test
@@ -45,7 +43,7 @@ class KeyValueStoreClientLocalTest: AnnotationSpec() {
         keyValueStore.put(10, houseOne)
         keyValueStoreClient.delete(10)
 
-        assertEquals(0, keyValueStore.size())
+        keyValueStore.size() shouldBe 0
     }
 
     @Test
@@ -59,8 +57,8 @@ class KeyValueStoreClientLocalTest: AnnotationSpec() {
         keyValueStore.put(5, houseTwo)
         keyValueStoreClient.delete(10)
 
-        assertEquals(1, keyValueStore.size())
-        assertEquals(houseTwo, keyValueStore.get(5))
+        keyValueStore.size() shouldBe 1
+        keyValueStore.get(5) shouldBe houseTwo
     }
 
     @Test
@@ -73,7 +71,7 @@ class KeyValueStoreClientLocalTest: AnnotationSpec() {
         keyValueStore.put(10, houseOne)
         keyValueStore.put(5, houseTwo)
 
-        assertEquals(houseTwo, keyValueStoreClient.get(5))
+        keyValueStoreClient.get(5) shouldBe houseTwo
     }
 
     @Test
@@ -87,9 +85,9 @@ class KeyValueStoreClientLocalTest: AnnotationSpec() {
         keyValueStore.put(5, houseTwo)
 
         val getAllResults = keyValueStoreClient.getAll()
-        assertEquals(2, getAllResults.size)
-        assertEquals(houseOne, getAllResults[10])
-        assertEquals(houseTwo, getAllResults[5])
+        getAllResults.size shouldBe 2
+        getAllResults[10] shouldBe houseOne
+        getAllResults[5] shouldBe houseTwo
     }
 
     @Test

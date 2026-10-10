@@ -24,7 +24,7 @@ class HttpUtilsTest: StringSpec({
 
         val result = HttpUtils.compressContent(request, "HELLO WORLD")
         result!!.encoding shouldBe "gzip"
-        Base64.getEncoder().encodeToString(result.content) shouldBe "H4sIAAAAAAAAAPNw9fHxVwj3D/JxAQBbhuWHCwAAAA=="
+        Base64.getEncoder().encodeToString(result.content) shouldBe "H4sIAAAAAAAA//Nw9fHxVwj3D/JxAQBbhuWHCwAAAA=="
     }
 
     "Will not compress response for request that accepts nothing" {
@@ -54,7 +54,7 @@ class HttpUtilsTest: StringSpec({
 
         val result = HttpUtils.compressContent(request, "HELLO WORLD")
         result!!.encoding shouldBe "gzip"
-        Base64.getEncoder().encodeToString(result.content) shouldBe "H4sIAAAAAAAAAPNw9fHxVwj3D/JxAQBbhuWHCwAAAA=="
+        Base64.getEncoder().encodeToString(result.content) shouldBe "H4sIAAAAAAAA//Nw9fHxVwj3D/JxAQBbhuWHCwAAAA=="
     }
 
     "Can compress response for request that accepts multiple encodings - supported encoding last" {
@@ -64,7 +64,7 @@ class HttpUtilsTest: StringSpec({
 
         val result = HttpUtils.compressContent(request, "HELLO WORLD")
         result!!.encoding shouldBe "gzip"
-        Base64.getEncoder().encodeToString(result.content) shouldBe "H4sIAAAAAAAAAPNw9fHxVwj3D/JxAQBbhuWHCwAAAA=="
+        Base64.getEncoder().encodeToString(result.content) shouldBe "H4sIAAAAAAAA//Nw9fHxVwj3D/JxAQBbhuWHCwAAAA=="
     }
 
 

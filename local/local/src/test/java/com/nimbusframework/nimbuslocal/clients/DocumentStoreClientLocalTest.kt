@@ -4,11 +4,9 @@ import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.exampleModels.Document
 import com.nimbusframework.nimbuslocal.exampleModels.Person
 import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import kotlin.streams.toList
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import io.kotest.matchers.shouldBe
 
 class DocumentStoreClientLocalTest: AnnotationSpec() {
 
@@ -22,12 +20,12 @@ class DocumentStoreClientLocalTest: AnnotationSpec() {
         val documentStore = localDeployment.getDocumentStore(Document::class.java)
         val documentStoreClient = localDeployment.getDocumentStore(Document::class.java)
 
-        assertEquals(0, documentStore.size())
+        documentStore.size() shouldBe 0
 
         documentStoreClient.put(documentOne)
 
-        assertEquals(1, documentStore.size())
-        assertEquals(documentOne, documentStoreClient.get("testDocument")!!)
+        documentStore.size() shouldBe 1
+        documentStoreClient.get("testDocument") shouldBe documentOne
     }
 
     @Test
@@ -39,11 +37,11 @@ class DocumentStoreClientLocalTest: AnnotationSpec() {
 
         documentStoreClient.put(documentOne)
 
-        assertEquals(1, documentStore.size())
+        documentStore.size() shouldBe 1
 
         documentStoreClient.deleteKey("testDocument")
 
-        assertEquals(0, documentStore.size())
+        documentStore.size() shouldBe 0
     }
 
     @Test
@@ -55,11 +53,11 @@ class DocumentStoreClientLocalTest: AnnotationSpec() {
 
         documentStoreClient.put(documentOne)
 
-        assertEquals(1, documentStore.size())
+        documentStore.size() shouldBe 1
 
         documentStoreClient.delete(documentOne)
 
-        assertEquals(0, documentStore.size())
+        documentStore.size() shouldBe 0
     }
 
     @Test
@@ -73,8 +71,8 @@ class DocumentStoreClientLocalTest: AnnotationSpec() {
         documentStoreClient.put(documentTwo)
         documentStoreClient.delete(documentOne)
 
-        assertEquals(1, documentStore.size())
-        assertEquals(documentTwo, documentStoreClient.get("testDocument2"))
+        documentStore.size() shouldBe 1
+        documentStoreClient.get("testDocument2") shouldBe documentTwo
     }
 
     @Test
@@ -88,8 +86,8 @@ class DocumentStoreClientLocalTest: AnnotationSpec() {
         documentStoreClient.put(documentTwo)
         documentStoreClient.deleteKey("testDocument")
 
-        assertEquals(1, documentStore.size())
-        assertEquals(documentTwo, documentStoreClient.get("testDocument2"))
+        documentStore.size() shouldBe 1
+        documentStoreClient.get("testDocument2") shouldBe documentTwo
     }
 
     @Test
@@ -101,7 +99,7 @@ class DocumentStoreClientLocalTest: AnnotationSpec() {
         documentStoreClient.put(documentOne)
         documentStoreClient.put(documentTwo)
 
-        assertEquals(documentTwo, documentStoreClient.get("testDocument2"))
+        documentStoreClient.get("testDocument2") shouldBe documentTwo
     }
 
     @Test
@@ -114,9 +112,9 @@ class DocumentStoreClientLocalTest: AnnotationSpec() {
         documentStoreClient.put(documentTwo)
 
         val getAllResults = documentStoreClient.getAll().toList()
-        assertEquals(2, getAllResults.size)
-        assertTrue(getAllResults.contains(documentOne))
-        assertTrue(getAllResults.contains(documentTwo))
+        getAllResults.size shouldBe 2
+        getAllResults shouldContain documentOne
+        getAllResults shouldContain documentTwo
     }
 
     @Test

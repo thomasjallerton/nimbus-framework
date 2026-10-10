@@ -5,8 +5,7 @@ import com.nimbusframework.nimbuslocal.exampleHandlers.ExampleQueueHandler
 import com.nimbusframework.nimbuslocal.exampleModels.KeyValue
 import com.nimbusframework.nimbuslocal.exampleModels.Person
 import io.kotest.core.spec.style.AnnotationSpec
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
+import io.kotest.matchers.shouldBe
 
 class QueueHandlerLocalTest: AnnotationSpec() {
 
@@ -19,13 +18,13 @@ class QueueHandlerLocalTest: AnnotationSpec() {
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize1Queue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handle")
-        assertEquals(0, queueFunction.timesInvoked)
+        queueFunction.timesInvoked shouldBe 0
 
         queue.add(houseOne)
 
-        assertEquals(1, queueFunction.timesInvoked)
-        assertEquals(houseOne, queueFunction.mostRecentInvokeArgument)
-        assertEquals(true, queueFunction.mostRecentValueReturned)
+        queueFunction.timesInvoked shouldBe 1
+        queueFunction.mostRecentInvokeArgument shouldBe houseOne
+        queueFunction.mostRecentValueReturned shouldBe true
     }
 
     @Test
@@ -35,12 +34,12 @@ class QueueHandlerLocalTest: AnnotationSpec() {
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize1Queue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handle")
-        assertEquals(0, queueFunction.timesInvoked)
+        queueFunction.timesInvoked shouldBe 0
 
         queue.add(houseOne)
         queue.add(houseOne)
 
-        assertEquals(2, queueFunction.timesInvoked)
+        queueFunction.timesInvoked shouldBe 2
     }
 
     @Test
@@ -50,11 +49,11 @@ class QueueHandlerLocalTest: AnnotationSpec() {
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize2BatchQueue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Batched")
-        assertEquals(0, queueFunction.timesInvoked)
+        queueFunction.timesInvoked shouldBe 0
 
         queue.add(houseOne)
 
-        assertEquals(1, queueFunction.timesInvoked)
+        queueFunction.timesInvoked shouldBe 1
     }
 
     @Test
@@ -64,11 +63,11 @@ class QueueHandlerLocalTest: AnnotationSpec() {
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize2BatchQueue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Batched")
-        assertEquals(0, queueFunction.timesInvoked)
+        queueFunction.timesInvoked shouldBe 0
 
         queue.addBatch(listOf(houseOne, houseOne))
 
-        assertEquals(1, queueFunction.timesInvoked)
+        queueFunction.timesInvoked shouldBe 1
     }
 
     @Test
@@ -78,11 +77,11 @@ class QueueHandlerLocalTest: AnnotationSpec() {
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize2IndividualQueue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Individual")
-        assertEquals(0, queueFunction.timesInvoked)
+        queueFunction.timesInvoked shouldBe 0
 
         queue.add(houseOne)
 
-        assertEquals(1, queueFunction.timesInvoked)
+        queueFunction.timesInvoked shouldBe 1
     }
 
     @Test
@@ -92,10 +91,10 @@ class QueueHandlerLocalTest: AnnotationSpec() {
         val queue = localDeployment.getQueue(ExampleQueueHandler.BatchSize2IndividualQueue::class.java)
 
         val queueFunction = localDeployment.getMethod(ExampleQueueHandler::class.java, "handleBatchSize2Individual")
-        assertEquals(0, queueFunction.timesInvoked)
+        queueFunction.timesInvoked shouldBe 0
 
         queue.addBatch(listOf(houseOne, houseOne))
 
-        assertEquals(1, queueFunction.timesInvoked)
+        queueFunction.timesInvoked shouldBe 1
     }
 }

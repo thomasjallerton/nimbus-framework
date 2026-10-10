@@ -1,13 +1,11 @@
 package com.nimbusframework.nimbuslocal.unitTests
 
-
 import com.nimbusframework.nimbuslocal.LocalNimbusDeployment
 import com.nimbusframework.nimbuslocal.exampleModels.Document
 import com.nimbusframework.nimbuslocal.exampleModels.Person
 import com.nimbusframework.nimbuslocal.exampleHandlers.ExampleDocumentHandler
 import io.kotest.core.spec.style.AnnotationSpec
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
+import io.kotest.matchers.shouldBe
 
 class DocumentHandlerLocalTest: AnnotationSpec() {
 
@@ -24,9 +22,9 @@ class DocumentHandlerLocalTest: AnnotationSpec() {
 
         documentStore.put(documentOne)
 
-        assertEquals(1, insertMethod.timesInvoked)
-        assertEquals(1, removeMethod.timesInvoked)
-        assertEquals(1, modifyMethod.timesInvoked)
+        insertMethod.timesInvoked shouldBe 1
+        removeMethod.timesInvoked shouldBe 1
+        modifyMethod.timesInvoked shouldBe 1
     }
 
     @Test
@@ -38,8 +36,8 @@ class DocumentHandlerLocalTest: AnnotationSpec() {
 
         documentStore.put(documentOne)
 
-        assertEquals(documentOne, insertMethod.mostRecentInvokeArgument)
-        assertEquals(true, insertMethod.mostRecentValueReturned)
+        insertMethod.mostRecentInvokeArgument shouldBe documentOne
+        insertMethod.mostRecentValueReturned shouldBe true
     }
 
     @Test
@@ -52,8 +50,8 @@ class DocumentHandlerLocalTest: AnnotationSpec() {
         documentStore.put(documentOne)
         documentStore.delete(documentOne)
 
-        assertEquals(documentOne, removeMethod.mostRecentInvokeArgument)
-        assertEquals(true, removeMethod.mostRecentValueReturned)
+        removeMethod.mostRecentInvokeArgument shouldBe documentOne
+        removeMethod.mostRecentValueReturned shouldBe true
     }
 
     @Test
@@ -66,8 +64,8 @@ class DocumentHandlerLocalTest: AnnotationSpec() {
         documentStore.put(documentOne)
         documentStore.deleteKey("testDocument")
 
-        assertEquals(documentOne, removeMethod.mostRecentInvokeArgument)
-        assertEquals(true, removeMethod.mostRecentValueReturned)
+        removeMethod.mostRecentInvokeArgument shouldBe documentOne
+        removeMethod.mostRecentValueReturned shouldBe true
     }
 
     @Test
@@ -83,7 +81,7 @@ class DocumentHandlerLocalTest: AnnotationSpec() {
 
         documentStore.put(newDocument)
 
-        assertEquals(listOf(documentOne, newDocument), modifyMethod.mostRecentInvokeArgument)
-        assertEquals(true, modifyMethod.mostRecentValueReturned)
+        modifyMethod.mostRecentInvokeArgument shouldBe listOf(documentOne, newDocument)
+        modifyMethod.mostRecentValueReturned shouldBe true
     }
 }

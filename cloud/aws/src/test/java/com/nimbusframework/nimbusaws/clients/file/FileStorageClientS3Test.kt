@@ -229,7 +229,8 @@ class FileStorageClientS3Test : AnnotationSpec() {
 
     @Test
     fun canSaveFile() {
-        val file: File = mockk(relaxed = true)
+        val file = mockk<File>(relaxed = true)
+        every { file.path } returns "path"
         val putObjectRequest = slot<PutObjectRequest>()
         val requestBody = slot<RequestBody>()
         mockkStatic(Md5Utils::class)
