@@ -95,6 +95,7 @@ import java.util.*;
         "com.nimbusframework.nimbusaws.annotation.annotations.nativeimage.RegisterForReflection"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
+@SupportedOptions({"nimbus.projectDir", "projectDir"})
 @AutoService(Processor.class)
 public class NimbusAnnotationProcessor extends AbstractProcessor {
 
@@ -133,7 +134,9 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         fileWriter = new FileWriter(processingEnv.getFiler());
         nativeImageReflectionWriter = new NativeImageReflectionWriter(fileWriter);
         if (userConfig == null) {
-            userConfig = new ReadUserConfigService().readUserConfig();
+            Map<String, String> options = processingEnv.getOptions();
+            String projectDir = options.getOrDefault("nimbus.projectDir", options.get("projectDir"));
+            userConfig = new ReadUserConfigService().readUserConfig(projectDir);
         }
 
         userConfigValidator.validateUserConfig(userConfig, messager);

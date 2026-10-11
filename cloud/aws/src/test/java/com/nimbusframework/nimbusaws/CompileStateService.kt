@@ -5,7 +5,7 @@ import com.google.testing.compile.Compilation
 import com.google.testing.compile.Compiler
 import com.google.testing.compile.JavaFileObjects
 import com.nimbusframework.nimbusaws.annotation.processor.NimbusAnnotationProcessor
-import com.nimbusframework.nimbusaws.annotation.services.FileReader
+import com.nimbusframework.nimbuscore.services.FileReader
 import io.kotest.matchers.shouldBe
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.ProcessingEnvironment

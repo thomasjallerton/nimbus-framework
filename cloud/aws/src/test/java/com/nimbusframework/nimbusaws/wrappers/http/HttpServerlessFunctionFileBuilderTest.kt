@@ -4,11 +4,10 @@ import com.google.testing.compile.Compilation
 import com.google.testing.compile.Compiler
 import com.google.testing.compile.JavaFileObjects
 import com.nimbusframework.nimbusaws.annotation.processor.NimbusAnnotationProcessor
-import com.nimbusframework.nimbusaws.annotation.services.FileReader
+import com.nimbusframework.nimbuscore.services.FileReader
 import com.nimbusframework.nimbuscore.annotations.function.HttpRequestPartLog
 import com.nimbusframework.nimbuscore.persisted.userconfig.HttpErrorMessageType
 import com.nimbusframework.nimbuscore.persisted.userconfig.UserConfig
-import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 

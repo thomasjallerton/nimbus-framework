@@ -1,16 +1,20 @@
-package com.nimbusframework.nimbusaws.annotation.services
+package com.nimbusframework.nimbuscore.services
 
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
+import javax.annotation.processing.Messager
+import kotlin.io.path.Path
+import kotlin.io.path.absolute
 
 class FileReader {
     fun getFileText(path: String): String {
 
         try {
-            val encoded = Files.readAllBytes(Paths.get(path))
+            val parsedPath = Path(path)
+            val encoded = Files.readAllBytes(parsedPath)
             return String(encoded)
         } catch (e: IOException) {
         }
@@ -23,7 +27,6 @@ class FileReader {
 
         val classLoader = javaClass.classLoader
         val file = File(classLoader.getResource(path)!!.file)
-
         try {
             Scanner(file).use { scanner ->
 

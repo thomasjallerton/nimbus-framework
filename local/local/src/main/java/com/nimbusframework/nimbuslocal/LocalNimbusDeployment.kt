@@ -55,7 +55,7 @@ class LocalNimbusDeployment private constructor(
     private val variableSubstitution: MutableMap<String, String> = mutableMapOf()
     private val fileUploadDetails: MutableMap<Class<*>, MutableList<FileUploadDescription>> = mutableMapOf()
 
-    private val userConfig = ReadUserConfigService().readUserConfig()
+    private val userConfig = ReadUserConfigService().readUserConfig(null)
 
     private fun initialiseFunctionHandlers(stageService: StageService) {
         localFunctionHandlers.add(LocalAfterDeploymentHandler(localResourceHolder, stageService))

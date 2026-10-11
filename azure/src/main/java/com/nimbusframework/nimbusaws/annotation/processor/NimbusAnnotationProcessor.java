@@ -7,7 +7,7 @@ import com.nimbusframework.nimbusaws.annotation.services.function.BasicFunctionR
 import com.nimbusframework.nimbusaws.arm.ArmFiles;
 import com.nimbusframework.nimbusaws.arm.ArmTemplate;
 import com.nimbusframework.nimbusaws.annotation.services.AzureResourceManagerTemplateWriter;
-import com.nimbusframework.nimbusaws.annotation.services.ReadUserConfigService;
+import com.nimbusframework.nimbuscore.services.ReadUserConfigService;
 import com.nimbusframework.nimbuscore.persisted.CloudProvider;
 import com.nimbusframework.nimbuscore.persisted.NimbusState;
 import com.nimbusframework.nimbuscore.persisted.UserConfig;
@@ -55,6 +55,7 @@ import java.util.*;
         "com.nimbusframework.nimbuscore.annotations.file.FileStorageBucketDefinitions"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
+@SupportedOptions({"nimbus.projectDir", "projectDir"})
 @AutoService(Processor.class)
 public class NimbusAnnotationProcessor extends AbstractProcessor {
 
@@ -75,7 +76,9 @@ public class NimbusAnnotationProcessor extends AbstractProcessor {
         messager = processingEnv.getMessager();
 
         azureResourceManagerTemplateWriter = new AzureResourceManagerTemplateWriter(processingEnv.getFiler());
-        userConfig = new ReadUserConfigService().readUserConfig();
+        Map<String, String> options = processingEnv.getOptions();
+        String projectDir = options.getOrDefault("nimbus.projectDir", options.get("projectDir"));
+        userConfig = new ReadUserConfigService().readUserConfig(messager, projectDir);
     }
 
     @Override
